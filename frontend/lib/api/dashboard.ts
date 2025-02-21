@@ -15,7 +15,7 @@ export const dashboardApi = {
   },
 
   getOrderAnalytics: async (period?: '7d' | '30d' | '1y') => {
-    return api.get<OrderAnalytics>('/dashboard/analytics', {
+    return api.get<OrderAnalytics>('/dashboard/order-analytics', {
       params: { period }
     });
   },

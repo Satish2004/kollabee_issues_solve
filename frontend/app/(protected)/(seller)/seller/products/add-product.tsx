@@ -59,10 +59,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
     if (file) {
       try {
         setCoverImage(file);
-        const response = await productsApi.uploadImage(file);
+        const response:any = await productsApi.uploadImage(file);
         setFormData(prev => ({
           ...prev,
-          images: [...(prev.images || []), response.data.url]
+          images: [...(prev.images || []), response?.url]
         }));
         toast.success('Image uploaded successfully');
       } catch (error) {

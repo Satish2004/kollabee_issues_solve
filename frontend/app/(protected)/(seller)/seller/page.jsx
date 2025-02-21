@@ -46,13 +46,13 @@ const Dashboard = () => {
       ]);
 
       setDashboardData({
-        totalOrders: metricsRes.data.totalOrders,
-        totalRevenue: metricsRes.data.totalRevenue,
-        returnedProducts: metricsRes.data.returnedProducts,
-        pendingShipments: metricsRes.data.pendingShipments,
-        averageOrderValue: metricsRes.data.averageOrderValue,
-        totalRequests: metricsRes.data.totalRequests,
-        unreadMessages: metricsRes.data.unreadMessages,
+        totalOrders: metricsRes?.totalOrders,
+        totalRevenue: metricsRes?.totalRevenue,
+        returnedProducts: metricsRes?.returnedProducts,
+        pendingShipments: metricsRes?.pendingShipments,
+        averageOrderValue: metricsRes?.averageOrderValue,
+        totalRequests: metricsRes?.totalRequests,
+        unreadMessages: metricsRes?.unreadMessages,
         publishedProducts: metricsRes.data.activeProducts
       });
 

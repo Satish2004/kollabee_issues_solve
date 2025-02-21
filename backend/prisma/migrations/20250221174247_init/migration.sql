@@ -37,6 +37,9 @@ CREATE TYPE "AdvertisementStatus" AS ENUM ('PENDING', 'ACTIVE', 'PAUSED', 'COMPL
 -- CreateEnum
 CREATE TYPE "BusinessType" AS ENUM ('MANUFACTURER', 'DISTRIBUTOR', 'SERVICE_PROVIDER', 'PACKAGING_SUPPLIER', 'CO_PACKER', 'OTHER');
 
+-- CreateEnum
+CREATE TYPE "ProductStatus" AS ENUM ('DRAFT', 'ACTIVE', 'ARCHIVED');
+
 -- CreateTable
 CREATE TABLE "User" (
     "id" TEXT NOT NULL,
@@ -360,7 +363,8 @@ CREATE TABLE "Product" (
     "minOrderQuantity" INTEGER NOT NULL,
     "availableQuantity" INTEGER NOT NULL,
     "images" TEXT[],
-    "isDraft" BOOLEAN NOT NULL DEFAULT false,
+    "isDraft" BOOLEAN NOT NULL DEFAULT true,
+    "status" "ProductStatus" NOT NULL DEFAULT 'DRAFT',
     "stockStatus" "StockStatus" NOT NULL DEFAULT 'IN_STOCK',
     "rating" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "reviewCount" INTEGER NOT NULL DEFAULT 0,

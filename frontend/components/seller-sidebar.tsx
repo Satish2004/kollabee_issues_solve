@@ -69,7 +69,7 @@ export function SellerSidebar({ className }: SidebarProps) {
         {
           label: "Your Products",
           icon: Store,
-          href: "/seller/products/active",
+          href: "/seller/products",
         },
         // {
         //   label: "Add Product",

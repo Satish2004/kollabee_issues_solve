@@ -17,6 +17,7 @@ import { productsApi } from '@/lib/api/products';
 import { Product } from '@/types/api';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import { format } from 'date-fns';
 
 interface ProductStats {
   categories: number;
@@ -82,30 +83,7 @@ const ProductsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b">
-        <div className="flex items-center space-x-2">
-          <ShoppingCart className="w-5 h-5" />
-          <h1 className="text-xl font-semibold">Products</h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          <button className="bg-gradient-to-r from-pink-500 to-red-500 text-white px-4 py-2 rounded-lg">
-            Upgrade
-          </button>
-          <div className="flex items-center space-x-3">
-            <button className="text-gray-600 hover:text-gray-900">
-              <Box className="w-5 h-5" />
-            </button>
-            <button className="text-gray-600 hover:text-gray-900">
-              <List className="w-5 h-5" />
-            </button>
-            <img
-              src="/api/placeholder/32/32"
-              alt="Profile"
-              className="w-8 h-8 rounded-full"
-            />
-          </div>
-        </div>
-      </header>
+    
 
       {/* Main Content */}
       <div className="p-6">

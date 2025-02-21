@@ -13,8 +13,8 @@ import dashboardRoutes from './dashboard';
 import marketplaceRoutes from './marketplace';
 import uploadRoutes from './upload';
 import advertiseRoutes from './advertise';
-import categoryRoutes from './category';
-
+import categoryRoutes from './category';  
+import requestRoutes from './request';
 export const setupRoutes = (app: Express) => {
   // API Routes
   app.use('/api/auth', authRoutes);
@@ -32,6 +32,7 @@ export const setupRoutes = (app: Express) => {
   app.use('/api/upload', uploadRoutes);
   app.use('/api/advertise', advertiseRoutes);
   app.use('/api/categories', categoryRoutes);
+  app.use('/api/requests', requestRoutes);
 
   // Health check route
   app.get('/health', (req, res) => {

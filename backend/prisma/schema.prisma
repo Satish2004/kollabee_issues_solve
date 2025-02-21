@@ -341,7 +341,8 @@ model Product {
   minOrderQuantity  Int
   availableQuantity Int
   images            String[]
-  isDraft           Boolean     @default(false)
+  isDraft           Boolean     @default(true)
+  status            ProductStatus @default(DRAFT)
   stockStatus       StockStatus @default(IN_STOCK)
   rating            Float       @default(0)
   reviewCount       Int         @default(0)
@@ -610,4 +611,10 @@ enum BusinessType {
   PACKAGING_SUPPLIER
   CO_PACKER
   OTHER
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
 }

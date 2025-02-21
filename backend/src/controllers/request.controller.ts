@@ -18,7 +18,7 @@ export const createRequest = async (req: any, res: Response) => {
       country,
       leadSize
     } = req.body;
-
+    console.log(req.body);
     const request = await prisma.request.create({
       data: {
         buyerId: req.user.buyerId,
@@ -38,6 +38,59 @@ export const createRequest = async (req: any, res: Response) => {
 
     res.json(request);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ error: 'Failed to create request' });
   }
 }; 
+
+export const getAllRequests = async (req: any, res: Response) => {
+  try {
+    const requests = await prisma.request.findMany();
+    res.json(requests);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to get requests' });
+  }
+};
+
+export const getRequestById = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    const request = await prisma.request.findUnique({
+      where: { id }
+    });
+    res.json(request);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to get request' });
+  }
+};
+
+export const updateRequest = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const request = await prisma.request.update({
+      where: { id },
+      data: { status }
+    });
+    res.json(request);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to update request' });
+  }
+};
+
+export const deleteRequest = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    await prisma.request.delete({ where: { id } });
+    res.json({ message: 'Request deleted successfully' });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'Failed to delete request' });
+  }
+};
+
+

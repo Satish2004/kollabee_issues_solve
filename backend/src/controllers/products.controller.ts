@@ -1,117 +1,13 @@
 import { Request, Response } from 'express';
 import prisma from '../db';
 
-export const getProducts = async (req: any, res: Response) => {
-  try {
-    const { 
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
-      priceRange,
-      category,
-      search,
-      minQuantity,
-      maxQuantity,
-      sellerId,
-      page = 1,
-      limit = 10
-    } = req.query;
+enum ProductStatus {
+  DRAFT = 'DRAFT',
+  ACTIVE = 'ACTIVE',
+  ARCHIVED = 'ARCHIVED'
+}
 
-    const whereConditions: any = {
-      availableQuantity: { gt: 0 }
-    };
-
-    // Search by name or description
-    if (search) {
-      whereConditions.OR = [
-        { name: { contains: search as string, mode: 'insensitive' } },
-        { description: { contains: search as string, mode: 'insensitive' } }
-      ];
-    }
-
-    // Price range filter
-    if (priceRange) {
-      const [min, max] = (priceRange as string).split(',').map(Number);
-      whereConditions.price = { 
-        gte: min || undefined,
-        lte: max || undefined
-      };
-    }
-
-    // Category filter
-    if (category && category !== 'ALL') {
-      whereConditions.categoryId = category;
-    }
-
-    // Quantity range filter
-    if (minQuantity || maxQuantity) {
-      whereConditions.availableQuantity = {
-        gte: Number(minQuantity) || undefined,
-        lte: Number(maxQuantity) || undefined
-      };
-    }
-
-    // Filter by seller
-    if (sellerId) {
-      whereConditions.sellerId = sellerId;
-    }
-
-    // Calculate pagination
-    const skip = (Number(page) - 1) * Number(limit);
-
-    // Get total count for pagination
-    const totalCount = await prisma.product.count({ where: whereConditions });
-
-    // Get products with filters and pagination
-    const products = await prisma.product.findMany({
-      where: whereConditions,
-      include: {
-        seller: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                companyName: true,
-                imageUrl: true
-              }
-            }
-          }
-        },
-        reviews: {
-          select: {
-            rating: true
-          }
-        }
-      },
-      orderBy: {
-        [sortBy]: sortOrder
-      },
-      skip,
-      take: Number(limit)
-    });
-
-    // Calculate average rating for each product
-    const productsWithRating = products.map((product:any) => ({
-      ...product,
-      averageRating: product.reviews.length > 0
-        ? product.reviews.reduce((acc: number, review: { rating: number }) => acc + review.rating, 0) / product.reviews.length
-        : null
-    }));
-
-    res.json({
-      products: productsWithRating,
-      pagination: {
-        total: totalCount,
-        pages: Math.ceil(totalCount / Number(limit)),
-        currentPage: Number(page),
-        limit: Number(limit)
-      }
-    });
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
-  }
-};
-
+// Create Product
 export const createProduct = async (req: any, res: Response) => {
   try {
     if (!req.user?.sellerId) {
@@ -125,73 +21,284 @@ export const createProduct = async (req: any, res: Response) => {
       minOrderQuantity,
       availableQuantity,
       description,
-      categoryName,
+      categoryId, // Changed from categoryName
       images,
       pickupAddress
     } = req.body;
 
-    const category = await prisma.category.create({
-      data: {
-        categoryName: categoryName as any
-      }
-    });
-
-    // Create pickup address
-    const address = await prisma.pickupAddress.create({
-      data: {
-        ...pickupAddress
-      }
-    });
+    // Create pickup address if provided
+    let addressId = null;
+    if (pickupAddress) {
+      const address = await prisma.pickupAddress.create({
+        data: pickupAddress
+      });
+      addressId = address.id;
+    }
 
     const product = await prisma.product.create({
       data: {
         name,
         description,
-        price,
-        wholesalePrice,
-        minOrderQuantity,
-        availableQuantity,
+        price: Number(price),
+        wholesalePrice: Number(wholesalePrice),
+        minOrderQuantity: Number(minOrderQuantity),
+        availableQuantity: Number(availableQuantity),
         images,
         sellerId: req.user.sellerId,
-        pickupAddressId: address.id,
-        categoryId: category.id
+        pickupAddressId: addressId,
+        categoryId,
+        isDraft: true
       },
+      include: {
+        seller: true,
+        pickupAddress: true
+      }
     });
 
-    res.json(product);
+    res.status(201).json({ data: product });
   } catch (error) {
-    console.log(error,"error");
+    console.error('Error creating product:', error);
     res.status(500).json({ error: 'Failed to create product' });
   }
 };
 
-export const deleteProduct = async (req: any, res: Response) => {
+// Get Products
+export const getProducts = async (req: any, res: Response) => {
   try {
-    const { productId } = req.params;
+    const {
+      status = 'ACTIVE',
+      search,
+      categoryId,
+      minPrice,
+      maxPrice,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      page = 1,
+      limit = 10
+    } = req.query;
 
+    const filters: any = {
+      ...(req.user?.sellerId && { sellerId: req.user.sellerId })
+    };
+
+    // Remove status filter since it's not in schema
+    // Add isDraft filter instead
+    filters.isDraft = status === 'DRAFT';
+
+    if (search) {
+      filters.OR = [
+        { name: { contains: search as string, mode: 'insensitive' } },
+        { description: { contains: search as string, mode: 'insensitive' } }
+      ];
+    }
+
+    if (categoryId) filters.categoryId = categoryId;
+    if (minPrice || maxPrice) {
+      filters.price = {
+        ...(minPrice && { gte: Number(minPrice) }),
+        ...(maxPrice && { lte: Number(maxPrice) })
+      };
+    }
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({
+        where: filters,
+        orderBy: { [(sortBy as string) || 'createdAt']: sortOrder },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+        include: {
+          seller: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  email: true
+                }
+              }
+            }
+          }
+        }
+      }),
+      prisma.product.count({ where: filters })
+    ]);
+
+    res.json({
+      data: products,
+      meta: {
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500).json({ message: 'Failed to fetch products' });
+  }
+};
+
+// Update Product
+export const updateProduct = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    
     if (!req.user?.sellerId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId }
+    const product = await prisma.product.findFirst({
+      where: { 
+        id,
+        sellerId: req.user.sellerId
+      }
     });
 
     if (!product) {
       return res.status(404).json({ error: 'Product not found' });
     }
 
-    if (product.sellerId !== req.user.sellerId) {
-      return res.status(403).json({ error: 'Not authorized to delete this product' });
-    }
-
-    await prisma.product.delete({
-      where: { id: productId }
+    const updatedProduct = await prisma.product.update({
+      where: { id },
+      data: {
+        name: req.body.name,
+        description: req.body.description,
+        price: Number(req.body.price),
+        wholesalePrice: Number(req.body.wholesalePrice),
+        minOrderQuantity: Number(req.body.minOrderQuantity),
+        availableQuantity: Number(req.body.availableQuantity),
+        images: req.body.images,
+        categoryId: req.body.categoryId,
+      },
+      include: {
+        seller: true,
+        pickupAddress: true
+      }
     });
 
-    res.json({ success: true, message: 'Product deleted successfully' });
+    res.json({ data: updatedProduct });
   } catch (error) {
+    console.error('Error updating product:', error);
+    res.status(500).json({ error: 'Failed to update product' });
+  }
+};
+
+// Update Product Status
+// export const updateProductStatus = async (req: any, res: Response) => {
+//   try {
+//     const { id } = req.params;
+//     const { status } = req.body as any;
+
+//     const product = await prisma.product.findFirst({
+//       where: {
+//         id,
+//         sellerId: req.user.sellerId
+//       }
+//     });
+
+//     if (!product) {
+//       return res.status(404).json({ message: 'Product not found' });
+//     }
+
+//     if (status === ProductStatus.ACTIVE) {
+//       const requiredFields = [
+//         'name', 
+//         'description', 
+//         'price', 
+//         'wholesalePrice',
+//         'minOrderQuantity',
+//         'availableQuantity',
+//         'categoryId'
+//       ];
+
+//       const missingFields = requiredFields.filter(
+//         field => !product[field as keyof typeof product]
+//       );
+      
+//       if (missingFields.length > 0) {
+//         return res.status(400).json({
+//           message: 'Cannot publish product with missing required fields',
+//           missingFields
+//         });
+//       }
+//     }
+
+//     const updatedProduct = await prisma.product.update({
+//       where: { id },
+//       data: {
+//         isDraft: status === 'DRAFT',
+//          status
+//       },
+//       include: {
+//         seller: true,
+//         pickupAddress: true
+//       }
+//     });
+
+//     res.json({ data: updatedProduct });
+//   } catch (error) {
+//     console.error('Error updating product status:', error);
+//     res.status(500).json({ message: 'Failed to update product status' });
+//   }
+// };
+
+// Delete Product
+export const deleteProduct = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.user?.sellerId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const product = await prisma.product.findFirst({
+      where: { 
+        id,
+        sellerId: req.user.sellerId
+      }
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    await prisma.product.delete({ where: { id } });
+    res.json({ message: 'Product deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Failed to delete product' });
+  }
+};
+
+// Get Search Suggestions
+export const getSearchSuggestions = async (req: Request, res: Response) => {
+  try {
+    const { query } = req.query;
+    
+    if (!query || typeof query !== 'string') {
+      return res.json({ data: [] });
+    }
+
+    const suggestions = await prisma.product.findMany({
+      where: {
+        OR: [
+          { name: { contains: query, mode: 'insensitive' } },
+          { description: { contains: query, mode: 'insensitive' } }
+        ],
+        // status: "ACTIVE"
+      },
+      select: {
+        id: true,
+        name: true,
+        price: true,
+        images: true
+      },
+      take: 5
+    });
+
+    res.json({ data: suggestions });
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    res.status(500).json({ error: 'Failed to fetch suggestions' });
   }
 };
 
@@ -278,75 +385,5 @@ export const getProductById = async (req: any, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch product' });
   }
 };
-
-export const updateProduct = async (req: any, res: Response) => {
-  try {
-    const { productId } = req.params;
-    if (!req.user?.sellerId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const product = await prisma.product.findUnique({
-      where: { id: productId }
-    });
-
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    if (product.sellerId !== req.user.sellerId) {
-      return res.status(403).json({ error: 'Not authorized to update this product' });
-    }
-
-    const updatedProduct = await prisma.product.update({
-      where: { id: productId },
-      data: {
-        name: req.body.name,
-        description: req.body.description,
-        price: req.body.price,
-        wholesalePrice: req.body.wholesalePrice,
-        minOrderQuantity: req.body.minOrderQuantity,
-        availableQuantity: req.body.availableQuantity,
-        images: req.body.images,
-        categoryId: req.body.categoryId
-      }
-    });
-
-    res.json(updatedProduct);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update product' });
-  }
-};
-
-export const getSearchSuggestions = async (req: Request, res: Response) => {
-  try {
-    const { query } = req.query;
-    
-    if (!query || typeof query !== 'string') {
-      return res.json([]);
-    }
-
-    const suggestions = await prisma.product.findMany({
-      where: {
-        OR: [
-          { name: { contains: query, mode: 'insensitive' } },
-          { description: { contains: query, mode: 'insensitive' } }
-        ]
-      },
-      select: {
-        name: true,
-        id: true
-      },
-      take: 5
-    });
-
-    res.json(suggestions);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch suggestions' });
-  }
-};
-
-
-
 
 // Add other product-related controllers 

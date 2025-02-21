@@ -10,7 +10,7 @@ const signupSchema = z.object({
   email: z.string().email('Invalid email format'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  role: z.enum(['BUYER', 'SELLER']),
+  role: z.enum(['BUYER', 'SELLER', 'ADMIN']),
   companyName: z.string().optional(),
   phoneNumber: z.string().optional(),
   country: z.string().optional(),
@@ -237,9 +237,8 @@ export const resetPassword = async (req: Request, res: Response) => {
 export const getCurrentUser = async (req: any, res: Response) => {
   try {
     const userId = req.user.userId; // From auth middleware
-console.log(userId);
     const user = await prisma.user.findUnique({
-      where: { id: "b0c3a8b4-4b86-4f53-94a2-78bc5901601b" },
+      where: { id: userId },
       include: {
         seller: true,
         buyer: true,

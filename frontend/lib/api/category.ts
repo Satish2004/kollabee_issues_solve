@@ -8,5 +8,9 @@ export const categoryApi = {
 
   getById: async (id: string) => {
     return api.get<Category>(`/categories/${id}`);
+  },
+
+  create: async (categoryName: string) => {
+    return api.post<Category>('/categories', { categoryName });
   }
 }; 
