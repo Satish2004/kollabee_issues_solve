@@ -184,21 +184,22 @@ export interface Seller {
   user: User;
 }
 
-export interface Order {
-  id: string;
-  buyerId?: string;
-  sellerId?: string;
-  status: OrderStatus;
+export interface Order extends Request {
+  items: Array<{
+    product: {
+      name: string;
+      categoryId: string;
+    };
+    seller: {
+      businessName: string;
+    };
+  }>;
   totalAmount: number;
-  razorpayOrderId?: string;
-  razorpayPaymentId?: string;
-  trackingNumber?: string;
-  carrier?: string;
-  trackingHistory: any[];
+  shippingAddress?: {
+    country: string;
+  };
+  status: string;
   createdAt: string;
-  updatedAt: string;
-  items: OrderItem[];
-  shippingAddress?: ShippingAddress;
 }
 
 export interface OrderItem {

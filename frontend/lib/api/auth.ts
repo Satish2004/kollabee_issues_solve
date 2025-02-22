@@ -35,6 +35,7 @@ export const authApi = {
     console.log(response);
     if (response.token) {
       setToken(response.token);
+      localStorage.setItem('token', response.token);
     }
     return response;
   },

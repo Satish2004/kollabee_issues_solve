@@ -143,6 +143,7 @@ export const addBankDetail = async (req: any, res: Response) => {
 
     res.json(bankDetail);
   } catch (error) {
+    console.error('Add bank detail error:', error);
     res.status(500).json({ error: 'Failed to add bank detail' });
   }
 };

@@ -3,21 +3,24 @@ import React, { useState, useEffect } from 'react';
 import { Search, ChevronDown, Plus, Eye, Edit2, Trash2 } from 'lucide-react';
 import { requestApi } from '@/lib/api/request';
 import { toast } from 'sonner';
-import { Category, Request } from '@/types/api';
+import { Category, Request, Order } from '@/types/api';
 import { categoryApi } from '@/lib/api/category';
+import { ordersApi } from '@/lib/api/orders';
 import { Upload, X } from 'lucide-react';
 
-const RequestsPage: React.FC = () => {
+const RequestsPage = () => {
   const [view, setView] = useState<'list' | 'details' | 'form'>('list');
   const [searchQuery, setSearchQuery] = useState('');
-  const [requests, setRequests] = useState<Request[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<Request | null>(null);
+  const [requests, setRequests] = useState<Order[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [showActions, setShowActions] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'received' | 'manufacturing'>('all');
+  const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+
   useEffect(() => {
-    loadRequests();
+    loadOrders();
     loadCategories();
   }, [searchQuery]);
 
@@ -31,27 +34,21 @@ const RequestsPage: React.FC = () => {
     }
   };
 
-  const loadRequests = async () => {
+  const loadOrders = async () => {
     try {
-      setIsLoading(true);
-      const response:any = await requestApi.getAll({
-        search: searchQuery || undefined
-      });
-      setRequests(response);
+      const response:any = await ordersApi.getOrders();
+      setRequests(response?.orders);
     } catch (error) {
-      console.error('Failed to load requests:', error);
-      toast.error('Failed to load requests');
-    } finally {
-      setIsLoading(false);
+      console.error('Failed to load orders:', error);
     }
-  };
+  }
 
   const handleCreateRequest = async (formData: any) => {
     try {
       await requestApi.create(formData);
       toast.success('Request created successfully');
       setView('list');
-      loadRequests();
+      loadOrders();
     } catch (error) {
       console.error('Failed to create request:', error);
       toast.error('Failed to create request');
@@ -64,11 +61,16 @@ const RequestsPage: React.FC = () => {
     try {
       await requestApi.delete(id);
       toast.success('Request deleted successfully');
-      loadRequests();
+      loadOrders();
     } catch (error) {
       console.error('Failed to delete request:', error);
       toast.error('Failed to delete request');
     }
+  };
+
+  const handleShowActions = (requestId: string) => {
+    setSelectedRequestId(requestId);
+    setShowActions(true);
   };
 
   const RequestList = () => (
@@ -124,22 +126,16 @@ const RequestsPage: React.FC = () => {
                 <div className="flex items-start justify-between">
                   <div>
                     <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="text-lg font-semibold">Antibacterial Sheet Masks</h3>
+                      <h3 className="text-lg font-semibold">{request.items[0]?.product?.name}</h3>
                       <img src="/cn-flag.png" alt="CN" className="w-4 h-4" />
                     </div>
-                    <p className="text-gray-500 text-sm">Guangzhou Daxin Trading Firm (Sole Proprietorship)</p>
+                    <p className="text-gray-500 text-sm">{request.items[0]?.seller?.businessName}</p>
                     <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                      <span>Beauty & Personal Care</span>
-                      <span>•</span>
-                      <span>Skin Care & Body Care</span>
-                      <span>•</span>
-                      <span>Facial Care</span>
-                      <span>•</span>
-                      <span>Face Mask Sheet</span>
+                      <span>{request.items[0]?.product?.categoryId}</span>
                     </div>
                   </div>
                   <button 
-                    onClick={() => setShowActions(true)}
+                    onClick={() => handleShowActions(request.id)}
                     className="px-4 py-1 text-rose-600 border border-rose-600 rounded-lg"
                   >
                     Take Action
@@ -148,20 +144,20 @@ const RequestsPage: React.FC = () => {
                 
                 <div className="mt-4 grid grid-cols-4 gap-8">
                   <div>
-                    <p className="text-gray-500 text-sm mb-1">Lead size</p>
-                    <p className="font-medium">+$5,000</p>
+                    <p className="text-gray-500 text-sm mb-1">Total Amount</p>
+                    <p className="font-medium">${request.totalAmount}</p>
                   </div>
                   <div>
                     <p className="text-gray-500 text-sm mb-1">Country</p>
-                    <p className="font-medium">India</p>
+                    <p className="font-medium">{request.shippingAddress?.country}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm mb-1">Quantity</p>
-                    <p className="font-medium">100-1000 units</p>
+                    <p className="text-gray-500 text-sm mb-1">Status</p>
+                    <p className="font-medium">{request.status}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm mb-1">Order frequency</p>
-                    <p className="font-medium">Monthly</p>
+                    <p className="text-gray-500 text-sm mb-1">Order Date</p>
+                    <p className="font-medium">{new Date(request.createdAt).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>

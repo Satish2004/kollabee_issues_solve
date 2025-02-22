@@ -18,16 +18,34 @@ const Settings: React.FC<SettingsProps> = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordResponse, setPasswordResponse] = useState<any>({newPassword:'',currentPassword:'',confirmPassword:''});
-  const [bankDetails, setBankDetails] = useState<any>(null);
+  const [bankDetails, setBankDetails] = useState<any>({
+    fullName: '',
+    holderName: '',
+    bankName: '',
+    bankType: '',
+    cvCode: '',
+    zipCode: '',
+    accountNumber: '',
+  });
 
   const getUser = async () => {
     const response:any = await profileApi.getCurrentUser();
    setFormData(response);
   }
 
+  const getBankDetails = async () => {
+    const response:any = await profileApi.getBankDetails();
+    setBankDetails(response ? response[0] : {...bankDetails});
+  }
+
   useEffect(() => {
     getUser();
+    getBankDetails(); 
   }, []);
+
+  useEffect(() => {
+    console.log(bankDetails);
+  }, [bankDetails]);
 
   const [formData, setFormData] = useState({
     currentPassword: '',
@@ -68,6 +86,16 @@ const Settings: React.FC<SettingsProps> = () => {
     }));
   }
 
+  const handleBankDetailsChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setBankDetails((prev: any) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -92,7 +120,7 @@ const Settings: React.FC<SettingsProps> = () => {
   }
 
   const updateBankDetails = async () => {
-    // const response:any = await profileApi.updateBankDetails(formData);
+    const response:any = await profileApi.updateBankDetails(bankDetails);
     toast.success("Bank details updated successfully");
   }
   const renderAccountSettings = () => (
@@ -144,7 +172,7 @@ const Settings: React.FC<SettingsProps> = () => {
               type="text"
               name="name"
               value={formData.name}
-              onChange={handleInputChange}
+                onChange={handleInputChange}
               placeholder="Enter your Full Name"
               className="w-full px-3 py-2 border rounded-lg"
             />
@@ -158,7 +186,8 @@ const Settings: React.FC<SettingsProps> = () => {
               type="email"
               name="email"
               value={formData.email}
-              onChange={handleInputChange}
+              readOnly
+                onChange={handleInputChange}
               placeholder="Re-enter your Company Email Address"
               className="w-full px-3 py-2 border rounded-lg"
             />
@@ -405,8 +434,8 @@ const Settings: React.FC<SettingsProps> = () => {
           <input
             type="text"
             name="fullName"
-            value={formData.fullName}
-            onChange={handleInputChange}
+            value={bankDetails.fullName}
+            onChange={handleBankDetailsChange}
             placeholder="Enter your Full Name"
             className="w-full px-3 py-2 border rounded-lg"
           />
@@ -417,9 +446,9 @@ const Settings: React.FC<SettingsProps> = () => {
           </label>
           <input
             type="text"
-            name="accountHolder"
-            value={formData.accountHolder}
-            onChange={handleInputChange}
+            name="holderName"
+            value={bankDetails.holderName}
+            onChange={handleBankDetailsChange}
             placeholder="Text Here"
             className="w-full px-3 py-2 border rounded-lg"
           />
@@ -428,15 +457,14 @@ const Settings: React.FC<SettingsProps> = () => {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Select Bank*
           </label>
-          <select
-            name="bank"
-            value={formData.bank}
-            onChange={handleSelectChange}
+      <input
+            type="text"
+            name="bankName"
+            value={bankDetails.bankName}
+            onChange={handleBankDetailsChange}
+            placeholder="Enter your Bank Name"
             className="w-full px-3 py-2 border rounded-lg"
-          >
-            <option value="">Select Bank</option>
-            {/* Add bank options */}
-          </select>
+            />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -444,12 +472,14 @@ const Settings: React.FC<SettingsProps> = () => {
           </label>
           <select
             name="bankType"
-            value={formData.bankType}
-            onChange={handleSelectChange}
+            value={bankDetails.bankType}
+            onChange={handleBankDetailsChange}
             className="w-full px-3 py-2 border rounded-lg"
           >
             <option value="">Select Type</option>
-            {/* Add bank type options */}
+        {[{name:'Savings',value:'SAVINGS'},{name:'Current',value:'CURRENT'}].map((bankType,index) => (
+          <option key={index} value={bankType.value}>{bankType.name}</option>
+        ))}
           </select>
         </div>
         <div>
@@ -459,8 +489,8 @@ const Settings: React.FC<SettingsProps> = () => {
           <input
             type="text"
             name="cvCode"
-            value={formData.cvCode}
-            onChange={handleInputChange}
+            value={bankDetails.cvCode}
+            onChange={handleBankDetailsChange}
             placeholder="XXX"
             className="w-full px-3 py-2 border rounded-lg"
           />
@@ -472,8 +502,8 @@ const Settings: React.FC<SettingsProps> = () => {
           <input
             type="text"
             name="zipCode"
-            value={formData.zipCode}
-            onChange={handleInputChange}
+            value={bankDetails.zipCode}
+            onChange={handleBankDetailsChange}
             placeholder="XXXXX"
             className="w-full px-3 py-2 border rounded-lg"
           />
@@ -485,8 +515,8 @@ const Settings: React.FC<SettingsProps> = () => {
           <input
             type="text"
             name="accountNumber"
-            value={formData.accountNumber}
-            onChange={handleInputChange}
+            value={bankDetails.accountNumber}
+            onChange={handleBankDetailsChange}
             placeholder="Enter your Account Number"
             className="w-full px-3 py-2 border rounded-lg"
           />
@@ -498,8 +528,8 @@ const Settings: React.FC<SettingsProps> = () => {
           <input
             type="text"
             name="upinId"
-            value={formData.upinId}
-            onChange={handleInputChange}
+            value={bankDetails.upinId}
+            onChange={handleBankDetailsChange}
             placeholder="Text Here"
             className="w-full px-3 py-2 border rounded-lg"
           />

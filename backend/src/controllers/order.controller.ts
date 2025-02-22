@@ -49,16 +49,16 @@ export const createOrder = async (req: any, res: Response) => {
     });
 
     // Clear cart after successful order
-    if (order) {
-      await prisma.cart.update({
-        where: { buyerId },
-        data: {
-          items: {
-            deleteMany: {}
-          }
-        }
-      });
-    }
+    // if (order) {
+    //   await prisma.cart.update({
+    //     where: { buyerId },
+    //     data: {
+    //       items: {
+    //         deleteMany: {}
+    //       }
+    //     }
+    //   });
+    // }
 
     res.json(order);
   } catch (error) {

@@ -55,5 +55,9 @@ export const profileApi = {
         'Content-Type': 'multipart/form-data',
       },
     });
+  },
+
+  getBankDetails: async () => {
+    return api.get('/payment/bank-details');
   }
 }; 
