@@ -5,6 +5,6 @@ import { authMiddleware } from '../middleware/auth';
 const router = express.Router();
 
 router.get('/profile', authMiddleware, getUserProfile);
-router.put('/profile', authMiddleware, updateUserProfile);
+router.patch('/profile', authMiddleware, updateUserProfile);
 
 export default router; 

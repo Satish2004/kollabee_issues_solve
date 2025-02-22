@@ -1,27 +1,43 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import AccountSettings from './account-settings';
+import { profileApi } from '@/lib/api/profile';
+import { BankDetail } from '@/types/api';
+import { Country, State, City } from "country-state-city"
+import { toast } from 'sonner';
+import { User } from '@/types/api';
 interface SettingsProps {
-  onSave: () => void;
 }
 
 type TabType = 'account' | 'password' | 'payment';
 
-const Settings: React.FC<SettingsProps> = ({ onSave }) => {
-  const [activeTab, setActiveTab] = useState<TabType>('password');
+const Settings: React.FC<SettingsProps> = () => {
+  const [activeTab, setActiveTab] = useState<TabType>('account');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordResponse, setPasswordResponse] = useState<any>({newPassword:'',currentPassword:'',confirmPassword:''});
+  const [bankDetails, setBankDetails] = useState<any>(null);
+
+  const getUser = async () => {
+    const response:any = await profileApi.getCurrentUser();
+   setFormData(response);
+  }
+
+  useEffect(() => {
+    getUser();
+  }, []);
 
   const [formData, setFormData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
-    email: 'amanverma500@gmail.com',
+    email: '',
     fullName: '',
-    companyEmail: '',
-    officeAddress: '',
+    address: '',
+    name: '',
+
     phoneCountry: 'US',
     phoneNumber: '',
     country: 'IN',
@@ -32,7 +48,8 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
     cvCode: '',
     zipCode: '',
     accountNumber: '',
-    upinId: ''
+    upinId: '',
+    imageUrl: ''
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -43,6 +60,14 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
     }));
   };
 
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setPasswordResponse((prev:any) => ({
+      ...prev,
+      [name]: value
+    }));
+  }
+
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -51,6 +76,25 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
     }));
   };
 
+  const updateProfile = async () => {
+    const response:any = await profileApi.updateProfile(formData);
+    toast.success("Profile updated successfully");
+  }
+
+  const updatePassword = async () => {  
+
+    if(passwordResponse.newPassword !== passwordResponse.confirmPassword){
+      toast.error("New password and confirm password do not match");
+      return;
+    }
+    const response:any = await profileApi.updatePassword(passwordResponse);
+    toast.success("Password updated successfully");
+  }
+
+  const updateBankDetails = async () => {
+    // const response:any = await profileApi.updateBankDetails(formData);
+    toast.success("Bank details updated successfully");
+  }
   const renderAccountSettings = () => (
     <div className="p-6">
       <div className="grid grid-cols-3 gap-8">
@@ -68,7 +112,19 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
               </div>
               <div className="flex justify-center space-x-4 mt-4">
                 <button className="flex items-center text-red-500 hover:text-red-600">
-                  <span className="underline">Change</span>
+                  <span className="underline" onClick={() => {
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.onchange = async (e) => {
+                      const file = (e.target as HTMLInputElement).files?.[0];
+                      if (file) { 
+                        const response = await profileApi.uploadImage(file);
+                        setFormData({ ...formData, imageUrl: response.data.imageUrl });
+                      }
+                    }
+                    
+                  }}>Change</span>
                 </button>
                 <button className="flex items-center text-red-500 hover:text-red-600">
                   <span className="underline">Delete</span>
@@ -86,8 +142,8 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
             </label>
             <input
               type="text"
-              name="fullName"
-              value={formData.fullName}
+              name="name"
+              value={formData.name}
               onChange={handleInputChange}
               placeholder="Enter your Full Name"
               className="w-full px-3 py-2 border rounded-lg"
@@ -100,7 +156,7 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
             </label>
             <input
               type="email"
-              name="companyEmail"
+              name="email"
               value={formData.email}
               onChange={handleInputChange}
               placeholder="Re-enter your Company Email Address"
@@ -114,8 +170,8 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
             </label>
             <input
               type="text"
-              name="officeAddress"
-              value={formData.officeAddress || ''}
+              name="address"
+              value={formData.address || ''}
               onChange={handleInputChange}
               placeholder="Create your Office Address"
               className="w-full px-3 py-2 border rounded-lg"
@@ -157,9 +213,9 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
               onChange={handleSelectChange}
               className="w-full px-3 py-2 border rounded-lg"
             >
-              <option value="">Select Country</option>
-              <option value="IN">India</option>
-              <option value="US">United States</option>
+         {Country.getAllCountries().map((country,index) => (
+            <option key={index} value={country.name}>{country.name}</option>
+         ))}
             </select>
           </div>
 
@@ -174,9 +230,9 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
                 onChange={handleSelectChange}
                 className="w-full px-3 py-2 border rounded-lg"
               >
-                <option value="">Select State</option>
-                <option value="DL">Delhi</option>
-                <option value="MH">Maharashtra</option>
+                {State.getAllStates().map((state,index) => (
+                  <option key={index} value={state.name}>{state.name}</option>
+                ))}
               </select>
             </div>
             <div>
@@ -186,7 +242,7 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
               <input
                 type="text"
                 name="zipCode"
-                value={formData.zipCode}
+                value={formData.zipCode || ''}
                 onChange={handleInputChange}
                 placeholder="Enter Zip Code"
                 className="w-full px-3 py-2 border rounded-lg"
@@ -196,7 +252,7 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
 
           <div className="pt-4">
             <button
-              onClick={onSave}
+              onClick={updateProfile}
               className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-lg"
             >
               Save Changes
@@ -219,8 +275,8 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
             <input
               type={showPassword ? "text" : "password"}
               name="currentPassword"
-              value={formData.currentPassword}
-              onChange={handleInputChange}
+              value={passwordResponse.currentPassword}
+                onChange={handlePasswordChange}
               className="w-full px-3 py-2 border rounded-lg pr-10"
               placeholder="●●●"
             />
@@ -250,8 +306,8 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
             <input
               type={showNewPassword ? "text" : "password"}
               name="newPassword"
-              value={formData.newPassword}
-              onChange={handleInputChange}
+              value={passwordResponse.newPassword}
+                onChange={handlePasswordChange}
               className="w-full px-3 py-2 border rounded-lg pr-10"
               placeholder="●●●"
             />
@@ -278,8 +334,8 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
             <input
               type={showConfirmPassword ? "text" : "password"}
               name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleInputChange}
+              value={passwordResponse.confirmPassword}
+              onChange  ={handlePasswordChange}
               className="w-full px-3 py-2 border rounded-lg pr-10"
               placeholder="●●●"
             />
@@ -299,7 +355,7 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
       </div>
 
       <button
-        onClick={onSave}
+        onClick={updatePassword}
         className="mt-6 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-lg"
       >
         Save Changes
@@ -451,7 +507,7 @@ const Settings: React.FC<SettingsProps> = ({ onSave }) => {
       </div>
 
       <button
-        onClick={onSave}
+        onClick={updateBankDetails}
         className="mt-6 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-lg"
       >
         Save Changes

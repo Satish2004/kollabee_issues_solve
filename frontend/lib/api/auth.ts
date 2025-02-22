@@ -30,12 +30,13 @@ interface SignupData {
 
 export const authApi = {
   login: async (data: { email: string; password: string }) => {
-    const response = await api.post('/auth/login', data);
-    // Set token after successful login
-    if (response.data.token) {
-      setToken(response.data.token);
+    const response:any = await api.post('/auth/login', data);
+    // Set token after sconsuccessful login
+    console.log(response);
+    if (response.token) {
+      setToken(response.token);
     }
-    return response.data;
+    return response;
   },
 
   signup: async (data: SignupData) => {

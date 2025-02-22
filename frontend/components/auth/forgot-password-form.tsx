@@ -8,9 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Info, CheckCircle2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { useForgotPassword } from '@/hooks/use-auth'
 import { useRouter } from 'next/navigation'
-
+import { authApi } from '@/lib/api/auth'
 export function ForgotPasswordForm() {
   const router = useRouter()
   const [alert, setAlert] = useState({
@@ -20,29 +19,18 @@ export function ForgotPasswordForm() {
     message2: ''
   })
 
-  const { mutate: forgotPasswordMutate, isPending } = useForgotPassword({
-    onSuccess: () => {
-      setAlert({
-        show: true,
-        type: 'success',
-        message1: 'Reset email sent',
-        message2: 'Please check your email to reset your password'
-      })
-    },
-    onError: (error) => {
-      setAlert({
-        show: true,
-        type: 'error',
-        message1: 'Failed to send reset email',
-        message2: error.message
-      })
-    },
-  })
+  const [isPending, setIsPending] = useState(false);
+  const [email, setEmail] = useState('');
+  
+  const forgotPassword = async (data:any) => {
+    const response:any = await authApi.forgotPassword(data);
+    console.log(response);
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     console.log(new FormData(e.currentTarget));
-    forgotPasswordMutate(new FormData(e.currentTarget))
+    forgotPassword(new FormData(e.currentTarget))
   }
 
   return (

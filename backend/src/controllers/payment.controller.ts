@@ -266,3 +266,18 @@ export const getPaymentDetails = async (req: any, res: Response) => {
     res.status(500).json({ error: 'Failed to get payment details' });
   }
 }; 
+
+export const updateBankDetails = async (req: any, res: Response) => {
+  try {
+    const { bankId, ...bankDetails } = req.body;
+    const updatedBank = await prisma.bankDetail.update({
+      where: { id: bankId },
+      data: bankDetails
+    });
+
+    res.json(updatedBank);
+  } catch (error) {
+    console.error('Update bank details error:', error);
+    res.status(500).json({ error: 'Failed to update bank details' });
+  }
+}; 

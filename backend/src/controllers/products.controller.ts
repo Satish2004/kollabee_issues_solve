@@ -66,7 +66,7 @@ export const createProduct = async (req: any, res: Response) => {
 export const getProducts = async (req: any, res: Response) => {
   try {
     const {
-      status = 'ACTIVE',
+     
       search,
       categoryId,
       minPrice,
@@ -83,7 +83,7 @@ export const getProducts = async (req: any, res: Response) => {
 
     // Remove status filter since it's not in schema
     // Add isDraft filter instead
-    filters.isDraft = status === 'DRAFT';
+    // filters.isDraft = status === 'DRAFT';
 
     if (search) {
       filters.OR = [

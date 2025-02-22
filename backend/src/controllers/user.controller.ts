@@ -41,7 +41,9 @@ export const updateUserProfile = async (req: any, res: Response) => {
         state: req.body.state,
         address: req.body.address,
         companyName: req.body.companyName,
-        companyWebsite: req.body.companyWebsite
+        companyWebsite: req.body.companyWebsite,
+        zipCode: req.body.zipCode,
+        imageUrl: req.body.imageUrl,
       }
     });
 

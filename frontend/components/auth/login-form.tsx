@@ -47,7 +47,7 @@ export function LoginForm() {
       await authApi.login({ email, password })
       
       toast.success('Signed in successfully')
-      router.push('/dashboard') // or appropriate route based on user role
+      router.push('/seller') // or appropriate route based on user role
     } catch (error) {
       const err = error as LoginError
       setAlert({
@@ -105,12 +105,12 @@ export function LoginForm() {
               type="password"
               required
             />
-            <Link
+            {/* <Link
               href="/forgot-password"
               className="text-sm text-muted-foreground hover:underline"
             >
               Forgot password?
-            </Link>
+            </Link> */}
           </div>
 
           <Button 

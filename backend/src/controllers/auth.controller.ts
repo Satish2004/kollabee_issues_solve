@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
+import { updateUserProfile } from './user.controller';
 
 // Validation schemas
 const signupSchema = z.object({
@@ -343,3 +344,31 @@ export const verifyOTP = async (req: Request, res: Response) => {
     });
   }
 }; 
+
+export const updatePassword = async (req: any, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    console.log(req.body,req.user);
+    const userId = req.user.userId;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const validPassword = await bcrypt.compare(currentPassword, user.password!);
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Invalid current password' });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({ where: { id: userId }, data: { password: hashedPassword } });
+
+    res.json({ message: 'Password updated successfully' });
+
+  } catch (error) {
+    console.error('Update password error:', error);
+    res.status(500).json({ error: 'Failed to update password' });
+  }
+};
+

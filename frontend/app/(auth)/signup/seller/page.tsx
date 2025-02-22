@@ -167,7 +167,7 @@ export default function SignupSellerPage() {
     try {
       const response = await authApi.signup({
         // User details
-        email: "test10@test.com",
+        email: formData.email,
         password: formData.password,
         name: formData.fullName,
         role: 'SELLER' ,
@@ -189,12 +189,9 @@ export default function SignupSellerPage() {
           challenges: formData.selectedChallenges,
           metrics: formData.selectedMetrics
       });
-if(response.status === 200){
   toast.success(response?.message);
   router.push('/seller');
-}else{
-  toast.error("Failed to create account");
-}
+
       // Token is automatically set by authApi.signup
       toast.success("Account created successfully!");
     } catch (error: any) {

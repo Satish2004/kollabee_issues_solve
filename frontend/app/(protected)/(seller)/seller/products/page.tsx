@@ -14,6 +14,7 @@ import {
   ShoppingCart
 } from 'lucide-react';
 import { productsApi } from '@/lib/api/products';
+import {categoryApi} from '@/lib/api/category';
 import { Product } from '@/types/api';
 import { toast } from 'sonner';
 import Link from 'next/link';
@@ -33,6 +34,7 @@ const ProductsPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [categories, setCategories] = useState<any[]>([]);
 
   const [stats, setStats] = useState<ProductStats>({
     categories: 0,
@@ -42,8 +44,32 @@ const ProductsPage: React.FC = () => {
   });
 
   useEffect(() => {
+    loadCategories();
+  }, []);
+
+  useEffect(() => {
     loadProducts();
   }, [activeTab, searchQuery, currentPage]);
+
+  useEffect(() => {
+    const newStats = {...stats};
+    if(categories.length > 0){
+      newStats.categories = categories.length;
+    }
+    if(products.length > 0){
+      newStats.totalProducts = products.length;
+    }
+    if(products.length > 0){
+      const lowStocks = products.filter((product) => product.availableQuantity < 10);
+      newStats.lowStocks = lowStocks.length;
+    }
+    setStats(newStats);
+  },[categories,products])
+
+  const loadCategories = async () => {
+    const response:any = await categoryApi.getAll();
+    setCategories(response.data);
+  }
 
   const loadProducts = async () => {
     try {

@@ -15,19 +15,42 @@ export interface ProfileUpdateData {
   zipCode?: string;
 }
 
+export interface PasswordUpdateData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface BankDetailsData {
+  accountHolder: string;
+  bankName: string;
+  bankType: string;
+  accountNumber: string;
+  cvvCode: string;
+  upiId?: string;
+  zipCode: string;
+}
+
 export const profileApi = {
   getCurrentUser: async () => {
     return api.get<User>('/auth/me');
   },
 
   updateProfile: async (data: ProfileUpdateData) => {
-    return api.patch<User>('/upload/profile-image', data);
+    return api.patch<User>('/users/profile', data);
+  },
+
+  updatePassword: async (data: PasswordUpdateData) => {
+      return api.post('/auth/update-password', data);
+  },
+
+  updateBankDetails: async (data: BankDetailsData) => {
+      return api.post('/payment/bank-details', data);
   },
 
   uploadImage: async (file: File) => {
     const formData = new FormData();
     formData.append('image', file);
-    return api.post<{ imageUrl: string }>('/upload/product-image', formData, {
+    return api.post<{ imageUrl: string }>('/upload/profile-image', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
