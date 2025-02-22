@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useRef} from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import AccountSettings from './account-settings';
 import { profileApi } from '@/lib/api/profile';
@@ -27,6 +27,7 @@ const Settings: React.FC<SettingsProps> = () => {
     zipCode: '',
     accountNumber: '',
   });
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getUser = async () => {
     const response:any = await profileApi.getCurrentUser();
@@ -35,7 +36,7 @@ const Settings: React.FC<SettingsProps> = () => {
 
   const getBankDetails = async () => {
     const response:any = await profileApi.getBankDetails();
-    setBankDetails(response ? response[0] : {...bankDetails});
+    setBankDetails(response  && response.length > 0 ? response[0] : {...bankDetails});
   }
 
   useEffect(() => {
@@ -96,6 +97,14 @@ const Settings: React.FC<SettingsProps> = () => {
     }));
   };
 
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const response:any = await profileApi.uploadImage(file);
+      setFormData({ ...formData, imageUrl: response.url });
+    }
+  }
+
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -125,34 +134,25 @@ const Settings: React.FC<SettingsProps> = () => {
   }
   const renderAccountSettings = () => (
     <div className="p-6">
-      <div className="grid grid-cols-3 gap-8">
+      <div className="grid grid-cols-5 gap-8">
         {/* Profile Image Section */}
-        <div className="col-span-1">
-          <div className="flex flex-col items-center space-y-4">
+        <div className="col-span-2">
+          <div className="flex flex-col items-center space-y-4 border border-[#e4e7eb] rounded-lg p-4 h-full">
             <div className="relative">
               <img
-                src="/api/placeholder/200/200"
+                src={formData.imageUrl}
                 alt="Profile"
-                className="w-48 h-48 rounded-full object-cover"
+                className="w-96 h-96 rounded-full object-cover"
               />
-              <div className="mt-4 text-center text-sm text-gray-500">
+              <div className="mt-4 text-center text-[11px] text-gray-500">
                 Format: PNG, JPEG    Size: 2MB
               </div>
               <div className="flex justify-center space-x-4 mt-4">
                 <button className="flex items-center text-red-500 hover:text-red-600">
                   <span className="underline" onClick={() => {
-                    const fileInput = document.createElement('input');
-                    fileInput.type = 'file';
-                    fileInput.accept = 'image/*';
-                    fileInput.onchange = async (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (file) { 
-                        const response = await profileApi.uploadImage(file);
-                        setFormData({ ...formData, imageUrl: response.data.imageUrl });
-                      }
-                    }
-                    
+                    fileInputRef.current?.click();
                   }}>Change</span>
+                  <input type="file" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
                 </button>
                 <button className="flex items-center text-red-500 hover:text-red-600">
                   <span className="underline">Delete</span>
@@ -163,9 +163,9 @@ const Settings: React.FC<SettingsProps> = () => {
         </div>
 
         {/* Form Fields */}
-        <div className="col-span-2 space-y-6">
+        <div className="col-span-3 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Full Name*
             </label>
             <input
@@ -179,7 +179,7 @@ const Settings: React.FC<SettingsProps> = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Company Email Address*
             </label>
             <input
@@ -194,7 +194,7 @@ const Settings: React.FC<SettingsProps> = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Office Address*
             </label>
             <input
@@ -208,7 +208,7 @@ const Settings: React.FC<SettingsProps> = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Phone Number*
             </label>
             <div className="flex">
@@ -233,7 +233,7 @@ const Settings: React.FC<SettingsProps> = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Country / Region*
             </label>
             <select
@@ -250,7 +250,7 @@ const Settings: React.FC<SettingsProps> = () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 States*
               </label>
               <select
@@ -265,7 +265,7 @@ const Settings: React.FC<SettingsProps> = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Zip Code*
               </label>
               <input
@@ -279,16 +279,17 @@ const Settings: React.FC<SettingsProps> = () => {
             </div>
           </div>
 
-          <div className="pt-4">
+        
+        </div>
+      </div>
+      <div className="pt-4 flex justify-end">
             <button
               onClick={updateProfile}
-              className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-6 py-2 rounded-lg"
+              className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px]"
             >
               Save Changes
             </button>
           </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -321,9 +322,9 @@ const Settings: React.FC<SettingsProps> = () => {
               )}
             </button>
           </div>
-          <button className="text-red-500 text-sm mt-1">
+          {/* <button className="text-red-500 text-sm mt-1">
             Forgot Password?
-          </button>
+          </button> */}
         </div>
 
         {/* New Password */}
@@ -382,13 +383,14 @@ const Settings: React.FC<SettingsProps> = () => {
           </div>
         </div>
       </div>
-
+      <div className="pt-4 flex justify-end">
       <button
         onClick={updatePassword}
-        className="mt-6 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-lg"
+        className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px]"
       >
         Save Changes
       </button>
+      </div>
     </div>
   );
 
@@ -535,13 +537,14 @@ const Settings: React.FC<SettingsProps> = () => {
           />
         </div>
       </div>
-
+      <div className="pt-4 flex justify-end">
       <button
         onClick={updateBankDetails}
-        className="mt-6 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-lg"
+        className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] "
       >
         Save Changes
       </button>
+      </div>
     </div>
   );
 

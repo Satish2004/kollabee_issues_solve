@@ -51,7 +51,7 @@ export function OTPModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] bg-white">
         <DialogHeader className="space-y-3">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-lg font-medium">

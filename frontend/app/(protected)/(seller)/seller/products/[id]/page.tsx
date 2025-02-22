@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { productsApi } from '@/lib/api/products';
-import ProductForm from '../../add-product';
+import ProductForm from '../add-product';
 import { toast } from 'sonner';
 
 export default function EditProductPage() {
@@ -60,7 +60,7 @@ export default function EditProductPage() {
 
   return (
     <ProductForm
-      mode="edit"
+      mode="view"
       initialData={initialData}
       onSubmit={handleSubmit}
       onCancel={handleCancel}

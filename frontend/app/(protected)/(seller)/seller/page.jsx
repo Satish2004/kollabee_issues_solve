@@ -5,20 +5,21 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts'
 import { Bell, TrendingUp, TrendingDown, AlertCircle, User, CheckCircle, Bug } from 'lucide-react';
 import { dashboardApi } from '@/lib/api/dashboard';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState({
-    totalOrders: 0,
+    totalOrders: 4,
     totalRevenue: 0,
     returnedProducts: 0,
     pendingShipments: 0,
     averageOrderValue: 0,
-    totalRequests: 0,
+    totalRequests: 4,
     unreadMessages: 0,
-    publishedProducts: 0
+    publishedProducts: 1
   });
   const [isLoading, setIsLoading] = useState(true);
-
+  const router = useRouter();
   // Sample data for the line chart
   const chartData = [
     { name: 'Jan', orders: 15000, requests: 12000 },
@@ -170,7 +171,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="h-64">
-                <LineChart width={800} height={250} data={chartData}>
+                <LineChart width={700} height={250} data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -220,7 +221,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <button className="w-full bg-red-500 text-white py-2 rounded-lg mt-4">
+              <button className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] mt-4 w-full" onClick={() => router.push('/seller/settings')}>
                 Take Action
               </button>
             </div>

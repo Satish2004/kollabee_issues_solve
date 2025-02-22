@@ -38,6 +38,7 @@ const RequestsPage = () => {
     try {
       const response:any = await ordersApi.getOrders();
       setRequests(response?.orders);
+      console.log(response?.orders);
     } catch (error) {
       console.error('Failed to load orders:', error);
     }
@@ -75,27 +76,7 @@ const RequestsPage = () => {
 
   const RequestList = () => (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <div className="relative w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search requests..."
-            className="pl-10 pr-4 py-2 w-full border rounded-lg"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex space-x-4">
-          <button
-            onClick={() => setView('form')}
-            className="flex items-center space-x-2 px-4 py-2 bg-rose-600 text-white rounded-lg"
-          >
-            <Plus className="w-4 h-4" />
-            <span>New Request</span>
-          </button>
-        </div>
-      </div>
+   
 
       <div className="flex space-x-4 mb-6 border-b">
         <button 
@@ -127,7 +108,6 @@ const RequestsPage = () => {
                   <div>
                     <div className="flex items-center space-x-2 mb-1">
                       <h3 className="text-lg font-semibold">{request.items[0]?.product?.name}</h3>
-                      <img src="/cn-flag.png" alt="CN" className="w-4 h-4" />
                     </div>
                     <p className="text-gray-500 text-sm">{request.items[0]?.seller?.businessName}</p>
                     <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
@@ -136,7 +116,7 @@ const RequestsPage = () => {
                   </div>
                   <button 
                     onClick={() => handleShowActions(request.id)}
-                    className="px-4 py-1 text-rose-600 border border-rose-600 rounded-lg"
+                    className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-4 py-2"
                   >
                     Take Action
                   </button>

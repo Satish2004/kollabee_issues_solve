@@ -178,7 +178,7 @@ export function BusinessInfoForm({
           Back
         </Button>
         <Button
-          className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white px-8"
+          className="rounded-[6px] text-white px-8 py-2  bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
           disabled={!isFormValid()}
           onClick={onNext}
         >

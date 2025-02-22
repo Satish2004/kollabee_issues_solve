@@ -11,7 +11,8 @@ import {
   Trash,
   ChevronLeft,
   ChevronRight,
-  ShoppingCart
+  ShoppingCart,
+  Circle
 } from 'lucide-react';
 import { productsApi } from '@/lib/api/products';
 import {categoryApi} from '@/lib/api/category';
@@ -78,6 +79,7 @@ const ProductsPage: React.FC = () => {
         search: searchQuery,
         page: currentPage,
         limit: 10,
+        status: activeTab === 'active' ? "ACTIVE" : "DRAFT"
       });
 
       setProducts(response.data);
@@ -114,7 +116,7 @@ const ProductsPage: React.FC = () => {
       {/* Main Content */}
       <div className="p-6">
         {/* Stats */}
-        <div className="grid grid-cols-4 gap-4 mb-6">
+    {    activeTab === 'active' && <div className="grid grid-cols-4 gap-4 mb-6">
           <StatCard
             title="CATEGORIES"
             value={stats.categories}
@@ -135,7 +137,7 @@ const ProductsPage: React.FC = () => {
             value={stats.lowStocks}
             icon={<Box className="w-5 h-5 text-red-500" />}
           />
-        </div>
+        </div>}
 
         {/* Product List */}
         <div className="bg-white rounded-lg shadow">
@@ -164,9 +166,9 @@ const ProductsPage: React.FC = () => {
             </div>
             <Link 
               href="/seller/products/add-product"
-              className="flex items-center space-x-2 bg-red-50 text-red-500 px-4 py-2 rounded-lg"
+              className="flex items-center space-x-2 px-4 py-2 rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-black" />
               <span>Add Product</span>
             </Link>
           </div>
@@ -203,14 +205,10 @@ const ProductsPage: React.FC = () => {
                 </thead>
                 <tbody>
                   {products.map((product) => (
-                    <tr key={product.id} className="border-t">
+                    <tr key={product.id} className="border-t text-sm">
                       <td className="px-4 py-2">
                         <div className="flex items-center space-x-3">
-                          <img 
-                            src={product.images[0] || '/placeholder.png'} 
-                            alt={product.name}
-                            className="w-10 h-10 rounded-lg object-cover"
-                          />
+                       
                           <span>{product.name}</span>
                         </div>
                       </td>
@@ -219,19 +217,24 @@ const ProductsPage: React.FC = () => {
                       <td className="px-4 py-2">
                         {new Date(product.createdAt).toLocaleDateString()}
                       </td>
-                      <td className="px-4 py-2">
-                        <span className={`px-2 py-1 rounded-full text-xs ${
-                          product.stockStatus === 'IN_STOCK' 
-                            ? 'bg-green-100 text-green-600'
-                            : product.stockStatus === 'LOW_STOCK'
-                            ? 'bg-yellow-100 text-yellow-600'
-                            : 'bg-red-100 text-red-600'
-                        }`}>
-                          {product.stockStatus}
-                        </span>
+                      <td className="px-4 py-2 text-xs">
+
+                          {product.availableQuantity>0 ? 
+                          <div className='flex items-center space-x-2'>
+                          <div className='w-2 h-2 bg-green-600 rounded-full'/>
+                          <span className='text-green-600'>In Stock</span>
+                          </div>
+                          : product.availableQuantity<10 ? 
+                          <div className='flex items-center space-x-2'>
+                          <div className='w-2 h-2 bg-yellow-600 rounded-full'/>
+                          <span className='text-yellow-600'>Low Stock</span>
+                          </div> : <div className='flex items-center space-x-2'>
+                          <div className='w-2 h-2 bg-red-600 rounded-full'/>
+                          <span className='text-red-600'>Out of Stock</span>
+                          </div>}
                       </td>
-                      <td className="px-4 py-2">
-                        <div className="flex space-x-2">
+                      <td className="px-4 py-2 w-1/6">
+                        <div className="flex space-x-2 w-full gap-3">
                           <Link href={`/seller/products/${product.id}`}>
                             <Eye className="w-4 h-4" />
                           </Link>
@@ -239,7 +242,7 @@ const ProductsPage: React.FC = () => {
                             <Edit2 className="w-4 h-4" />
                           </Link>
                           <button onClick={() => handleDelete(product.id)}>
-                            <Trash className="w-4 h-4" />
+                            <Trash className="w-4 h-4 text-yellow-600" />
                           </button>
                         </div>
                       </td>

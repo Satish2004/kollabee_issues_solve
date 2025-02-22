@@ -23,7 +23,8 @@ export const createProduct = async (req: any, res: Response) => {
       description,
       categoryId, // Changed from categoryName
       images,
-      pickupAddress
+      pickupAddress,
+      isDraft
     } = req.body;
 
     // Create pickup address if provided
@@ -47,7 +48,7 @@ export const createProduct = async (req: any, res: Response) => {
         sellerId: req.user.sellerId,
         pickupAddressId: addressId,
         categoryId,
-        isDraft: true
+        isDraft: isDraft
       },
       include: {
         seller: true,
@@ -66,7 +67,7 @@ export const createProduct = async (req: any, res: Response) => {
 export const getProducts = async (req: any, res: Response) => {
   try {
     const {
-     
+      status,
       search,
       categoryId,
       minPrice,
@@ -76,6 +77,8 @@ export const getProducts = async (req: any, res: Response) => {
       page = 1,
       limit = 10
     } = req.query;
+
+    
 
     const filters: any = {
       ...(req.user?.sellerId && { sellerId: req.user.sellerId })
@@ -90,6 +93,10 @@ export const getProducts = async (req: any, res: Response) => {
         { name: { contains: search as string, mode: 'insensitive' } },
         { description: { contains: search as string, mode: 'insensitive' } }
       ];
+    }
+
+    if (status) {
+      filters.isDraft = status === 'DRAFT';
     }
 
     if (categoryId) filters.categoryId = categoryId;
@@ -352,7 +359,6 @@ export const buyProduct = async (req: any, res: Response) => {
 export const getProductById = async (req: any, res: Response) => {
   try {
     const { productId } = req.params;
-
     const product = await prisma.product.findUnique({
       where: { id: productId },
       include: {

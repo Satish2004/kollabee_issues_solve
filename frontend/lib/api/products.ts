@@ -31,6 +31,7 @@ export const productsApi = {
     sortOrder?: 'asc' | 'desc';
     page?: number;
     limit?: number;
+    status?: "ACTIVE" | "DRAFT";
   }) => {
     return api.get('/products', { params });
   },

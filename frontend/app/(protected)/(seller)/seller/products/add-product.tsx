@@ -1,17 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Upload, X } from 'lucide-react';
+import { ArrowLeft, Upload, X, Loader2   } from 'lucide-react';
 import { toast } from 'sonner';
 import { productsApi } from '@/lib/api/products';
 import { categoryApi } from '@/lib/api/category';
 import { Category } from '@/types/api';
 import type { ProductFormData } from './types';
 import {ChevronLeft} from 'lucide-react'
+import { useRouter } from 'next/navigation';
 
 interface ProductFormProps {
   initialData?: any;
-  mode: 'create' | 'edit';
+  mode: 'create' | 'edit' | 'view';
   onSubmit: (data: ProductFormData) => void;
   onCancel: () => void;
 }
@@ -22,7 +23,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   onSubmit,
   onCancel
 }) => {
-  const [formData, setFormData] = useState<ProductFormData>(
+  const router = useRouter();
+  const [formData, setFormData] = useState<any>(
     initialData || {
         name: '',
         description: '',
@@ -32,18 +34,28 @@ const ProductForm: React.FC<ProductFormProps> = ({
         availableQuantity: 0,
         categoryId: '',
         attributes: {},
-        images: []
+        images: [],
+        isDraft: true
     }
   );
-
+const [imageLoading,setImageLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [coverImage, setCoverImage] = useState<File | null>(null);
+  const [coverImage, setCoverImage] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('upload');
 
   useEffect(() => {
     loadCategories();
   }, []);
+
+  useEffect(() => {
+    if (mode === 'edit' || mode === 'view') {
+      setFormData({...initialData,...formData});
+      if(initialData.images){
+      setCoverImage(initialData.images[0]);
+      }
+    }
+  }, [initialData, mode]);
 
   const loadCategories = async () => {
     try {
@@ -58,30 +70,37 @@ const ProductForm: React.FC<ProductFormProps> = ({
     const file = e.target.files?.[0];
     if (file) {
       try {
-        setCoverImage(file);
+        setImageLoading(true);  
         const response:any = await productsApi.uploadImage(file);
-        setFormData(prev => ({
+        setFormData((prev:any) => ({
           ...prev,
           images: [...(prev.images || []), response?.url]
         }));
+        setCoverImage(response?.url);
         toast.success('Image uploaded successfully');
       } catch (error) {
         toast.error('Failed to upload image');
+      } finally {
+        setImageLoading(false);
       }
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent,isDraft:boolean=true) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
       const productData = {
         ...formData,
-        isDraft: activeSection !== 'publish'
+        isDraft: isDraft
       };
-
-      const response:any = await productsApi.create(productData);
+      let response:any;
+if(mode === 'edit'){
+       response = await productsApi.updateProduct(initialData.id,productData);
+}else{
+  response = await productsApi.create(productData);
+}
       toast.success(mode === 'create' ? 'Product created successfully' : 'Product updated successfully');
       onSubmit(response.data);
     } catch (error) {
@@ -92,11 +111,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
+ 
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b">
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-4 cursor-pointer" onClick={() => router.back()}>
             <ChevronLeft className="w-5 h-5" />
             <p className='text-red-500'>Back</p>
         </div>
@@ -112,43 +133,51 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-sm text-gray-500 mb-2">Status</div>
-            <div>Draft</div>
+            <div>{formData.isDraft ? "Draft" : "Active"}</div>
           </div>
 
           <div className="space-y-2">
+            <div className='text-[16px] font-semibold text-gray-800 mb-2'>General Information</div>
             <button
-              className={`w-full text-left px-4 py-2 rounded-lg ${
-                activeSection === 'upload' ? 'bg-red-50 text-red-600' : 'hover:bg-gray-50'}`}
+              className={`w-full text-left px-3 py-2 rounded-lg ${
+                activeSection === 'upload' ? 'font-semibold' : ''}`}
               onClick={() => setActiveSection('upload')}
             >
               Upload art cover
             </button>
             <button
-              className={`w-full text-left px-4 py-2 rounded-lg ${
-                activeSection === 'general' ? 'bg-red-50 text-red-600' : 'hover:bg-gray-50'}`}
+              className={`w-full text-left px-3 py-2 rounded-lg ${
+                activeSection === 'general' ? 'font-semibold' : ''}`}
               onClick={() => setActiveSection('general')}
             >
               General information
             </button>
             <button
-              className={`w-full text-left px-4 py-2 rounded-lg ${
-                activeSection === 'details' ? 'bg-red-50 text-red-600' : 'hover:bg-gray-50'}`}
+              className={`w-full text-left px-3 py-2 rounded-lg ${
+                activeSection === 'details' ? 'font-semibold' : ''}`}
               onClick={() => setActiveSection('details')}
             >
               Product details
             </button>
             <button
-              className={`w-full text-left px-4 py-2 rounded-lg ${
-                activeSection === 'documents' ? 'bg-red-50 text-red-600' : 'hover:bg-gray-50'}`}
+              className={`w-full text-left px-3 py-2 rounded-lg ${
+                activeSection === 'documents' ? 'font-semibold' : ''}`}
               onClick={() => setActiveSection('documents')}
             >
               Documents (if any)
             </button>
           </div>
+          <div className='text-[16px] font-semibold text-gray-800 mb-2'>Publish Art</div>
+     <button className={`w-full text-left px-3 py-2 rounded-lg ${
+                activeSection === 'publish' ? 'font-semibold' : ''}`} onClick={() => setActiveSection('publish')}>Review and Publish</button>
 
-          <button className="w-full bg-red-500 text-white py-2 rounded-lg mt-4">
-            Save Changes
-          </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-6 py-2 transition-all duration-200"
+              >
+                {isSubmitting ? 'Saving...' : 'Save Product'}
+              </button>
         </div>
 
         {/* Main Content */}
@@ -164,7 +193,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   {coverImage ? (
                     <div className="relative">
                       <img
-                        src={URL.createObjectURL(coverImage)}
+                        src={coverImage}
                         alt="Cover preview"
                         className="max-h-64 mx-auto"
                       />
@@ -177,18 +206,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     </div>
                   ) : (
                     <div>
-                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-600 mb-2">Drag and drop your image here</p>
+                      {imageLoading ? <div className="w-8 h-8 text-gray-400 mx-auto mb-4"><Loader2 className="w-8 h-8 animate-spin" /></div> : <Upload className="w-8 h-8 text-gray-400 mx-auto mb-4" />}
+                      <p className="text-gray-600 mb-2 text-sm">Drag and drop your image here</p>
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleImageUpload}
                         className="hidden"
+                       
                         id="cover-upload"
                       />
                       <label
                         htmlFor="cover-upload"
-                        className="inline-block bg-red-50 text-red-500 px-4 py-2 rounded-lg cursor-pointer"
+                        className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-6 py-2 transition-all duration-200"
                       >
                         Browse Files
                       </label>
@@ -269,7 +299,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       <div className="space-y-3">
                         <AttributeInput
                           label="Material"
-                          value={formData.attributes.material || ''}
+                          value={formData.attributes?.material || ''}
                           onChange={(value) => setFormData({
                             ...formData,
                             attributes: { ...formData.attributes, material: value }
@@ -277,7 +307,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         />
                         <AttributeInput
                           label="Fabric Weight"
-                          value={formData.attributes.fabricWeight || ''}
+                          value={formData.attributes?.fabricWeight || ''}
                           onChange={(value) => setFormData({
                             ...formData,
                             attributes: { ...formData.attributes, fabricWeight: value }
@@ -285,7 +315,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         />
                         <AttributeInput
                           label="Technics"
-                          value={formData.attributes.technics || ''}
+                          value={formData.attributes?.technics || ''}
                           onChange={(value) => setFormData({
                             ...formData,
                             attributes: { ...formData.attributes, technics: value }
@@ -298,7 +328,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       <div className="space-y-3">
                         <AttributeInput
                           label="Color"
-                          value={formData.attributes.color || ''}
+                          value={formData.attributes?.color || ''}
                           onChange={(value) => setFormData({
                             ...formData,
                             attributes: { ...formData.attributes, color: value }
@@ -306,7 +336,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         />
                         <AttributeInput
                           label="Fabric Type"
-                          value={formData.attributes.fabricType || ''}
+                          value={formData.attributes?.fabricType || ''}
                           onChange={(value) => setFormData({
                             ...formData,
                             attributes: { ...formData.attributes, fabricType: value }
@@ -314,7 +344,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         />
                         <AttributeInput
                           label="Fit Type"
-                          value={formData.attributes.fitType || ''}
+                          value={formData.attributes?.fitType || ''}
                           onChange={(value) => setFormData({
                             ...formData,
                             attributes: { ...formData.attributes, fitType: value }
@@ -343,15 +373,89 @@ const ProductForm: React.FC<ProductFormProps> = ({
               </div>
             )}
 
-            <div className="mt-6 flex justify-end">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className="bg-red-500 text-white px-6 py-2 rounded-lg"
-              >
-                {isSubmitting ? 'Saving...' : 'Save Product'}
-              </button>
-            </div>
+            {activeSection === 'publish' && (
+              <div>
+                <h2 className="text-lg font-semibold mb-4">Review and Publish</h2>
+                <div className="space-y-6">
+                  {/* Preview Section */}
+                  <div className="border rounded-lg p-6">
+                    <h3 className="text-sm font-medium text-gray-700 mb-4">Preview</h3>
+                    <div className="grid grid-cols-2 gap-8">
+                      <div>
+                        {coverImage && (
+                          <img
+                            src={coverImage}
+                            alt="Product preview"
+                            className="w-full h-64 object-cover rounded-lg"
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="text-sm text-gray-500">Product Name</h4>
+                          <p className="font-medium">{formData.name}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm text-gray-500">Price</h4>
+                          <p className="font-medium">${formData.price}</p>
+                        </div>
+                        <div>
+                          <h4 className="text-sm text-gray-500">Category</h4>
+                          <p className="font-medium">
+                            {categories.find(c => c.id === formData.categoryId)?.categoryName}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Visibility Section */}
+                  {/* <div className="border rounded-lg p-6">
+                    <h3 className="text-sm font-medium text-gray-700 mb-4">Visibility</h3>
+                    <div className="space-y-4">
+                      <label className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="visibility"
+                          checked={!formData.isDraft}
+                          onChange={() => setFormData({ ...formData, isDraft: false })}
+                          className="form-radio text-[#9e1171]"
+                        />
+                        <div>
+                          <p className="font-medium">Public</p>
+                          <p className="text-sm text-gray-500">This product will be visible to all users</p>
+                        </div>
+                      </label>
+                      <label className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          name="visibility"
+                          checked={formData.isDraft}
+                          onChange={() => setFormData({ ...formData, isDraft: true })}
+                          className="form-radio text-[#9e1171]"
+                        />
+                        <div>
+                          <p className="font-medium">Private</p>
+                          <p className="text-sm text-gray-500">Only you can see this product</p>
+                        </div>
+                      </label>
+                    </div>
+                  </div> */}
+
+                  {/* Action Buttons */}
+                  <div className="flex justify-end space-x-4">
+                
+                    <button
+                      type="submit"
+                      onClick={(e:any) => handleSubmit(e,false)}
+                      className="px-6 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px]"
+                    >
+                      Publish Now
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>
