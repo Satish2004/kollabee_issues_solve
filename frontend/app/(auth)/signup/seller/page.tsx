@@ -191,7 +191,7 @@ export default function SignupSellerPage() {
       });
 if(response.status === 200){
   toast.success(response?.message);
-  router.push('/seller/dashboard');
+  router.push('/seller');
 }else{
   toast.error("Failed to create account");
 }
