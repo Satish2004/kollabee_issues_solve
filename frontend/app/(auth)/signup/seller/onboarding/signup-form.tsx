@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Circle, ArrowLeft, Info } from "lucide-react";
+import { Circle, ArrowLeft, Info, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -68,9 +68,7 @@ export function SignupForm({
     );
   };
 
-  useEffect(() => {
-   console.log(formData);
-  }, [formData]);
+
 
   return (
     <div className="space-y-8">
@@ -94,9 +92,42 @@ export function SignupForm({
             />
           </div>
 
+        
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="flex items-center gap-2">
+              Business Email<span className="text-destructive">*</span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+            </Label>
+            <div className="relative">
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your Business Email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={otpVerified}
+                className={`relative`}
+              />
+              <Button 
+                onClick={onVerifyEmail}
+                disabled={!formData.email || generateOTPLoading || otpVerified}
+                variant={otpVerified ? "outline" : "default"}
+                className={`absolute right-0 top-0 h-6 w-20 mt-[6px] mr-2 ${
+                  otpVerified 
+                    ? "border-red-500 text-white bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                    : "border-red-500 text-white bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                }`}
+              >
+                {otpVerified ? "Verified" : generateOTPLoading ? "Sending..." : "Verify"}
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-4">
           <div className="space-y-2">
             <Label>
-              Email Address<span className="text-destructive">*</span>
+              Password<span className="text-destructive">*</span>
             </Label>
             <Input
               id="password"
@@ -146,43 +177,6 @@ export function SignupForm({
               </div>
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              Business Email<span className="text-destructive">*</span>
-              <Info className="h-3.5 w-3.5 text-muted-foreground" />
-            </Label>
-            <div className="relative">
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your Business Email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={otpVerified}
-              />
-              <Button 
-                onClick={onVerifyEmail}
-                disabled={generateOTPLoading || otpVerified}
-                variant={otpVerified ? "outline" : "default"}
-              >
-                {otpVerified ? "Verified" : generateOTPLoading ? "Sending..." : "Verify"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>
-                Password<span className="text-destructive">*</span>
-              </Label>
-              <Input
-                type="password"
-                placeholder="Enter your Password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              />
-            </div>
             <div className="space-y-2">
               <Label>
                 Confirm Password<span className="text-destructive">*</span>

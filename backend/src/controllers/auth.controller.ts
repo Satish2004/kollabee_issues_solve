@@ -16,7 +16,7 @@ const signupSchema = z.object({
   country: z.string().optional(),
   state: z.string().optional(),
   address: z.string().optional(),
-  companyWebsite: z.string().url().optional(),
+  companyWebsite: z.string().optional(),
 });
 
 const loginSchema = z.object({

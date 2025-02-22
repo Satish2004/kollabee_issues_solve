@@ -39,12 +39,11 @@ export const authApi = {
   },
 
   signup: async (data: SignupData) => {
-    const response = await api.post('/auth/signup', data);
-    // Set token after successful signup
-    if (response.data.token) {
-      setToken(response.data.token);
+    const response :any= await api.post('/auth/signup', data);
+    if (response?.token) {
+      setToken(response?.token);
     }
-    return response.data;
+    return response;
   },
 
   generateOTP: async (email: string) => {

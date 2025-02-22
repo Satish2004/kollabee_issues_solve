@@ -21,7 +21,7 @@ import { BusinessType, CategoryEnum } from '@/types/api';
 
 export default function SignupSellerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(3);
+  const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState({
     fullName: "",
     email: "",
@@ -163,13 +163,14 @@ export default function SignupSellerPage() {
 
   const handleSubmit = async () => {
     setSubmitLoading(true);
+    console.log(formData);
     try {
       const response = await authApi.signup({
         // User details
-        email: formData.email,
+        email: "test10@test.com",
         password: formData.password,
         name: formData.fullName,
-        role: 'SELLER' as const,
+        role: 'SELLER' ,
         phoneNumber: formData.phone,
         
         // Company details
@@ -188,22 +189,30 @@ export default function SignupSellerPage() {
           challenges: formData.selectedChallenges,
           metrics: formData.selectedMetrics
       });
-
+if(response.status === 200){
+  toast.success(response?.message);
+  router.push('/seller/dashboard');
+}else{
+  toast.error("Failed to create account");
+}
       // Token is automatically set by authApi.signup
-      
       toast.success("Account created successfully!");
-      router.push('/seller/dashboard');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create account");
+      toast.error( "Failed to create account");
     } finally {
       setSubmitLoading(false);
     }
   };
 
   const validateStage1 = () => {
-    const { fullName, email, phone, password, role } = formData;
+    const { fullName, email, phone, password, confirmPassword, role } = formData;
     if (!fullName || !email || !phone || !password || !role) {
       toast.error("Please fill all required fields and accept the terms");
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      toast.error("Password and confirm password do not match");
       return false;
     }
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { productsApi } from '@/lib/api/products';
-import ProductForm from '../../add-product/page';
+import ProductForm from '../../add-product';
 import { toast } from 'sonner';
 
 export default function EditProductPage({ params }: { params: { id: string } }) {
@@ -31,7 +31,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     return <div>Loading...</div>;
   }
 
-  const handleSubmit = async (data: ProductFormData) => {
+  const handleSubmit = async (data: any) => {
     try {
       await productsApi.updateProduct(params.id, data);
       toast.success('Product updated successfully');
