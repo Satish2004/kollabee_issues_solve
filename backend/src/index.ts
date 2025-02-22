@@ -56,11 +56,16 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 // Setup all routes
 setupRoutes(app);
 
-const PORT = process.env.PORT || 5000;
+// Export for Vercel
+export default app;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Start server only if not in Vercel
+if (process.env.NODE_ENV !== 'production') {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
