@@ -1,14 +1,14 @@
-import { Certificate } from "@/lib/types";
+import { Certification } from "@/types/api";
 import { Trash2, Upload } from "lucide-react";
 import { ChangeEvent, Dispatch, SetStateAction, useState } from "react";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import Image from "next/image";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 type CertificateUploadType = {
-  certificates: Certificate[] | undefined;
-  setCertificates: Dispatch<SetStateAction<Certificate[] | undefined>>;
+  certificates: Certification[] | undefined;
+  setCertificates: Dispatch<SetStateAction<Certification[] | undefined>>;
 };
 
 export default function CertificationsUpload({
@@ -19,11 +19,28 @@ export default function CertificationsUpload({
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const newCert: Certificate = {
+      const newCert:  any = {
         id: crypto.randomUUID(), // Generate a unique ID for each certificate
         name: "",
-        issueDate: new Date(),
-        image: e.target.files[0],
+        issueDate: new Date().toISOString(),
+        productId: "",
+        product: {
+          id: "",
+          name: "",
+          description: "",
+          price: 0,
+          images: [],
+          categoryId: "",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          seller: {
+            id: "",
+            // name: "",
+            email: "",
+            image: "",
+          },
+        },
+        // image: e.target.files[0],
       };
 
       setCertificates([...certificates, newCert]);
@@ -44,7 +61,7 @@ export default function CertificationsUpload({
     setIsDragging(false);
 
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      const newCert: Certificate = {
+      const newCert: any = {
         id: crypto.randomUUID(),
         name: "",
         issueDate: "",
@@ -57,7 +74,7 @@ export default function CertificationsUpload({
 
   const handleChange = (
     id: string,
-    field: keyof Certificate,
+    field: keyof any,
     value: string | File
   ) => {
     setCertificates((prev) =>
@@ -111,13 +128,13 @@ export default function CertificationsUpload({
         <div key={cert.id} className="flex items-end gap-6 mt-4">
           {/* Certificate Image Preview */}
           <div className="w-20 h-20 relative">
-            <Image
+            {/* <Image
               src={getImageSrc(cert.image)}
               alt="Certificate Preview"
               layout="fill"
               objectFit="cover"
               className="rounded shadow"
-            />
+            /> */}
           </div>
 
           {/* Certificate Fields */}

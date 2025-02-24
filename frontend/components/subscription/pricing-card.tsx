@@ -85,8 +85,8 @@ export function PricingCard({ tier }: PricingCardProps) {
         },
       };
 
-      const rzp = new window.Razorpay(options);
-      rzp.open();
+      // const rzp = new window.Razorpay(options);
+      // rzp.open();
     } catch (error) {
       console.error("Payment Error:", error);
       toast.error("Something went wrong during payment.");

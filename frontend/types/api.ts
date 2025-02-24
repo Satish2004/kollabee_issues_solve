@@ -184,7 +184,8 @@ export interface Seller {
   user: User;
 }
 
-export interface Order extends Request {
+export interface Order {
+  id: string;
   items: Array<{
     product: {
       name: string;
@@ -200,6 +201,8 @@ export interface Order extends Request {
   };
   status: string;
   createdAt: string;
+  buyerId: string;
+  sellerId: string;
 }
 
 export interface OrderItem {

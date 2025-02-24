@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { prisma } from "@/lib/db"
+// import { prisma } from "@/lib/db"
 import { Eye } from "lucide-react"
 
 interface Order {

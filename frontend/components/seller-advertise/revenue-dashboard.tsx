@@ -65,7 +65,7 @@ export function RevenueDashboard() {
 
         <Card className="p-6 flex-1">
           <h3 className="text-xl font-semibold mb-4">Revenue by Location</h3>
-          <LocationMap locations={locationRevenue} />
+          {/* <LocationMap locations={locationRevenue} /> */}
           <div className="mt-4 space-y-2">
             {locationRevenue.map((location) => (
               <div
