@@ -1,22 +1,17 @@
-// upload.controller.ts
 import { Request, Response } from 'express';
+import { uploadToCloudinary } from '../utils/multer';
 
 export const uploadProfileImage = async (req: any, res: Response) => {
   try {
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-    console.log('Request file:', req.file);
-    console.log('Request headers:', req.headers);
-
-    const file = req.file;
-    if (!file) {
+    if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // With Cloudinary storage, the URL is directly available in req.file.path
+    const result: any = await uploadToCloudinary(req.file.buffer, 'profile-images');
+    
     res.json({ 
-      url: req.file.path, // Cloudinary URL
-      public_id: req.file.filename // Cloudinary public ID
+      url: result.secure_url,
+      public_id: result.public_id
     });
   } catch (error) {
     console.error('Upload profile image error:', error);
@@ -26,20 +21,15 @@ export const uploadProfileImage = async (req: any, res: Response) => {
 
 export const uploadProductImage = async (req: any, res: Response) => {
   try {
-    console.log('Request body:', req.body);
-    console.log('Request files:', req.files);
-    console.log('Request file:', req.file);
-    console.log('Request headers:', req.headers);
-
-    const file = req.file;
-    if (!file) {
+    if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // With Cloudinary storage, the URL is directly available in req.file.path
+    const result: any = await uploadToCloudinary(req.file.buffer, 'product-images');
+    
     res.json({ 
-      url: req.file.path, // Cloudinary URL
-      public_id: req.file.filename // Cloudinary public ID
+      url: result.secure_url,
+      public_id: result.public_id
     });
   } catch (error) {
     console.error('Upload product image error:', error);
