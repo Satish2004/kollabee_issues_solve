@@ -225,8 +225,8 @@ model Notification {
 }
 
 model Seller {
-  id                 String   @id @default(uuid())
-  userId             String   @unique
+  id                 String         @id @default(uuid())
+  userId             String         @unique
   businessName       String?
   businessAddress    String?
   websiteLink        String?
@@ -333,7 +333,7 @@ model Admin {
 }
 
 model Product {
-  id                String      @id @default(uuid())
+  id                String        @id @default(uuid())
   name              String
   description       String
   price             Float
@@ -341,11 +341,11 @@ model Product {
   minOrderQuantity  Int
   availableQuantity Int
   images            String[]
-  isDraft           Boolean     @default(true)
+  isDraft           Boolean       @default(true)
   status            ProductStatus @default(DRAFT)
-  stockStatus       StockStatus @default(IN_STOCK)
-  rating            Float       @default(0)
-  reviewCount       Int         @default(0)
+  stockStatus       StockStatus   @default(IN_STOCK)
+  rating            Float         @default(0)
+  reviewCount       Int           @default(0)
 
   // Optional fields
   dimensions             String?
