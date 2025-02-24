@@ -30,14 +30,7 @@ app.use(morgan('dev'));
 // Static file serving
 app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
-// Create upload directories if they don't exist
-const uploadDirs = ['uploads', 'public/images'];
-uploadDirs.forEach(dir => {
-  const dirPath = path.join(__dirname, '..', dir);
-  if (!fs.existsSync(dirPath)) {
-    fs.mkdirSync(dirPath, { recursive: true });
-  }
-});
+
 
 // Rate limiting
 const limiter = rateLimit({
