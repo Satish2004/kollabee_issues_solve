@@ -1,7 +1,5 @@
+// upload.controller.ts
 import { Request, Response } from 'express';
-import { uploadToCloudinary } from '../utils/cloudinary';
-import fs from 'fs';
-import path from 'path';
 
 export const uploadProfileImage = async (req: any, res: Response) => {
   try {
@@ -15,21 +13,13 @@ export const uploadProfileImage = async (req: any, res: Response) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Upload to cloudinary
-    const result = await uploadToCloudinary(file.path, 'profile-images');
-
-    // Delete file from local storage after upload
-    if (fs.existsSync(file.path)) {
-      fs.unlinkSync(file.path);
-    }
-
-    res.json({ url: result.secure_url });
+    // With Cloudinary storage, the URL is directly available in req.file.path
+    res.json({ 
+      url: req.file.path, // Cloudinary URL
+      public_id: req.file.filename // Cloudinary public ID
+    });
   } catch (error) {
     console.error('Upload profile image error:', error);
-    // Clean up file if it exists
-    if (req.file?.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     res.status(500).json({ error: 'Failed to upload image' });
   }
 };
@@ -46,21 +36,13 @@ export const uploadProductImage = async (req: any, res: Response) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
 
-    // Upload to cloudinary
-    const result = await uploadToCloudinary(file.path, 'product-images');
-
-    // Delete file from local storage after upload
-    if (fs.existsSync(file.path)) {
-      fs.unlinkSync(file.path);
-    }
-
-    res.json({ url: result.secure_url });
+    // With Cloudinary storage, the URL is directly available in req.file.path
+    res.json({ 
+      url: req.file.path, // Cloudinary URL
+      public_id: req.file.filename // Cloudinary public ID
+    });
   } catch (error) {
     console.error('Upload product image error:', error);
-    // Clean up file if it exists
-    if (req.file?.path && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
-    }
     res.status(500).json({ error: 'Failed to upload image' });
   }
-}; 
+};

@@ -28,7 +28,6 @@ app.use(compression());
 app.use(morgan('dev'));
 
 // Static file serving
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/images', express.static(path.join(__dirname, '../public/images')));
 
 // Create upload directories if they don't exist
