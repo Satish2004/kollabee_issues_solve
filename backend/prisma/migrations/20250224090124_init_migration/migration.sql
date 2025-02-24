@@ -525,37 +525,49 @@ CREATE TABLE "AdvertisementMetrics" (
 -- CreateTable
 CREATE TABLE "_SellerToTrustBadge" (
     "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_SellerToTrustBadge_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
 CREATE TABLE "_BuyerToCertification" (
     "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_BuyerToCertification_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
 CREATE TABLE "_BuyerToProduct" (
     "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_BuyerToProduct_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
 CREATE TABLE "_BuyerToSeller" (
     "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_BuyerToSeller_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
 CREATE TABLE "_InterestedCategories" (
     "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_InterestedCategories_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateTable
 CREATE TABLE "_CertificationToSeller" (
     "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL
+    "B" TEXT NOT NULL,
+
+    CONSTRAINT "_CertificationToSeller_AB_pkey" PRIMARY KEY ("A","B")
 );
 
 -- CreateIndex
@@ -625,37 +637,19 @@ CREATE INDEX "Advertisement_productId_idx" ON "Advertisement"("productId");
 CREATE INDEX "AdvertisementMetrics_advertisementId_idx" ON "AdvertisementMetrics"("advertisementId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_SellerToTrustBadge_AB_unique" ON "_SellerToTrustBadge"("A", "B");
-
--- CreateIndex
 CREATE INDEX "_SellerToTrustBadge_B_index" ON "_SellerToTrustBadge"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_BuyerToCertification_AB_unique" ON "_BuyerToCertification"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_BuyerToCertification_B_index" ON "_BuyerToCertification"("B");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_BuyerToProduct_AB_unique" ON "_BuyerToProduct"("A", "B");
-
--- CreateIndex
 CREATE INDEX "_BuyerToProduct_B_index" ON "_BuyerToProduct"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_BuyerToSeller_AB_unique" ON "_BuyerToSeller"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_BuyerToSeller_B_index" ON "_BuyerToSeller"("B");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "_InterestedCategories_AB_unique" ON "_InterestedCategories"("A", "B");
-
--- CreateIndex
 CREATE INDEX "_InterestedCategories_B_index" ON "_InterestedCategories"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_CertificationToSeller_AB_unique" ON "_CertificationToSeller"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_CertificationToSeller_B_index" ON "_CertificationToSeller"("B");
