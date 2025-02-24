@@ -1,38 +1,38 @@
-import { createClient } from "@/utils/supabase/server"
-import { redirect } from "next/navigation"
-import { prisma } from "@/lib/db"
-import { getCurrentUser } from "../../home/actions"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ShoppingBag, Store, Sparkles } from "lucide-react"
-import { createNewUser } from "@/actions/auth"
-import { SubmitButton } from "@/components/auth/submit-button"
+// import { createClient } from "@/utils/supabase/server"
+// import { redirect } from "next/navigation"
+// import { prisma } from "@/lib/db"
+// import { getCurrentUser } from "../../home/actions"
+// import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+// import { Label } from "@/components/ui/label"
+// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+// import { ShoppingBag, Store, Sparkles } from "lucide-react"
+// import { createNewUser } from "@/actions/auth"
+// import { SubmitButton } from "@/components/auth/submit-button"
 
 export default async function OnboardingPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // const supabase = await createClient()
+  // const { data: { user } } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
+  // if (!user) {
+  //   redirect('/login')
+  // }
 
-  const existingUser = await prisma.user.findUnique({
-    where: { email: user.email! }
-  })
+  // const existingUser = await prisma.user.findUnique({
+  //   where: { email: user.email! }
+  // })
 
-  if (existingUser) {
-    redirect('/home')
-  }
+  // if (existingUser) {
+  //   redirect('/home')
+  // }
 
-  const currentUser = await getCurrentUser(user.id)
-  if (currentUser) {
-    redirect('/home')
-  }
+  // const currentUser = await getCurrentUser(user.id)
+  // if (currentUser) {
+  //   redirect('/home')
+  // }
   
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-lg">
+      {/* <Card className="w-full max-w-lg">
         <CardHeader className="text-center space-y-2">
           <div className="flex justify-center mb-2">
             <div className="p-3 rounded-full bg-primary/10">
@@ -88,7 +88,8 @@ export default async function OnboardingPage() {
             <SubmitButton />
           </form>
         </CardContent>
-      </Card>
+      </Card> */}
+      
     </div>
   )
 }
