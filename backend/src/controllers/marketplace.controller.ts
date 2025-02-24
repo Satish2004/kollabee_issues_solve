@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../db';
 
 export const getProducts = async (req: any, res: Response) => {
+  console.log(req.query);
   try {
     const { 
       search,
