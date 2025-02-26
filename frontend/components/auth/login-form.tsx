@@ -48,7 +48,7 @@ export function LoginForm() {
       
       toast.success('Signed in successfully')
       router.push('/seller') // or appropriate route based on user role
-    } catch (error) {
+    } catch (error:any) {
       const err = error as LoginError
       setAlert({
         show: true,
@@ -56,6 +56,7 @@ export function LoginForm() {
         message1: 'Login failed',
         message2: err.message || 'Invalid credentials'
       })
+   toast.error(error?.response?.data?.error || 'Invalid credentials')
     } finally {
       setIsLoading(false)
     }

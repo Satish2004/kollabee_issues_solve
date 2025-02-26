@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { useRouter } from 'next/navigation';
-// import { createRequest } from './actions';
+import { createRequest } from '@/actions/request';
 
 type RequestFormData = {
   productName: string;
@@ -41,12 +41,12 @@ const RequestForm = ({ sellerId }: { sellerId: string }) => {
         quantity: parseInt(formData.quantity.toString()),
       };
 
-      // const result = await createRequest(data);
+      const result = await createRequest(data);
 
-      // if (!result.success) {
-      //   setError(result.error || "An error occurred");
-      //   return;
-      // }
+      if (!result.success) {
+        setError(result.error || "An error occurred");
+        return;
+      }
 
       router.push('/requests');
     });

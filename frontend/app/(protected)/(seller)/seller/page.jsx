@@ -20,6 +20,7 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
+  const [chartData1, setChartData] = useState([]);
   // Sample data for the line chart
   const chartData = [
     { name: 'Jan', orders: 15000, requests: 12000 },
@@ -47,25 +48,25 @@ const Dashboard = () => {
       ]);
 
       setDashboardData({
-        totalOrders: metricsRes?.totalOrders,
-        totalRevenue: metricsRes?.totalRevenue,
-        returnedProducts: metricsRes?.returnedProducts,
-        pendingShipments: metricsRes?.pendingShipments,
-        averageOrderValue: metricsRes?.averageOrderValue,
-        totalRequests: metricsRes?.totalRequests,
-        unreadMessages: metricsRes?.unreadMessages,
-        publishedProducts: metricsRes.data.activeProducts
+        totalOrders: metricsRes?.totalOrders || 0,
+        totalRevenue: metricsRes?.totalRevenue || 0,
+        returnedProducts: metricsRes?.returnedProducts || 0,
+        pendingShipments: metricsRes?.pendingShipments || 0,
+        averageOrderValue: metricsRes?.averageOrderValue || 0,
+        totalRequests: metricsRes?.totalRequests || 0,
+        unreadMessages: metricsRes?.unreadMessages || 0,
+        publishedProducts: metricsRes?.activeProducts || 0
       });
 
       // Update chart data if needed
-      if (analyticsRes.data.orders?.length) {
-        const newChartData = analyticsRes.data.orders.map(order => ({
-          name: new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short' }),
-          orders: order.totalAmount,
-          requests: order.requestCount
-        }));
-        setChartData(newChartData);
-      }
+      // if (analyticsRes.data.orders?.length) {
+      //   const newChartData = analyticsRes.data.orders.map(order => ({
+      //     name: new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short' }),
+      //     orders: order.totalAmount,
+      //     requests: order.requestCount
+      //   }));
+      //   setChartData(newChartData);
+      // }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       toast.error('Failed to load dashboard data');

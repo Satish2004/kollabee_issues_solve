@@ -102,6 +102,7 @@ CREATE TABLE "Order" (
     "sellerId" TEXT,
     "status" "OrderStatus" NOT NULL,
     "totalAmount" DOUBLE PRECISION NOT NULL,
+    "isAccepted" BOOLEAN NOT NULL DEFAULT false,
     "razorpayOrderId" TEXT,
     "razorpayPaymentId" TEXT,
     "trackingNumber" TEXT,

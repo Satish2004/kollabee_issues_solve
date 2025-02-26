@@ -78,6 +78,11 @@ export default function SellerLayoutHeader() {
       icon: Settings,
       href: "/seller/settings",
     },
+    {
+      label: "Chat",
+      icon: MessageSquare,
+      href: "/seller/chat",
+    },
   ];
 
   let currentRoute = routes.find((route) => pathname === route.href);

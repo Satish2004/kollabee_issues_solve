@@ -1,408 +1,229 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, Plus, Eye, Edit2, Trash2 } from 'lucide-react';
-import { requestApi } from '@/lib/api/request';
+import { Search, ChevronDown, ChevronLeft, Plus, Eye, Edit2, Trash2, X } from 'lucide-react';
+import { useRouter } from "next/navigation";
+import { ordersApi } from "@/lib/api/orders";
 import { toast } from 'sonner';
-import { Category, Request, Order } from '@/types/api';
-import { categoryApi } from '@/lib/api/category';
-import { ordersApi } from '@/lib/api/orders';
-import { Upload, X } from 'lucide-react';
 
-const RequestsPage = () => {
-  const [view, setView] = useState<'list' | 'details' | 'form'>('list');
-  const [searchQuery, setSearchQuery] = useState('');
+interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    images: string[];
+    categoryId: string;
+  };
+}
+
+interface ShippingAddress {
+  fullName: string;
+  address: string;
+  country: string;
+  state: string;
+}
+
+interface Order {
+  id: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress;
+  isAccepted: boolean;
+}
+
+const KollaBeeRequests = () => {
   const [requests, setRequests] = useState<Order[]>([]);
-  const [selectedRequest, setSelectedRequest] = useState<Order | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('received');
   const [showActions, setShowActions] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'received' | 'manufacturing'>('all');
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    loadOrders();
-    loadCategories();
-  }, [searchQuery]);
-
-  const loadCategories = async () => {
-    try {
-      const response:any = await categoryApi.getAll();
-      setCategories(response.data);
-    } catch (error) {
-      console.error('Failed to load categories:', error);
-      toast.error('Failed to load categories');
-    }
-  };
-
-  const loadOrders = async () => {
-    try {
-      const response:any = await ordersApi.getOrders();
-      setRequests(response?.orders);
-      console.log(response?.orders);
-    } catch (error) {
-      console.error('Failed to load orders:', error);
-    }
-  }
-
-  const handleCreateRequest = async (formData: any) => {
-    try {
-      await requestApi.create(formData);
-      toast.success('Request created successfully');
-      setView('list');
-      loadOrders();
-    } catch (error) {
-      console.error('Failed to create request:', error);
-      toast.error('Failed to create request');
-    }
-  };
-
-  const handleDeleteRequest = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this request?')) return;
-
-    try {
-      await requestApi.delete(id);
-      toast.success('Request deleted successfully');
-      loadOrders();
-    } catch (error) {
-      console.error('Failed to delete request:', error);
-      toast.error('Failed to delete request');
-    }
-  };
-
-  const handleShowActions = (requestId: string) => {
-    setSelectedRequestId(requestId);
-    setShowActions(true);
-  };
-
-  const RequestList = () => (
-    <div className="p-6">
-   
-
-      <div className="flex space-x-4 mb-6 border-b">
-        <button 
-          className={`pb-2 px-2 ${activeTab === 'all' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('all')}
-        >
-          All Requests
-        </button>
-        <button 
-          className={`pb-2 px-2 ${activeTab === 'received' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('received')}
-        >
-          Received Requests
-        </button>
-        <button 
-          className={`pb-2 px-2 ${activeTab === 'manufacturing' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('manufacturing')}
-        >
-          Manufacturing Requests
-        </button>
-      </div>
-
-      <div className="space-y-4">
-        {requests.map((request) => (
-          <div key={request.id} className="bg-white rounded-lg p-6 shadow">
-            <div className="flex items-start">
-              <div className="flex-1">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h3 className="text-lg font-semibold">{request.items[0]?.product?.name}</h3>
-                    </div>
-                    <p className="text-gray-500 text-sm">{request.items[0]?.seller?.businessName}</p>
-                    <div className="flex items-center space-x-2 text-sm text-gray-500 mt-1">
-                      <span>{request.items[0]?.product?.categoryId}</span>
-                    </div>
-                  </div>
-                  <button 
-                    onClick={() => handleShowActions(request.id)}
-                    className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-4 py-2"
-                  >
-                    Take Action
-                  </button>
-                </div>
-                
-                <div className="mt-4 grid grid-cols-4 gap-8">
-                  <div>
-                    <p className="text-gray-500 text-sm mb-1">Total Amount</p>
-                    <p className="font-medium">${request.totalAmount}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm mb-1">Country</p>
-                    <p className="font-medium">{request.shippingAddress?.country}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm mb-1">Status</p>
-                    <p className="font-medium">{request.status}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-sm mb-1">Order Date</p>
-                    <p className="font-medium">{new Date(request.createdAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const RequestDetails = () => (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <button
-          onClick={() => setView('list')}
-          className="flex items-center text-gray-600 hover:text-gray-900"
-        >
-          <ChevronDown className="w-4 h-4 transform rotate-90 mr-2" />
-          Back
-        </button>
-        <div className="flex space-x-4">
-          <button className="px-4 py-2 text-red-600 border border-red-600 rounded-lg">
-            Decline Request
-          </button>
-          <button className="px-4 py-2 bg-green-600 text-white rounded-lg">
-            Accept Request
-          </button>
-        </div>
-      </div>
-
-      <div className="bg-white rounded-lg p-6">
-        <div className="flex items-center space-x-2 mb-4">
-          <img src="/cn-flag.png" alt="CN" className="w-4 h-4" />
-          <h2 className="text-lg font-semibold">Guangzhou Daxin Trading Firm (Sole Proprietorship)</h2>
-        </div>
-
-        <div className="flex items-center space-x-2 text-sm text-gray-500 mb-6">
-          <span>Beauty & Personal Care</span>
-          <span>•</span>
-          <span>Skin Care & Body Care</span>
-          <span>•</span>
-          <span>Facial Care</span>
-          <span>•</span>
-          <span>Face Mask Sheet</span>
-        </div>
-
-        <h3 className="text-xl font-semibold mb-4">Antibacterial Sheet Masks</h3>
-
-        <div className="grid grid-cols-4 gap-8 mb-8">
-          <div>
-            <p className="text-gray-500 text-sm mb-1">Lead size</p>
-            <p className="font-medium">+$5,000</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm mb-1">Country</p>
-            <p className="font-medium">India</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm mb-1">Quantity</p>
-            <p className="font-medium">100-1000 units</p>
-          </div>
-          <div>
-            <p className="text-gray-500 text-sm mb-1">Order frequency</p>
-            <p className="font-medium">Monthly</p>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <h4 className="font-semibold mb-4">Requirements</h4>
-            <div className="space-y-4">
-              <div>
-                <p className="text-gray-500 mb-2">Industry-specific attributes</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Material</p>
-                    <p>Polyester / Cotton</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-500">Technics</p>
-                    <p>embroidered, Printed, 3D embroidery, Affixed cloth embroidery, towel embroidery</p>
-                  </div>
-                </div>
-              </div>
-              <div>
-                <p className="text-gray-500 mb-2">Other attributes</p>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-gray-500">Collar</p>
-                    <p>Hooded</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  const RequestForm = () => (
-    <div className="p-6">
-      <button
-        onClick={() => setView('list')}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
-      >
-        <ChevronDown className="w-4 h-4 transform rotate-90 mr-2" />
-        Back
-      </button>
-
-      <h2 className="text-xl font-semibold mb-8">Create Form for the Buyer</h2>
-
-      <div className="space-y-8">
-        <button className="flex items-center text-rose-600 space-x-2">
-          <Plus className="w-4 h-4" />
-          <span>Add Section</span>
-        </button>
-
-        <div>
-          <h3 className="text-lg font-semibold mb-6 flex items-center justify-between">
-            <span>1. Basic Information</span>
-            <button className="text-rose-600 text-sm font-normal flex items-center">
-              <Plus className="w-4 h-4 mr-1" />
-              Add Fields
-            </button>
-          </h3>
-          
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">Company Name*</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Company Location*</label>
-              <input
-                type="text"
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-semibold mb-6 flex items-center justify-between">
-            <span>2. Product Details</span>
-            <button className="text-rose-600 text-sm font-normal flex items-center">
-              <Plus className="w-4 h-4 mr-1" />
-              Add Fields
-            </button>
-          </h3>
-          
-          <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium mb-2">Product Name*</label>
-              <input
-                type="text"
-                placeholder="Name of the product (e.g., Aloe Vera Gel)"
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Additional Ingredients (Optional)*</label>
-              <input
-                type="text"
-                placeholder="Want customization, you can add extra ingredients or specify preferences"
-                className="w-full px-4 py-2 border rounded-lg"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Formula Details*</label>
-              <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                <Upload className="w-8 h-8 mx-auto mb-4 text-gray-400" />
-                <button className="px-4 py-2 border rounded-lg">Upload</button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <h3 className="text-lg font-semibold mb-6 flex items-center justify-between">
-            <span>3. Quantity Requirements</span>
-            <button className="text-rose-600 text-sm font-normal flex items-center">
-              <Plus className="w-4 h-4 mr-1" />
-              Add Fields
-            </button>
-          </h3>
-          
-          <div>
-            <label className="block text-sm font-medium mb-2">Total Quantity Needed*</label>
-            <input
-              type="text"
-              placeholder="e.g., 1000 units"
-              className="w-full px-4 py-2 border rounded-lg"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+    const fetchRequests = async () => {
+      try {
+        setIsLoading(true);
+        const response :any= await ordersApi.getOrders();
+        setRequests(response.orders);
+      } catch (error) {
+        console.error('Error fetching requests:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRequests();
+  }, []);
 
   // Action Modal
-  const ActionModal = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-semibold">Take Action</h3>
-          <button onClick={() => setShowActions(false)}>
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        <div className="space-y-4">
-          <button className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg">
-            Edit Request
-          </button>
-          <button className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg">
-            Start Chat
-          </button>
-          <button className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg">
-            View Details
-          </button>
-          <button className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-red-600">
-            Delete Request
-          </button>
+  const ActionModal = () => {
+    const selectedRequest = requests.find(r => r.id === selectedRequestId);
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg p-6 max-w-md w-full">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-semibold">Take Action</h3>
+            <button onClick={() => setShowActions(false)}>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="space-y-4">
+            {!selectedRequest?.isAccepted ? (
+              <>
+                <button className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg">
+                  Accept Request
+                </button>
+                <button className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg text-red-600">
+                  Decline Request
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg"
+                  onClick={() => router.push(`/seller/chat`)}
+                >
+                  Start Chat
+                </button>
+                <button className="w-full text-left px-4 py-3 hover:bg-gray-50 rounded-lg">
+                  View Details
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {view === 'list' && <RequestList />}
-      {view === 'details' && <RequestDetails />}
-      {view === 'form' && <RequestForm />}
+    <div className="flex h-screen bg-white">
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Tabs */}
+        <div className="p-4">
+          <div className="flex justify-between items-center">
+            <div className="flex space-x-4">
+              <button 
+                className={`pb-2 px-2 text-sm ${activeTab === 'all' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('all')}
+              >
+                All Requests
+              </button>
+              <button 
+                className={`pb-2 px-2 text-sm ${activeTab === 'received' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('received')}
+              >
+                Received Requests
+              </button>
+              <button 
+                className={`pb-2 px-2 text-sm ${activeTab === 'manufacturing' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('manufacturing')}
+              >
+                Manufacturing Requests
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Request List */}
+        <div className="p-4 flex-1 overflow-auto bg-gray-50">
+          <div className="mb-4">
+            <h3 className="text-lg font-medium mb-4">Received Requests</h3>
+          </div>
+          
+          {isLoading ? (
+            <div>Loading...</div>
+          ) : (
+            requests.map((request) => (
+              <div key={request.id} className="bg-white rounded-lg shadow mb-4">
+                <div className="p-4">
+                  <div className="flex items-center mb-2">
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    <span className="font-medium">{request.shippingAddress?.fullName}</span>
+                    {request.shippingAddress?.country && (
+                      <div className="flex items-center ml-2">
+                        <div className="w-5 h-3 bg-red-600 flex items-center justify-center text-[8px] text-white font-bold">
+                          {request.shippingAddress.country}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-xl font-semibold">
+                      {request.items[0]?.product?.name}
+                    </h2>
+                    {!request.isAccepted ? (
+                      <button
+                        onClick={() => router.push(`/seller/request/${request.id}`)}
+                        className="flex items-center space-x-2 px-4 py-1 rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-sm"
+                      >
+                        Take Action
+                      </button>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-green-600">Accepted</span>
+                        <button
+                          onClick={() => router.push(`/seller/chat`)}
+                          className="px-3 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200"
+                        >
+                          Chat
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-5 gap-4 mt-4">
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Total Amount</p>
+                      <p className="font-medium text-sm">${request.totalAmount}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Country</p>
+                      <p className="font-medium text-sm">{request.shippingAddress?.country}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Status</p>
+                      <div className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${
+                          request.isAccepted ? 'bg-green-500' : 'bg-yellow-500'
+                        }`} />
+                        <p className="font-medium text-sm">
+                          {request.isAccepted ? 'Accepted' : request.status}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Order Date</p>
+                      <p className="font-medium text-sm">
+                        {new Date(request.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-1">Action</p>
+                      <button 
+                        className="px-3 py-1 bg-gray-800 text-white text-xs rounded"
+                        onClick={() => router.push(`/seller/request/${request.id}`)}
+                      >
+                        View
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
       {showActions && <ActionModal />}
     </div>
   );
 };
 
-// API Types (you can move these to a separate types file)
-interface BasicInformation {
-  companyName: string;
-  companyLocation: string;
-}
-
-interface ProductDetails {
-  productName: string;
-  additionalIngredients?: string;
-  formulaDetails?: File;
-}
-
-interface QuantityRequirements {
-  totalQuantity: number;
-  orderFrequency?: string;
-}
-
-interface RequestFormData {
-  basicInformation: BasicInformation;
-  productDetails: ProductDetails;
-  quantityRequirements: QuantityRequirements;
-}
-
-export default RequestsPage;
+export default KollaBeeRequests;

@@ -140,10 +140,10 @@ if(mode === 'edit'){
       <div className="p-6 grid grid-cols-4 gap-6">
         {/* Left Sidebar */}
         <div className="col-span-1 space-y-4">
-          <div className="bg-white rounded-lg shadow p-4">
+        {mode !== 'create' &&  <div className="bg-white rounded-lg shadow p-4">
             <div className="text-sm text-gray-500 mb-2">Last update</div>
             <div>Monday, June 06 | 06:42 AM</div>
-          </div>
+          </div>}
 
           <div className="bg-white rounded-lg shadow p-4">
             <div className="text-sm text-gray-500 mb-2">Status</div>

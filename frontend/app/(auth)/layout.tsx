@@ -36,7 +36,7 @@ export default function AuthLayout({
       >
         <div className="min-h-screen">
           {children}
-          <Toaster />
+          <Toaster position="top-center" richColors />
         </div>
       </body>
     </html>

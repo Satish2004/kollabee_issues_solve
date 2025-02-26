@@ -6,8 +6,9 @@ import { profileApi } from '@/lib/api/profile';
 import { BankDetail } from '@/types/api';
 import { Country, State, City } from "country-state-city"
 import { toast } from 'sonner';
-import { User } from '@/types/api';
+import { User } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
+
 interface SettingsProps {
 }
 
@@ -147,11 +148,11 @@ const Settings: React.FC<SettingsProps> = () => {
         <div className="col-span-2">
           <div className="flex flex-col items-center space-y-4 border border-[#e4e7eb] rounded-lg p-4 h-full">
             <div className="relative">
-           {  isLoading ? <div className='flex items-center justify-center w-96 h-96'> <Loader2 className="w-10 h-10 animate-spin" /> </div> :   <img
+           {  isLoading ?   <div className='flex items-center justify-center w-96 h-96'> <Loader2 className="w-10 h-10 animate-spin" /> </div> : formData.imageUrl ?  <img
                 src={formData.imageUrl}
                 alt="Profile"
                 className="w-96 h-96 rounded-full object-cover"
-              />}
+                /> : <div className='flex items-center justify-center w-96 h-96'> <User className="w-10 h-10 animate-spin" /> </div>}
               <div className="mt-4 text-center text-[11px] text-gray-500">
                 Format: PNG, JPEG    Size: 2MB
               </div>

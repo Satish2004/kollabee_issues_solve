@@ -27,7 +27,7 @@ export default function ProtectedLayout({
     <UserProvider>
       <div className="flex">
         <div className="flex-1">{children}</div>
-        <Toaster />
+        <Toaster position="top-center" richColors />
       </div>
     </UserProvider>
   );

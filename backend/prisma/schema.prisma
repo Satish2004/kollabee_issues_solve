@@ -75,6 +75,7 @@ model Order {
   sellerId          String?
   status            OrderStatus
   totalAmount       Float
+  isAccepted        Boolean          @default(false)
   razorpayOrderId   String?
   razorpayPaymentId String?
   trackingNumber    String?

@@ -91,6 +91,7 @@ export function SignupForm({
               placeholder="Enter your First Name"
               value={formData.firstName }
               onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
             />
           </div>
 
@@ -105,7 +106,8 @@ export function SignupForm({
               value={formData.password}
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
-              }
+                }
+              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
             />
             <div className=" text-xs text-muted-foreground flex flex-row justify-between">
               <div
@@ -160,7 +162,7 @@ export function SignupForm({
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 disabled={otpVerified}
-                className={`relative`}
+                className={`relative bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]`}
               />
               <Button 
                 onClick={onVerifyEmail}
@@ -185,7 +187,7 @@ export function SignupForm({
                 <Button
                   key={role}
                   variant={formData.role === role ? "default" : "outline"}
-                  className={`h-8 text-xs justify-start px-2 w-fit rounded-[6px] border ${formData.role === role ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]" : "border-[#e5e5e5]"}`}
+                  className={`h-8 text-xs justify-start px-2 w-fit rounded-[6px] border ${formData.role === role ? "border-[#9e1171] border text-[#9e1171]" : "border-[#e5e5e5]"}`}
                   onClick={() => setFormData({ ...formData, role: role })}
                 >
                   {role}
@@ -208,6 +210,7 @@ export function SignupForm({
               placeholder="Enter your Last Name"
               value={formData.lastName}
               onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
             />
           </div>
           <div className="space-y-2 ">
@@ -219,6 +222,7 @@ export function SignupForm({
                 placeholder="Re-enter your Password"
                 value={formData.confirmPassword}
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                  className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
               />
             </div>
           <div className="space-y-2 ">
@@ -229,6 +233,7 @@ export function SignupForm({
               placeholder="Enter your Phone Number"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
             />
           </div>
 
@@ -237,7 +242,7 @@ export function SignupForm({
       </div>
 
       <div className="flex justify-between">
-        <Button variant="ghost" className="text-primary -ml-4">
+        <Button variant="ghost" className="text-primary -ml-4" onClick={() => router.back()}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>

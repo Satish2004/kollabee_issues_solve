@@ -79,7 +79,7 @@ export function SellerSidebar({ className }: SidebarProps) {
         {
           label: "Messages",
           icon: MessageSquare,
-          href: "#",
+          href: "/seller/chat",
         },
         {
           label: "Requests",
