@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect ,useRef} from 'react';
 import { ArrowLeft, Upload, X, Loader2   } from 'lucide-react';
 import { toast } from 'sonner';
 import { productsApi } from '@/lib/api/products';
@@ -19,7 +19,7 @@ interface ProductFormProps {
 
 const ProductForm: React.FC<ProductFormProps> = ({
   initialData,
-  mode,
+  mode='create',
   onSubmit,
   onCancel
 }) => {
@@ -35,18 +35,32 @@ const ProductForm: React.FC<ProductFormProps> = ({
         categoryId: '',
         attributes: {},
         images: [],
-        isDraft: true
+        isDraft: true,
+        thumbnail:null
     }
   );
 const [imageLoading,setImageLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [coverImage, setCoverImage] = useState<any>(null);
+  const [attributes, setAttributes] = useState<any>({});  
+  const [uploadDocuments,setUploadDocuments] = useState<any>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('upload');
+  const thumbnailRef = useRef<HTMLInputElement>(null);
+  const [thumbnail,setThumbnail] = useState<any>(null);
+  const [documents,setDocuments] = useState<any>([]);
+  const [documentsLoading,setDocumentsLoading] = useState(false);
+  const documentsRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadCategories();
   }, []);
+
+  useEffect(() => {
+console.log(initialData,"initialData");
+ 
+  }, [mode]);
+
 
   useEffect(() => {
     if (mode === 'edit' || mode === 'view') {
@@ -167,14 +181,13 @@ if(mode === 'edit'){
               Documents (if any)
             </button>
           </div>
-          <div className='text-[16px] font-semibold text-gray-800 mb-2'>Publish Art</div>
-     <button className={`w-full text-left px-3 py-2 rounded-lg ${
-                activeSection === 'publish' ? 'font-semibold' : ''}`} onClick={() => setActiveSection('publish')}>Review and Publish</button>
+
 
               <button
                 type="submit"
                 disabled={isSubmitting}
                 className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-6 py-2 transition-all duration-200"
+                onClick={(e) => handleSubmit(e,true)}
               >
                 {isSubmitting ? 'Saving...' : 'Save Product'}
               </button>
@@ -182,14 +195,14 @@ if(mode === 'edit'){
 
         {/* Main Content */}
         <div className="col-span-3 bg-white rounded-lg shadow p-6">
-          <form onSubmit={handleSubmit}>
+          <form >
             {activeSection === 'upload' && (
               <div>
                 <h2 className="text-lg font-semibold mb-2">Upload cover</h2>
                 <p className="text-gray-600 mb-4">
                   Upload the art cover to capture your audience's attention
                 </p>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                <div className="border-2 border-dashed rounded-lg p-8 text-center h-full">
                   {coverImage ? (
                     <div className="relative">
                       <img
@@ -197,12 +210,7 @@ if(mode === 'edit'){
                         alt="Cover preview"
                         className="max-h-64 mx-auto"
                       />
-                      <button
-                        onClick={() => setCoverImage(null)}
-                        className="absolute top-2 right-2 bg-white rounded-full p-1 shadow"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
+                  
                     </div>
                   ) : (
                     <div>
@@ -225,137 +233,245 @@ if(mode === 'edit'){
                     </div>
                   )}
                 </div>
+                <div className='flex items-center justify-end gap-2 mt-4'>
+                  <button className='text-[#898989] text-sm px-6 py-2 rounded-[6px] font-semibold' onClick={() => {
+                    setCoverImage(null);
+                  }}>Remove</button>
+                  <label htmlFor="cover-upload" className='text-[#898989] border border-[#898989] text-sm px-4 py-1 rounded-[14px] font-semibold cursor-pointer'>
+                    Change
+                  </label>
+                </div>
               </div>
             )}
 
             {activeSection === 'general' && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">General information</h2>
-                <div className="space-y-4">
+                <h2 className="text-lg font-semibold mb-4">Key attributes</h2>
+                
+                <div className="space-y-6">
+                  {/* Industry-specific attributes */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Category*
-                    </label>
-                    <select
-                      value={formData.categoryId}
-                      onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg"
-                      required
-                    >
-                      <option value="">Select a category</option>
-                      {categories.map((category) => (
-                        <option key={category.id} value={category.id}>
-                          {category.categoryName}
-                        </option>
-                      ))}
-                    </select>
+                    <h3 className="font-medium mb-4">Industry-specific attributes</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center">
+                        <div className="w-[40%] text-sm text-gray-600 bg-[#f4f4f4] border border-[#eeeeee] rounded-l-[6px] px-2 py-2.5">Material</div>
+                        <input 
+                          type="text"
+                          placeholder="Add your answer"
+                          className="flex-1 p-2 border rounded-md active:border-[#9e1171] focus:border-[#eeeeee] focus:outline-none"
+                          value={formData.attributes?.material || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            attributes: { ...formData.attributes, material: e.target.value }
+                          })}
+                        />
+                      </div>
+
+                      <div className="flex items-center ">
+                        <div className="w-[40%] text-sm text-gray-600 bg-[#f4f4f4] border border-[#eeeeee] rounded-l-[6px] px-2 py-2.5">Fabric Weight</div>
+                        <input 
+                          type="text"
+                          placeholder="Add your answer"
+                          className="flex-1 p-2 border rounded-md active:border-[#9e1171] focus:border-[#eeeeee] focus:outline-none"
+                          value={formData.attributes?.fabricWeight || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            attributes: { ...formData.attributes, fabricWeight: e.target.value }
+                          })}
+                        />
+                      </div>
+
+                      <div className="flex items-center ">
+                          <div className="w-[40%] text-sm text-gray-600 bg-[#f4f4f4] border border-[#eeeeee] rounded-l-[6px] px-2 py-2.5">Technics</div>
+                        <input 
+                          type="text"
+                          placeholder="Add your answer"
+                          className="flex-1 p-2 border rounded-md active:border-[#9e1171] focus:border-[#eeeeee] focus:outline-none"
+                          value={formData.attributes?.technics || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            attributes: { ...formData.attributes, technics: e.target.value }
+                          })}
+                        />
+                      </div>
+                    </div>
                   </div>
+
+                  {/* Other attributes */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Price*
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                      className="w-full px-3 py-2 border rounded-lg"
-                      required
-                    />
+                    <h3 className="font-medium mb-4 text-[16px]">Other attributes</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center ">
+                        <div className="w-[40%] text-sm text-gray-600 bg-[#f4f4f4] border border-[#eeeeee] rounded-l-[6px] px-2 py-2.5">Collar</div>
+                        <input 
+                          type="text"
+                          placeholder="Add your answer"
+                          className="flex-1 p-2 border rounded-md active:border-[#9e1171] focus:border-[#eeeeee] focus:outline-none"
+                          value={formData.attributes?.collar || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            attributes: { ...formData.attributes, collar: e.target.value }
+                          })}
+                        />
+                      </div>
+
+                      <div className="flex items-center ">
+                        <div className="w-[40%] text-sm text-gray-600 bg-[#f4f4f4] border border-[#eeeeee] rounded-l-[6px] px-2 py-2.5">Fabric Type</div>
+                        <input 
+                          type="text"
+                          placeholder="Add your answer"
+                          className="flex-1 p-2 border rounded-md active:border-[#9e1171] focus:border-[#eeeeee] focus:outline-none"
+                          value={formData.attributes?.fabricType || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            attributes: { ...formData.attributes, fabricType: e.target.value }
+                          })}
+                        />
+                      </div>
+
+                      <div className="flex items-center ">
+                        <div className="w-[40%] text-sm text-gray-600 bg-[#f4f4f4] border border-[#eeeeee] rounded-l-[6px] px-2 py-2.5">Fit Type</div>
+                        <input 
+                          type="text"
+                          placeholder="Add your answer"
+                          className="flex-1 p-2 border rounded-md active:border-[#9e1171] focus:border-[#eeeeee] focus:outline-none"
+                          value={formData.attributes?.fitType || ''}
+                          onChange={(e) => setFormData({
+                            ...formData,
+                            attributes: { ...formData.attributes, fitType: e.target.value }
+                          })}
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Name of Product*
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg"
-                      placeholder="Enter product name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Product Description*
-                    </label>
-                    <textarea
-                      value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      className="w-full px-3 py-2 border rounded-lg h-32"
-                      placeholder="Enter product description"
-                    />
-                  </div>
+
+                  {/* <button 
+                    type="button"
+                    onClick={() => {}}
+                    className="text-[#898989] hover:text-[#666] flex items-center gap-2"
+                  >
+                    + Add other options
+                  </button> */}
                 </div>
               </div>
             )}
 
             {activeSection === 'details' && (
               <div>
-                <h2 className="text-lg font-semibold mb-4">Key attributes</h2>
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <h3 className="font-medium mb-2">Industry-specific attributes</h3>
-                      <div className="space-y-3">
-                        <AttributeInput
-                          label="Material"
-                          value={formData.attributes?.material || ''}
-                          onChange={(value) => setFormData({
+                    <h2 className="text-lg font-semibold mb-4">Thumbnail of the product</h2>
+                 {   thumbnail ? <div className="border-2 border-dashed rounded-lg p-8 text-center h-full">
+                      <img src={URL.createObjectURL(thumbnail)} alt="Thumbnail" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                
+                    </div> : <div className="border-2 border-dashed rounded-lg p-8 text-center h-full">
+                      <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      <label htmlFor='thumbnail-upload' className='text-[#898989] border border-[#898989] text-sm px-4 py-1 rounded-[14px] font-semibold cursor-pointer' onClick={() => {
+                  thumbnailRef.current?.click();
+                   }}>
+                    Browse Files
+                   </label>
+                   <input id='thumbnail-upload' type="file" ref={thumbnailRef} className='hidden' onChange={(e) => {
+                    setThumbnail(e.target.files?.[0]);
+                   }}/>
+                    </div>}
+                <h2 className="text-lg font-semibold mb-4 mt-2">Add price details</h2>
+                
+                <div className="space-y-6">
+                  {/* Price Details */}
+                  <div className="space-y-4">
+                    <div className='flex items-center gap-4'>
+                      <div className='text-sm text-gray-600 w-[50%]'>Name</div>
+                      <input 
+                        type="text"
+                        placeholder="Enter product name"
+                        className="w-full p-2 border rounded-md bg-[#fcfcfc]"
+                        value={formData.name || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          name: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-1/3 text-sm text-gray-600">Add product price</div>
+                      <div className="flex-1 relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                        <input 
+                          type="text"
+                          placeholder="122.00"
+                          className="w-full p-2 pl-8 border rounded-md bg-[#fcfcfc]"
+                          value={formData.price || ''}
+                          onChange={(e) => setFormData({
                             ...formData,
-                            attributes: { ...formData.attributes, material: value }
-                          })}
-                        />
-                        <AttributeInput
-                          label="Fabric Weight"
-                          value={formData.attributes?.fabricWeight || ''}
-                          onChange={(value) => setFormData({
-                            ...formData,
-                            attributes: { ...formData.attributes, fabricWeight: value }
-                          })}
-                        />
-                        <AttributeInput
-                          label="Technics"
-                          value={formData.attributes?.technics || ''}
-                          onChange={(value) => setFormData({
-                            ...formData,
-                            attributes: { ...formData.attributes, technics: value }
+                            price: e.target.value
                           })}
                         />
                       </div>
                     </div>
-                    <div>
-                      <h3 className="font-medium mb-2">Other attributes</h3>
-                      <div className="space-y-3">
-                        <AttributeInput
-                          label="Color"
-                          value={formData.attributes?.color || ''}
-                          onChange={(value) => setFormData({
+
+                    <div className="flex items-center gap-4">
+                      <div className="w-1/3 text-sm text-gray-600">Discount</div>
+                      <div className="flex-1 relative">
+                        <input 
+                          type="text"
+                          placeholder="Enter discount"
+                          className="w-full p-2 border rounded-md bg-[#fcfcfc]"
+                          value={formData.discount || ''}
+                          onChange={(e) => setFormData({
                             ...formData,
-                            attributes: { ...formData.attributes, color: value }
+                            discount: e.target.value
                           })}
                         />
-                        <AttributeInput
-                          label="Fabric Type"
-                          value={formData.attributes?.fabricType || ''}
-                          onChange={(value) => setFormData({
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">%</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="w-1/3 text-sm text-gray-600">Delivery cost</div>
+                      <div className="flex-1 relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">₹</span>
+                        <input 
+                          type="text"
+                          placeholder="Enter delivery cost"
+                          className="w-full p-2 pl-8 border rounded-md bg-[#fcfcfc]"
+                          value={formData.deliveryCost || ''}
+                          onChange={(e) => setFormData({
                             ...formData,
-                            attributes: { ...formData.attributes, fabricType: value }
-                          })}
-                        />
-                        <AttributeInput
-                          label="Fit Type"
-                          value={formData.attributes?.fitType || ''}
-                          onChange={(value) => setFormData({
-                            ...formData,
-                            attributes: { ...formData.attributes, fitType: value }
+                            deliveryCost: e.target.value
                           })}
                         />
                       </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="w-1/3 text-sm text-gray-600">Minimum order</div>
+                      <input 
+                        type="number"
+                        placeholder="Enter minimum order quantity"
+                        className="flex-1 p-2 border rounded-md bg-[#fcfcfc]"
+                        value={formData.minOrderQuantity || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          minOrderQuantity: e.target.value
+                        })}
+                      />
+                    </div>
+                    <div className='flex items-center gap-4'>
+                      <div className="w-1/3 text-sm text-gray-600">Available quantity</div>
+                      <input 
+                        type="number"
+                        placeholder="Enter available quantity"
+                        className="flex-1 p-2 border rounded-md bg-[#fcfcfc]"
+                        value={formData.availableQuantity || ''}
+                        onChange={(e) => setFormData({
+                          ...formData,
+                          availableQuantity: e.target.value
+                        })}
+                      />
                     </div>
                   </div>
-                  <button className="text-red-500 hover:text-red-600">
-                    + Add other options
-                  </button>
+
+                  {/* Add other options button */}
+                
                 </div>
               </div>
             )}
@@ -363,99 +479,28 @@ if(mode === 'edit'){
             {activeSection === 'documents' && (
               <div>
                 <h2 className="text-lg font-semibold mb-4">Upload Documents</h2>
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
+            {    documents.length === 0 ? <div className="border-2 border-dashed rounded-lg p-8 text-center">
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                   <p className="text-gray-600 mb-2">Drag and drop your documents here</p>
-                  <button className="bg-red-50 text-red-500 px-4 py-2 rounded-lg">
+                  <label htmlFor='documents-upload' className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-6 py-2 transition-all duration-200" onClick={() => {
+                    documentsRef.current?.click();
+                  }}>
                     Browse Files
-                  </button>
-                </div>
+                  </label>
+                  <input id='documents-upload' type="file" ref={documentsRef} className='hidden' onChange={(e) => {
+                    setDocuments([...documents,e.target.files?.[0]]);
+                  }}/>
+                </div> : <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  {documents.map((document:any,index:number) => (
+                    <div key={index}>
+                      <img src={URL.createObjectURL(document)} alt="Document" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    </div>
+                  ))}
+                </div>}
               </div>
             )}
 
-            {activeSection === 'publish' && (
-              <div>
-                <h2 className="text-lg font-semibold mb-4">Review and Publish</h2>
-                <div className="space-y-6">
-                  {/* Preview Section */}
-                  <div className="border rounded-lg p-6">
-                    <h3 className="text-sm font-medium text-gray-700 mb-4">Preview</h3>
-                    <div className="grid grid-cols-2 gap-8">
-                      <div>
-                        {coverImage && (
-                          <img
-                            src={coverImage}
-                            alt="Product preview"
-                            className="w-full h-64 object-cover rounded-lg"
-                          />
-                        )}
-                      </div>
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="text-sm text-gray-500">Product Name</h4>
-                          <p className="font-medium">{formData.name}</p>
-                        </div>
-                        <div>
-                          <h4 className="text-sm text-gray-500">Price</h4>
-                          <p className="font-medium">${formData.price}</p>
-                        </div>
-                        <div>
-                          <h4 className="text-sm text-gray-500">Category</h4>
-                          <p className="font-medium">
-                            {categories.find(c => c.id === formData.categoryId)?.categoryName}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Visibility Section */}
-                  {/* <div className="border rounded-lg p-6">
-                    <h3 className="text-sm font-medium text-gray-700 mb-4">Visibility</h3>
-                    <div className="space-y-4">
-                      <label className="flex items-center space-x-3">
-                        <input
-                          type="radio"
-                          name="visibility"
-                          checked={!formData.isDraft}
-                          onChange={() => setFormData({ ...formData, isDraft: false })}
-                          className="form-radio text-[#9e1171]"
-                        />
-                        <div>
-                          <p className="font-medium">Public</p>
-                          <p className="text-sm text-gray-500">This product will be visible to all users</p>
-                        </div>
-                      </label>
-                      <label className="flex items-center space-x-3">
-                        <input
-                          type="radio"
-                          name="visibility"
-                          checked={formData.isDraft}
-                          onChange={() => setFormData({ ...formData, isDraft: true })}
-                          className="form-radio text-[#9e1171]"
-                        />
-                        <div>
-                          <p className="font-medium">Private</p>
-                          <p className="text-sm text-gray-500">Only you can see this product</p>
-                        </div>
-                      </label>
-                    </div>
-                  </div> */}
-
-                  {/* Action Buttons */}
-                  <div className="flex justify-end space-x-4">
-                
-                    <button
-                      type="submit"
-                      onClick={(e:any) => handleSubmit(e,false)}
-                      className="px-6 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px]"
-                    >
-                      Publish Now
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+          
           </form>
         </div>
       </div>

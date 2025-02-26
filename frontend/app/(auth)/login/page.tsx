@@ -7,7 +7,7 @@ export default function LoginPage() {
 
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-pink-100 via-rose-100 to-amber-100
+    <div className="min-h-screen w-full bg-white
     flex items-center justify-center">
       <LoginForm  />
     </div>

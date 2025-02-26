@@ -7,6 +7,7 @@ import { BankDetail } from '@/types/api';
 import { Country, State, City } from "country-state-city"
 import { toast } from 'sonner';
 import { User } from '@/types/api';
+import { Loader2 } from 'lucide-react';
 interface SettingsProps {
 }
 
@@ -18,6 +19,7 @@ const Settings: React.FC<SettingsProps> = () => {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordResponse, setPasswordResponse] = useState<any>({newPassword:'',currentPassword:'',confirmPassword:''});
+  const [isLoading, setIsLoading] = useState(false);
   const [bankDetails, setBankDetails] = useState<any>({
     fullName: '',
     holderName: '',
@@ -98,11 +100,13 @@ const Settings: React.FC<SettingsProps> = () => {
   };
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsLoading(true);
     const file = e.target.files?.[0];
     if (file) {
       const response:any = await profileApi.uploadImage(file);
       setFormData({ ...formData, imageUrl: response.url });
     }
+    setIsLoading(false);
   }
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -132,6 +136,10 @@ const Settings: React.FC<SettingsProps> = () => {
     const response:any = await profileApi.updateBankDetails(bankDetails);
     toast.success("Bank details updated successfully");
   }
+
+  const handleDeleteImage = () => {
+    setFormData({...formData, imageUrl: ''});
+  }
   const renderAccountSettings = () => (
     <div className="p-6">
       <div className="grid grid-cols-5 gap-8">
@@ -139,11 +147,11 @@ const Settings: React.FC<SettingsProps> = () => {
         <div className="col-span-2">
           <div className="flex flex-col items-center space-y-4 border border-[#e4e7eb] rounded-lg p-4 h-full">
             <div className="relative">
-              <img
+           {  isLoading ? <div className='flex items-center justify-center w-96 h-96'> <Loader2 className="w-10 h-10 animate-spin" /> </div> :   <img
                 src={formData.imageUrl}
                 alt="Profile"
                 className="w-96 h-96 rounded-full object-cover"
-              />
+              />}
               <div className="mt-4 text-center text-[11px] text-gray-500">
                 Format: PNG, JPEG    Size: 2MB
               </div>
@@ -155,7 +163,7 @@ const Settings: React.FC<SettingsProps> = () => {
                   <input type="file" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
                 </button>
                 <button className="flex items-center text-red-500 hover:text-red-600">
-                  <span className="underline">Delete</span>
+                  <span className="underline" onClick={handleDeleteImage} >Delete</span>
                 </button>
               </div>
             </div>

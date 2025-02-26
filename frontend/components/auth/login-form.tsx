@@ -94,6 +94,7 @@ export function LoginForm() {
               type="email"
               required
               placeholder="m@example.com"
+              className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
           </div>
 
@@ -104,6 +105,7 @@ export function LoginForm() {
               name="password"
               type="password"
               required
+              className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
             {/* <Link
               href="/forgot-password"
@@ -115,10 +117,10 @@ export function LoginForm() {
 
           <Button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-purple-600 via-rose-500 to-amber-500 text-white hover:opacity-90" 
+            className="w-full bg-gradient-to-r from-purple-600 via-rose-500 to-amber-500 text-white hover:opacity-90 rounded-[6px] font-semibold" 
             disabled={isLoading}
           >
-            {isLoading ? "Signing in..." : "Sign in"}
+            {isLoading ? "Logging in..." : "Log in"}
           </Button>
           {/* <GoogleSignin /> */}
         </form>
@@ -129,7 +131,9 @@ export function LoginForm() {
           className="w-full"
           onClick={() => router.push('/signup')}
         >
-          Don&apos;t have an account? Sign up
+          Don&apos;t have an account? 
+          <br />
+          Sign up
         </Button>
       </CardFooter>
     </Card>

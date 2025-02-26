@@ -59,5 +59,65 @@ export const profileApi = {
 
   getBankDetails: async () => {
     return api.get('/payment/bank-details');
+  },
+
+  // Get seller profile details
+  getSellerProfile: async () => {
+    return api.get('/seller/profile');
+  },
+
+  // Update seller profile categories
+  updateCategories: async (data: any) => {
+    return api.put('/seller/profile/categories', data);
+  },
+
+  // Update production services
+  updateProductionServices: async (data: any) => {
+    return api.put('/seller/profile/production-services', data);
+  },
+
+  // Update production management
+  updateProductionManagement: async (data: any) => {
+    return api.put('/seller/profile/production-management', data);
+  },
+
+  // Update manufacturing locations
+  updateManufacturingLocations: async (data: any) => {
+    return api.put('/seller/profile/manufacturing-locations', data);
+  },
+
+  // Update business capabilities
+  updateBusinessCapabilities: async (data: any) => {
+    return api.put('/seller/profile/capabilities', data);
+  },
+
+  // Update target audience
+  updateTargetAudience: async (data: any) => {
+    return api.put('/seller/profile/target-audience', data);
+  },
+
+  // Update team size
+  updateTeamSize: async (data: any) => {
+    return api.put('/seller/profile/team-size', data);
+  },
+
+  // Update annual revenue
+  updateAnnualRevenue: async (data: any) => {
+    return api.put('/seller/profile/annual-revenue', data);
+  },
+
+  // Update minimum order quantity
+  updateMinimumOrder: async (data: any) => {
+    return api.put('/seller/profile/minimum-order', data);
+  },
+
+  // Update comments and notes
+  updateComments: async (data: any) => {
+    return api.put('/seller/profile/comments', data);
+  },
+
+  // Update certificates
+  updateCertificates: async (data: any) => {
+    return api.put('/seller/profile/certificates', data);
   }
 }; 

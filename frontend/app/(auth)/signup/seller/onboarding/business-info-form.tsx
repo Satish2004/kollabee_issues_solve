@@ -89,7 +89,7 @@ export function BusinessInfoForm({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, businessName: e.target.value }))
               }
-              className="h-11"
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
           </div>
 
@@ -104,7 +104,7 @@ export function BusinessInfoForm({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, websiteLink: e.target.value }))
               }
-              className="h-11"
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 "
             />
           </div>
 
@@ -119,7 +119,7 @@ export function BusinessInfoForm({
                   key={value}
                   variant={formData.businessTypes?.includes(value) ? "default" : "outline"}
                   onClick={() => handleBusinessTypeClick(value)}
-                  className="rounded-md h-9 px-4 text-sm"
+                  className={`rounded-md h-9 px-2 text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${formData.businessTypes?.includes(value) ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]" : "border-[#e5e5e5]"}`}
                   size="sm"
                 >
                   {label}
@@ -141,7 +141,7 @@ export function BusinessInfoForm({
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, businessAddress: e.target.value }))
               }
-              className="h-11"
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50   "
             />
           </div>
 
@@ -156,7 +156,7 @@ export function BusinessInfoForm({
                   key={value}
                   variant={formData.businessCategories?.includes(value) ? "default" : "outline"}
                   onClick={() => handleBusinessCategoryClick(value)}
-                  className="rounded-md h-9 px-4 text-sm"
+                  className={`rounded-md h-9 px-2 text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${formData.businessCategories?.includes(value) ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]" : "border-[#e5e5e5]"}`}
                   size="sm"
                 >
                   {label}

@@ -221,7 +221,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <button className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] mt-4 w-full" onClick={() => router.push('/seller/settings')}>
+              <button className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] mt-4 w-full" onClick={() => router.push('/seller/profile/seller')}>
                 Take Action
               </button>
             </div>

@@ -10,7 +10,8 @@ import { useRouter } from "next/navigation";
 
 interface SignupFormProps {
   formData: {
-    fullName: string;
+    firstName: string;
+    lastName: string;
     email: string;
     phone: string;
     password: string;
@@ -58,7 +59,8 @@ export function SignupForm({
     const phoneRegex = /^\d{10}$/;
 
     return (
-      formData.fullName.trim() !== "" &&
+      formData.firstName.trim() !== "" &&
+      formData.lastName.trim() !== "" &&
       emailRegex.test(formData.email) &&
       phoneRegex.test(formData.phone) &&
       Object.values(isPasswordValid).every(Boolean) &&
@@ -83,48 +85,15 @@ export function SignupForm({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>
-              Full Name<span className="text-destructive">*</span>
+              First Name<span className="text-destructive">*</span>
             </Label>
             <Input
-              placeholder="Enter your Full Name"
-              value={formData.fullName}
-              onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+              placeholder="Enter your First Name"
+              value={formData.firstName }
+              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
             />
           </div>
 
-        
-
-          <div className="space-y-2">
-            <Label htmlFor="email" className="flex items-center gap-2">
-              Business Email<span className="text-destructive">*</span>
-              <Info className="h-3.5 w-3.5 text-muted-foreground" />
-            </Label>
-            <div className="relative">
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your Business Email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                disabled={otpVerified}
-                className={`relative`}
-              />
-              <Button 
-                onClick={onVerifyEmail}
-                disabled={!formData.email || generateOTPLoading || otpVerified}
-                variant={otpVerified ? "outline" : "default"}
-                className={`absolute right-0 top-0 h-6 w-20 mt-[6px] mr-2 ${
-                  otpVerified 
-                    ? "border-red-500 text-white bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-                    : "border-red-500 text-white bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
-                }`}
-              >
-                {otpVerified ? "Verified" : generateOTPLoading ? "Sending..." : "Verify"}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-4">
           <div className="space-y-2">
             <Label>
               Password<span className="text-destructive">*</span>
@@ -138,7 +107,7 @@ export function SignupForm({
                 setFormData({ ...formData, password: e.target.value })
               }
             />
-            <div className="space-y-2 text-xs text-muted-foreground">
+            <div className=" text-xs text-muted-foreground flex flex-row justify-between">
               <div
                 className={`flex items-center gap-2 ${
                   isPasswordValid.hasMinLength ? "text-green-500" : ""
@@ -177,7 +146,71 @@ export function SignupForm({
               </div>
             </div>
           </div>
-            <div className="space-y-2">
+
+          <div className="space-y-2">
+            <Label htmlFor="email" className="flex items-center gap-2">
+              Business Email<span className="text-destructive">*</span>
+              <Info className="h-3.5 w-3.5 text-muted-foreground" />
+            </Label>
+            <div className="relative">
+              <Input
+                id="email"
+                type="email"
+                placeholder="Enter your Business Email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                disabled={otpVerified}
+                className={`relative`}
+              />
+              <Button 
+                onClick={onVerifyEmail}
+                disabled={!formData.email || generateOTPLoading || otpVerified}
+                variant={otpVerified ? "outline" : "default"}
+                className={`absolute right-0 top-0 h-6 w-20 mt-[6px] mr-2 ${
+                  otpVerified 
+                    ? " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                    : " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
+                }`}
+              >
+                {otpVerified ? "Verified" : generateOTPLoading ? "Sending..." : "Verify"}
+              </Button>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label>
+              Describe your Role within the Company<span className="text-destructive">*</span>
+            </Label>
+            <div className="flex flex-wrap gap-2">
+              {companyRoles.map((role) => (
+                <Button
+                  key={role}
+                  variant={formData.role === role ? "default" : "outline"}
+                  className={`h-8 text-xs justify-start px-2 w-fit rounded-[6px] border ${formData.role === role ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]" : "border-[#e5e5e5]"}`}
+                  onClick={() => setFormData({ ...formData, role: role })}
+                >
+                  {role}
+                </Button>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-4">
+        
+          
+          </div>
+        </div>
+
+        <div className="space-y-4">
+        <div className="space-y-2">
+            <Label>
+              Last Name<span className="text-destructive">*</span>
+            </Label>
+            <Input
+              placeholder="Enter your Last Name"
+              value={formData.lastName}
+              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+            />
+          </div>
+          <div className="space-y-2 ">
               <Label>
                 Confirm Password<span className="text-destructive">*</span>
               </Label>
@@ -188,11 +221,7 @@ export function SignupForm({
                 onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
               />
             </div>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
+          <div className="space-y-2 ">
             <Label>
               Phone Number<span className="text-destructive">*</span>
             </Label>
@@ -203,23 +232,7 @@ export function SignupForm({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label>
-              Describe your Role within the Company<span className="text-destructive">*</span>
-            </Label>
-            <div className="grid grid-cols-2 gap-2">
-              {companyRoles.map((role) => (
-                <Button
-                  key={role}
-                  variant={formData.role === role ? "default" : "outline"}
-                  className="h-8 text-xs justify-start px-2"
-                  onClick={() => setFormData({ ...formData, role: role })}
-                >
-                  {role}
-                </Button>
-              ))}
-            </div>
-          </div>
+        
         </div>
       </div>
 

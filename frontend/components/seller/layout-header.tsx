@@ -13,6 +13,7 @@ import {
   PenTool,
   Headphones,
   UserCog,
+  Settings,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { UserDropdown } from "./user-dropdown";
@@ -28,14 +29,14 @@ export default function SellerLayoutHeader() {
     {
       label: "Dashboard",
       icon: Home,
-      href: "/seller/dashboard",
+      href: "/seller",
       color: "text-gray-800",
       fontWeight: "font-bold",
     },
     {
       label: "Your Products",
       icon: Store,
-      href: "/seller/products/active",
+      href: "/seller/products",
     },
     {
       label: "Customers",
@@ -53,6 +54,11 @@ export default function SellerLayoutHeader() {
       href: "/seller/orders",
     },
     {
+      label: "Requests",
+      icon: Store,
+      href: "/seller/request",
+    },
+    {
       label: "Advertise",
       icon: Headphones,
       href: "/seller/advertise",
@@ -60,12 +66,17 @@ export default function SellerLayoutHeader() {
     {
       label: "Profile Manage",
       icon: UserCog,
-      href: "/profile/seller/profile-management",
+      href: "/seller/profile/seller",
     },
     {
       label: "Post New Product",
       icon: StoreIcon,
-      href: "/seller/create-product",
+      href: "/seller/add-product",
+    },
+    {
+      label: "Settings",
+      icon: Settings,
+      href: "/seller/settings",
     },
   ];
 
@@ -77,6 +88,7 @@ export default function SellerLayoutHeader() {
       href: "/seller/update-product",
     };
   }
+  console.log(currentRoute);
 
   const handleLogout = async () => {
     try {

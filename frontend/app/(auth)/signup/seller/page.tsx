@@ -23,7 +23,8 @@ export default function SignupSellerPage() {
   const router = useRouter();
   const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     password: "",
@@ -169,7 +170,7 @@ export default function SignupSellerPage() {
         // User details
         email: formData.email,
         password: formData.password,
-        name: formData.fullName,
+        name: formData.firstName + " " + formData.lastName,
         role: 'SELLER' ,
         phoneNumber: formData.phone,
         
@@ -202,8 +203,8 @@ export default function SignupSellerPage() {
   };
 
   const validateStage1 = () => {
-    const { fullName, email, phone, password, confirmPassword, role } = formData;
-    if (!fullName || !email || !phone || !password || !role) {
+    const { firstName, lastName, email, phone, password, confirmPassword, role } = formData;
+    if (!firstName || !lastName || !email || !phone || !password || !role) {
       toast.error("Please fill all required fields and accept the terms");
       return false;
     }

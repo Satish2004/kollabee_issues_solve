@@ -128,7 +128,7 @@ export const getProducts = async (req: any, res: Response) => {
       }),
       prisma.product.count({ where: filters })
     ]);
-
+console.log(products,"products");
     res.json({
       data: products,
       meta: {

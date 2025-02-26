@@ -52,9 +52,9 @@ export function OTPModal({
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
       <DialogContent className="sm:max-w-[425px] bg-white">
-        <DialogHeader className="space-y-3">
+        <DialogHeader className="space-y-2">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-lg font-medium">
+            <DialogTitle className="text-base font-semibold">
               Enter OTP Sent to your email address
             </DialogTitle>
           </div>
@@ -69,7 +69,7 @@ export function OTPModal({
                 <Input
                   key={i}
                   name={`otp-${i}`}
-                  className="w-12 h-12 text-center text-lg"
+                  className="w-12 h-12 text-center text-lg bg-[#fdeced] border-none rounded-[6px] "
                   maxLength={1}
                   value={otp[i]}
                   onChange={(e) => onOtpChange(i, e.target.value)}
