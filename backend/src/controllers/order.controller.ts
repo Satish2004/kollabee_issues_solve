@@ -345,38 +345,28 @@ export const getOrderTracking = async (req: any, res: Response) => {
   }
 }; 
 
-// export const acceptOrder = async (req: any, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//     const updatedOrder = await prisma.order.update({
-//       where: { id },
-//       data: { 
-//         items: {
-//           updateMany: {
-//             where: {},
-//             data: { isAccepted: true }
-//           }
-//         }
-//       }
-//     });
-//     res.json(updatedOrder);
-//   } catch (error) {
-//     res.status(500).json({ error: 'Failed to accept order' });
-//   }
-// };
+export const acceptOrder = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+        const updatedOrder = await prisma.order.update({
+          where: { id },
+          data: {isAccepted:true}
+        });
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to accept order' });
+  }
+};
 
-// export const declineOrder = async (req: any, res: Response) => {
-//   try {
-//     const { id } = req.params;
-
-//     const updatedOrder = await prisma.order.update({
-//       where: { id },
-//       data: { isAccepted: false }
-//     });
-
-//     res.json(updatedOrder);
-//   } catch (error) {
-//     console.error('Decline order error:', error);
-//     res.status(500).json({ error: 'Failed to decline order' });
-//   }
-// };
+export const declineOrder = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: { isAccepted: false }
+    });
+    res.json(updatedOrder);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to decline order' });
+  }
+};

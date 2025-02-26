@@ -44,6 +44,7 @@ export const authApi = {
     const response :any= await api.post('/auth/signup', data);
     if (response?.token) {
       setToken(response?.token);
+      localStorage.setItem('token', response?.token);
     }
     return response;
   },

@@ -23,5 +23,13 @@ export const ordersApi = {
 
   getOrderTracking: async (id: string) => {
     return api.get(`/orders/${id}/tracking`);
+  },
+
+  acceptOrder: async (id: string) => {
+    return api.put(`/orders/${id}/accept`);
+  },
+
+  declineOrder: async (id: string) => {
+    return api.put(`/orders/${id}/decline`);
   }
 }; 

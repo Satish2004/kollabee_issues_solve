@@ -5,7 +5,9 @@ import {
   getOrderDetails,
   updateOrderStatus,
   updateOrderTracking,
-  getOrderTracking
+  getOrderTracking,
+  acceptOrder,
+  declineOrder
 } from '../controllers/order.controller';
 import { authMiddleware } from '../middleware/auth';
 
@@ -23,5 +25,7 @@ router.patch('/:id/tracking', authMiddleware, updateOrderTracking);
 // Public tracking route (no auth required)
 router.get('/track/:id', getOrderTracking);
 router.get('/track', getOrderTracking); // For tracking by tracking number
+router.put('/:id/accept', authMiddleware, acceptOrder);
+router.put('/:id/decline', authMiddleware, declineOrder);
 
 export default router; 
