@@ -204,7 +204,7 @@ const ProductsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product) => (
+                  {products.length > 0 ? products.map((product) => (
                     <tr key={product.id} className="border-t text-sm">
                       <td className="px-4 py-2">
                         <div className="flex items-center space-x-3">
@@ -247,7 +247,7 @@ const ProductsPage: React.FC = () => {
                         </div>
                       </td>
                     </tr>
-                  ))}
+                  )) : <div className='p-8 text-center'>No products found</div>}
                 </tbody>
               </table>
             </div>
