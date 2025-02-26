@@ -44,7 +44,7 @@ export function UserDropdown({ currentUser, onLogout }: UserDropdownProps) {
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
                         <p className="text-sm font-medium leading-none">{currentUser?.name || 'Aman K'}</p>

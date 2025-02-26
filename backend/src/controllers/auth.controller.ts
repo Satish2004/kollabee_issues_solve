@@ -281,7 +281,7 @@ export const generateOTP = async (req: Request, res: Response) => {
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        shouldCreateUser: false,
+        shouldCreateUser: true,
         emailRedirectTo: `${process.env.FRONTEND_URL}/auth/verify`
       }
     });
