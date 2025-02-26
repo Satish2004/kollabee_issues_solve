@@ -9,12 +9,11 @@ import { toast } from 'sonner';
 import { User } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 
-interface SettingsProps {
-}
+
 
 type TabType = 'account' | 'password' | 'payment';
 
-const Settings: React.FC<SettingsProps> = () => {
+const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabType>('account');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
