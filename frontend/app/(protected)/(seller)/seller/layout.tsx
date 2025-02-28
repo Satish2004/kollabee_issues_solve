@@ -1,17 +1,29 @@
+"use client";
+import React, { useEffect } from 'react';
 import { SellerSidebar } from "@/components/seller-sidebar";
 import SellerLayoutHeader from "@/components/seller/layout-header";
+import { useRouter } from "next/navigation";
+import { DriverTour } from '@/components/tour/DriverTour';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="bg-[#f4f4f4] h-screen flex">
-      {/* Fixed Sidebar */}
-        <SellerSidebar />
+  const router = useRouter();
 
-      {/* Main Content */}
-      <div className="flex-1 p-6 md:p-8 w-full overflow-y-auto no-scrollbar">
-        <SellerLayoutHeader />
-        {children}
+  useEffect(() => {
+    if(!localStorage.getItem("token")){
+      router.push("/login");
+    }
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <SellerLayoutHeader />
+      <div className="flex">
+        <SellerSidebar />
+        <main className="flex-1 p-6">
+          {children}
+        </main>
       </div>
+      <DriverTour />
     </div>
   );
 }

@@ -67,9 +67,10 @@ export function SellerSidebar({ className }: SidebarProps) {
           href: "/seller",
         },
         {
-          label: "Your Products",
+          label: "Products",
           icon: Store,
           href: "/seller/products",
+          target: "products-nav",
         },
         // {
         //   label: "Add Product",
@@ -77,14 +78,16 @@ export function SellerSidebar({ className }: SidebarProps) {
         //   href: "/seller/products/add",
         // },
         {
-          label: "Messages",
+          label: "Chat",
           icon: MessageSquare,
           href: "/seller/chat",
+          target: "chat-nav",
         },
         {
           label: "Requests",
           icon: MessageSquare,
           href: "/seller/request",
+          target: "requests-nav",
         },
         // {
         //   label: "Orders",
@@ -110,6 +113,7 @@ export function SellerSidebar({ className }: SidebarProps) {
           label: "Advertise",
           icon: Headphones,
           href: "/seller/advertise",
+          target: "advertise",
         },
         // {
         //   label: "Profile Manage",
@@ -167,6 +171,7 @@ export function SellerSidebar({ className }: SidebarProps) {
                   <Link
                     key={route.href}
                     href={route.href}
+                    id={route.target}
                     className={cn(
                       "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent text-[#78787A]",
                       pathname === route.href && "bg-[#FDECED] text-[#363638]"

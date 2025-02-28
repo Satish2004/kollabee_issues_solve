@@ -235,7 +235,7 @@ const KollaBeeProfile = () => {
             
             {/* Profile completion and updates */}
             <div className="grid grid-cols-3 gap-6 mb-6">
-              <div className="border rounded-md p-6 relative">
+              <div className="border rounded-md p-6 relative profile-strength">
                 <div className="mb-4">
                   <h3 className="text-base font-medium mb-5">List to updates</h3>
                   
@@ -278,7 +278,7 @@ const KollaBeeProfile = () => {
                 </div>
               </div>
               
-              <div className="border rounded-md p-6 col-span-2">
+              <div className="border rounded-md p-6 col-span-2 customer-reach">
                 <h3 className="text-base font-medium mb-1">Helps your reach broader customers base</h3>
                 
                 <div className="flex">
@@ -369,31 +369,7 @@ const KollaBeeProfile = () => {
             )} */}
             
             {/* Footer actions */}
-            <div className="fixed bottom-4 right-1/2 transform translate-x-1/2 bg-white rounded-lg shadow-lg border flex items-center space-x-2 p-1">
-              <button className="p-2 rounded-md bg-blue-50 text-blue-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-              <button className="p-2 rounded-md">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11.5V14m0-2.5v-6a3.5 3.5 0 014.6-3.3m2.6.3v2.5m0 2.5v6a3.5 3.5 0 01-4.6 3.3m-2.6-.3v-2.5" />
-                </svg>
-              </button>
-              <button className="p-2 rounded-md">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                </svg>
-              </button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded-md text-sm">
-                Ask to edit
-              </button>
-              <button className="p-2 rounded-md">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-              </button>
-            </div>
+          
           </div>
         </div>
         
