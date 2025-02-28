@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { SellerSidebar } from "@/components/seller-sidebar";
 import SellerLayoutHeader from "@/components/seller/layout-header";
 import { useRouter } from "next/navigation";
-import { DriverTour } from '@/components/tour/DriverTour';
+import { IntroTour } from '@/components/tour/IntroTour';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
-      <DriverTour />
+      <IntroTour />
     </div>
   );
 }
