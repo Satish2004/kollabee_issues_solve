@@ -175,7 +175,7 @@ export function SellerSidebar({ className }: SidebarProps) {
                     className={`${cn(
                       "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent text-[#78787A]",
                       pathname === route.href && "bg-[#FDECED] text-[#363638]"
-                    )} ${route.className || ""}`}
+                    )} `}
                   >
                     <route.icon className="h-4 w-4" />
                     {!isCollapsed && <span>{route.label}</span>}
