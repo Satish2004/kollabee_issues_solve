@@ -16,6 +16,7 @@ export const IntroTour = () => {
   }, []);
 
   useEffect(() => {
+    console.log('isReady', isReady);
     if (!isReady) return;
     const hasSeenTour = localStorage.getItem('hasSeenTour');
     if (!hasSeenTour) {
@@ -25,19 +26,29 @@ export const IntroTour = () => {
 
   const steps = [
     {
-      element: '#products-nav',
+      element: '.tour-products',
       intro: 'Manage your product listings here.',
       position: 'right'
     },
     {
-      element: '#chat-nav',
+      element: '.tour-chat',
       intro: 'Chat with your customers directly.',
       position: 'right'
     },
     {
-      element: '#requests-nav',
+      element: '.tour-requests',
       intro: 'View and manage incoming requests.',
       position: 'right'
+    },
+    {
+      element: '.tour-profile-strength',
+      intro: 'Track your profile completion progress here.',
+      position: 'bottom'
+    },
+    {
+      element: '.tour-customer-reach',
+      intro: 'See how many potential customers you can reach.',
+      position: 'bottom'
     }
   ];
 

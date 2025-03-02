@@ -84,7 +84,7 @@ const SAPFeatures = () => {
 
 const FeatureListItem = ({ icon, text }: FeatureListItemProps) => {
   return (
-    <div className="flex items-center space-x-3">
+    <div className="flex items-center space-x-3 rounded-3xl border border-[#e6e9ee] p-2">
       <div className="bg-red-500 rounded-full p-2 text-white">
         {icon}
       </div>
@@ -95,11 +95,14 @@ const FeatureListItem = ({ icon, text }: FeatureListItemProps) => {
 
 const WorkflowFeature = ({ icon, title, description }: WorkflowFeatureProps) => {
   return (
-    <div className="text-center">
-      <div className="inline-block p-3 bg-gray-100 rounded-lg mb-4">
-        {icon}
+    <div className="text-center rounded-2xl border border-[#e6e9ee] p-2">
+      <div className="flex items-center justify-center mb-2 gap-4">
+        <div className="inline-block  h-4 w-4 rounded-lg ">
+          {icon}
+        </div>
+        <h3 className="font-semibold text-lg m-0">{title}</h3>
       </div>
-      <h3 className="font-semibold text-lg mb-2">{title}</h3>
+   
       <p className="text-gray-600">{description}</p>
     </div>
   );

@@ -312,6 +312,7 @@ export default function SignupSellerPage() {
             <div className="space-y-8 mb-8">
               <div className="flex justify-center">
                 <Image
+                  onClick={() => router.push('/')}
                   src="/kollabee.jpg"
                   alt="KollaBee Logo"
                   width={160}
@@ -322,7 +323,7 @@ export default function SignupSellerPage() {
               <div className="flex justify-center">
                 <ProgressStepper steps={steps} />
               </div>
-              <div className="flex justify-end">
+              {/* <div className="flex justify-end">
                 <Link
                   href="#"
                   className="flex items-center gap-2 text-sm text-[#FF9900]"
@@ -330,7 +331,7 @@ export default function SignupSellerPage() {
                   <Info className="w-4 h-4" />
                   Registration Guide
                 </Link>
-              </div>
+              </div> */}
             </div>
 
             <Card className="p-8 shadow-none border-none">

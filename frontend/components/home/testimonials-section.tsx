@@ -1,3 +1,4 @@
+"use client"
 import Image from "next/image"
 import { Instagram, Linkedin, Twitter, X } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -88,8 +89,8 @@ export default function TestimonialsSection() {
               <div className="flex-1">
                 <div className="flex justify-between items-start">
                   <h3 className="text-xl font-bold">{testimonial.quote}</h3>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <X className="w-4 h-4" />
+                    <button className="text-gray-400 hover:text-gray-600" onClick={()=>window.open("https://twitter.com", "_blank")}>
+                    <img src="/twitter.jpeg" alt="close" className="w-4 h-4" />
                   </button>
                 </div>
                 <p className="text-gray-600 mt-2">{testimonial.text}</p>

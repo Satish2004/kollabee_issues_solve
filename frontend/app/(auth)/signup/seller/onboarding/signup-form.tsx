@@ -1,5 +1,5 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -47,11 +47,20 @@ export function SignupForm({
   onSubmit
 }: SignupFormProps) {
   const router = useRouter();
+  const [showPasswordError, setShowPasswordError] = useState(false);
 
   const isPasswordValid = {
     hasMinLength: formData.password.length >= 12,
     hasNumber: /\d/.test(formData.password),
     hasCapital: /[A-Z]/.test(formData.password)
+  };
+
+  const checkPasswordMatch = (confirmPassword: string) => {
+    if (confirmPassword && formData.password !== confirmPassword) {
+      setShowPasswordError(true);
+    } else {
+      setShowPasswordError(false);
+    }
   };
 
   const isFormValid = () => {
@@ -89,9 +98,10 @@ export function SignupForm({
             </Label>
             <Input
               placeholder="Enter your First Name"
-              value={formData.firstName }
+              value={formData.firstName}
               onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
               className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              tabIndex={1}
             />
           </div>
 
@@ -104,10 +114,9 @@ export function SignupForm({
               type="password"
               placeholder="Create your Password"
               value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-                }
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              tabIndex={3}
             />
             <div className=" text-xs text-muted-foreground flex flex-row justify-between">
               <div
@@ -163,6 +172,7 @@ export function SignupForm({
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 disabled={otpVerified}
                 className={`relative bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]`}
+                tabIndex={5}
               />
               <Button 
                 onClick={onVerifyEmail}
@@ -211,20 +221,32 @@ export function SignupForm({
               value={formData.lastName}
               onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
               className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              tabIndex={2}
             />
           </div>
-          <div className="space-y-2 ">
-              <Label>
-                Confirm Password<span className="text-destructive">*</span>
-              </Label>
-              <Input
-                type="password"
-                placeholder="Re-enter your Password"
-                value={formData.confirmPassword}
-                onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
-              />
-            </div>
+          <div className="space-y-2 relative">
+            <Label>
+              Confirm Password<span className="text-destructive">*</span>
+            </Label>
+            <Input
+              type="password"
+              placeholder="Re-enter your Password"
+              value={formData.confirmPassword}
+              onChange={(e) => {
+                setFormData({ ...formData, confirmPassword: e.target.value });
+                checkPasswordMatch(e.target.value);
+              }}
+              className={`bg-[#fcfcfc] border ${
+                showPasswordError ? 'border-red-500' : 'border-[#e5e5e5]'
+              } rounded-[6px] placeholder:text-[#bababb]`}
+              tabIndex={4}
+            />
+            {showPasswordError && (
+              <div className="absolute -bottom-6 left-0 text-xs text-red-500 bg-white px-2 py-1 rounded shadow-sm border border-red-100">
+                Passwords do not match
+              </div>
+            )}
+          </div>
           <div className="space-y-2 ">
             <Label>
               Phone Number<span className="text-destructive">*</span>
@@ -234,6 +256,7 @@ export function SignupForm({
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              tabIndex={6}
             />
           </div>
 

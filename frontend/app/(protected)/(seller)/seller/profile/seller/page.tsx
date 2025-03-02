@@ -235,7 +235,7 @@ const KollaBeeProfile = () => {
             
             {/* Profile completion and updates */}
             <div className="grid grid-cols-3 gap-6 mb-6">
-              <div className="border rounded-md p-6 relative profile-strength">
+              <div className="border rounded-md p-6 relative tour-profile-strength">
                 <div className="mb-4">
                   <h3 className="text-base font-medium mb-5">List to updates</h3>
                   
@@ -278,7 +278,7 @@ const KollaBeeProfile = () => {
                 </div>
               </div>
               
-              <div className="border rounded-md p-6 col-span-2 customer-reach">
+              <div className="border rounded-md p-6 col-span-2 tour-customer-reach">
                 <h3 className="text-base font-medium mb-1">Helps your reach broader customers base</h3>
                 
                 <div className="flex">
