@@ -83,6 +83,11 @@ export default function SellerLayoutHeader() {
       icon: MessageSquare,
       href: "/seller/chat",
     },
+    {
+      label: "Notifications",
+      icon: Bell,
+      href: "/seller/notifications",
+    },
   ];
 
   let currentRoute = routes.find((route) => pathname === route.href);
@@ -119,11 +124,11 @@ export default function SellerLayoutHeader() {
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
       <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" className="size-10">
-          <Bell className="size-7" />
+        <Button variant="ghost" size="icon" className="size-10" onClick={()=>router.push("/seller/notifications")}>
+          <Bell className="size-7 cursor-pointer"  />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8">
-          <Mail className="h-4 w-4" />
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={()=>router.push("/seller/chat")}>
+          <Mail className="h-4 w-4 cursor-pointer"  />
         </Button>
         <div className="flex items-center gap-2">
           <UserDropdown onLogout={handleLogout} currentUser={user} />

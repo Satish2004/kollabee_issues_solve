@@ -140,7 +140,8 @@ export function SellerSidebar({ className }: SidebarProps) {
               alt="KollaBee"
               width={isCollapsed ? 40 : 150}
               height={40}
-              className="rounded-full"
+              className="rounded-full cursor-pointer"
+              onClick={()=>router.push("/seller")}
             />
           </div>
           <Button
