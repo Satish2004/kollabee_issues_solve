@@ -15,11 +15,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <SellerLayoutHeader />
-      <div className="flex">
-        <SellerSidebar />
-        <main className="flex-1 p-6">
+    <div className="min-h-screen bg-gray-50 flex items-start">
+            <SellerSidebar />
+      <div className="flex flex-col items-start w-full">
+  
+        <SellerLayoutHeader />
+        <main className="flex-1 p-6 w-full">
           {children}
         </main>
       </div>

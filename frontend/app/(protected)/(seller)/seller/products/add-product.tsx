@@ -52,6 +52,12 @@ const [imageLoading,setImageLoading] = useState(false);
   const [documentsLoading,setDocumentsLoading] = useState(false);
   const documentsRef = useRef<HTMLInputElement>(null);
 
+  // Refs for each section
+  const uploadRef = useRef<HTMLDivElement>(null);
+  const generalInfoRef = useRef<HTMLDivElement>(null);
+  const productDetailsRef = useRef<HTMLDivElement>(null);
+  // const documentsRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     loadCategories();
   }, []);
@@ -126,10 +132,56 @@ if(mode === 'edit'){
     }
   };
 
- 
+  // Handle scroll to section
+  const scrollToSection = (sectionId: string) => {
+    const refs: any = {
+      'upload': uploadRef,
+      'general-info': generalInfoRef,
+      'product-details': productDetailsRef,
+      'documents': documentsRef
+    };
+    
+    refs[sectionId]?.current?.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  };
 
+  // Update active section based on scroll position
+  useEffect(() => {
+
+
+    // window.addEventListener('scroll', handleScroll);
+    // return () => window.removeEventListener('scroll', handleScroll);
+    console.log(uploadRef.current,"uploadRef.current");
+    console.log(generalInfoRef.current,"generalInfoRef.current");
+    console.log(productDetailsRef.current,"productDetailsRef.current");
+    console.log(documentsRef.current,"documentsRef.current");
+  }, [uploadRef,generalInfoRef,productDetailsRef,documentsRef]);
+
+
+      const handleScroll = () => {
+      const sections = [
+        { id: 'upload', ref: uploadRef },
+        { id: 'general-info', ref: generalInfoRef },
+        { id: 'product-details', ref: productDetailsRef },
+        { id: 'documents', ref: documentsRef }
+      ];
+
+      for (const section of sections) {
+        const element = section.ref.current;
+        if (element) {
+          const rect = element.getBoundingClientRect();
+          if (rect.top <= 100 && rect.bottom >= 100) {
+            setActiveSection(section.id);
+            break;
+          }
+        }
+      }
+    };
+  
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white overflow-hidden">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4 border-b">
         <div className="flex items-center space-x-4 cursor-pointer" onClick={() => router.back()}>
@@ -151,38 +203,54 @@ if(mode === 'edit'){
             <div>{formData.isDraft ? "Draft" : "Active"}</div>
           </div>
 
-          <div className="space-y-2">
-            <div className='text-[16px] font-semibold text-gray-800 mb-2'>General Information</div>
-            <button
-              className={`w-full text-left px-3 py-2 rounded-lg ${
-                activeSection === 'upload' ? 'font-semibold' : ''}`}
-              onClick={() => setActiveSection('upload')}
-            >
-              Upload art cover
-            </button>
-            <button
-              className={`w-full text-left px-3 py-2 rounded-lg ${
-                activeSection === 'general' ? 'font-semibold' : ''}`}
-              onClick={() => setActiveSection('general')}
-            >
-              General information
-            </button>
-            <button
-              className={`w-full text-left px-3 py-2 rounded-lg ${
-                activeSection === 'details' ? 'font-semibold' : ''}`}
-              onClick={() => setActiveSection('details')}
-            >
-              Product details
-            </button>
-            <button
-              className={`w-full text-left px-3 py-2 rounded-lg ${
-                activeSection === 'documents' ? 'font-semibold' : ''}`}
-              onClick={() => setActiveSection('documents')}
-            >
-              Documents (if any)
-            </button>
+          {/* Navigation Section */}
+          <div className="bg-white rounded-lg shadow p-4">
+            <div className="space-y-2">
+              <button
+                onClick={() => scrollToSection('upload')}
+                className={`w-full text-left p-2 rounded ${
+                  activeSection === 'upload' 
+                    ? 'bg-pink-50 text-pink-600' 
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                Upload Art Cover
+              </button>
+              
+              <button
+                onClick={() => scrollToSection('general-info')}
+                className={`w-full text-left p-2 rounded ${
+                  activeSection === 'general-info' 
+                    ? 'bg-pink-50 text-pink-600' 
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                General Information
+              </button>
+              
+              <button
+                onClick={() => scrollToSection('product-details')}
+                className={`w-full text-left p-2 rounded ${
+                  activeSection === 'product-details' 
+                    ? 'bg-pink-50 text-pink-600' 
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                Product Details
+              </button>
+              
+              <button
+                onClick={() => scrollToSection('documents')}
+                className={`w-full text-left p-2 rounded ${
+                  activeSection === 'documents' 
+                    ? 'bg-pink-50 text-pink-600' 
+                    : 'hover:bg-gray-50'
+                }`}
+              >
+                Documents
+              </button>
+            </div>
           </div>
-
 
               <button
                 type="submit"
@@ -195,10 +263,10 @@ if(mode === 'edit'){
         </div>
 
         {/* Main Content */}
-        <div className="col-span-3 bg-white rounded-lg shadow p-6">
+        <div className="col-span-3 bg-white rounded-lg shadow p-6 overflow-scroll" onScroll={handleScroll}>
           <form >
-            {activeSection === 'upload' && (
-              <div>
+            {/* {activeSection === 'upload' && ( */}
+              <div className='mb-4' ref={uploadRef}>
                 <h2 className="text-lg font-semibold mb-2">Upload cover</h2>
                 <p className="text-gray-600 mb-4">
                   Upload the art cover to capture your audience's attention
@@ -243,10 +311,10 @@ if(mode === 'edit'){
                   </label>
                 </div>
               </div>
-            )}
+            {/* )} */}
 
-            {activeSection === 'general' && (
-              <div>
+            {/* {activeSection === 'general' && ( */}
+              <div className='mb-4' ref={generalInfoRef}>
                 <h2 className="text-lg font-semibold mb-4">Key attributes</h2>
                 
                 <div className="space-y-6">
@@ -355,10 +423,10 @@ if(mode === 'edit'){
                   </button> */}
                 </div>
               </div>
-            )}
+            {/* )} */}
 
-            {activeSection === 'details' && (
-              <div>
+            {/* {activeSection === 'details' && ( */}
+              <div className='mb-4' ref={productDetailsRef}>
                     <h2 className="text-lg font-semibold mb-4">Thumbnail of the product</h2>
                  {   thumbnail ? <div className="border-2 border-dashed rounded-lg p-8 text-center h-full">
                       <img src={URL.createObjectURL(thumbnail)} alt="Thumbnail" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -475,10 +543,10 @@ if(mode === 'edit'){
                 
                 </div>
               </div>
-            )}
+            {/* )} */}
 
-            {activeSection === 'documents' && (
-              <div>
+            {/* {activeSection === 'documents' && ( */}
+              <div ref={documentsRef}>
                 <h2 className="text-lg font-semibold mb-4">Upload Documents</h2>
             {    documents.length === 0 ? <div className="border-2 border-dashed rounded-lg p-8 text-center">
                   <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -499,7 +567,7 @@ if(mode === 'edit'){
                   ))}
                 </div>}
               </div>
-            )}
+            {/* )} */}
 
           
           </form>

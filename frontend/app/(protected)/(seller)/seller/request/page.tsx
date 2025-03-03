@@ -1,9 +1,10 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronLeft, Plus, Eye, Edit2, Trash2, X ,ChevronsLeft} from 'lucide-react';
+import { Search, ChevronDown, ChevronLeft, Plus, Eye, Edit2, Trash2, X ,ChevronsLeft ,Omega,CheckCheck,Factory} from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { ordersApi } from "@/lib/api/orders";
 import { toast } from 'sonner';
+import ManufactureForm from './manufacture-form';
 
 interface OrderItem {
   id: string;
@@ -108,23 +109,26 @@ const KollaBeeRequests = () => {
         <div className="p-4">
           <div className="flex justify-between items-center">
             <div className="flex space-x-4">
+            <ChevronsLeft className='w-4 h-4' onClick={() => router.push('/seller')}/>
               <button 
-                className={`pb-2 px-2 text-sm flex items-center space-x-2 ${activeTab === 'all' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
+                className={`pb-2 px-2 text-sm flex items-center space-x-2 gap-2 ${activeTab === 'all' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('all')}
               >
-                <ChevronsLeft className='w-4 h-4' onClick={() => router.push('/seller')}/>
+                <Omega className='w-4 h-4'/>
                 All Requests
               </button>
               <button 
-                className={`pb-2 px-2 text-sm ${activeTab === 'received' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
+                className={`pb-2 px-2 text-sm flex items-center space-x-2 gap-2 ${activeTab === 'received' ? 'text-rose-600 border-b-2  border-[#9e1171]' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('received')}
               >
+                <CheckCheck className='w-4 h-4'/>
                 Received Requests
               </button>
               <button 
-                className={`pb-2 px-2 text-sm ${activeTab === 'manufacturing' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
+                className={`pb-2 px-2 text-sm flex items-center space-x-2 gap-2 ${activeTab === 'manufacturing' ? 'text-rose-600 border-b-2  border-[#9e1171]' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('manufacturing')}
               >
+                <Factory className='w-4 h-4'/>
                 Manufacturing Requests
               </button>
             </div>
@@ -133,13 +137,13 @@ const KollaBeeRequests = () => {
 
         {/* Request List */}
         <div className="p-4 flex-1 overflow-auto bg-gray-50">
-          <div className="mb-4">
+       { (activeTab === 'received' || activeTab === 'all') && <div className="mb-4">
             <h3 className="text-lg font-medium mb-4">Received Requests</h3>
-          </div>
+          </div>}
           
-          {isLoading ? (
+          {(activeTab !== 'manufacturing') && isLoading ? (
             <div>Loading...</div>
-          ) : (
+          ) : activeTab !== 'manufacturing' && (
             requests.map((request) => (
               <div key={request.id} className="bg-white rounded-lg shadow mb-4">
                 <div className="p-4">
@@ -218,6 +222,9 @@ const KollaBeeRequests = () => {
                 </div>
               </div>
             ))
+          )}
+          {activeTab === 'manufacturing' && (
+           <ManufactureForm setActiveTab={setActiveTab}/>
           )}
         </div>
       </div>

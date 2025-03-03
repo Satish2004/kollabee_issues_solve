@@ -14,6 +14,7 @@ import {
   Headphones,
   UserCog,
   Settings,
+  Plus,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { UserDropdown } from "./user-dropdown";
@@ -118,12 +119,15 @@ export default function SellerLayoutHeader() {
   }, []);
 
   return (
-    <div className="w-full sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-lg mb-4 flex justify-between items-center z-50">
+    <div className="w-[96%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 shadow-md m-6 ">
       <div className="flex items-center justify-between gap-2">
         {currentRoute && <currentRoute.icon className="w-5 h-5" />}
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 ">
+        <Button variant="outline" className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold">
+          Upgrade
+        </Button>
         <Button variant="ghost" size="icon" className="size-10" onClick={()=>router.push("/seller/notifications")}>
           <Bell className="size-7 cursor-pointer"  />
         </Button>
