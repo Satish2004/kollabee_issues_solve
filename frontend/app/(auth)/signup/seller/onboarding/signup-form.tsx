@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Circle, ArrowLeft, Info, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface SignupFormProps {
   formData: {
@@ -48,6 +49,15 @@ export function SignupForm({
 }: SignupFormProps) {
   const router = useRouter();
   const [showPasswordError, setShowPasswordError] = useState(false);
+  const [errors, setErrors] = useState<{
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+    phone?: string;
+    password?: string;
+    confirmPassword?: string;
+    role?: string;
+  }>({});
 
   const isPasswordValid = {
     hasMinLength: formData.password.length >= 12,
@@ -63,23 +73,73 @@ export function SignupForm({
     }
   };
 
-  const isFormValid = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\d{10}$/;
+  const validateForm = () => {
+    const newErrors: any = {};
+    
+    // Required field validations
+    const requiredFields = {
+      firstName: 'First name',
+      lastName: 'Last name',
+      email: 'Email',
+      phone: 'Phone number',
+      password: 'Password',
+      confirmPassword: 'Confirm password',
+      role: 'Role'
+    };
 
-    return (
-      formData.firstName.trim() !== "" &&
-      formData.lastName.trim() !== "" &&
-      emailRegex.test(formData.email) &&
-      phoneRegex.test(formData.phone) &&
-      Object.values(isPasswordValid).every(Boolean) &&
-      formData.password === formData.confirmPassword &&
-      formData.role !== "" &&
-      otpVerified
-    );
+    // Check all required fields
+    Object.entries(requiredFields).forEach(([field, label]) => {
+      if (!formData[field as keyof typeof formData]?.trim()) {
+        newErrors[field as keyof typeof formData] = `${label} is required`;
+      }
+    });
+
+    // Additional validations if fields are not empty
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email';
+    }
+
+    const phoneRegex = /^\d{10}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone)) {
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    if (formData.password) {
+      if (formData.password.length < 12) {
+        newErrors.password = 'Password must be at least 12 characters';
+      }
+      if (!/\d/.test(formData.password)) {
+        newErrors.password = 'Password must contain at least one number';
+      }
+      if (!/[A-Z]/.test(formData.password)) {
+        newErrors.password = 'Password must contain at least one capital letter';
+      }
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+    }
+
+    if (!otpVerified) {
+      newErrors.email = 'Please verify your email';
+    }
+
+    setErrors(newErrors);
+    
+    // Show all errors in toast
+    if (Object.keys(newErrors).length > 0) {
+      toast.error('Please fill in all required fields correctly');
+    }
+
+    return Object.keys(newErrors).length === 0;
   };
 
-
+  const handleSubmit = () => {
+    if (validateForm()) {
+      onSubmit();
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -99,10 +159,18 @@ export function SignupForm({
             <Input
               placeholder="Enter your First Name"
               value={formData.firstName}
-              onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              onChange={(e) => {
+                setFormData({ ...formData, firstName: e.target.value });
+                setErrors({ ...errors, firstName: undefined });
+              }}
+              className={`bg-[#fcfcfc] border ${
+                errors.firstName ? 'border-red-500' : 'border-[#e5e5e5]'
+              } rounded-[6px] placeholder:text-[#bababb]`}
               tabIndex={1}
             />
+            {errors.firstName && (
+              <p className="text-sm text-red-500 mt-1">{errors.firstName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -219,10 +287,18 @@ export function SignupForm({
             <Input
               placeholder="Enter your Last Name"
               value={formData.lastName}
-              onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              onChange={(e) => {
+                setFormData({ ...formData, lastName: e.target.value });
+                setErrors({ ...errors, lastName: undefined });
+              }}
+              className={`bg-[#fcfcfc] border ${
+                errors.lastName ? 'border-red-500' : 'border-[#e5e5e5]'
+              } rounded-[6px] placeholder:text-[#bababb]`}
               tabIndex={2}
             />
+            {errors.lastName && (
+              <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
+            )}
           </div>
           <div className="space-y-2 relative">
             <Label>
@@ -235,6 +311,7 @@ export function SignupForm({
               onChange={(e) => {
                 setFormData({ ...formData, confirmPassword: e.target.value });
                 checkPasswordMatch(e.target.value);
+                setErrors({ ...errors, confirmPassword: undefined });
               }}
               className={`bg-[#fcfcfc] border ${
                 showPasswordError ? 'border-red-500' : 'border-[#e5e5e5]'
@@ -254,10 +331,18 @@ export function SignupForm({
             <Input
               placeholder="Enter your Phone Number"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              onChange={(e) => {
+                setFormData({ ...formData, phone: e.target.value });
+                setErrors({ ...errors, phone: undefined });
+              }}
+              className={`bg-[#fcfcfc] border ${
+                errors.phone ? 'border-red-500' : 'border-[#e5e5e5]'
+              } rounded-[6px] placeholder:text-[#bababb]`}
               tabIndex={6}
             />
+            {errors.phone && (
+              <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
+            )}
           </div>
 
         
@@ -270,9 +355,9 @@ export function SignupForm({
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2  bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-          onClick={onSubmit}
-          disabled={isSubmitting || !isFormValid()}
+          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168] disabled:opacity-50"
+          onClick={handleSubmit}
+          // disabled={isSubmitting || Object.keys(errors).length > 0}
         >
           {isSubmitting ? "Creating Account..." : "Continue"}
         </Button>
