@@ -178,7 +178,7 @@ export function SignupForm({
                 onClick={onVerifyEmail}
                 disabled={!formData.email || generateOTPLoading || otpVerified}
                 variant={otpVerified ? "outline" : "default"}
-                className={`absolute right-0 top-0 h-6 w-20 mt-[6px] mr-2 ${
+                className={`absolute right-0 top-0 h-6 w-20 mt-[6px] mr-2 text-[12px] ${
                   otpVerified 
                     ? " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
                     : " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"

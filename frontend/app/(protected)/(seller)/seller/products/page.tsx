@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ShoppingCart,
-  Circle
+  Circle,
+  ArrowDownUp
 } from 'lucide-react';
 import { productsApi } from '@/lib/api/products';
 import {categoryApi} from '@/lib/api/category';
@@ -36,6 +37,8 @@ const ProductsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
+  const [sortField, setSortField] = useState<string>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [stats, setStats] = useState<ProductStats>({
     categories: 0,
@@ -50,7 +53,7 @@ const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     loadProducts();
-  }, [activeTab, searchQuery, currentPage]);
+  }, [activeTab, searchQuery, currentPage, sortField, sortOrder]);
 
   useEffect(() => {
     const newStats = {...stats};
@@ -79,7 +82,9 @@ const ProductsPage: React.FC = () => {
         search: searchQuery,
         page: currentPage,
         limit: 10,
-        status: activeTab === 'active' ? "ACTIVE" : "DRAFT"
+        status: activeTab === 'active' ? "ACTIVE" : "DRAFT",
+        sortBy: sortField,
+        sortOrder: sortOrder
       });
 
       setProducts(response.data);
@@ -107,6 +112,13 @@ const ProductsPage: React.FC = () => {
       toast.error('Failed to delete product');
     }
   };
+
+  const sortOptions = [
+    { label: 'Date', value: 'createdAt' },
+    { label: 'Name', value: 'name' },
+    { label: 'Price', value: 'price' },
+    { label: 'Stock', value: 'availableQuantity' }
+  ];
 
   return (
     <div className="min-h-screen bg-white">
@@ -174,15 +186,42 @@ const ProductsPage: React.FC = () => {
           </div>
 
           {/* Search and Filter */}
-          <div className="p-4 flex justify-between items-center">
+          <div className="px-4 py-2 flex justify-between items-center bg-[#f8f9fb]">
+            <div className='flex items-center space-x-4'>
+              <div className="flex items-center space-x-2">
+                <select 
+                  className="border rounded-xl px-2 py-1 text-sm"
+                  value={sortField}
+                  onChange={(e) => setSortField(e.target.value)}
+                >
+                  {sortOptions.map(option => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+                <button 
+                  onClick={() => setSortOrder(order => order === 'asc' ? 'desc' : 'asc')}
+                  className="flex items-center space-x-1 text-sm"
+                >
+                  <ArrowDownUp className={`w-4 h-4 cursor-pointer ${
+                    sortOrder === 'desc' ? 'rotate-180' : ''
+                  }`}/>
+                  <span>{sortOrder === 'asc' ? 'Ascending' : 'Descending'}</span>
+                </button>
+              </div>
+            </div>
             <div className="relative">
               <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
                 placeholder="Search products..."
-                className="pl-10 pr-4 py-2 border rounded-lg"
+                className="pl-10 pr-4 py-1 border rounded-xl placeholder:text-[13px]"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1); // Reset to first page on search
+                }}
               />
             </div>
           </div>
@@ -194,7 +233,7 @@ const ProductsPage: React.FC = () => {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50">
+                  <tr className="">
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Products</th>
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Price</th>
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Stock</th>
@@ -247,7 +286,7 @@ const ProductsPage: React.FC = () => {
                         </div>
                       </td>
                     </tr>
-                  )) : <div className='p-8 text-center'>No products found</div>}
+                  )) : <div className='p-8 text-center flex items-center justify-center'>No products found</div>}
                 </tbody>
               </table>
             </div>

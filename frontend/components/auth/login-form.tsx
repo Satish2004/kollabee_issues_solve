@@ -63,13 +63,13 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-lg">
+    <Card className="w-full max-w-[600px]">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">
-          Welcome back
+        <CardTitle className="text-xl font-medium text-center">
+         Login
         </CardTitle>
-        <CardDescription className="text-center">
-          Enter your email to sign in to your account
+        <CardDescription className="text-center text-[15px] font-medium">
+         Fill in your details to login to your account and get started with Kollabee
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -118,7 +118,7 @@ export function LoginForm() {
 
           <Button 
             type="submit" 
-            className="w-full bg-gradient-to-r from-purple-600 via-rose-500 to-amber-500 text-white hover:opacity-90 rounded-[6px] font-semibold" 
+            className="w-full bg-gradient-to-r from-[#950a73] via-[#e36d5d] to-[#f1b56a] text-white hover:opacity-90 rounded-[6px] font-semibold" 
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Log in"}

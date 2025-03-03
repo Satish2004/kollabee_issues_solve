@@ -394,7 +394,7 @@ const Settings: React.FC = () => {
       <div className="pt-4 flex justify-end">
       <button
         onClick={updatePassword}
-        className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px]"
+        className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] "
       >
         Save Changes
       </button>

@@ -67,6 +67,7 @@ console.log(initialData,"initialData");
       setFormData({...initialData,...formData});
       if(initialData.images){
       setCoverImage(initialData.images[0]);
+      console.log(initialData.images[0],"initialData.images[0]");
       }
     }
   }, [initialData, mode]);

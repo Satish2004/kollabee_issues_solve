@@ -1,6 +1,6 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronLeft, Plus, Eye, Edit2, Trash2, X } from 'lucide-react';
+import { Search, ChevronDown, ChevronLeft, Plus, Eye, Edit2, Trash2, X ,ChevronsLeft} from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { ordersApi } from "@/lib/api/orders";
 import { toast } from 'sonner';
@@ -109,12 +109,13 @@ const KollaBeeRequests = () => {
           <div className="flex justify-between items-center">
             <div className="flex space-x-4">
               <button 
-                className={`pb-2 px-2 text-sm ${activeTab === 'all' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
+                className={`pb-2 px-2 text-sm flex items-center space-x-2 ${activeTab === 'all' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('all')}
               >
+                <ChevronsLeft className='w-4 h-4' onClick={() => router.push('/seller')}/>
                 All Requests
               </button>
-              <button 
+              {/* <button 
                 className={`pb-2 px-2 text-sm ${activeTab === 'received' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('received')}
               >
@@ -125,7 +126,7 @@ const KollaBeeRequests = () => {
                 onClick={() => setActiveTab('manufacturing')}
               >
                 Manufacturing Requests
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

@@ -265,7 +265,7 @@ export const generateOTP = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
 
-    // Check if user already exists
+    // Check if user exists
     const existingUser = await prisma.user.findUnique({
       where: { email }
     });
@@ -277,30 +277,35 @@ export const generateOTP = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate OTP via Supabase
-    const { data, error } = await supabase.auth.signInWithOtp({
+    // Generate OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // Store OTP in Redis
+    // await storeOTP(email, otp);
+
+    // Send email with OTP via Supabase
+    const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        shouldCreateUser: true,
-        emailRedirectTo: `${process.env.FRONTEND_URL}/auth/verify`
+        emailRedirectTo: undefined,
+        data: {
+          otp
+        }
       }
     });
 
-    if (error) {
-      console.error('Supabase OTP error:', error);
-      throw error;
-    }
+    if (error) throw error;
 
     res.json({ 
       success: true, 
-      message: 'Verification email sent successfully'
+      message: 'OTP sent successfully'
     });
 
   } catch (error) {
     console.error('Generate OTP error:', error);
     res.status(500).json({ 
       success: false, 
-      message: 'Failed to send verification email' 
+      message: 'Failed to send OTP' 
     });
   }
 };
