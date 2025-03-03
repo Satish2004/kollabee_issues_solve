@@ -326,7 +326,7 @@ const KollaBeeProfile = () => {
             </div>
             
             {/* Tabs */}
-            {/* <div className="flex flex-wrap border-b mb-6">
+            <div className="flex flex-wrap border-b mb-6">
               {tabs.map(tab => (
                 <button
                   key={tab.id}
@@ -336,10 +336,10 @@ const KollaBeeProfile = () => {
                   {tab.label}
                 </button>
               ))}
-            </div> */}
+            </div>
             
             {/* Section content */}
-            {/* {sections[activeTab] && (
+            {sections[activeTab] && (
               <div className="border rounded-md mb-6">
                 <div 
                   className="p-4 flex justify-between items-center cursor-pointer"
@@ -366,7 +366,7 @@ const KollaBeeProfile = () => {
                   </div>
                 )}
               </div>
-            )} */}
+            )}
             
             {/* Footer actions */}
           

@@ -22,23 +22,15 @@ export default function AuthLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <meta name="mobile-web-app-capable" content="yes" />
-        <Script
-          id="razorpay-checkout-js"
-          src="https://checkout.razorpay.com/v2/checkout.js"
-        />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        suppressHydrationWarning
-      >
-        <div className="min-h-screen">
-          {children}
-          <Toaster position="top-center" richColors />
-        </div>
-      </body>
-    </html>
+    <>
+      <Script
+        id="razorpay-checkout-js"
+        src="https://checkout.razorpay.com/v2/checkout.js"
+      />
+      <div className="min-h-screen">
+        {children}
+        <Toaster position="top-center" richColors />
+      </div>
+    </>
   );
 } 
