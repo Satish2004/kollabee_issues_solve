@@ -106,9 +106,9 @@ const KollaBeeProfile = () => {
 
   // Content for each section
   const renderSectionContent = () => {
-    if (isLoading) {
-      return <div>Loading...</div>;
-    }
+    // if (isLoading) {
+    //   return <div>Loading...</div>;
+    // }
 
     switch (activeTab) {
       case 'categories':
