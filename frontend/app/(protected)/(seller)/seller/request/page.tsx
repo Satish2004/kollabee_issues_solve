@@ -115,7 +115,7 @@ const KollaBeeRequests = () => {
                 <ChevronsLeft className='w-4 h-4' onClick={() => router.push('/seller')}/>
                 All Requests
               </button>
-              {/* <button 
+              <button 
                 className={`pb-2 px-2 text-sm ${activeTab === 'received' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('received')}
               >
@@ -126,7 +126,7 @@ const KollaBeeRequests = () => {
                 onClick={() => setActiveTab('manufacturing')}
               >
                 Manufacturing Requests
-              </button> */}
+              </button>
             </div>
           </div>
         </div>

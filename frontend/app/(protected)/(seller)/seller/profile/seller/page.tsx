@@ -330,7 +330,7 @@ const KollaBeeProfile = () => {
               {tabs.map(tab => (
                 <button
                   key={tab.id}
-                  className={`px-4 py-2 text-sm ${activeTab === tab.id ? 'border-b-2 border-gray-800 font-medium' : 'text-gray-500'}`}
+                  className={`px-4 py-2 text-sm ${activeTab === tab.id ? 'bg-[#fdeced] border-gray-800 font-medium rounded-[8px]' : 'text-gray-500'}`}
                   onClick={() => setActiveTab(tab.id)}
                 >
                   {tab.label}
