@@ -53,16 +53,16 @@ export default function SignupSellerPage() {
   const [submitLoading, setSubmitLoading] = useState(false);
   const [checkboxConfirmed, setCheckboxConfirmed] = useState(false);
 
-  useEffect(() => {
-    const savedData = localStorage.getItem("sellerSignupData");
-    if (savedData) {
-      setFormData(JSON.parse(savedData));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const savedData = localStorage.getItem("sellerSignupData");
+  //   if (savedData) {
+  //     setFormData(JSON.parse(savedData));
+  //   }
+  // }, []);
 
-  useEffect(() => {
-    localStorage.setItem("sellerSignupData", JSON.stringify(formData));
-  }, [formData]);
+  // useEffect(() => {
+  //   localStorage.setItem("sellerSignupData", JSON.stringify(formData));
+  // }, [formData]);
 
   const steps = [
     {
