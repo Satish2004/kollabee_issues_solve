@@ -166,19 +166,19 @@ const BuyerForm = ({setActiveTab}:{setActiveTab:any}) => {
     <div className="bg-white text-gray-800   p-6">
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4">Create Form for the Buyer</h2>
-        <button 
+        {/* <button 
           className="flex items-center border border-gray-300 rounded px-4 py-2 text-sm text-orange-500"
         >
           <span className="mr-2">+</span>
           Add Section
-        </button>
+        </button> */}
       </div>
 
       <form onSubmit={handleSubmit}>
         {/* Product Details Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold"><span className="mr-2">2</span>Product Details</h3>
+            <h3 className="text-lg font-semibold"><span className="mr-2">1  </span>Product Details</h3>
             <button type="button" className="text-red-500 font-medium text-sm">+ Add Fields</button>
           </div>
           
@@ -240,7 +240,7 @@ const BuyerForm = ({setActiveTab}:{setActiveTab:any}) => {
         {/* Quantity Requirements Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold"><span className="mr-2">3</span>Quantity Requirements</h3>
+            <h3 className="text-lg font-semibold"><span className="mr-2">2</span>Quantity Requirements</h3>
             <button type="button" className="text-red-500 font-medium text-sm">+ Add Fields</button>
           </div>
           
@@ -266,7 +266,7 @@ const BuyerForm = ({setActiveTab}:{setActiveTab:any}) => {
         {/* Packaging Details Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold"><span className="mr-2">4</span>Packaging Details</h3>
+            <h3 className="text-lg font-semibold"><span className="mr-2">3</span>Packaging Details</h3>
             <button type="button" className="text-red-500 font-medium text-sm">+ Add Fields</button>
           </div>
           
@@ -355,7 +355,7 @@ const BuyerForm = ({setActiveTab}:{setActiveTab:any}) => {
         {/* Delivery Preferences Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold"><span className="mr-2">5</span>Delivery Preferences</h3>
+            <h3 className="text-lg font-semibold"><span className="mr-2">4</span>Delivery Preferences</h3>
             <button type="button" className="text-red-500 font-medium text-sm">+ Add Fields</button>
           </div>
           
@@ -402,7 +402,7 @@ const BuyerForm = ({setActiveTab}:{setActiveTab:any}) => {
         {/* Additional Notes Section */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold"><span className="mr-2">6</span>Additional Notes (Optional)</h3>
+                <h3 className="text-lg font-semibold"><span className="mr-2">5</span>Additional Notes (Optional)</h3>
             <button type="button" className="text-red-500 font-medium text-sm">+ Add Fields</button>
           </div>
           
