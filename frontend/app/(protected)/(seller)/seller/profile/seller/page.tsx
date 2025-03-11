@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use } from 'react';
 import {format} from "date-fns";
 import { authApi } from '@/lib/api/auth';
 import { profileApi } from '@/lib/api/profile';
@@ -56,6 +56,15 @@ const KollaBeeProfile = () => {
       setActiveSection(sectionId);
     }
   };
+
+  useEffect(() => {
+    const getUser = async () => {
+      const user = await authApi.getCurrentUser();
+      throw new Error('test');
+      setProfileData(user);
+    }
+    getUser();
+  }, []);
   
   // Fetch initial profile data
   useEffect(() => {

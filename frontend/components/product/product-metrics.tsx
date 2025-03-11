@@ -50,7 +50,6 @@
 //   );
 // }
 
-
-export function ProductMetrics() {
-  return <div>ProductMetrics</div>;
-}
+const ProductMetrics: number = () => {
+  return <div>Metrics</div>;
+};

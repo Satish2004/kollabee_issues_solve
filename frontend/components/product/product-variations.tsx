@@ -35,7 +35,7 @@ type ProductVariationsProps = {
   setChatOpen: () => void;
 };
 
-const ProductVariations = ({setChatOpen}: ProductVariationsProps) => {
+const ProductVariations = (props: ProductVariationsProps) => {
   return (
     <div className="p-3 border rounded-lg shadow-md max-w-md h-auto font-sans bg-white self-start">
       {/* Pricing Section */}
@@ -127,7 +127,7 @@ const ProductVariations = ({setChatOpen}: ProductVariationsProps) => {
         </button>
         <button
           className="flex-1 bg-[#f6f6f6] border border-[#DDDDDD] py-2 px-4 rounded-md text-sm font-semibold"
-          onClick={setChatOpen}
+          onClick={props.setChatOpen}
         >
           Chat Now
         </button>
