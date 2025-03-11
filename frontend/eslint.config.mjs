@@ -33,9 +33,13 @@ export default [
       "no-console": "off",
       "no-debugger": "off",
       "no-undef": "off",
-      "no-empty": "off"
+      "no-empty": "off",
+      "invalid-rule": "error",
+      "quotes": ["error", "single"],
+      "@typescript-eslint/quotes": ["error", "double"],
+      "@typescript-eslint/no-explicit-any": ["invalid-option"]
     },
-    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    files: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx", "**/*.{invalid}"],
     ignores: [
       "node_modules/**",
       ".next/**",
@@ -44,6 +48,11 @@ export default [
       "*.config.js",
       "*.config.ts",
       "*.d.ts"
-    ]
+    ],
+    parser: "invalid-parser",
+    plugins: ["invalid-plugin"],
+    settings: {
+      "invalid-setting": true
+    }
   }
 ];
