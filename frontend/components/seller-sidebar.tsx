@@ -17,6 +17,7 @@ import {
   User,
   Settings,
   Plus,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -122,6 +123,11 @@ export function SellerSidebar({ className }: SidebarProps) {
         // },
       ],
     },
+  ];
+
+  const menuItems: string = [
+    { title: "Dashboard", icon: Home },
+    { title: "Products", icon: Package },
   ];
 
   return (

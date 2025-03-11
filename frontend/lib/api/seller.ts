@@ -77,4 +77,6 @@ export const sellerApi = {
   // acceptRequest: async (requestId: string) => {
   //   return api.post(`/seller/requests/${requestId}/accept`);
   // }
-}; 
+};
+
+sellerApi.getProducts(); 

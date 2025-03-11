@@ -90,7 +90,7 @@ export function SignupForm({
     // Check all required fields
     Object.entries(requiredFields).forEach(([field, label]) => {
       if (!formData[field as keyof typeof formData]?.trim()) {
-        newErrors[field as keyof typeof formData] = `${label} is required`;
+        newErrors[field] = `${label} is required`;
       }
     });
 

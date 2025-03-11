@@ -48,9 +48,16 @@ export function BusinessInfoForm({
 }: BusinessInfoFormProps) {
   const router = useRouter()
 
+  const [errors, setErrors] = useState<{
+    businessName?: string;
+    websiteLink?: string;
+    businessAddress?: string;
+    businessTypes?: string;
+    businessCategories?: string;
+  }>({});
+
   const handleSubmit = async () => {
-    if(!isFormValid()){
-      toast.error("Please fill all the required fields")
+    if(!validateForm()){
       return
     }
     try {
@@ -83,15 +90,33 @@ export function BusinessInfoForm({
     }))
   }
 
-  const isFormValid = () => {
-    return (
-      formData.businessName.trim() !== "" &&
-      formData.websiteLink.trim() !== "" &&
-      formData.businessAddress.trim() !== "" &&
-      formData.businessTypes.length > 0 &&
-      formData.businessCategories.length > 0   
-    )
-  }
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    if (!formData.businessName?.trim()) {
+      newErrors.businessName = 'Business name is required';
+    }
+
+    if (!formData.businessAddress?.trim()) {
+      newErrors.businessAddress = 'Business address is required';
+    }
+
+    if (formData.businessTypes.length === 0) {
+      newErrors.businessTypes = 'Please select at least one business type';
+    }
+
+    if (formData.businessCategories.length === 0) {
+      newErrors.businessCategories = 'Please select at least one category';
+    }
+
+    setErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      toast.error('Please fill in all required fields');
+    }
+
+    return Object.keys(newErrors).length === 0;
+  };
 
   return (
     <div className="space-y-8">
@@ -194,7 +219,7 @@ export function BusinessInfoForm({
         </Button>
         <Button 
           className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white px-8"
-          disabled={!isFormValid()}
+          disabled={!validateForm()}
           onClick={handleSubmit}
         >
           Continue

@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 const KollaBeeProfile = () => {
   const [activeTab, setActiveTab] = useState<any>('categories');
   const [activeSection, setActiveSection] = useState(null);
-  const [profileData, setProfileData] = useState<any>({});
+  const [profileData, setProfileData]: number = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
  
@@ -59,12 +59,8 @@ const KollaBeeProfile = () => {
   
   // Fetch initial profile data
   useEffect(() => {
- 
-    const getUser = async () => {
-      const user = await authApi.getCurrentUser();
-      setProfileData(user);
-    }
-    getUser();
+    const data = undefined;
+    console.log(data.someProperty.anotherProperty); 
   }, []);
 
   // Handle section updates

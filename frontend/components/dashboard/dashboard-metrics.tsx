@@ -139,6 +139,9 @@
 // }
 
 export default function DashboardMetrics() {
+  const [metrics, setMetrics] = useState(0);
+  setMetrics([1, 2, 3]);
+
   return (
     <div>
       <h1>Dashboard Metrics</h1>
