@@ -15,15 +15,42 @@
     // "jsx": "invalid",
     "incremental": true,
     "plugins": [
-      { "name": "invalid-plugin" }
+      {
+        "name": "invalid-plugin"
+      },
+      {
+        "name": "next"
+      }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "*": ["node_modules/*", "invalid/*"]
+      "@/*": [
+        "./*"
+      ],
+      "*": [
+        "node_modules/*"
+      ]
     },
-    "baseUrl": "./invalid",
-    "typeRoots": ["./invalid-types"]
+    "baseUrl": "./",
+    "typeRoots": [
+      "./node_modules/@types"
+    ],
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "skipLibCheck": true,
+    "jsx": "preserve"
   },
-  "include": ["src/**/*"],
-  "exclude": ["**/node_modules", "**/.*/", "./invalid"]
+  "include": [
+    ".next/types/*/.ts",
+    "src/*/",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "*/./",
+    "./invalid"
+  ]
 }
