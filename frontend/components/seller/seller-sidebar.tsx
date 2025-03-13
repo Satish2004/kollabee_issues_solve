@@ -134,7 +134,7 @@ export function SellerSidebar({ className }: SidebarProps) {
     <div className={cn("relative min-h-screen", className)}>
       <div
         className={cn(
-          "flex h-full flex-col gap-4 border-r bg-background p-4 transition-all duration-300",
+          "flex h-screen flex-col gap-4 border-r p-4 transition-all duration-300",
           isCollapsed ? "w-[80px]" : "w-[250px]",
           "relative"
         )}

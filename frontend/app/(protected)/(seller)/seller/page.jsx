@@ -20,17 +20,17 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const [chartData1, setChartData] = useState([]);
+  const [chartData, setChartData] = useState([]);
   // Sample data for the line chart
-  const chartData = [
-    { name: 'Jan', orders: 15000, requests: 12000 },
-    { name: 'Feb', orders: 20000, requests: 18000 },
-    { name: 'Mar', orders: 18000, requests: 16000 },
-    { name: 'Apr', orders: 22000, requests: 19000 },
-    { name: 'May', orders: 25000, requests: 22000 },
-    { name: 'Jun', orders: 28000, requests: 24000 },
-    { name: 'Jul', orders: 30000, requests: 26000 },
-  ];
+  // const chartData = [
+  //   { name: 'Jan', orders: 15000, requests: 12000 },
+  //   { name: 'Feb', orders: 20000, requests: 18000 },
+  //   { name: 'Mar', orders: 18000, requests: 16000 },
+  //   { name: 'Apr', orders: 22000, requests: 19000 },
+  //   { name: 'May', orders: 25000, requests: 22000 },
+  //   { name: 'Jun', orders: 28000, requests: 24000 },
+  //   { name: 'Jul', orders: 30000, requests: 26000 },
+  // ];
 
   const trendingProducts = [
     'Lux', 'Sanitoor', 'Lifeboy', 'Joy', 'Boro+', 'Gold', 'Diamond'
@@ -59,14 +59,14 @@ const Dashboard = () => {
       });
 
       // Update chart data if needed
-      // if (analyticsRes.data.orders?.length) {
-      //   const newChartData = analyticsRes.data.orders.map(order => ({
-      //     name: new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short' }),
-      //     orders: order.totalAmount,
-      //     requests: order.requestCount
-      //   }));
-      //   setChartData(newChartData);
-      // }
+      if (analyticsRes.data.orders?.length) {
+        const newChartData = analyticsRes.data.orders.map(order => ({
+          name: new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short' }),
+          orders: order.totalAmount,
+          requests: order.requestCount
+        }));
+        setChartData(newChartData);
+      }
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       toast.error('Failed to load dashboard data');

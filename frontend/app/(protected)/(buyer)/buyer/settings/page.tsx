@@ -1,7 +1,6 @@
 "use client"
 import React, { useState, useEffect ,useRef} from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import AccountSettings from './account-settings';
 import { profileApi } from '@/lib/api/profile';
 import { BankDetail } from '@/types/api';
 import { Country, State, City } from "country-state-city"

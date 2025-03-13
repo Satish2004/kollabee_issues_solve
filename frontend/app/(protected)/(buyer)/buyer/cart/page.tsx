@@ -1,0 +1,136 @@
+"use client"
+
+import React, { useState } from "react"
+import { Check } from "lucide-react"
+import { cn } from "@/lib/utils"
+
+import { CheckoutProvider } from "../../../../../checkout-context"
+import { ShoppingCart } from "./components/shopping-cart"
+import { ShippingAddress } from "./components/shipping-address"
+import { Payment } from "./components/payment"
+
+export default function CheckoutStepper() {
+  const [currentStep, setCurrentStep] = useState(1)
+
+  const steps = [
+    { id: 1, name: "Shopping Cart" },
+    { id: 2, name: "Shipping Address" },
+    { id: 3, name: "Payment" },
+  ]
+
+  const handleNext = () => {
+    if (currentStep < steps.length) {
+      setCurrentStep(currentStep + 1)
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1)
+    }
+  }
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return <ShoppingCart onNext={handleNext} />
+      case 2:
+        return <ShippingAddress onNext={handleNext} />
+      case 3:
+        return <Payment onNext={() => setCurrentStep(4)} />
+      case 4:
+        return (
+          <div className="text-center py-8">
+            <h2 className="text-2xl font-bold mb-4">Thank you for your order!</h2>
+            <p className="text-gray-600">Your order has been placed successfully.</p>
+          </div>
+        )
+      default:
+        return null
+    }
+  }
+
+  return (
+    <CheckoutProvider>
+    <div className="max-w-7xl mx-auto px-4">
+    <div className="mb-4 bg-white px-10 rounded-xl pt-5 pb-8">
+          <div className="flex items-center justify-start">
+            {steps.map((step, index) => (
+ <div key={step.id} className="flex items-center">
+ <div className="flex flex-col items-center w-fit">
+{/* Step circle */}
+ <div
+ className={cn(
+   "flex items-center justify-center w-10 h-10 rounded-full border-2",
+   currentStep > step.id
+     ? "bg-green-500 border-green-500" // Completed step
+     : currentStep === step.id
+       ? "border-green-500" // Current step
+       : "border-gray-300", // Future step
+ )}
+>
+ {currentStep > step.id ? (
+   <Check className="h-5 w-5 text-white" />
+ ) : (
+   <span
+     className={cn("text-sm font-medium", currentStep === step.id ? "text-green-500" : "text-gray-500")}
+   >
+     {String(step.id).padStart(2, "0")}
+   </span>
+ )}
+</div>
+ <div  className="text-center relative">
+ <span className={cn("text-sm font-medium absolute -left-8 text-nowrap", currentStep >= step.id ? "text-black" : "text-gray-400")}>
+     {step.name}
+ </span>
+ </div>
+ </div>
+
+{/* Connecting line */}
+{index < steps.length - 1 && (
+ <div
+   className={cn(
+     "w-24 sm:w-32 md:w-40 h-0.5 mx-1",
+     currentStep > step.id + 1 || (currentStep > step.id && currentStep === step.id + 1)
+       ? "bg-green-500"
+       : "bg-gray-300",
+   )}
+ />
+)}
+</div>
+            ))}
+          </div>
+
+        </div>
+
+        {/* Step content */}
+        <div className="mb-8 bg-gray-50 p-6 rounded-lg">{renderStepContent()}</div>
+
+        {/* Navigation buttons */}
+        {currentStep <= 3 && (
+          <div className="flex justify-between">
+            <button
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              className={cn(
+                "px-4 py-2 rounded-md",
+                currentStep === 1
+                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300",
+              )}
+            >
+              Previous
+            </button>
+          </div>
+        )}
+      </div>
+    </CheckoutProvider>
+  )
+}
+
+
+
+
+
+
+ 
