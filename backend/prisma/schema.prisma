@@ -245,7 +245,7 @@ model Seller {
 
   // Location info
   location String?
-  country  String?
+  country  String?  // Ensure this line is present
   state    String?
 
   // Business details
@@ -412,7 +412,7 @@ model PickupAddress {
   phone        String
   email        String
   createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  updatedAt    DateTime @default(now())
 
   // Relations
   products Product[]
@@ -467,7 +467,7 @@ model ShippingAddress {
   zipCode     String?
   orderId     String?  @unique
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
   order       Order?   @relation(fields: [orderId], references: [id])
 }
 
@@ -478,7 +478,7 @@ model Review {
   productId String
   buyerId   String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
   buyer   Buyer   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
