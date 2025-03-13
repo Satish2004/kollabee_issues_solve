@@ -27,28 +27,36 @@ export default function WhyKollabee() {
   ]
 
   return (
-    <section className="py-20 bg-white">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <span className="text-sm bg-gray-100 px-3 py-1 rounded-full">Why KollaBee</span>
-          <h2 className="text-3xl font-bold mt-4">Choose KollaBee for Seamless Supply Management</h2>
-          <p className="text-gray-600 mt-2">
-            KollaBee simplifies teamwork by combining project management, file sharing, and communication tools in one seamless platform.
+    <section className="py-40 px-4 max-w-7xl mx-auto">
+      <div className="grid lg:grid-cols-2 gap-12">
+        {/* Left Column */}
+        <div className="space-y-6">
+          <div className="inline-block bg-gray-100 rounded-full px-4 py-1.5 text-sm">Why KollaBee</div>
+          <h2 className="text-5xl font-bold leading-tight">Choose KollaBee for Seamless Supply Management</h2>
+          <p className="text-gray-600">
+            KollaBee simplifies teamwork by combining project management, file sharing, and communication tools in one
+            seamless platform.
           </p>
+          <Button className="bg-gradient-to-r from-[#9b0f71] via-[#e4715d] to-[#f2bb6d] text-white text-lg hover:opacity-90 rounded-[5px]">
+            Get Started
+          </Button>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8">
-          <div className="p-6 rounded-xl border hover:shadow-lg transition-shadow">
-            <div className="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center mb-4">
-              <svg className="w-6 h-6 text-red-600" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Innovative Solutions</h3>
-            <p className="text-gray-600">Cutting-edge tools for modern project management needs.</p>
-          </div>
-          {/* Add more reasons */}
+        {/* Right Column - Feature Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {features.map((feature, index) => (
+            <Card key={index}>
+              <CardContent className="pt-6">
+                <div className="flex flex-col gap-4">
+                  <div className="bg-[#ED4B5E] rounded-[10px] text-white w-fit p-2">{feature.icon}</div>
+                  <h3 className="text-lg font-bold">{feature.title}</h3>
+                  <p className="text-gray-600 text-sm">{feature.description}</p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       </div>
     </section>
   )
 }
-

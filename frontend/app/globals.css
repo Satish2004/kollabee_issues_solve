@@ -20,3 +20,23 @@ body {
   color: transparent;
   -webkit-text-fill-color: transparent;
 }
+
+.gradient-border {
+  position: relative;
+  padding: 5px;
+  border-radius: 10px;
+}
+
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  border-radius: 5px;
+  background: linear-gradient(to right, #8f0874, #e4745c, #f2bd6d);
+  -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
+  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
+  -webkit-mask-composite: destination-out;
+  mask-composite: exclude;
+}
+

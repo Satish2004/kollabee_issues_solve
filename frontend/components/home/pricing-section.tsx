@@ -142,11 +142,11 @@ export default function PricingSection() {
       </div>
       <div className="mt-20 text-center">
         <h3 className="text-xl font-semibold mb-8">All Plans Include</h3>
-        <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+        <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8">
           {includedFeatures.map((feature, index) => (
             <React.Fragment key={index}>
-              <div className="flex items-center gap-2">
-                <span className="text-[#ED4B5E]">{feature.icon}</span>
+              <div className="flex items-center bg-gray-100 rounded-[8px] p-2 gap-2">
+                <span className="">{feature.icon}</span>
                 <span className="text-sm">{feature.text}</span>
               </div>
               {index < includedFeatures.length - 1 && <div className="hidden md:block w-px h-4 bg-gray-200" />}
@@ -157,4 +157,3 @@ export default function PricingSection() {
     </section>
   )
 }
-

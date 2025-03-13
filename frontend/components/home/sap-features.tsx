@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { ListChecks, Users, Sliders, Link2 } from 'lucide-react';
+import Image from 'next/image';
 
 interface FeatureListItemProps {
   icon: ReactNode;
@@ -16,27 +17,27 @@ const SAPFeatures = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <div className="bg-gradient-to-r from-red-500 to-orange-400 rounded-lg p-6">
-          <div className="bg-white rounded-lg overflow-hidden">
-            <img 
-              src="/keyExample.png"
-              alt="Product showcase" 
-              className="w-full h-48 object-cover"
-            />
-            <div className="p-4">
-              <div className="flex items-center mb-2">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i} className="text-yellow-400">★</span>
-                ))}
-                <span className="text-gray-600 text-sm ml-2">(12)</span>
-              </div>
-              <div className="text-lg font-bold">$850.00-1,100.00</div>
-              <div className="text-sm text-gray-600">Marcos Cottons Co.,Ltd</div>
-              <div className="text-sm text-gray-600">Min. order: 200 Pieces</div>
-              <div className="text-sm text-gray-600 mt-2">
-                <span className="bg-gray-100 rounded px-2 py-1">2 yrs</span>
-                <span className="bg-gray-100 rounded px-2 py-1 ml-2">CN Supplier</span>
-              </div>
+      <div className="bg-gradient-to-r from-[#E91E63] to-[#F9A825] rounded-2xl px-8 pt-20 h-[500px]  overflow-hidden">
+          <div className="rounded-lg overflow-hidden mx-auto flex justify-center w-full">
+            <div className="relative">
+              <Image
+                src="/frame.png"
+                alt="Product showcase"
+                width={500}
+                height={200}
+                className="w-80 h-full object-cover"
+              />
+
+
+
+
+
+
+
+
+
+
+
             </div>
           </div>
         </div>
@@ -51,7 +52,7 @@ const SAPFeatures = () => {
           <p className="text-gray-600 mb-6">
             Explore SAP's standout features that drive productivity and success. From task tracking to seamless collaboration, discover how SAP transforms project management.
           </p>
-          
+
           <div className="space-y-4">
             <FeatureListItem icon={<ListChecks className="w-5 h-5" />} text="Intuitive Task Management for Streamlined Workflow" />
             <FeatureListItem icon={<Users className="w-5 h-5" />} text="Real-time Collaboration Tools for Enhanced Teamwork" />
@@ -102,10 +103,8 @@ const WorkflowFeature = ({ icon, title, description }: WorkflowFeatureProps) => 
         </div>
         <h3 className="font-semibold text-lg m-0">{title}</h3>
       </div>
-   
+
       <p className="text-gray-600">{description}</p>
     </div>
   );
 };
-
-export default SAPFeatures;

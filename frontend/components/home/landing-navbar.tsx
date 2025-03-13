@@ -1,3 +1,4 @@
+import React from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
@@ -5,7 +6,7 @@ import { Button } from "@/components/ui/button"
 export function LandingNavbar() {
   return (
     <div className="w-full border-b bg-white/80 backdrop-blur-sm max-w-6xl mx-auto rounded-xl p-2">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-3">
         <nav className="flex h-20 items-center justify-between">
           {/* Logo and tagline */}
           <Link href="/" className="flex items-center gap-2">
