@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import { createClient } from '@supabase/supabase-js';
 import { updateUserProfile } from './user.controller';
+import 'dotenv/config';
 
 // Validation schemas
 const signupSchema = z.object({
@@ -376,4 +377,3 @@ export const updatePassword = async (req: any, res: Response) => {
     res.status(500).json({ error: 'Failed to update password' });
   }
 };
-

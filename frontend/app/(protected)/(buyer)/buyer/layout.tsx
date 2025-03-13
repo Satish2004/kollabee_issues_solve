@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from 'react';
-import { SellerSidebar } from "@/components/seller/seller-sidebar";
-import SellerLayoutHeader from "@/components/seller/layout-header";
+import { SellerSidebar } from "@/components/buyer/buyer-sidebar";
+import SellerLayoutHeader from "@/components/buyer/layout-header";
 import { useRouter } from "next/navigation";
 import { IntroTour } from '@/components/tour/IntroTour';
 
@@ -15,7 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="h-screen bg-gray-50 flex overflow-hidden">
+    <div className="h-screen bg-primary flex overflow-hidden">
       {/* Fixed Sidebar */}
       <div className="sticky top-0 left-0">
         <SellerSidebar />
@@ -27,7 +27,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <SellerLayoutHeader />
         </div>
 
-        <main className="flex-1 p-4">
+        <main className="flex-1 p-4 bg-gray-50">
           {children}
         </main>
       </div>

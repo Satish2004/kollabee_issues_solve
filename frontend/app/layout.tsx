@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Provider } from "@/components/providers";
 import { Toaster } from "sonner";
 import Script from "next/script";
+import { PropsWithChildren } from "react";
+import React from "react"; // Add this line
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,15 +21,17 @@ export const metadata: Metadata = {
   description: "A modern marketplace for buyers and sellers",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+
+export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {children}
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary`}>
+            {children}
+            <Toaster position="top-center" />
+        <Script
+          src="https://example.com/script.js"
+          strategy="lazyOnload"
+        />
       </body>
     </html>
   );

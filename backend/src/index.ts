@@ -7,6 +7,7 @@ import rateLimit from 'express-rate-limit';
 import path from 'path';
 import prisma from './db/index';
 import { setupRoutes } from './routes';
+import 'dotenv/config';
 import fs from 'fs';
 
 const app = express();

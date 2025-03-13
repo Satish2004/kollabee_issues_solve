@@ -16,6 +16,9 @@ export default {
   			]
   		},
   		colors: {
+			primary: "#c1c1c1", 
+			secondary: "#900874", 
+			tertiary: "#f2bd6d", 
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -66,11 +69,6 @@ export default {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			}
-  		},
-  		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
   		},
   		keyframes: {
   			'accordion-down': {
