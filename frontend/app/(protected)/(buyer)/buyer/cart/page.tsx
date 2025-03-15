@@ -4,13 +4,14 @@ import React, { useState } from "react"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-import { CheckoutProvider } from "../../../../../checkout-context"
+import { CheckoutProvider, useCheckout } from "../../../../../checkout-context"
 import { ShoppingCart } from "./components/shopping-cart"
 import { ShippingAddress } from "./components/shipping-address"
 import { Payment } from "./components/payment"
 
 export default function CheckoutStepper() {
-  const [currentStep, setCurrentStep] = useState(1)
+
+  const { currentStep, setCurrentStep } = useCheckout()
 
   const steps = [
     { id: 1, name: "Shopping Cart" },
@@ -24,11 +25,6 @@ export default function CheckoutStepper() {
     }
   }
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
-    }
-  }
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -51,13 +47,12 @@ export default function CheckoutStepper() {
   }
 
   return (
-    <CheckoutProvider>
-    <div className="max-w-7xl mx-auto px-4">
+    <div className="mx-auto px-4 bg-gray-100">
     <div className="mb-4 bg-white px-10 rounded-xl pt-5 pb-8">
           <div className="flex items-center justify-start">
             {steps.map((step, index) => (
  <div key={step.id} className="flex items-center">
- <div className="flex flex-col items-center w-fit">
+ <div className="flex flex-col items-center w-fit  cursor-pointer" onClick={() => setCurrentStep(currentStep - step.id > 0 ? currentStep - step.id : currentStep)}>
 {/* Step circle */}
  <div
  className={cn(
@@ -104,27 +99,8 @@ export default function CheckoutStepper() {
         </div>
 
         {/* Step content */}
-        <div className="mb-8 bg-gray-50 p-6 rounded-lg">{renderStepContent()}</div>
-
-        {/* Navigation buttons */}
-        {currentStep <= 3 && (
-          <div className="flex justify-between">
-            <button
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className={cn(
-                "px-4 py-2 rounded-md",
-                currentStep === 1
-                  ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                  : "bg-gray-200 text-gray-700 hover:bg-gray-300",
-              )}
-            >
-              Previous
-            </button>
-          </div>
-        )}
+        <div className="pt-6 bg-white rounded-xl">{renderStepContent()}</div>
       </div>
-    </CheckoutProvider>
   )
 }
 

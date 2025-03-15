@@ -1,17 +1,19 @@
 "use client"
 
-import  React from "react"
+import React from "react"
+
 import { useState } from "react"
 import { OrderSummary } from "./order-summary"
+import { Form, FormField, Input } from "@/components/ui/form"
+import { Button } from "@/components/ui/button"
 import { useCheckout } from "../../../../../../checkout-context"
-
 
 interface PaymentProps {
   onNext: () => void
 }
 
 export function Payment({ onNext }: PaymentProps) {
-  const { products, shippingAddress, orderSummary, submitOrder, isLoading } = useCheckout()
+  const { products, currentAddress, orderSummary, submitOrder, isLoading } = useCheckout()
   const [paymentDetails, setPaymentDetails] = useState({
     cardName: "",
     cardNumber: "",
@@ -22,6 +24,7 @@ export function Payment({ onNext }: PaymentProps) {
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target
@@ -29,11 +32,53 @@ export function Payment({ onNext }: PaymentProps) {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }))
+
+    // Clear error for this field if it exists
+    if (formErrors[name]) {
+      setFormErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!paymentDetails.cardName) {
+      newErrors.cardName = "Name on card is required"
+    }
+
+    if (!paymentDetails.cardNumber) {
+      newErrors.cardNumber = "Card number is required"
+    } else if (!/^\d{16}$/.test(paymentDetails.cardNumber.replace(/\s/g, ""))) {
+      newErrors.cardNumber = "Please enter a valid 16-digit card number"
+    }
+
+    if (!paymentDetails.expiry) {
+      newErrors.expiry = "Expiry date is required"
+    } else if (!/^\d{2}\/\d{2}$/.test(paymentDetails.expiry)) {
+      newErrors.expiry = "Please use MM/YY format"
+    }
+
+    if (!paymentDetails.cvv) {
+      newErrors.cvv = "CVV is required"
+    } else if (!/^\d{3,4}$/.test(paymentDetails.cvv)) {
+      newErrors.cvv = "CVV must be 3 or 4 digits"
+    }
+
+    setFormErrors(newErrors)
+    return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (!validateForm()) {
+      return
+    }
 
     const result = await submitOrder()
 
@@ -98,119 +143,11 @@ export function Payment({ onNext }: PaymentProps) {
       <div className="md:col-span-2 bg-white p-6 rounded-lg border">
         <h2 className="text-2xl font-bold mb-6">Payment</h2>
 
-        {error && <div className="bg-red-50 text-red-500 p-3 rounded-md mb-4">{error}</div>}
-
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="cardName" className="block text-sm font-medium mb-1">
-              Name on Card
-            </label>
-            <input
-              type="text"
-              id="cardName"
-              name="cardName"
-              value={paymentDetails.cardName}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md"
-              placeholder="John Doe"
-              required
-            />
-          </div>
-
-          <div>
-            <label htmlFor="cardNumber" className="block text-sm font-medium mb-1">
-              Card Number
-            </label>
-            <input
-              type="text"
-              id="cardNumber"
-              name="cardNumber"
-              value={paymentDetails.cardNumber}
-              onChange={handleChange}
-              className="w-full p-2 border rounded-md"
-              placeholder="1234 5678 9012 3456"
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="expiry" className="block text-sm font-medium mb-1">
-                Expiry Date
-              </label>
-              <input
-                type="text"
-                id="expiry"
-                name="expiry"
-                value={paymentDetails.expiry}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-md"
-                placeholder="MM/YY"
-                required
-              />
-            </div>
-            <div>
-              <label htmlFor="cvv" className="block text-sm font-medium mb-1">
-                CVV
-              </label>
-              <input
-                type="text"
-                id="cvv"
-                name="cvv"
-                value={paymentDetails.cvv}
-                onChange={handleChange}
-                className="w-full p-2 border rounded-md"
-                placeholder="123"
-                required
-              />
-            </div>
-          </div>
-
-          <div className="pt-4">
-            <div className="flex items-start">
-              <input
-                type="checkbox"
-                id="saveCard"
-                name="saveCard"
-                checked={paymentDetails.saveCard}
-                onChange={handleChange}
-                className="mt-1 mr-2"
-              />
-              <label htmlFor="saveCard" className="text-sm">
-                Save this card for future purchases
-              </label>
-            </div>
-          </div>
-
-          <div className="pt-4">
-            <h3 className="font-medium mb-2">Shipping Address</h3>
-            <div className="text-sm text-gray-600">
-              <p>
-                {shippingAddress.firstName} {shippingAddress.lastName}
-              </p>
-              <p>{shippingAddress.address}</p>
-              <p>
-                {shippingAddress.city}, {shippingAddress.state} {shippingAddress.zipCode}
-              </p>
-              <p>{shippingAddress.phone}</p>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isLoading}
+          <Button
             className="w-full mt-4 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-md flex items-center justify-center"
           >
-            {isLoading ? (
-              <>
-                <span className="mr-2 animate-spin">◌</span>
-                Processing...
-              </>
-            ) : (
               "Complete Order"
-            )}
-          </button>
-        </form>
+          </Button>
       </div>
 
       <div>

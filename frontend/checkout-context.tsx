@@ -11,7 +11,8 @@ export interface Product {
   quantity: number
 }
 
-export interface ShippingAddress {
+export interface Address {
+  id: string
   firstName: string
   lastName: string
   email: string
@@ -20,6 +21,7 @@ export interface ShippingAddress {
   state: string
   zipCode: string
   phone: string
+  isDefault?: boolean
 }
 
 export interface OrderSummary {
@@ -31,6 +33,8 @@ export interface OrderSummary {
 }
 
 interface CheckoutContextType {
+  currentStep: number
+  setCurrentStep: (step: number) => void
   // Cart state
   products: Product[]
   addProduct: (product: Product) => void
@@ -38,8 +42,12 @@ interface CheckoutContextType {
   updateQuantity: (productId: string, quantity: number) => void
 
   // Shipping state
-  shippingAddress: ShippingAddress
-  updateShippingAddress: (address: Partial<ShippingAddress>) => void
+  savedAddresses: Address[]
+  selectedAddressId: string | null
+  setSelectedAddressId: (id: string | null) => void
+  currentAddress: Address | null
+  updateCurrentAddress: (address: Partial<Address>) => void
+  addNewAddress: (address: Address) => void
 
   // Order summary
   orderSummary: OrderSummary
@@ -49,11 +57,13 @@ interface CheckoutContextType {
 
   // API methods
   fetchProducts: () => Promise<void>
+  fetchAddresses: () => Promise<void>
   submitOrder: () => Promise<{ success: boolean; orderId?: string; error?: string }>
 }
 
 // Default values
-const defaultShippingAddress: ShippingAddress = {
+const defaultAddress: Address = {
+  id: "",
   firstName: "",
   lastName: "",
   email: "",
@@ -79,9 +89,13 @@ const CheckoutContext = createContext<CheckoutContextType | undefined>(undefined
 export function CheckoutProvider({ children }: { children: ReactNode }) {
   // Cart state
   const [products, setProducts] = useState<Product[]>([])
+  const [currentStep, setCurrentStep] = useState(1)
+
 
   // Shipping state
-  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>(defaultShippingAddress)
+  const [savedAddresses, setSavedAddresses] = useState<Address[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
+  const [currentAddress, setCurrentAddress] = useState<Address | null>(null)
 
   // Order summary
   const [orderSummary, setOrderSummary] = useState<OrderSummary>(defaultOrderSummary)
@@ -105,6 +119,16 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     })
   }, [products])
 
+  // Update current address when selected address changes
+  useEffect(() => {
+    if (selectedAddressId) {
+      const address = savedAddresses.find((addr) => addr.id === selectedAddressId) || null
+      setCurrentAddress(address)
+    } else {
+      setCurrentAddress(null)
+    }
+  }, [selectedAddressId, savedAddresses])
+
   // Cart methods
   const addProduct = (product: Product) => {
     setProducts((prevProducts) => {
@@ -127,8 +151,19 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   }
 
   // Shipping methods
-  const updateShippingAddress = (address: Partial<ShippingAddress>) => {
-    setShippingAddress((prev) => ({ ...prev, ...address }))
+  const updateCurrentAddress = (address: Partial<Address>) => {
+    setCurrentAddress((prev) => {
+      if (!prev) {
+        return { ...defaultAddress, ...address, id: `new-${Date.now()}` }
+      }
+      return { ...prev, ...address }
+    })
+  }
+
+  const addNewAddress = (address: Address) => {
+    const newAddress = { ...address, id: address.id || `addr-${Date.now()}` }
+    setSavedAddresses((prev) => [...prev, newAddress])
+    setSelectedAddressId(newAddress.id)
   }
 
   // API methods
@@ -171,6 +206,54 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     }
   }
 
+  const fetchAddresses = async () => {
+    setIsLoading(true)
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 300))
+
+      // Mock data
+      const mockAddresses: Address[] = [
+        {
+          id: "addr-1",
+          firstName: "John",
+          lastName: "Doe",
+          email: "john.doe@example.com",
+          address: "123 Main St",
+          city: "New York",
+          state: "NY",
+          zipCode: "10001",
+          phone: "(123) 456-7890",
+          isDefault: true,
+        },
+        {
+          id: "addr-2",
+          firstName: "Jane",
+          lastName: "Smith",
+          email: "jane.smith@example.com",
+          address: "456 Park Ave",
+          city: "Boston",
+          state: "MA",
+          zipCode: "02108",
+          phone: "(987) 654-3210",
+          isDefault: false,
+        },
+      ]
+
+      setSavedAddresses(mockAddresses)
+
+      // Set default address
+      const defaultAddr = mockAddresses.find((addr) => addr.isDefault)
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id)
+      }
+    } catch (error) {
+      console.error("Failed to fetch addresses:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   const submitOrder = async () => {
     setIsLoading(true)
     try {
@@ -180,7 +263,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
       // In a real app, you would send the order data to your API
       const orderData = {
         products,
-        shippingAddress,
+        shippingAddress: currentAddress,
         orderSummary,
       }
 
@@ -201,12 +284,19 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     addProduct,
     removeProduct,
     updateQuantity,
-    shippingAddress,
-    updateShippingAddress,
+    savedAddresses,
+    selectedAddressId,
+    setSelectedAddressId,
+    currentAddress,
+    updateCurrentAddress,
+    addNewAddress,
     orderSummary,
     isLoading,
     fetchProducts,
+    fetchAddresses,
     submitOrder,
+    currentStep,
+    setCurrentStep
   }
 
   return <CheckoutContext.Provider value={value}>{children}</CheckoutContext.Provider>

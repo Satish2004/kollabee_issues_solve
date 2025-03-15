@@ -10,7 +10,7 @@ interface OrderSummaryProps {
 }
 
 export function OrderSummary({ onNext, buttonText = "Next" }: OrderSummaryProps) {
-  const { orderSummary } = useCheckout()
+  const { orderSummary, currentStep } = useCheckout()
   const { subtotal, discount, shippingCost, totalQuantity } = orderSummary
   const freeShippingThreshold = 1000
 
@@ -44,8 +44,8 @@ export function OrderSummary({ onNext, buttonText = "Next" }: OrderSummaryProps)
           </a>
         </div>
 
-        <Button onClick={onNext} className="w-full mt-2 bg-white hover:bg-gray-50 text-pink-500 border border-gray-200">
-          {buttonText}
+        <Button onClick={onNext} className={`w-full mt-2 gradient-border ${currentStep === 2 ? "bg-gradient-to-r from-[#910973] to-[#f2bc6c] text-white" : "bg-white"}`}>
+          <span className={`${currentStep === 2 ? "text-white" : "gradient-text"} font-semibold`}>{buttonText} {currentStep === 2 && "$"+orderSummary.total.toFixed(2)}</span>
         </Button>
       </div>
     </div>
