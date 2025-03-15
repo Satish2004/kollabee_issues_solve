@@ -75,11 +75,11 @@ export default function ProductCard({
         </div>
 
         <div className="space-y-2">
-          <button className="w-full py-2.5 px-4 rounded-lg text-white font-medium bg-gradient-to-r from-pink-600 to-orange-400">
+          <button className="w-full py-2.5 px-4 rounded-lg text-white font-medium bg-gradient-to-r from-[#950b72] to-[#f2bd6d]">
             Contact Supplier
           </button>
-          <button className="w-full py-2.5 px-4 rounded-md border border-pink-600 text-pink-600 gradient-text font-medium">
-            Send <span className="text-orange-400">Enquiry</span>
+          <button className="w-full py-2.5 px-4 rounded-lg gradient-border">
+             <span className="gradient-text font-semibold"> Send Enquiry</span>
           </button>
         </div>
       </div>

@@ -23,8 +23,6 @@ body {
 
 .gradient-border {
   position: relative;
-  padding: 5px;
-  border-radius: 10px;
 }
 
 .gradient-border::before {

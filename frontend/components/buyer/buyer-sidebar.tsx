@@ -34,7 +34,7 @@ type SidebarProps = {
   className?: string;
 };
 
-export function SellerSidebar({ className }: SidebarProps) {
+export function BuyerSidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -69,36 +69,36 @@ export function SellerSidebar({ className }: SidebarProps) {
         {
           label: "Dashboard",
           icon: Home,
-          href: "/seller",
+          href: "/buyer",
         },
         {
-          label: "Products",
+          label: "Marketplace",
           icon: Store,
-          href: "/seller/products",
+          href: "/buyer/marketplace",
           // className: "tour-products"
         },
         {
           label: "My Suppliers",
           icon: User2,
-          href: "/seller/my-suppliers",
+          href: "/buyer/my-suppliers",
           // className: "tour-chat"
         },
         {
           label: "Cross-Supplier",
           icon: Users2,
-          href: "/seller/cross-supplier",
+          href: "/buyer/cross-supplier",
           // className: "tour-requests"
         },
         {
           label: "Messages",
           icon: MessagesSquare,
-          href: "/seller/messages",
+          href: "/buyer/chat",
           // className: "tour-requests"
         },
         {
           label: "Orders",
           icon: BsFillCartCheckFill,
-          href: "/seller/orders",
+          href: "/buyer/orders",
           // className: "tour-requests"
         },
       ],

@@ -108,3 +108,4 @@ const WorkflowFeature = ({ icon, title, description }: WorkflowFeatureProps) => 
     </div>
   );
 };
+ export default SAPFeatures;
