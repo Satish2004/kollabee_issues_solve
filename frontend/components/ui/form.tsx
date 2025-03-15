@@ -5,11 +5,11 @@ import * as LabelPrimitive from "@radix-ui/react-label"
 import { Slot } from "@radix-ui/react-slot"
 import {
   Controller,
-  ControllerProps,
-  FieldPath,
-  FieldValues,
   FormProvider,
   useFormContext,
+  type ControllerProps,
+  type FieldPath,
+  type FieldValues,
 } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
@@ -147,7 +147,7 @@ const FormMessage = React.forwardRef<
   React.HTMLAttributes<HTMLParagraphElement>
 >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
-  const body = error ? String(error?.message) : children
+  const body = error ? String(error?.message ?? "") : children
 
   if (!body) {
     return null
@@ -166,6 +166,49 @@ const FormMessage = React.forwardRef<
 })
 FormMessage.displayName = "FormMessage"
 
+export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+
+const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className, type, ...props }, ref) => {
+  return (
+    <input
+      type={type}
+      className={cn(
+        "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        className,
+      )}
+      ref={ref}
+      {...props}
+    />
+  )
+})
+Input.displayName = "Input"
+
+export interface RadioProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label?: string
+}
+
+const Radio = React.forwardRef<HTMLInputElement, RadioProps>(({ className, label, ...props }, ref) => {
+  return (
+    <div className="flex items-center space-x-2">
+      <input
+        type="radio"
+        className={cn("h-4 w-4 text-primary border-gray-300 focus:ring-primary", className)}
+        ref={ref}
+        {...props}
+      />
+      {label && (
+        <label
+          htmlFor={props.id}
+          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        >
+          {label}
+        </label>
+      )}
+    </div>
+  )
+})
+Radio.displayName = "Radio"
+
 export {
   useFormField,
   Form,
@@ -175,4 +218,6 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  Input,
+  Radio
 }

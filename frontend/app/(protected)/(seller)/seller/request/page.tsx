@@ -1,10 +1,11 @@
 "use client"
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, ChevronLeft, Plus, Eye, Edit2, Trash2, X ,ChevronsLeft ,Omega,CheckCheck,Factory} from 'lucide-react';
+import { Search, ChevronDown, ChevronLeft, Plus, Eye, Edit2, Trash2, X ,ChevronsLeft ,Omega,CheckCheck,Factory, ChevronRight} from 'lucide-react';
 import { useRouter } from "next/navigation";
 import { ordersApi } from "@/lib/api/orders";
 import { toast } from 'sonner';
 import ManufactureForm from './manufacture-form';
+import Image from 'next/image';
 
 interface OrderItem {
   id: string;
@@ -51,9 +52,11 @@ const KollaBeeRequests = () => {
         setIsLoading(true);
         const response :any= await ordersApi.getOrders();
         setRequests(response.orders);
+        console.log("resposne", response.orders);
       } catch (error) {
         console.error('Error fetching requests:', error);
       } finally {
+        
         setIsLoading(false);
       }
     };
@@ -103,10 +106,10 @@ const KollaBeeRequests = () => {
   };
 
   return (
-    <div className="flex h-screen bg-white">
+    <div className="flex h-screen">
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Tabs */}
-        <div className="p-4">
+        <div className="p-4 bg-white rounded-xl">
           <div className="flex justify-between items-center">
             <div className="flex space-x-4">
             <ChevronsLeft className='w-4 h-4' onClick={() => router.push('/seller')}/>
@@ -118,7 +121,7 @@ const KollaBeeRequests = () => {
                 All Requests
               </button>
               <button 
-                className={`pb-2 px-2 text-sm flex items-center space-x-2 gap-2 ${activeTab === 'received' ? 'text-rose-600 border-b-2  border-[#9e1171]' : 'text-gray-500'}`}
+                className={ `pb-2 px-2 text-sm flex items-center space-x-2 gap-2 ${activeTab === 'received' ? 'text-rose-600 border-b-2  border-[#9e1171]' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('received')}
               >
                 <CheckCheck className='w-4 h-4'/>
@@ -136,91 +139,111 @@ const KollaBeeRequests = () => {
         </div>
 
         {/* Request List */}
-        <div className="p-4 flex-1 overflow-auto bg-gray-50">
+        <div className="p-4 flex-1 overflow-auto bg-white mt-6 rounded-xl">
        { (activeTab === 'received' || activeTab === 'all') && <div className="mb-4">
             <h3 className="text-lg font-medium mb-4">Received Requests</h3>
           </div>}
-          
+
           {(activeTab !== 'manufacturing') && isLoading ? (
             <div>Loading...</div>
           ) : activeTab !== 'manufacturing' && (
             requests.map((request) => (
-              <div key={request.id} className="bg-white rounded-lg shadow mb-4">
-                <div className="p-4">
-                  <div className="flex items-center mb-2">
-                    <ChevronLeft className="w-4 h-4 mr-2" />
-                    <span className="font-medium">{request.shippingAddress?.fullName}</span>
-                    {request.shippingAddress?.country && (
-                      <div className="flex items-center ml-2">
-                        <div className="w-5 h-3 bg-red-600 flex items-center justify-center text-[8px] text-white font-bold">
-                          {request.shippingAddress.country}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="flex justify-between items-center">
-                    <h2 className="text-xl font-semibold">
-                      {request.items[0]?.product?.name}
-                    </h2>
-                    {!request.isAccepted ? (
-                      <button
-                        onClick={() => router.push(`/seller/request/${request.id}`)}
-                        className="flex items-center space-x-2 px-4 py-1 rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-sm"
-                      >
-                        Take Action
-                      </button>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-green-600">Accepted</span>
-                        <button
-                          onClick={() => router.push(`/seller/chat`)}
-                          className="px-3 py-1 bg-gray-100 text-gray-800 text-xs rounded hover:bg-gray-200"
-                        >
-                          Chat
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-5 gap-4 mt-4">
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Total Amount</p>
-                      <p className="font-medium text-sm">${request.totalAmount}</p>
+<div className="max-w-6xl mx-auto rounded-lg overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center gap-3 p-1 border-2 rounded-[10px] border-gray-200">
+        <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
+          <span className="text-indigo-600 font-semibold">G</span>
+        </div>
+        <div className="font-medium text-lg">{request.items[0].product.artistName || "Guangzhou Duoxi Trading Firm (Sole Proprietorship)"}</div>
+        <div className="flex items-center gap-1 ml-2">
+          <div className="w-5 h-3 bg-red-600"></div>
+          <span className="text-gray-700">CN</span>
+        </div>
+      </div>
+
+      <div className="flex flex-col md:flex-row mt-2">
+        {/* Product Image */}
+        <div className="w-full md:w-60 lg:w-72">
+          <Image 
+            src="/placeholder.svg?height=400&width=400" 
+            alt="Product Image" 
+            width={200} 
+            height={200}
+            className="w-full h-full object-cover bg-neutral-300 rounded-xl"
+          />
+        </div>
+
+        {/* Product Details */}
+        <div className="flex-1 p-4">
+          {/* Breadcrumb */}
+          <div className="flex items-center text-gray-500 text-sm font-medium mb-4 flex-wrap">
+            <span>Beauty & Personal Care</span>
+            <ChevronRight className="w-4 h-4 mx-1" />
+            <span>Skin Care & Body Care</span>
+            <ChevronRight className="w-4 h-4 mx-1" />
+            <span>Facial Care</span>
+            <ChevronRight className="w-4 h-4 mx-1" />
+            <span>Face Mask Sheet</span>
+
+            {/* Take Action Button */}
+            <div className="ml-auto">
+              <button className=" w-40 py-2 text-purple-600 font-medium gradient-border text-xl"  onClick={() => router.push(`/seller/chat`)}>
+                <span className="text-rose-500">Take Action </span>
+              </button>
+            </div>
+          </div>
+
+          {/* Product Title */}
+          <h1 className="text-3xl font-bold text-gray-800 mb-4">{request.items[0].product.name}</h1>
+
+          {/* Product Tabs */}
+          <div className="flex gap-2 mb-6">
+            <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Product</span>
+            <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Packaging</span>
+            <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Request for proposal</span>
+          </div>
+
+          {/* Product Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="text-left p-3 font-medium text-stone-700 rounded-tl-xl">
+                    Lead size <span className="text-gray-400 text-xs">↑</span>
+                  </th>
+                  <th className="text-left p-3 font-medium text-gray-700">Country</th>
+                  <th className="text-left p-3 font-medium text-gray-700">
+                    Quantity <span className="text-gray-400 text-xs">↑</span>
+                  </th>
+                  <th className="text-left p-3 font-medium text-gray-700">Target Price</th>
+                  <th className="text-left p-3 font-medium text-gray-700">
+                    Order frequency <span className="text-gray-400 text-xs">↑</span>
+                  </th>
+                  <th className="text-left p-3 font-medium text-gray-700 rounded-tr-xl">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-t border-gray-200">
+                  <td className="p-3 text-gray-800">{request.totalAmount}</td>
+                  <td className="p-3 text-gray-800">{request.shippingAddress.country}</td>
+                  <td className="p-3 text-gray-800">{request.items[0].quantity}</td>
+                  <td className="p-3 text-gray-800">{request.items[0].price}</td>
+                  <td className="p-3 text-gray-800">
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                      Monthly
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Country</p>
-                      <p className="font-medium text-sm">{request.shippingAddress?.country}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Status</p>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${
-                          request.isAccepted ? 'bg-green-500' : 'bg-yellow-500'
-                        }`} />
-                        <p className="font-medium text-sm">
-                          {request.isAccepted ? 'Accepted' : request.status}
-                        </p>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Order Date</p>
-                      <p className="font-medium text-sm">
-                        {new Date(request.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Action</p>
-                      <button 
-                        className="px-3 py-1 bg-gray-800 text-white text-xs rounded"
-                        onClick={() => router.push(`/seller/request/${request.id}`)}
-                      >
-                        View
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  </td>
+                  <td className="p-3">
+                    <button className="bg-zinc-800 text-white px-6 py-1 rounded-xl" onClick={() => router.push(`/seller/request/${request.id}`)}>View</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
             ))
           )}
           {activeTab === 'manufacturing' && (
@@ -233,5 +256,6 @@ const KollaBeeRequests = () => {
     </div>
   );
 };
+
 
 export default KollaBeeRequests;

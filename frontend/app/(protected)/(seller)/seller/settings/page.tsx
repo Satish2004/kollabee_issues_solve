@@ -151,7 +151,7 @@ const Settings: React.FC = () => {
                 src={formData.imageUrl}
                 alt="Profile"
                 className="w-96 h-96 rounded-full object-cover"
-                /> : <div className='flex items-center justify-center w-96 h-96'> <User className="w-10 h-10 animate-spin" /> </div>}
+                /> : <div className='flex items-center justify-center w-96 h-96'> <User className="w-10 h-10 text-red-400" /> </div>}
               <div className="mt-4 text-center text-[11px] text-gray-500">
                 Format: PNG, JPEG    Size: 2MB
               </div>
@@ -159,7 +159,7 @@ const Settings: React.FC = () => {
                 <button className="flex items-center text-red-500 hover:text-red-600">
                   <span className="underline" onClick={() => {
                     fileInputRef.current?.click();
-                  }}>Change</span>
+                  }}>{formData.imageUrl ? "Change" : "Upload"}</span>
                   <input type="file" className="hidden" ref={fileInputRef} onChange={handleImageChange} />
                 </button>
                 <button className="flex items-center text-red-500 hover:text-red-600">
@@ -287,7 +287,7 @@ const Settings: React.FC = () => {
             </div>
           </div>
 
-        
+
         </div>
       </div>
       <div className="pt-4 flex justify-end">
@@ -599,5 +599,6 @@ const Settings: React.FC = () => {
     </div>
   );
 };
+
 
 export default Settings;

@@ -1,12 +1,8 @@
 export function StatsCard() {
     return (
-      <div className="bg-[#ea3d4f] text-white p-8 rounded-xl h-full">
-        <h3 className="text-2xl font-semibold mb-4 text-center">
-          Your Brand
-          <br />
-          Deserves a Bold
-          <br />
-          Online Presence
+      <div className="bg-gradient-to-r from-[#e2105d] to-[#fca534] max-w-4xl text-white px-8 py-20 rounded-xl h-full">
+        <h3 className="text-2xl font-semibold h-20 mb-4 text-center">
+          Your Brand Deserves a Bold Online Presence
         </h3>
         <p className="text-normal mb-8 text-center ">
           In today's digital world, standing out is essential. We create websites that are not only beautiful but also
