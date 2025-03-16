@@ -274,10 +274,10 @@ export default function ProductDetail() {
 
           {/* Action Buttons */}
           <div className="flex gap-4 mb-6">
-            <Button className="flex-1 bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700">
+            <Button className="flex-1 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white font-semibold py-6">
               Send Enquiry
             </Button>
-            <Button variant="outline" className="flex-1">
+            <Button variant="outline" className="flex-1 font-semibold py-6 gradient-text gradient-border">
               Chat Now
             </Button>
           </div>
