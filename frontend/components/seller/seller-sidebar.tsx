@@ -68,7 +68,7 @@ export function SellerSidebar({ className }: SidebarProps) {
           href: "/seller",
         },
         {
-          label: "Products",
+          label: "Your Products",
           icon: Store,
           href: "/seller/products",
           className: "tour-products"
@@ -79,7 +79,7 @@ export function SellerSidebar({ className }: SidebarProps) {
         //   href: "/seller/products/add",
         // },
         {
-          label: "Chat",
+          label: "Messages",
           icon: MessageSquare,
           href: "/seller/chat",
           className: "tour-chat"
