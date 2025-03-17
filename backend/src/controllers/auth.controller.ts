@@ -1,10 +1,9 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import prisma from "../db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { updateUserProfile } from "./user.controller";
 require("dotenv").config({ path: ".env.local" });
 
 // Validation schemas
@@ -26,13 +25,21 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-console.log("SUPABASE_URL", process.env.SUPABASE_URL);
-console.log("SUPABASE_ANON_KEY", process.env.SUPABASE_ANON_KEY);
-
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_ANON_KEY!
 );
+
+const setAuthCookie = (res: Response, token: string) => {
+  res.cookie("auth-token", token, {
+    httpOnly: true,
+    secure: false, // Set to false for HTTP in development
+    sameSite: "lax", // 'lax' is more permissive than 'strict'
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // Don't set domain for localhost
+  });
+};
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -54,7 +61,7 @@ export const signup = async (req: Request, res: Response) => {
     // Create user with transaction to ensure both user and role-specific profile are created
     const result = await prisma.$transaction(async (tx: any) => {
       // Create user
-      let user = await tx.user.create({
+      const user = await tx.user.create({
         data: {
           email: validatedData.email,
           password: hashedPassword,
@@ -73,7 +80,7 @@ export const signup = async (req: Request, res: Response) => {
 
       // Create role-specific profile
       if (validatedData.role === "SELLER") {
-        console.log("seller");
+        //console.log("seller");
         const data = await tx.seller.create({
           data: {
             userId: user.id,
@@ -104,8 +111,8 @@ export const signup = async (req: Request, res: Response) => {
 
       return updatedUser;
     });
-    
-    console.log(result);
+
+    //console.log(result);
     // Generate JWT token
     const token = jwt.sign(
       {
@@ -119,10 +126,15 @@ export const signup = async (req: Request, res: Response) => {
       { expiresIn: "7d" }
     );
 
+    // Set JWT token in cookie
+    setAuthCookie(res, token);
+
+    //console.log("req:", req);
+
     // Return success response
     res.status(201).json({
       message: "User created successfully",
-      token,
+      token, // Still include token in response for client-side storage if needed
       user: {
         id: result.id,
         email: result.email,
@@ -186,9 +198,12 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: "7d" }
     );
 
+    // Set JWT token in cookie
+    setAuthCookie(res, token);
+
     // Return success response
     res.json({
-      token,
+      token, // Still include token in response for client-side storage if needed
       user: {
         id: user.id,
         email: user.email,
@@ -205,6 +220,22 @@ export const login = async (req: Request, res: Response) => {
     console.error("Login error:", error);
     res.status(500).json({ error: "Login failed" });
   }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  // Clear the auth cookie - make sure options match those used when setting the cookie
+  res.clearCookie("auth-token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    sameSite: "lax", // 'lax' is more permissive than 'strict'
+    // Don't include domain for localhost
+  });
+
+  // For debugging
+  console.log("Clearing auth-token cookie");
+
+  res.json({ message: "Logged out successfully" });
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {
@@ -259,7 +290,7 @@ export const getCurrentUser = async (req: any, res: Response) => {
         buyer: true,
       },
     });
-    console.log(user);
+    //console.log(user);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -364,7 +395,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
 export const updatePassword = async (req: any, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    console.log(req.body, req.user);
+    //console.log(req.body, req.user);
     const userId = req.user.userId;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
