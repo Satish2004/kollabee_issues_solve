@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ export default function SignupSellerPage() {
     lastName: "",
     email: "",
     phone: "",
+    countryCode: "",
     password: "",
     confirmPassword: "",
     role: "",
