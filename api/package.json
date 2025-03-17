@@ -13,7 +13,6 @@
     "prisma:migrate": "prisma migrate dev --schema=./prisma/schema.prisma",
     "seed": "ts-node prisma/seed.ts",
     "postinstall": "prisma generate",
-    "vercel-build": "prisma generate && tsc",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio"
