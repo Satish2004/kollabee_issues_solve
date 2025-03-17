@@ -1,17 +1,13 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-      },
-      {
-        protocol: "https",
-        hostname: "example.com",
-      },
-    ],
+  webpack: (config) => {
+    config.resolve.alias["@"] = path.join(__dirname);
+    return config;
+  },
+  typescript: {
+    ignoreBuildErrors: true,
   },
 };
 

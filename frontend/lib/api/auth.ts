@@ -51,7 +51,6 @@ export const authApi = {
   },
 
   generateOTP: async (email: string) => {
-    console.log("authUrl", process.env.API_URL);
     return api.post(`${authUrl}/auth/generate-otp`, { email });
   },
 
@@ -72,6 +71,8 @@ export const authApi = {
   },
 
   logout: async () => {
+    const response = await api.post(`${authUrl}/auth/logout`);
+
     return removeToken();
   },
 

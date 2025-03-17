@@ -1,10 +1,9 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import prisma from "../db";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-import { updateUserProfile } from "./user.controller";
 require("dotenv").config({ path: ".env.local" });
 
 // Validation schemas
@@ -26,13 +25,21 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-//console.log("SUPABASE_URL", process.env.SUPABASE_URL);
-//console.log("SUPABASE_ANON_KEY", process.env.SUPABASE_ANON_KEY);
-
 const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_ANON_KEY!
 );
+
+const setAuthCookie = (res: Response, token: string) => {
+  res.cookie("auth-token", token, {
+    httpOnly: true,
+    secure: false, // Set to false for HTTP in development
+    sameSite: "lax", // 'lax' is more permissive than 'strict'
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    // Don't set domain for localhost
+  });
+};
 
 export const signup = async (req: Request, res: Response) => {
   try {
@@ -52,82 +59,88 @@ export const signup = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
     // Create user with transaction to ensure both user and role-specific profile are created
-
-    // Create user
-    let user = await prisma.user.create({
-      data: {
-        email: validatedData.email,
-        password: hashedPassword,
-        name: validatedData.name,
-        role: validatedData.role,
-        companyName: validatedData.companyName,
-        phoneNumber: validatedData.phoneNumber,
-        country: validatedData.country,
-        state: validatedData.state,
-        address: validatedData.address,
-        companyWebsite: validatedData.companyWebsite,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      include: {
-        seller: true,
-        buyer: true,
-      },
-    });
-
-    // Create role-specific profile
-    if (validatedData.role === "SELLER") {
-      //console.log("seller");
-      const data = await prisma.seller.create({
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Create user
+      const user = await tx.user.create({
         data: {
-          userId: user.id,
-          businessName: validatedData.companyName,
-          businessAddress: validatedData.address,
-          websiteLink: validatedData.companyWebsite,
+          email: validatedData.email,
+          password: hashedPassword,
+          name: validatedData.name,
+          role: validatedData.role,
+          companyName: validatedData.companyName,
+          phoneNumber: validatedData.phoneNumber,
+          country: validatedData.country,
+          state: validatedData.state,
+          address: validatedData.address,
+          companyWebsite: validatedData.companyWebsite,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
-    } else {
-      await prisma.buyer.create({
-        data: { userId: user.id },
-      });
-    }
 
-    // Fetch updated user with relations
-    const updatedUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: {
-        seller: true,
-        buyer: true,
-      },
+      // Create role-specific profile
+      if (validatedData.role === "SELLER") {
+        //console.log("seller");
+        const data = await tx.seller.create({
+          data: {
+            userId: user.id,
+            businessName: validatedData.companyName,
+            businessAddress: validatedData.address,
+            websiteLink: validatedData.companyWebsite,
+            country: validatedData.country,
+          },
+        });
+      } else {
+        await tx.buyer.create({
+          data: { userId: user.id },
+        });
+      }
+
+      // Fetch updated user with relations
+      const updatedUser = await tx.user.findUnique({
+        where: { id: user.id },
+        include: {
+          seller: true,
+          buyer: true,
+        },
+      });
+
+      if (!updatedUser) {
+        throw new Error("Failed to create user");
+      }
+
+      return updatedUser;
     });
 
-    if (!updatedUser) {
-      throw new Error("Failed to create user");
-    }
-
+    //console.log(result);
     // Generate JWT token
     const token = jwt.sign(
       {
-        userId: user.id,
-        role: user.role,
-        ...(user.role === "SELLER"
-          ? { sellerId: updatedUser.seller?.id }
-          : { buyerId: updatedUser.buyer?.id }),
+        userId: result.id,
+        role: result.role,
+        ...(result.role === "SELLER"
+          ? { sellerId: result.seller?.id }
+          : { buyerId: result.buyer?.id }),
       },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
 
+    // Set JWT token in cookie
+    setAuthCookie(res, token);
+
+    //console.log("req:", req);
+
     // Return success response
     res.status(201).json({
       message: "User created successfully",
-      token,
+      token, // Still include token in response for client-side storage if needed
       user: {
-        id: user.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        role: updatedUser.role,
-        companyName: updatedUser.companyName,
+        id: result.id,
+        email: result.email,
+        name: result.name,
+        role: result.role,
+        companyName: result.companyName,
       },
     });
   } catch (error) {
@@ -185,9 +198,12 @@ export const login = async (req: Request, res: Response) => {
       { expiresIn: "7d" }
     );
 
+    // Set JWT token in cookie
+    setAuthCookie(res, token);
+
     // Return success response
     res.json({
-      token,
+      token, // Still include token in response for client-side storage if needed
       user: {
         id: user.id,
         email: user.email,
@@ -204,6 +220,22 @@ export const login = async (req: Request, res: Response) => {
     console.error("Login error:", error);
     res.status(500).json({ error: "Login failed" });
   }
+};
+
+export const logout = async (req: Request, res: Response) => {
+  // Clear the auth cookie - make sure options match those used when setting the cookie
+  res.clearCookie("auth-token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    sameSite: "lax", // 'lax' is more permissive than 'strict'
+    // Don't include domain for localhost
+  });
+
+  // For debugging
+  console.log("Clearing auth-token cookie");
+
+  res.json({ message: "Logged out successfully" });
 };
 
 export const forgotPassword = async (req: Request, res: Response) => {
