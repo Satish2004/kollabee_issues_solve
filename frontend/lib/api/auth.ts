@@ -51,7 +51,6 @@ export const authApi = {
   },
 
   generateOTP: async (email: string) => {
-    console.log("authUrl", process.env.API_URL);
     return api.post(`${authUrl}/auth/generate-otp`, { email });
   },
 

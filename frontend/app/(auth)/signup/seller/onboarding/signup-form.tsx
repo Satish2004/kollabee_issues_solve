@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -454,7 +454,7 @@ export function SignupForm({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 ">
             <Label htmlFor="email" className="flex items-center gap-2">
               Business Email<span className="text-destructive">*</span>
               <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer" />
@@ -536,104 +536,106 @@ export function SignupForm({
               <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
             )}
           </div>
-          <div className="space-y-2 relative">
-            <Label>
-              Confirm Password<span className="text-destructive">*</span>
-            </Label>
-            <Input
-              type="password"
-              placeholder="Re-enter your Password"
-              value={formData.confirmPassword}
-              onChange={(e) => {
-                setFormData({ ...formData, confirmPassword: e.target.value });
-                checkPasswordMatch(e.target.value);
-                setErrors({ ...errors, confirmPassword: undefined });
-              }}
-              className={`bg-[#fcfcfc] border ${
-                showPasswordError ? "border-red-500" : "border-[#e5e5e5]"
-              } rounded-[6px] placeholder:text-[#bababb]`}
-              tabIndex={4}
-            />
-            {showPasswordError && (
-              <div className="absolute -bottom-6 left-0 text-xs text-red-500 bg-white px-2 py-1 rounded shadow-sm border border-red-100">
-                Passwords do not match
-              </div>
-            )}
-          </div>
-          <div className="space-y-2 ">
-            <Label>
-              Phone Number<span className="text-destructive">*</span>
-            </Label>
-            <div className="flex">
-              <div className="relative">
-                <button
-                  type="button"
-                  className="flex items-center justify-between bg-[#fcfcfc] border border-[#e5e5e5] rounded-l-[6px] px-2 py-2 w-[90px]"
-                  onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                >
-                  <span className="flex items-center">
-                    {countries.find((c) => c.code === formData.countryCode)
-                      ?.flag || "🌍"}
-                    {formData.countryCode || "+1"}
-                  </span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="m6 9 6 6 6-6" />
-                  </svg>
-                </button>
-
-                {showCountryDropdown && (
-                  <div className="absolute z-10 mt-1 w-[250px] max-h-[250px] overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
-                    <div className="p-2">
-                      {countries.map((country) => (
-                        <div
-                          key={country.name}
-                          className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => {
-                            setFormData({
-                              ...formData,
-                              countryCode: country.code,
-                            });
-                            setShowCountryDropdown(false);
-                          }}
-                        >
-                          <span>{country.flag}</span>
-                          <span>{country.name}</span>
-                          <span className="text-gray-500 ml-auto">
-                            {country.code}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
+          <div className="space-y-8">
+            <div className="space-y-2 relative">
+              <Label>
+                Confirm Password<span className="text-destructive">*</span>
+              </Label>
               <Input
-                placeholder="Enter your Phone Number"
-                value={formData.phone}
+                type="password"
+                placeholder="Re-enter your Password"
+                value={formData.confirmPassword}
                 onChange={(e) => {
-                  setFormData({ ...formData, phone: e.target.value });
-                  setErrors({ ...errors, phone: undefined });
+                  setFormData({ ...formData, confirmPassword: e.target.value });
+                  checkPasswordMatch(e.target.value);
+                  setErrors({ ...errors, confirmPassword: undefined });
                 }}
-                className={`flex-1 bg-[#fcfcfc] border ${
-                  errors.phone ? "border-red-500" : "border-[#e5e5e5]"
-                } rounded-r-[6px] rounded-l-none border-l-0 placeholder:text-[#bababb]`}
-                tabIndex={6}
+                className={`bg-[#fcfcfc] border ${
+                  showPasswordError ? "border-red-500" : "border-[#e5e5e5]"
+                } rounded-[6px] placeholder:text-[#bababb]`}
+                tabIndex={4}
               />
+              {showPasswordError && (
+                <div className="absolute -bottom-6 left-0 text-xs text-red-500 bg-white px-2 py-1 rounded shadow-sm border border-red-100">
+                  Passwords do not match
+                </div>
+              )}
             </div>
-            {errors.phone && (
-              <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
-            )}
+            <div className="space-y-2 ">
+              <Label>
+                Phone Number<span className="text-destructive">*</span>
+              </Label>
+              <div className="flex">
+                <div className="relative">
+                  <button
+                    type="button"
+                    className="flex items-center justify-between bg-[#fcfcfc] border border-[#e5e5e5] rounded-l-[6px] px-2 py-2 w-[90px] h-9"
+                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                  >
+                    <span className="flex items-center">
+                      {countries.find((c) => c.code === formData.countryCode)
+                        ?.flag || "🌍"}
+                      {formData.countryCode || "+1"}
+                    </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+
+                  {showCountryDropdown && (
+                    <div className="absolute z-10 mt-1 w-[250px] max-h-[250px] overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
+                      <div className="p-2">
+                        {countries.map((country) => (
+                          <div
+                            key={country.name}
+                            className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                countryCode: country.code,
+                              });
+                              setShowCountryDropdown(false);
+                            }}
+                          >
+                            <span>{country.flag}</span>
+                            <span>{country.name}</span>
+                            <span className="text-gray-500 ml-auto">
+                              {country.code}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <Input
+                  placeholder="Enter your Phone Number"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    setErrors({ ...errors, phone: undefined });
+                  }}
+                  className={`flex-1 bg-[#fcfcfc] border ${
+                    errors.phone ? "border-red-500" : "border-[#e5e5e5]"
+                  } rounded-r-[6px] rounded-l-none border-l-0 placeholder:text-[#bababb]`}
+                  tabIndex={6}
+                />
+              </div>
+              {errors.phone && (
+                <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
