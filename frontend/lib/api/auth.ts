@@ -27,7 +27,7 @@ interface SignupData {
   challenges?: string[];
   metrics?: string[];
 }
-const authUrl = "http://localhost:2000/api";
+const authUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export const authApi = {
   login: async (data: { email: string; password: string }) => {

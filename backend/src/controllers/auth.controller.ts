@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
-require("dotenv").config({ path: ".env.local" });
 
 // Validation schemas
 const signupSchema = z.object({
