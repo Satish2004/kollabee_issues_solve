@@ -1,11 +1,11 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { z } from 'zod';
-import { createClient } from '@supabase/supabase-js';
-import { updateUserProfile } from './user.controller';
-import 'dotenv/config';
+import { Request, Response } from "express";
+import prisma from "../db";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { z } from "zod";
+import { createClient } from "@supabase/supabase-js";
+import { updateUserProfile } from "./user.controller";
+require("dotenv").config({ path: ".env.local" });
 
 // Validation schemas
 const signupSchema = z.object({
@@ -26,8 +26,8 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-//console.log("SUPABASE_URL", process.env.SUPABASE_URL);
-//console.log("SUPABASE_ANON_KEY", process.env.SUPABASE_ANON_KEY);
+console.log("SUPABASE_URL", process.env.SUPABASE_URL);
+console.log("SUPABASE_ANON_KEY", process.env.SUPABASE_ANON_KEY);
 
 const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -52,67 +52,68 @@ export const signup = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
     // Create user with transaction to ensure both user and role-specific profile are created
-
-    // Create user
-    let user = await prisma.user.create({
-      data: {
-        email: validatedData.email,
-        password: hashedPassword,
-        name: validatedData.name,
-        role: validatedData.role,
-        companyName: validatedData.companyName,
-        phoneNumber: validatedData.phoneNumber,
-        country: validatedData.country,
-        state: validatedData.state,
-        address: validatedData.address,
-        companyWebsite: validatedData.companyWebsite,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      include: {
-        seller: true,
-        buyer: true,
-      },
-    });
-
-    // Create role-specific profile
-    if (validatedData.role === "SELLER") {
-      //console.log("seller");
-      const data = await prisma.seller.create({
+    const result = await prisma.$transaction(async (tx: any) => {
+      // Create user
+      let user = await tx.user.create({
         data: {
-          userId: user.id,
-          businessName: validatedData.companyName,
-          businessAddress: validatedData.address,
-          websiteLink: validatedData.companyWebsite,
+          email: validatedData.email,
+          password: hashedPassword,
+          name: validatedData.name,
+          role: validatedData.role,
+          companyName: validatedData.companyName,
+          phoneNumber: validatedData.phoneNumber,
+          country: validatedData.country,
+          state: validatedData.state,
+          address: validatedData.address,
+          companyWebsite: validatedData.companyWebsite,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
-    } else {
-      await prisma.buyer.create({
-        data: { userId: user.id },
+
+      // Create role-specific profile
+      if (validatedData.role === "SELLER") {
+        console.log("seller");
+        const data = await tx.seller.create({
+          data: {
+            userId: user.id,
+            businessName: validatedData.companyName,
+            businessAddress: validatedData.address,
+            websiteLink: validatedData.companyWebsite,
+            country: validatedData.country,
+          },
+        });
+      } else {
+        await tx.buyer.create({
+          data: { userId: user.id },
+        });
+      }
+
+      // Fetch updated user with relations
+      const updatedUser = await tx.user.findUnique({
+        where: { id: user.id },
+        include: {
+          seller: true,
+          buyer: true,
+        },
       });
-    }
 
-    // Fetch updated user with relations
-    const updatedUser = await prisma.user.findUnique({
-      where: { id: user.id },
-      include: {
-        seller: true,
-        buyer: true,
-      },
+      if (!updatedUser) {
+        throw new Error("Failed to create user");
+      }
+
+      return updatedUser;
     });
-
-    if (!updatedUser) {
-      throw new Error("Failed to create user");
-    }
-
+    
+    console.log(result);
     // Generate JWT token
     const token = jwt.sign(
       {
-        userId: user.id,
-        role: user.role,
-        ...(user.role === "SELLER"
-          ? { sellerId: updatedUser.seller?.id }
-          : { buyerId: updatedUser.buyer?.id }),
+        userId: result.id,
+        role: result.role,
+        ...(result.role === "SELLER"
+          ? { sellerId: result.seller?.id }
+          : { buyerId: result.buyer?.id }),
       },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
@@ -123,11 +124,11 @@ export const signup = async (req: Request, res: Response) => {
       message: "User created successfully",
       token,
       user: {
-        id: user.id,
-        email: updatedUser.email,
-        name: updatedUser.name,
-        role: updatedUser.role,
-        companyName: updatedUser.companyName,
+        id: result.id,
+        email: result.email,
+        name: result.name,
+        role: result.role,
+        companyName: result.companyName,
       },
     });
   } catch (error) {
@@ -258,7 +259,7 @@ export const getCurrentUser = async (req: any, res: Response) => {
         buyer: true,
       },
     });
-    //console.log(user);
+    console.log(user);
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -363,7 +364,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
 export const updatePassword = async (req: any, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body;
-    //console.log(req.body, req.user);
+    console.log(req.body, req.user);
     const userId = req.user.userId;
 
     const user = await prisma.user.findUnique({ where: { id: userId } });

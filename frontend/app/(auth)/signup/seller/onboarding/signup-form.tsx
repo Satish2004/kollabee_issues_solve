@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -342,7 +342,7 @@ export function SignupForm({
 
   useEffect(() => {
     if (!formData.countryCode) {
-      setFormData({ ...formData, countryCode: "+91" });
+      setFormData({ ...formData, countryCode: "+1" });
     }
   }, []);
 
@@ -361,16 +361,16 @@ export function SignupForm({
   }, [showCountryDropdown]);
 
   return (
-    <div className="space-y-8 w-full max-w-4xl mx-auto px-4 sm:px-6">
+    <div className="space-y-8">
       <div className="text-start space-y-2">
-        <h1 className="text-xl sm:text-2xl font-bold">Create Your Account</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
+        <h1 className="text-2xl font-bold">Create Your Account</h1>
+        <p className="text-muted-foreground">
           Fill in your details to create your account and get started with
           Kollabee.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+      <div className="grid grid-cols-2 gap-8">
         <div className="space-y-4">
           <div className="space-y-2">
             <Label>
@@ -408,7 +408,7 @@ export function SignupForm({
               className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
               tabIndex={3}
             />
-            <div className="text-xs text-muted-foreground flex flex-col sm:flex-row justify-between gap-2 sm:gap-0">
+            <div className=" text-xs text-muted-foreground flex flex-row justify-between">
               <div
                 className={`flex items-center gap-2 ${
                   isPasswordValid.hasMinLength ? "text-green-500" : ""
@@ -489,12 +489,8 @@ export function SignupForm({
                   : "Verify"}
               </Button>
             </div>
-            {errors.email && (
-              <p className="text-sm text-red-500 mt-1">{errors.email}</p>
-            )}
           </div>
-
-          <div className="space-y-2 md:block hidden">
+          <div className="space-y-2">
             <Label>
               Describe your Role within the Company
               <span className="text-destructive">*</span>
@@ -516,6 +512,7 @@ export function SignupForm({
               ))}
             </div>
           </div>
+          <div className="space-y-4"></div>
         </div>
 
         <div className="space-y-4">
@@ -563,25 +560,21 @@ export function SignupForm({
               </div>
             )}
           </div>
-          <div className="space-y-2">
+          <div className="space-y-2 ">
             <Label>
               Phone Number<span className="text-destructive">*</span>
             </Label>
-            <div
-              className={`flex bg-[#fcfcfc] border ${
-                errors.phone ? "border-red-500" : "border-[#e5e5e5]"
-              } rounded-[6px] overflow-hidden`}
-            >
-              <div className="relative" onClick={(e) => e.stopPropagation()}>
+            <div className="flex">
+              <div className="relative">
                 <button
                   type="button"
-                  className="flex items-center justify-between px-2 py-2 h-10 w-[90px] border-r border-[#e5e5e5]"
+                  className="flex items-center justify-between bg-[#fcfcfc] border border-[#e5e5e5] rounded-l-[6px] px-2 py-2 w-[90px]"
                   onClick={() => setShowCountryDropdown(!showCountryDropdown)}
                 >
-                  <span className="flex items-center gap-1">
+                  <span className="flex items-center">
                     {countries.find((c) => c.code === formData.countryCode)
                       ?.flag || "🌍"}
-                    {formData.countryCode || "+91"}
+                    {formData.countryCode || "+1"}
                   </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -603,10 +596,9 @@ export function SignupForm({
                     <div className="p-2">
                       {countries.map((country) => (
                         <div
-                          key={`${country.code}-${country.name}`}
+                          key={country.name}
                           className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          onClick={() => {
                             setFormData({
                               ...formData,
                               countryCode: country.code,
@@ -615,9 +607,7 @@ export function SignupForm({
                           }}
                         >
                           <span>{country.flag}</span>
-                          <span className="text-sm truncate">
-                            {country.name}
-                          </span>
+                          <span>{country.name}</span>
                           <span className="text-gray-500 ml-auto">
                             {country.code}
                           </span>
@@ -635,7 +625,9 @@ export function SignupForm({
                   setFormData({ ...formData, phone: e.target.value });
                   setErrors({ ...errors, phone: undefined });
                 }}
-                className="flex-1 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                className={`flex-1 bg-[#fcfcfc] border ${
+                  errors.phone ? "border-red-500" : "border-[#e5e5e5]"
+                } rounded-r-[6px] rounded-l-none border-l-0 placeholder:text-[#bababb]`}
                 tabIndex={6}
               />
             </div>
@@ -644,44 +636,21 @@ export function SignupForm({
             )}
           </div>
         </div>
-
-        {/* Role selection for mobile view */}
-        <div className="space-y-2 md:hidden block col-span-1">
-          <Label>
-            Describe your Role within the Company
-            <span className="text-destructive">*</span>
-          </Label>
-          <div className="flex flex-wrap gap-2">
-            {companyRoles.map((role) => (
-              <Button
-                key={role}
-                variant={formData.role === role ? "default" : "outline"}
-                className={`h-8 text-xs justify-start px-2 w-fit rounded-[6px] border ${
-                  formData.role === role
-                    ? "border-[#9e1171] border text-[#9e1171]"
-                    : "border-[#e5e5e5]"
-                }`}
-                onClick={() => setFormData({ ...formData, role: role })}
-              >
-                {role}
-              </Button>
-            ))}
-          </div>
-        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-0 mt-6">
+      <div className="flex justify-between">
         <Button
           variant="ghost"
-          className="text-primary order-2 sm:order-1"
+          className="text-primary -ml-4"
           onClick={() => router.back()}
         >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168] disabled:opacity-50 order-1 sm:order-2"
+          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168] disabled:opacity-50"
           onClick={handleSubmit}
+          // disabled={isSubmitting || Object.keys(errors).length > 0}
         >
           {isSubmitting ? "Creating Account..." : "Continue"}
         </Button>
