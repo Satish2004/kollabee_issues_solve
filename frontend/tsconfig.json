@@ -1,7 +1,5 @@
 {
   "compilerOptions": {
-    // "target": "invalid",
-    // "lib": ["invalid-lib"],
     "allowJs": false,
     "checkJs": true,
     "strict": true,
@@ -9,21 +7,25 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "commonjs",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    // "jsx": "invalid",
     "incremental": true,
     "plugins": [
-      { "name": "invalid-plugin" }
+      {
+        "name": "next"
+      }
     ],
     "paths": {
       "@/*": ["./*"],
-      "*": ["node_modules/*", "invalid/*"]
+      "@lib": ["./lib/*"]
     },
-    "baseUrl": "./invalid",
-    "typeRoots": ["./invalid-types"]
+    "typeRoots": ["./node_modules/@types"],
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "skipLibCheck": true,
+    "jsx": "preserve"
   },
-  "include": ["src/**/*"],
-  "exclude": ["**/node_modules", "**/.*/", "./invalid"]
+  "include": ["app/**/*", ".next/types/**/*.ts"],
+  "exclude": ["node_modules", ".next"]
 }

@@ -10,6 +10,10 @@ import WhyKollabee from "@/components/home/why-kollabee"
 import ContactSection from "@/components/home/contact-section"
 import PricingSection from "@/components/home/pricing-section"
 import TestimonialsSection from "@/components/home/testimonials-section"
+import FreeTrialContact from "@/components/home/free-trial"
+import WhatKollabee from "@/components/home/what-kollabee"
+import KeyFeatures from "../components/home/key-features"
+import Footer from "@/components/home/footer"
 
 
 export default function LandingPage() {
@@ -45,14 +49,14 @@ export default function LandingPage() {
         {/* Hero Section */}
         <main className="container mx-auto px-4 pt-6">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-2 mb-6 bg-white w-fit mx-auto p-3 rounded-xl">
+            <div className="flex items-center justify-center gap-4 mb-6 bg-white w-fit mx-auto p-3 rounded-xl">
               <div className="flex -space-x-2">
                 {[1, 2, 3].map((i) => (
                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
                 ))}
               </div>
               <span className="text-gray-800">30k+ Companies Joined Already</span>
-              <Button size="lg" className="bg-gradient-to-r from-[#930a72] via-[#db4d60] to-[#f2bc6d] text-white hover:opacity-90 font-semibold text-lg h-10 flex justify-between items-center px-6">
+              <Button size="lg" className="bg-gradient-to-r from-[#930a72] via-[#db4d60] to-[#f2bc6d] text-white hover:opacity-90 font-semibold text-lg h-12 flex justify-between rounded-[8px] items-center px-6">
                 <span>
                   <Link href="/signup">Create Account</Link>
                 </span>
@@ -104,12 +108,15 @@ export default function LandingPage() {
       </div>
 
       <FeatureGrid />
+      <KeyFeatures />
       <SAPFeatures />
       <WhyKollabee />
-      <ContactSection />
-      <PricingSection />
+      <FreeTrialContact />
+      <WhatKollabee />
       <TestimonialsSection />
+      <PricingSection />
+      <ContactSection />
+      <Footer />
     </div>
   )
 }
-

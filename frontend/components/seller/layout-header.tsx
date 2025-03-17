@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import React, { useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Home,
@@ -119,7 +119,7 @@ export default function SellerLayoutHeader() {
   }, []);
 
   return (
-    <div className="w-[96%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 shadow-md m-6 ">
+    <div className="w-[94%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6 ">
       <div className="flex items-center justify-between gap-2">
         {currentRoute && <currentRoute.icon className="w-5 h-5" />}
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>

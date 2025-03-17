@@ -20,7 +20,7 @@ export default function ContactSection() {
     try {
       // Here you would add your API call to send the message
       // await sendMessage(formData);
-      
+
       toast.success('Message sent successfully!');
       // Clear form
       setFormData({
@@ -48,46 +48,56 @@ export default function ContactSection() {
             </p>
 
             <div className="space-y-6">
-              <div className="flex items-center gap-4 rounded-3xl border border-[#e6e9ee] p-2">
-                <Mail className="w-6 h-6 text-gray-400" />
+              <div className="flex items-center gap-4 rounded-xl border border-[#e6e9ee] p-2">
+                <div className='p-3 border border-gray-300 rounded-xl bg-gray-100'>
+                <Mail className="w-8 h-8 text-gray-700" />
+                </div>
                 <div>
                   <p className="text-sm text-gray-500">You can email us here</p>
                   <a href="mailto:hello@sap.com" className="text-base font-semibold">hello@sap.com</a>
                 </div>
-                  <div className='bg-[#f8f9fa] p-2 rounded-3xl border border-[#e6e9ee] w-96'>
-                  <MoveUpRight className=' text-gray-400 ' />
-                  
+                <div className='bg-[#f8f9fa] rounded-3xl border border-[#e6e9ee] w-80'>
+                  <div className='p-2 border border-gray-300 rounded-full w-fit bg-[#f8f9fa]'>
+                  <MoveUpRight className=' text-gray-700' strokeWidth={1.7} />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 rounded-3xl border border-[#e6e9ee] p-2">
-                <Phone className="w-6 h-6 text-gray-400" />
+              <div className="flex items-center gap-4 rounded-xl border border-[#e6e9ee] p-2">
+              <div className='p-3 border border-gray-300 rounded-xl bg-gray-100'>
+                <Phone className="w-8 h-8 text-gray-700" />
+                </div>
                 <div>
                   <p className="text-sm text-gray-500">Or give us a call</p>
                   <a href="tel:+1234567890" className="text-lg font-semibold">Book a Call</a>
                 </div>
-                <div className='bg-[#f8f9fa] p-2 rounded-3xl border border-[#e6e9ee] w-96'>
-                  <MoveUpRight className=' text-gray-400 ' />
-                  
+                <div className='bg-[#f8f9fa] rounded-3xl border border-[#e6e9ee] w-80'>
+                  <div className='p-2 border border-gray-300 rounded-full w-fit bg-[#f8f9fa]'>
+                  <MoveUpRight className=' text-gray-700' strokeWidth={1.7} />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-center gap-4 rounded-3xl border border-[#e6e9ee] p-2">
-                <MapPin className="w-6 h-6 text-gray-400" />
+              <div className="flex items-center gap-4 rounded-xl border border-[#e6e9ee] p-2">
+              <div className='p-3 border border-gray-300 rounded-xl bg-gray-100'>
+                <MapPin className="w-8 h-8 text-gray-700" />
+                </div>
                 <div>
                   <p className="text-sm text-gray-500">Location</p>
                   <a  className="text-lg font-semibold cursor-pointer" onClick={()=>window.open("https://maps.app.goo.gl/1234567890", "_blank")}>Get Directions</a>
                 </div>
-                <div className='bg-[#f8f9fa] p-2 rounded-3xl border border-[#e6e9ee] w-96'>
-                  <MoveUpRight className=' text-gray-400 ' />
-                  
+                <div className='bg-[#f8f9fa] rounded-3xl border border-[#e6e9ee] w-80'>
+                  <div className='p-2 border border-gray-300 rounded-full w-fit bg-[#f8f9fa]'>
+                  <MoveUpRight className=' text-gray-700' strokeWidth={1.7} />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-lg p-8">
-            <h3 className="text-xl font-semibold mb-6">Send Us a Message</h3>
+          <div className="bg-white rounded-lg p-4 border border-[#e6e9ee]">
+            <h3 className="text-xl font-bold mb-2">Send Us a Message</h3>
+            <p className='text-sm text-neutral-500 mb-4 font-semibold'>Use our convenient contact form to reach out with questions, feedback, or collaboration inquiries.</p>
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid md:grid-cols-2 gap-6">
                 <input
@@ -96,7 +106,7 @@ export default function ContactSection() {
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   required
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 />
                 <input
                   type="email"
@@ -104,16 +114,16 @@ export default function ContactSection() {
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   required 
-                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  className="w-full px-4 py-3 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500"
                 />
               </div>
               <textarea
                 placeholder="Message"
-                rows={4}
+                rows={6}
                 value={formData.message}
                 onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                className="w-full h-full px-4 py-3 rounded-lg  bg-gray-100 focus:outline-none focus:ring-2 focus:ring-pink-500"
               />
               <Button 
                 type="submit" 
@@ -129,4 +139,3 @@ export default function ContactSection() {
     </section>
   )
 }
-

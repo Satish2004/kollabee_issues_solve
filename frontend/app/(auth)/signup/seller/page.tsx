@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 
 import { toast } from "sonner";
@@ -14,10 +14,10 @@ import { GoalsMetricsForm } from "./onboarding/goals-metrics-form";
 import { SuccessMessage } from "./onboarding/success-message";
 import { OTPModal } from "./onboarding/otp-modal";
 import { ErrorBoundary } from "react-error-boundary";
-import { authApi } from '@/lib/api/auth';
-import { sellerApi } from '@/lib/api/seller';
-import { useRouter } from 'next/navigation';
-import { BusinessType, CategoryEnum } from '@/types/api';
+import { authApi } from "@/lib/api/auth";
+import { sellerApi } from "@/lib/api/seller";
+import { useRouter } from "next/navigation";
+import { BusinessType, CategoryEnum } from "@/types/api";
 
 export default function SignupSellerPage() {
   const router = useRouter();
@@ -27,6 +27,7 @@ export default function SignupSellerPage() {
     lastName: "",
     email: "",
     phone: "",
+    countryCode: "",
     password: "",
     confirmPassword: "",
     role: "",
@@ -90,8 +91,10 @@ export default function SignupSellerPage() {
       toast.error("Email already verified");
       return;
     }
+    console.log("API_URL", process.env.API_URL);
     setGenerateOTPLoading(true);
     try {
+      console.log("authApi: ", authApi);
       await authApi.generateOTP(formData.email);
       setShowOTP(true);
       setCountdown(30);
@@ -171,39 +174,47 @@ export default function SignupSellerPage() {
         email: formData.email,
         password: formData.password,
         name: formData.firstName + " " + formData.lastName,
-        role: 'SELLER' ,
+        role: "SELLER",
         phoneNumber: formData.phone,
-        
+
         // Company details
         companyName: formData.businessName,
         companyWebsite: formData.websiteLink,
         address: formData.businessAddress,
-        
+
         // Seller profile
-          businessName: formData.businessName,
-          businessAddress: formData.businessAddress,
-          websiteLink: formData.websiteLink,
-          businessTypes: formData.businessTypes,
-          businessCategories: formData.businessCategories,
-          roleInCompany: formData.role,
-          objectives: formData.selectedObjectives,
-          challenges: formData.selectedChallenges,
-          metrics: formData.selectedMetrics
+        businessName: formData.businessName,
+        businessAddress: formData.businessAddress,
+        websiteLink: formData.websiteLink,
+        businessTypes: formData.businessTypes,
+        businessCategories: formData.businessCategories,
+        roleInCompany: formData.role,
+        objectives: formData.selectedObjectives,
+        challenges: formData.selectedChallenges,
+        metrics: formData.selectedMetrics,
       });
-  toast.success(response?.message);
-  router.push('/seller');
+      toast.success(response?.message);
+      router.push("/seller");
 
       // Token is automatically set by authApi.signup
       toast.success("Account created successfully!");
     } catch (error: any) {
-      toast.error( "Failed to create account");
+      toast.error("Failed to create account");
     } finally {
       setSubmitLoading(false);
     }
   };
 
   const validateStage1 = () => {
-    const { firstName, lastName, email, phone, password, confirmPassword, role } = formData;
+    const {
+      firstName,
+      lastName,
+      email,
+      phone,
+      password,
+      confirmPassword,
+      role,
+    } = formData;
     if (!firstName || !lastName || !email || !phone || !password || !role) {
       toast.error("Please fill all required fields and accept the terms");
       return false;
@@ -276,16 +287,16 @@ export default function SignupSellerPage() {
   const handleSignup = async (formData: FormData) => {
     try {
       const data = {
-        email: formData.get('email') as string,
-        password: formData.get('password') as string,
-        name: formData.get('name') as string,
-        role: 'SELLER' as const
+        email: formData.get("email") as string,
+        password: formData.get("password") as string,
+        name: formData.get("name") as string,
+        role: "SELLER" as const,
       };
-      
+
       await authApi.signup(data);
-      router.push('/seller/onboarding');
+      router.push("/seller/onboarding");
     } catch (error) {
-      console.error('Signup failed:', error);
+      console.error("Signup failed:", error);
     }
   };
 
@@ -312,7 +323,7 @@ export default function SignupSellerPage() {
             <div className="space-y-8 mb-8">
               <div className="flex justify-center">
                 <Image
-                  onClick={() => router.push('/')}
+                  onClick={() => router.push("/")}
                   src="/kollabee.jpg"
                   alt="KollaBee Logo"
                   width={160}
@@ -350,20 +361,20 @@ export default function SignupSellerPage() {
                 {currentStage === 2 && (
                   <BusinessInfoForm
                     formData={{
-                      businessName: formData.businessName || '',
-                      websiteLink: formData.websiteLink || '',
-                      businessAddress: formData.businessAddress || '',
+                      businessName: formData.businessName || "",
+                      websiteLink: formData.websiteLink || "",
+                      businessAddress: formData.businessAddress || "",
                       businessTypes: formData.businessTypes || [],
-                      businessCategories: formData.businessCategories || []
+                      businessCategories: formData.businessCategories || [],
                     }}
                     setFormData={(updater) => {
-                      setFormData(prev => {
+                      setFormData((prev) => {
                         const updated = updater({
-                          businessName: prev.businessName || '',
-                          websiteLink: prev.websiteLink || '',
-                          businessAddress: prev.businessAddress || '',
+                          businessName: prev.businessName || "",
+                          websiteLink: prev.websiteLink || "",
+                          businessAddress: prev.businessAddress || "",
                           businessTypes: prev.businessTypes || [],
-                          businessCategories: prev.businessCategories || []
+                          businessCategories: prev.businessCategories || [],
                         });
                         return { ...prev, ...updated };
                       });
@@ -378,15 +389,15 @@ export default function SignupSellerPage() {
                       selectedObjectives: formData.selectedObjectives,
                       selectedChallenges: formData.selectedChallenges,
                       selectedMetrics: formData.selectedMetrics,
-                      agreement: formData.agreement
+                      agreement: formData.agreement,
                     }}
                     setFormData={(data) => {
-                      setFormData(prev => ({
+                      setFormData((prev) => ({
                         ...prev,
                         selectedObjectives: data(prev).selectedObjectives,
                         selectedChallenges: data(prev).selectedChallenges,
                         selectedMetrics: data(prev).selectedMetrics,
-                        agreement: data(prev).agreement
+                        agreement: data(prev).agreement,
                       }));
                     }}
                     onSubmit={handleNextStage}

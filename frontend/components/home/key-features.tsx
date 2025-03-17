@@ -65,7 +65,7 @@ export default function KeyFeatures() {
   ]
 
   return (
-    <section className="py-16 px-4 max-w-7xl mx-auto">
+    <section className="py-16 px-4 max-w-7xl mx-auto -translate-y-20">
       <div className="text-center mb-12">
         <div className="inline-block bg-gray-100 rounded-full px-4 py-1.5 text-sm mb-4">KollaBee Key Features</div>
         <h2 className="text-4xl mb-4">Explore KollaBee's Key Features</h2>
