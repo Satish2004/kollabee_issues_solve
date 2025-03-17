@@ -71,6 +71,8 @@ export const authApi = {
   },
 
   logout: async () => {
+    const response = await api.post(`${authUrl}/auth/logout`);
+
     return removeToken();
   },
 

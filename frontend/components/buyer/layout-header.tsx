@@ -104,15 +104,15 @@ export default function SellerLayoutHeader() {
   const handleLogout = async () => {
     try {
       await authApi.logout();
-      router.push('/login');
+      router.push("/login");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response:any = await authApi.getCurrentUser();
+      const response: any = await authApi.getCurrentUser();
       setUser(response);
     };
     fetchUser();
@@ -125,14 +125,27 @@ export default function SellerLayoutHeader() {
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
       <div className="flex items-center gap-2 ">
-        <Button variant="outline" className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold">
+        <Button
+          variant="outline"
+          className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
+        >
           Upgrade
         </Button>
-        <Button variant="ghost" size="icon" className="size-10" onClick={()=>router.push("/seller/notifications")}>
-          <Bell className="size-7 cursor-pointer"  />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-10"
+          onClick={() => router.push("/seller/notifications")}
+        >
+          <Bell className="size-7 cursor-pointer" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={()=>router.push("/seller/chat")}>
-          <Mail className="h-4 w-4 cursor-pointer"  />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => router.push("/seller/chat")}
+        >
+          <Mail className="h-4 w-4 cursor-pointer" />
         </Button>
         <div className="flex items-center gap-2">
           <UserDropdown onLogout={handleLogout} currentUser={user} />
