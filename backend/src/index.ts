@@ -13,9 +13,11 @@ import fs from "fs";
 const app = express();
 
 // Basic middleware
+
+console.log("CORS_ORIGIN:", process.env.CORS_ORIGIN);
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: process.env.CORS_ORIGIN,
     credentials: true, // Allow credentials (cookies, authorization headers, etc.)
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
