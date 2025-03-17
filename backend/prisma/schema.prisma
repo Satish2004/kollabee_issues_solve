@@ -120,6 +120,16 @@ model CartItem {
   product   Product @relation(fields: [productId], references: [id])
 }
 
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Int
+  currency    String
+  status      String
+  userId      String
+  productIds  String[]
+  createdAt   DateTime @default(now())
+}
+
 model Wishlist {
   id      String         @id @default(uuid())
   buyerId String         @unique
