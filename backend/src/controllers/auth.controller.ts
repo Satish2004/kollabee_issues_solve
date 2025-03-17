@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
-import prisma from "../db";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
-import { updateUserProfile } from "./user.controller";
-require("dotenv").config({ path: ".env.local" });
+import { Request, Response } from 'express';
+import prisma from '../db';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { z } from 'zod';
+import { createClient } from '@supabase/supabase-js';
+import { updateUserProfile } from './user.controller';
+import 'dotenv/config';
 
 // Validation schemas
 const signupSchema = z.object({
