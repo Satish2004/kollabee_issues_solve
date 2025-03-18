@@ -70,13 +70,15 @@ setupRoutes(app);
 // Export for Vercel
 export default app;
 
+let port: string | number | undefined;
 // Start server only if not in Vercel
-if (process.env.NODE_ENV !== "production") {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+if (process.env.NODE_ENV == "production") {
+  port = process.env.PORT;
 }
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
