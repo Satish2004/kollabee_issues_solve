@@ -32,14 +32,14 @@ const supabase = createClient(
   process.env.SUPABASE_ANON_KEY!
 );
 
+
 const setAuthCookie = (res: Response, token: string) => {
-  res.cookie("auth-token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production", // Secure in production
-    sameSite: "none", // Enable cross-site access
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-  });
+  res.setHeader(
+    "Set-Cookie",
+    `auth-token=${token}; HttpOnly; Secure=${
+      process.env.NODE_ENV === "production"
+    }; SameSite=None; Path=/; Max-Age=${7 * 24 * 60 * 60}`
+  );
 };
 
 export const signup = async (req: Request, res: Response) => {
