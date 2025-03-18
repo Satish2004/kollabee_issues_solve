@@ -129,7 +129,8 @@ export const signup = async (req: Request, res: Response) => {
     );
 
     // Set JWT token in cookie
-    setAuthCookie(res, token);
+    const data = setAuthCookie(res, token);
+    console.log("data:", data);
 
     //console.log("req:", req);
 
@@ -201,8 +202,9 @@ export const login = async (req: Request, res: Response) => {
     );
 
     // Set JWT token in cookie
-    setAuthCookie(res, token);
-
+    // Set JWT token in cookie
+    const data = setAuthCookie(res, token);
+    console.log("data:", data);
     // Return success response
     res.json({
       token, // Still include token in response for client-side storage if needed
