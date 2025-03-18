@@ -15,14 +15,27 @@ const app = express();
 // Basic middleware
 
 console.log("CORS_ORIGIN:", process.env.CORS_ORIGIN);
+const allowedOrigins = [
+  process.env.CORS_ORIGIN,
+  "http://localhost:3000",
+  "https://kollabee-theta.vercel.app/",
+];
+
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 
 // In your auth middleware
 app.use((req: any, res: any, next: any) => {
