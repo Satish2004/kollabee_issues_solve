@@ -25,7 +25,7 @@ app.use(
 );
 
 // In your auth middleware
-app.use((req, res, next) => {
+app.use((req: any, res: any, next: any) => {
   console.log("Incoming request from:", req.headers.origin);
   console.log("Cookies received:", req.cookies);
   next();

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import prisma from '../db';
 
 export const getCart = async (req: any, res: Response) => {
@@ -200,4 +200,4 @@ export const clearCart = async (req: any, res: Response) => {
 };
 
 // Add other cart-related controllers 
-// Add other cart-related controllers 
+// Add other cart-related controllers

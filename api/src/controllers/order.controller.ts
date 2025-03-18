@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
+import type { Request, Response } from "express";
+import prisma from "../db";
 
 interface TrackingUpdate {
   status: any;
@@ -18,20 +18,20 @@ export const createOrder = async (req: any, res: Response) => {
       data: {
         buyerId,
         totalAmount: parseFloat(totalAmount),
-        status: 'PENDING',
+        status: "PENDING",
         items: {
           createMany: {
             data: items.map((item: any) => ({
               productId: item.productId,
               sellerId: item.sellerId,
               quantity: parseInt(item.quantity),
-              price: parseFloat(item.price)
-            }))
-          }
+              price: parseFloat(item.price),
+            })),
+          },
         },
         shippingAddress: {
-          create: shippingAddress
-        }
+          create: shippingAddress,
+        },
       },
       include: {
         items: {
@@ -39,13 +39,13 @@ export const createOrder = async (req: any, res: Response) => {
             product: true,
             seller: {
               select: {
-                businessName: true
-              }
-            }
-          }
+                businessName: true,
+              },
+            },
+          },
         },
-        shippingAddress: true
-      }
+        shippingAddress: true,
+      },
     });
 
     // Clear cart after successful order
@@ -62,8 +62,8 @@ export const createOrder = async (req: any, res: Response) => {
 
     res.json(order);
   } catch (error) {
-    console.error('Create order error:', error);
-    res.status(500).json({ error: 'Failed to create order' });
+    console.error("Create order error:", error);
+    res.status(500).json({ error: "Failed to create order" });
   }
 };
 
@@ -74,7 +74,7 @@ export const getOrders = async (req: any, res: Response) => {
 
     const where = {
       buyerId,
-      ...(status && { status })
+      ...(status && { status }),
     };
 
     const [orders, total] = await Promise.all([
@@ -89,22 +89,22 @@ export const getOrders = async (req: any, res: Response) => {
                   user: {
                     select: {
                       name: true,
-                      imageUrl: true
-                    }
-                  }
-                }
-              }
-            }
+                      imageUrl: true,
+                    },
+                  },
+                },
+              },
+            },
           },
-          shippingAddress: true
+          shippingAddress: true,
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: "desc",
         },
         skip: (Number(page) - 1) * Number(limit),
-        take: Number(limit)
+        take: Number(limit),
       }),
-      prisma.order.count({ where })
+      prisma.order.count({ where }),
     ]);
 
     res.json({
@@ -113,12 +113,12 @@ export const getOrders = async (req: any, res: Response) => {
         total,
         pages: Math.ceil(total / Number(limit)),
         page: Number(page),
-        limit: Number(limit)
-      }
+        limit: Number(limit),
+      },
     });
   } catch (error) {
-    console.error('Get orders error:', error);
-    res.status(500).json({ error: 'Failed to fetch orders' });
+    console.error("Get orders error:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 };
 
@@ -130,7 +130,7 @@ export const getOrderDetails = async (req: any, res: Response) => {
     const order = await prisma.order.findFirst({
       where: {
         id,
-        buyerId
+        buyerId,
       },
       include: {
         items: {
@@ -143,25 +143,25 @@ export const getOrderDetails = async (req: any, res: Response) => {
                     name: true,
                     imageUrl: true,
                     phoneNumber: true,
-                    email: true
-                  }
-                }
-              }
-            }
-          }
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
         },
-        shippingAddress: true
-      }
+        shippingAddress: true,
+      },
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     res.json(order);
   } catch (error) {
-    console.error('Get order details error:', error);
-    res.status(500).json({ error: 'Failed to fetch order details' });
+    console.error("Get order details error:", error);
+    res.status(500).json({ error: "Failed to fetch order details" });
   }
 };
 
@@ -177,14 +177,14 @@ export const updateOrderStatus = async (req: any, res: Response) => {
         id,
         items: {
           some: {
-            sellerId
-          }
-        }
-      }
+            sellerId,
+          },
+        },
+      },
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     const updatedOrder = await prisma.order.update({
@@ -193,16 +193,16 @@ export const updateOrderStatus = async (req: any, res: Response) => {
       include: {
         items: {
           include: {
-            product: true
-          }
-        }
-      }
+            product: true,
+          },
+        },
+      },
     });
 
     res.json(updatedOrder);
   } catch (error) {
-    console.error('Update order status error:', error);
-    res.status(500).json({ error: 'Failed to update order status' });
+    console.error("Update order status error:", error);
+    res.status(500).json({ error: "Failed to update order status" });
   }
 };
 
@@ -210,13 +210,7 @@ export const updateOrderTracking = async (req: any, res: Response) => {
   try {
     const { sellerId } = req.user;
     const { id } = req.params;
-    const { 
-      status, 
-      location, 
-      description,
-      trackingNumber,
-      carrier 
-    } = req.body;
+    const { status, location, description, trackingNumber, carrier } = req.body;
 
     // Verify order belongs to seller
     const order = await prisma.order.findFirst({
@@ -224,14 +218,14 @@ export const updateOrderTracking = async (req: any, res: Response) => {
         id,
         items: {
           some: {
-            sellerId
-          }
-        }
-      }
+            sellerId,
+          },
+        },
+      },
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     // Create tracking update
@@ -239,7 +233,7 @@ export const updateOrderTracking = async (req: any, res: Response) => {
       status,
       location,
       description,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     const updatedOrder = await prisma.order.update({
@@ -249,8 +243,8 @@ export const updateOrderTracking = async (req: any, res: Response) => {
         trackingNumber,
         carrier,
         trackingHistory: {
-          push: JSON.parse(JSON.stringify(trackingUpdate))
-        }
+          push: JSON.parse(JSON.stringify(trackingUpdate)),
+        },
       },
       include: {
         items: {
@@ -258,12 +252,12 @@ export const updateOrderTracking = async (req: any, res: Response) => {
             product: true,
             seller: {
               select: {
-                businessName: true
-              }
-            }
-          }
-        }
-      }
+                businessName: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Create notification with non-null userId
@@ -271,16 +265,16 @@ export const updateOrderTracking = async (req: any, res: Response) => {
       await prisma.notification.create({
         data: {
           userId: order.buyerId,
-          type: 'ORDER_UPDATE',
-          message: `Order #${order.id} ${status}: ${description}`
-        }
+          type: "ORDER_UPDATE",
+          message: `Order #${order.id} ${status}: ${description}`,
+        },
       });
     }
 
     res.json(updatedOrder);
   } catch (error) {
-    console.error('Update order tracking error:', error);
-    res.status(500).json({ error: 'Failed to update order tracking' });
+    console.error("Update order tracking error:", error);
+    res.status(500).json({ error: "Failed to update order tracking" });
   }
 };
 
@@ -291,10 +285,7 @@ export const getOrderTracking = async (req: any, res: Response) => {
 
     const order = await prisma.order.findFirst({
       where: {
-        OR: [
-          { id },
-          { trackingNumber: trackingNumber as string }
-        ]
+        OR: [{ id }, { trackingNumber: trackingNumber as string }],
       },
       select: {
         id: true,
@@ -311,8 +302,8 @@ export const getOrderTracking = async (req: any, res: Response) => {
             country: true,
             zipCode: true,
             email: true,
-            phoneNumber: true
-          }
+            phoneNumber: true,
+          },
         },
         items: {
           select: {
@@ -320,41 +311,41 @@ export const getOrderTracking = async (req: any, res: Response) => {
             product: {
               select: {
                 name: true,
-                images: true
-              }
+                images: true,
+              },
             },
             seller: {
               select: {
                 businessName: true,
-                location: true
-              }
-            }
-          }
-        }
-      }
+                location: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     res.json(order);
   } catch (error) {
-    console.error('Get order tracking error:', error);
-    res.status(500).json({ error: 'Failed to fetch order tracking' });
+    console.error("Get order tracking error:", error);
+    res.status(500).json({ error: "Failed to fetch order tracking" });
   }
-}; 
+};
 
 export const acceptOrder = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
-        const updatedOrder = await prisma.order.update({
-          where: { id },
-          data: {isAccepted:true}
-        });
+    const updatedOrder = await prisma.order.update({
+      where: { id },
+      data: { isAccepted: true },
+    });
     res.json(updatedOrder);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to accept order' });
+    res.status(500).json({ error: "Failed to accept order" });
   }
 };
 
@@ -363,10 +354,10 @@ export const declineOrder = async (req: any, res: Response) => {
     const { id } = req.params;
     const updatedOrder = await prisma.order.update({
       where: { id },
-      data: { isAccepted: false }
+      data: { isAccepted: false },
     });
     res.json(updatedOrder);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to decline order' });
+    res.status(500).json({ error: "Failed to decline order" });
   }
 };

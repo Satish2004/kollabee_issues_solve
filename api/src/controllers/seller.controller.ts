@@ -1,26 +1,33 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
+import type { Request, Response } from "express";
+import prisma from "../db";
 
 export const getSellerProducts = async (req: any, res: Response) => {
   try {
-    const { sortBy = "updatedAt", sortOrder = "desc", availability, search, isDraft } = req.query;
+    const {
+      sortBy = "updatedAt",
+      sortOrder = "desc",
+      availability,
+      search,
+      isDraft,
+    } = req.query;
 
     if (!req.user?.sellerId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const where = {
       sellerId: req.user.sellerId,
-      isDraft: isDraft === 'true',
-      ...(availability && availability !== "all" && {
-        stockStatus: availability
-      }),
+      isDraft: isDraft === "true",
+      ...(availability &&
+        availability !== "all" && {
+          stockStatus: availability,
+        }),
       ...(search && {
         OR: [
           { name: { contains: search as string, mode: "insensitive" } },
           { description: { contains: search as string, mode: "insensitive" } },
-        ]
-      })
+        ],
+      }),
     };
 
     const products = await prisma.product.findMany({
@@ -36,23 +43,23 @@ export const getSellerProducts = async (req: any, res: Response) => {
                 user: {
                   select: {
                     name: true,
-                    imageUrl: true
-                  }
-                }
-              }
-            }
-          }
-        }
+                    imageUrl: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        [sortBy as string]: sortOrder === "asc" ? "asc" : "desc"
-      }
+        [sortBy as string]: sortOrder === "asc" ? "asc" : "desc",
+      },
     });
 
     res.json(products);
   } catch (error) {
-    console.error('Get products error:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
+    console.error("Get products error:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
   }
 };
 
@@ -64,10 +71,10 @@ export const getSellerOrders = async (req: any, res: Response) => {
     const where = {
       items: {
         some: {
-          sellerId: sellerId
-        }
+          sellerId: sellerId,
+        },
       },
-      ...(status && { status })
+      ...(status && { status }),
     };
 
     const [orders, total] = await Promise.all([
@@ -80,28 +87,28 @@ export const getSellerOrders = async (req: any, res: Response) => {
                 select: {
                   name: true,
                   email: true,
-                  phoneNumber: true
-                }
-              }
-            }
+                  phoneNumber: true,
+                },
+              },
+            },
           },
           items: {
             where: {
-              sellerId: sellerId
+              sellerId: sellerId,
             },
             include: {
-              product: true
-            }
+              product: true,
+            },
           },
-          shippingAddress: true
+          shippingAddress: true,
         },
         orderBy: {
-          createdAt: 'desc'
+          createdAt: "desc",
         },
         skip: (Number(page) - 1) * Number(limit),
-        take: Number(limit)
+        take: Number(limit),
       }),
-      prisma.order.count({ where })
+      prisma.order.count({ where }),
     ]);
 
     res.json({
@@ -110,27 +117,27 @@ export const getSellerOrders = async (req: any, res: Response) => {
         total,
         pages: Math.ceil(total / Number(limit)),
         page: Number(page),
-        limit: Number(limit)
-      }
+        limit: Number(limit),
+      },
     });
   } catch (error) {
-    console.error('Get seller orders error:', error);
-    res.status(500).json({ error: 'Failed to fetch orders' });
+    console.error("Get seller orders error:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
   }
 };
 
 export const updateBusinessInfo = async (req: any, res: Response) => {
   try {
     if (!req.user?.sellerId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
-    const { 
-      businessName, 
-      businessAddress, 
-      websiteLink, 
-      businessTypes, 
-      businessCategories 
+    const {
+      businessName,
+      businessAddress,
+      websiteLink,
+      businessTypes,
+      businessCategories,
     } = req.body;
 
     const seller = await prisma.seller.update({
@@ -141,19 +148,19 @@ export const updateBusinessInfo = async (req: any, res: Response) => {
         websiteLink,
         businessTypes,
         businessCategories,
-      }
+      },
     });
 
     res.json(seller);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update business info' });
+    res.status(500).json({ error: "Failed to update business info" });
   }
 };
 
 export const getBusinessInfo = async (req: any, res: Response) => {
   try {
     if (!req.user?.sellerId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const businessInfo = await prisma.seller.findUnique({
@@ -168,19 +175,19 @@ export const getBusinessInfo = async (req: any, res: Response) => {
             country: true,
             state: true,
             address: true,
-            companyWebsite: true
-          }
-        }
-      }
+            companyWebsite: true,
+          },
+        },
+      },
     });
 
     if (!businessInfo) {
-      return res.status(404).json({ error: 'Business info not found' });
+      return res.status(404).json({ error: "Business info not found" });
     }
 
     res.json(businessInfo);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch business info' });
+    res.status(500).json({ error: "Failed to fetch business info" });
   }
 };
 
@@ -192,16 +199,15 @@ export const getProducts = async (req: any, res: Response) => {
     const products = await prisma.product.findMany({
       where: {
         seller: { userId },
-        isDraft: isDraft === 'true',
+        isDraft: isDraft === "true",
         // Add other filters
       },
-   
     });
 
     res.json(products);
   } catch (error) {
-    console.error('Get products error:', error);
-    res.status(500).json({ error: 'Failed to get products' });
+    console.error("Get products error:", error);
+    res.status(500).json({ error: "Failed to get products" });
   }
 };
 
@@ -211,7 +217,7 @@ export const getProductMetrics = async (req: any, res: Response) => {
 
     const [totalProducts, topSelling, lowStocks] = await Promise.all([
       prisma.product.count({
-        where: { seller: { userId } }
+        where: { seller: { userId } },
       }),
       prisma.product.findFirst({
         where: { seller: { userId } },
@@ -219,9 +225,9 @@ export const getProductMetrics = async (req: any, res: Response) => {
       prisma.product.count({
         where: {
           seller: { userId },
-          availableQuantity: { lt: 20000, gt: 0 }
-        }
-      })
+          availableQuantity: { lt: 20000, gt: 0 },
+        },
+      }),
     ]);
 
     const categories = await prisma.category.count();
@@ -230,11 +236,11 @@ export const getProductMetrics = async (req: any, res: Response) => {
       categories,
       totalProducts,
       topSelling: topSelling?.name || "No top selling product",
-      lowStocks
+      lowStocks,
     });
   } catch (error) {
-    console.error('Get metrics error:', error);
-    res.status(500).json({ error: 'Failed to get metrics' });
+    console.error("Get metrics error:", error);
+    res.status(500).json({ error: "Failed to get metrics" });
   }
 };
 
@@ -249,22 +255,24 @@ export const getDraftProducts = async (req: any, res: Response) => {
         isDraft: true,
         ...(search && {
           OR: [
-            { name: { contains: search as string, mode: 'insensitive' } },
-            { description: { contains: search as string, mode: 'insensitive' } }
-          ]
+            { name: { contains: search as string, mode: "insensitive" } },
+            {
+              description: { contains: search as string, mode: "insensitive" },
+            },
+          ],
         }),
-        ...(availability && { availability: availability as string })
+        ...(availability && { availability: availability as string }),
       },
-  
+
       orderBy: {
-        [sortBy as string || 'updatedAt']: 'desc'
-      }
+        [(sortBy as string) || "updatedAt"]: "desc",
+      },
     });
 
     res.json(products);
   } catch (error) {
-    console.error('Get draft products error:', error);
-    res.status(500).json({ error: 'Failed to get draft products' });
+    console.error("Get draft products error:", error);
+    res.status(500).json({ error: "Failed to get draft products" });
   }
 };
 
@@ -294,14 +302,14 @@ export const createProduct = async (req: any, res: Response) => {
       deliveryCost,
       pickupAddress,
       productAttributes,
-      isDraft = false
+      isDraft = false,
     } = req.body;
 
     // Create pickup address if provided
     let pickupAddressId = null;
     if (pickupAddress) {
       const createdAddress = await prisma.pickupAddress.create({
-        data: pickupAddress
+        data: pickupAddress,
       });
       pickupAddressId = createdAddress.id;
     }
@@ -332,30 +340,30 @@ export const createProduct = async (req: any, res: Response) => {
         isDraft,
         seller: { connect: { id: sellerId } },
         ...(pickupAddressId && {
-          pickupAddress: { connect: { id: pickupAddressId } }
+          pickupAddress: { connect: { id: pickupAddressId } },
         }),
         ...(productAttributes && {
           productAttributes: {
             createMany: {
-              data: productAttributes
-            }
-          }
-        })
+              data: productAttributes,
+            },
+          },
+        }),
       },
       include: {
         pickupAddress: true,
-        productAttributes: true
-      }
+        productAttributes: true,
+      },
     });
 
     res.json(product);
   } catch (error) {
-    console.error('Create product error:', error);
-    res.status(500).json({ error: 'Failed to create product' });
+    console.error("Create product error:", error);
+    res.status(500).json({ error: "Failed to create product" });
   }
 };
 
-export const updateProduct = async (req : any, res: Response) => {
+export const updateProduct = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
     const { id } = req.params;
@@ -366,12 +374,12 @@ export const updateProduct = async (req : any, res: Response) => {
     const existingProduct = await prisma.product.findFirst({
       where: {
         id,
-        seller: { userId }
-      }
+        seller: { userId },
+      },
     });
 
     if (!existingProduct) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     const product = await prisma.product.update({
@@ -381,19 +389,18 @@ export const updateProduct = async (req : any, res: Response) => {
         ...(files?.length && {
           images: {
             deleteMany: {},
-            create: files.map((file:any) => ({
+            create: files.map((file: any) => ({
               url: file.path,
-              alt: data.name
-            }))
-          }
-        })
+              alt: data.name,
+            })),
+          },
+        }),
       },
-
     });
 
     res.json(product);
   } catch (error) {
-    console.error('Update product error:', error);
-    res.status(500).json({ error: 'Failed to update product' });
+    console.error("Update product error:", error);
+    res.status(500).json({ error: "Failed to update product" });
   }
-}; 
+};

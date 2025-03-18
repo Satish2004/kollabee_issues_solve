@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
+import type { Request, Response } from "express";
+import prisma from "../db";
 
 export const getAddresses = async (req: any, res: Response) => {
   try {
@@ -9,17 +9,17 @@ export const getAddresses = async (req: any, res: Response) => {
     const addresses = await prisma.address.findMany({
       where: {
         userId,
-        ...(type && { type })
+        ...(type && { type }),
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
 
     res.json(addresses);
   } catch (error) {
-    console.error('Get addresses error:', error);
-    res.status(500).json({ error: 'Failed to fetch addresses' });
+    console.error("Get addresses error:", error);
+    res.status(500).json({ error: "Failed to fetch addresses" });
   }
 };
 
@@ -37,20 +37,20 @@ export const createAddress = async (req: any, res: Response) => {
       zipCode,
       email,
       phoneNumber,
-      type
+      type,
     } = req.body;
 
     // Check if address type already exists for user
     const existingAddress = await prisma.address.findFirst({
       where: {
         userId,
-        type
-      }
+        type,
+      },
     });
 
     if (existingAddress) {
-      return res.status(400).json({ 
-        error: `${type} address already exists for this user` 
+      return res.status(400).json({
+        error: `${type} address already exists for this user`,
       });
     }
 
@@ -67,33 +67,33 @@ export const createAddress = async (req: any, res: Response) => {
         email,
         phoneNumber,
         type,
-        user: { connect: { id: userId } }
-      }
+        user: { connect: { id: userId } },
+      },
     });
 
     res.json(newAddress);
   } catch (error) {
-    console.error('Create address error:', error);
-    res.status(500).json({ error: 'Failed to create address' });
+    console.error("Create address error:", error);
+    res.status(500).json({ error: "Failed to create address" });
   }
 };
 
 export const updateAddress = async (req: any, res: Response) => {
   try {
-    const { addressId :id} = req.params;
+    const { addressId: id } = req.params;
     const { userId } = req.user;
     const addressData = req.body;
-    console.log(id,userId,addressData,req.params,"req.params");
+    console.log(id, userId, addressData, req.params, "req.params");
     // First verify the address belongs to the user
     const existingAddress = await prisma.address.findFirst({
       where: {
         id,
-        userId
-      }
+        userId,
+      },
     });
 
     if (!existingAddress) {
-      return res.status(404).json({ error: 'Address not found' });
+      return res.status(404).json({ error: "Address not found" });
     }
 
     // If type is being changed, check if new type already exists
@@ -103,14 +103,14 @@ export const updateAddress = async (req: any, res: Response) => {
           userId,
           type: addressData.type,
           NOT: {
-            id
-          }
-        }
+            id,
+          },
+        },
       });
 
       if (typeExists) {
-        return res.status(400).json({ 
-          error: `${addressData.type} address already exists for this user` 
+        return res.status(400).json({
+          error: `${addressData.type} address already exists for this user`,
         });
       }
     }
@@ -118,7 +118,7 @@ export const updateAddress = async (req: any, res: Response) => {
     // Update the address using schema fields
     const updatedAddress = await prisma.address.update({
       where: {
-        id
+        id,
       },
       data: {
         firstName: addressData.firstName,
@@ -131,41 +131,41 @@ export const updateAddress = async (req: any, res: Response) => {
         zipCode: addressData.zipCode,
         email: addressData.email,
         phoneNumber: addressData.phoneNumber,
-        type: addressData.type
-      }
+        type: addressData.type,
+      },
     });
 
     res.json(updatedAddress);
   } catch (error) {
-    console.error('Update address error:', error);
-    res.status(500).json({ error: 'Failed to update address' });
+    console.error("Update address error:", error);
+    res.status(500).json({ error: "Failed to update address" });
   }
 };
 
 export const deleteAddress = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { addressId :id } = req.params;
+    const { addressId: id } = req.params;
 
     // Verify ownership
     const address = await prisma.address.findFirst({
       where: {
         id,
-        userId
-      }
+        userId,
+      },
     });
 
     if (!address) {
-      return res.status(404).json({ error: 'Address not found' });
+      return res.status(404).json({ error: "Address not found" });
     }
 
     await prisma.address.delete({
-      where: { id }
+      where: { id },
     });
 
-    res.json({ message: 'Address deleted successfully' });
+    res.json({ message: "Address deleted successfully" });
   } catch (error) {
-    console.error('Delete address error:', error);
-    res.status(500).json({ error: 'Failed to delete address' });
+    console.error("Delete address error:", error);
+    res.status(500).json({ error: "Failed to delete address" });
   }
-}; 
+};

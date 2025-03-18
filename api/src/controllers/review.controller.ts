@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
+import type { Request, Response } from "express";
+import prisma from "../db";
 
 export const getProductReviews = async (req: any, res: Response) => {
   try {
@@ -12,26 +12,26 @@ export const getProductReviews = async (req: any, res: Response) => {
             user: {
               select: {
                 name: true,
-                imageUrl: true
-              }
-            }
-          }
-        }
+                imageUrl: true,
+              },
+            },
+          },
+        },
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
     res.json(reviews);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch reviews' });
+    res.status(500).json({ error: "Failed to fetch reviews" });
   }
 };
 
 export const addReview = async (req: any, res: Response) => {
   try {
     if (!req.user?.buyerId) {
-      return res.status(401).json({ error: 'Only buyers can add reviews' });
+      return res.status(401).json({ error: "Only buyers can add reviews" });
     }
 
     const { productId } = req.params;
@@ -43,25 +43,29 @@ export const addReview = async (req: any, res: Response) => {
         productId,
         order: {
           buyerId: req.user.buyerId,
-          status: 'DELIVERED'
-        }
-      }
+          status: "DELIVERED",
+        },
+      },
     });
 
     if (!order) {
-      return res.status(403).json({ error: 'You can only review products you have purchased' });
+      return res
+        .status(403)
+        .json({ error: "You can only review products you have purchased" });
     }
 
     // Check if user has already reviewed
     const existingReview = await prisma.review.findFirst({
       where: {
         productId,
-        buyerId: req.user.buyerId
-      }
+        buyerId: req.user.buyerId,
+      },
     });
 
     if (existingReview) {
-      return res.status(400).json({ error: 'You have already reviewed this product' });
+      return res
+        .status(400)
+        .json({ error: "You have already reviewed this product" });
     }
 
     const review = await prisma.review.create({
@@ -69,7 +73,7 @@ export const addReview = async (req: any, res: Response) => {
         rating,
         comment,
         productId,
-        buyerId: req.user.buyerId
+        buyerId: req.user.buyerId,
       },
       include: {
         buyer: {
@@ -77,35 +81,38 @@ export const addReview = async (req: any, res: Response) => {
             user: {
               select: {
                 name: true,
-                imageUrl: true
-              }
-            }
-          }
-        }
-      }
+                imageUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     // Update product average rating
     const productReviews = await prisma.review.findMany({
-      where: { productId }
+      where: { productId },
     });
 
-    const avgRating = productReviews.reduce((acc: number, review: { rating: number }) => 
-      acc + review.rating, 0) / productReviews.length;
+    const avgRating =
+      productReviews.reduce(
+        (acc: number, review: { rating: number }) => acc + review.rating,
+        0
+      ) / productReviews.length;
 
     await prisma.product.update({
       where: { id: productId },
-      data: { 
+      data: {
         rating: avgRating as number,
         reviewCount: {
-          increment: 1
-        }
-      }
+          increment: 1,
+        },
+      },
     });
 
     res.json(review);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to add review' });
+    res.status(500).json({ error: "Failed to add review" });
   }
 };
 
@@ -117,12 +124,12 @@ export const updateReview = async (req: any, res: Response) => {
     const review = await prisma.review.findFirst({
       where: {
         id: reviewId,
-        buyerId: req.user.buyerId
-      }
+        buyerId: req.user.buyerId,
+      },
     });
 
     if (!review) {
-      return res.status(404).json({ error: 'Review not found' });
+      return res.status(404).json({ error: "Review not found" });
     }
 
     const updatedReview = await prisma.review.update({
@@ -134,17 +141,17 @@ export const updateReview = async (req: any, res: Response) => {
             user: {
               select: {
                 name: true,
-                imageUrl: true
-              }
-            }
-          }
-        }
-      }
+                imageUrl: true,
+              },
+            },
+          },
+        },
+      },
     });
 
     res.json(updatedReview);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update review' });
+    res.status(500).json({ error: "Failed to update review" });
   }
 };
 
@@ -155,20 +162,20 @@ export const deleteReview = async (req: any, res: Response) => {
     const review = await prisma.review.findFirst({
       where: {
         id: reviewId,
-        buyerId: req.user.buyerId
-      }
+        buyerId: req.user.buyerId,
+      },
     });
 
     if (!review) {
-      return res.status(404).json({ error: 'Review not found' });
+      return res.status(404).json({ error: "Review not found" });
     }
 
     await prisma.review.delete({
-      where: { id: reviewId }
+      where: { id: reviewId },
     });
 
-    res.json({ message: 'Review deleted successfully' });
+    res.json({ message: "Review deleted successfully" });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to delete review' });
+    res.status(500).json({ error: "Failed to delete review" });
   }
-}; 
+};

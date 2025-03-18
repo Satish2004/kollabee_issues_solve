@@ -1,32 +1,32 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
+import type { Request, Response } from "express";
+import prisma from "../db";
 
 export const getProducts = async (req: any, res: Response) => {
   console.log(req.query);
   try {
-    const { 
+    const {
       search,
       category,
       minPrice,
       maxPrice,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
+      sortBy = "createdAt",
+      sortOrder = "desc",
       page = 1,
-      limit = 10
+      limit = 10,
     } = req.query;
 
     const where = {
       isDraft: false,
-      stockStatus: 'IN_STOCK',
+      stockStatus: "IN_STOCK",
       ...(search && {
         OR: [
-          { name: { contains: search as string, mode: 'insensitive' } },
-          { description: { contains: search as string, mode: 'insensitive' } }
-        ]
+          { name: { contains: search as string, mode: "insensitive" } },
+          { description: { contains: search as string, mode: "insensitive" } },
+        ],
       }),
       ...(category && { categoryId: category }),
       ...(minPrice && { price: { gte: parseFloat(minPrice as string) } }),
-      ...(maxPrice && { price: { lte: parseFloat(maxPrice as string) } })
+      ...(maxPrice && { price: { lte: parseFloat(maxPrice as string) } }),
     };
 
     const [products, total] = await Promise.all([
@@ -37,22 +37,22 @@ export const getProducts = async (req: any, res: Response) => {
             select: {
               businessName: true,
               rating: true,
-              location: true
-            }
+              location: true,
+            },
           },
           reviews: {
             select: {
-              rating: true
-            }
-          }
+              rating: true,
+            },
+          },
         },
         orderBy: {
-          [sortBy]: sortOrder
+          [sortBy]: sortOrder,
         },
         skip: (Number(page) - 1) * Number(limit),
-        take: Number(limit)
+        take: Number(limit),
       }),
-      prisma.product.count({ where })
+      prisma.product.count({ where }),
     ]);
 
     res.json({
@@ -61,12 +61,12 @@ export const getProducts = async (req: any, res: Response) => {
         total,
         pages: Math.ceil(total / Number(limit)),
         page: Number(page),
-        limit: Number(limit)
-      }
+        limit: Number(limit),
+      },
     });
   } catch (error) {
-    console.error('Get products error:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
+    console.error("Get products error:", error);
+    res.status(500).json({ error: "Failed to fetch products" });
   }
 };
 
@@ -82,23 +82,23 @@ export const getProductDetails = async (req: Request, res: Response) => {
             user: {
               select: {
                 name: true,
-                imageUrl: true
-              }
+                imageUrl: true,
+              },
             },
             products: {
               select: {
                 id: true,
                 name: true,
                 price: true,
-                images: true
+                images: true,
               },
               where: {
                 isDraft: false,
-                stockStatus: 'IN_STOCK'
+                stockStatus: "IN_STOCK",
               },
-              take: 4
-            }
-          }
+              take: 4,
+            },
+          },
         },
         reviews: {
           include: {
@@ -107,29 +107,29 @@ export const getProductDetails = async (req: Request, res: Response) => {
                 user: {
                   select: {
                     name: true,
-                    imageUrl: true
-                  }
-                }
-              }
-            }
+                    imageUrl: true,
+                  },
+                },
+              },
+            },
           },
           orderBy: {
-            createdAt: 'desc'
-          }
+            createdAt: "desc",
+          },
         },
         productAttributes: true,
-        productCertificates: true
-      }
+        productCertificates: true,
+      },
     });
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     res.json(product);
   } catch (error) {
-    console.error('Get product details error:', error);
-    res.status(500).json({ error: 'Failed to fetch product details' });
+    console.error("Get product details error:", error);
+    res.status(500).json({ error: "Failed to fetch product details" });
   }
 };
 
@@ -139,35 +139,35 @@ export const getSimilarProducts = async (req: Request, res: Response) => {
 
     const product = await prisma.product.findUnique({
       where: { id },
-      select: { categoryId: true }
+      select: { categoryId: true },
     });
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     const similarProducts = await prisma.product.findMany({
       where: {
         categoryId: product.categoryId,
         isDraft: false,
-        stockStatus: 'IN_STOCK',
-        NOT: { id }
+        stockStatus: "IN_STOCK",
+        NOT: { id },
       },
       include: {
         seller: {
           select: {
             businessName: true,
-            rating: true
-          }
-        }
+            rating: true,
+          },
+        },
       },
-      take: 8
+      take: 8,
     });
 
     res.json(similarProducts);
   } catch (error) {
-    console.error('Get similar products error:', error);
-    res.status(500).json({ error: 'Failed to fetch similar products' });
+    console.error("Get similar products error:", error);
+    res.status(500).json({ error: "Failed to fetch similar products" });
   }
 };
 
@@ -179,31 +179,31 @@ export const getCategories = async (req: Request, res: Response) => {
         categoryName: true,
         _count: {
           select: {
-            buyers: true // or any other valid relationship defined in your schema
-          }
-        }
-      }
+            buyers: true, // or any other valid relationship defined in your schema
+          },
+        },
+      },
     });
 
     // Get product count for each category separately
     const categoriesWithCounts = await Promise.all(
-      categories.map(async (category:any) => {
+      categories.map(async (category: any) => {
         const productCount = await prisma.product.count({
           where: {
-            categoryId: category.id
-          }
+            categoryId: category.id,
+          },
         });
 
         return {
           ...category,
-          productCount
+          productCount,
         };
       })
     );
 
     res.json(categoriesWithCounts);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch categories' });
+    res.status(500).json({ error: "Failed to fetch categories" });
   }
 };
 
@@ -212,22 +212,22 @@ export const getRelatedProducts = async (req: Request, res: Response) => {
     const { productId } = req.params;
     const product = await prisma.product.findUnique({
       where: { id: productId },
-      select: { categoryId: true, sellerId: true }
+      select: { categoryId: true, sellerId: true },
     });
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     const relatedProducts = await prisma.product.findMany({
       where: {
         OR: [
           { categoryId: product.categoryId },
-          { sellerId: product.sellerId }
+          { sellerId: product.sellerId },
         ],
         NOT: {
-          id: productId
-        }
+          id: productId,
+        },
       },
       include: {
         seller: {
@@ -235,22 +235,22 @@ export const getRelatedProducts = async (req: Request, res: Response) => {
             user: {
               select: {
                 name: true,
-                companyName: true
-              }
-            }
-          }
+                companyName: true,
+              },
+            },
+          },
         },
         reviews: {
           select: {
-            rating: true
-          }
-        }
+            rating: true,
+          },
+        },
       },
-      take: 4
+      take: 4,
     });
 
     res.json(relatedProducts);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch related products' });
+    res.status(500).json({ error: "Failed to fetch related products" });
   }
-}; 
+};

@@ -1,23 +1,23 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
-import Razorpay from 'razorpay';
-import crypto from 'crypto';
+import type { Request, Response } from "express";
+import prisma from "../db";
+import Razorpay from "razorpay";
+import crypto from "crypto";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_SECRET!
+  key_secret: process.env.RAZORPAY_SECRET!,
 });
 
 export const createCheckoutSession = async (req: any, res: Response) => {
   try {
     if (!req.user?.buyerId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const { amount, products, currency, prices, sellerIds } = req.body;
 
     if (currency.length !== 3) {
-      return res.status(400).json({ error: 'Invalid currency format' });
+      return res.status(400).json({ error: "Invalid currency format" });
     }
 
     const rzpOrder = await razorpay.orders.create({
@@ -33,7 +33,7 @@ export const createCheckoutSession = async (req: any, res: Response) => {
     const order = await prisma.order.create({
       data: {
         buyerId: req.user.buyerId,
-        status: 'PENDING',
+        status: "PENDING",
         totalAmount: Number(amount),
         razorpayOrderId: rzpOrder.id,
         items: {
@@ -42,62 +42,62 @@ export const createCheckoutSession = async (req: any, res: Response) => {
               productId: item.id,
               sellerId: item.sellerId,
               quantity: item.quantity,
-              price: item.price
-            }))
-          }
-        }
-      }
+              price: item.price,
+            })),
+          },
+        },
+      },
     });
 
     res.json({ order: rzpOrder, dbOrder: order });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to create checkout session' });
+    res.status(500).json({ error: "Failed to create checkout session" });
   }
 };
 
 export const handlePaymentCallback = async (req: any, res: Response) => {
   try {
-    const { 
+    const {
       response: { razorpay_order_id, razorpay_payment_id, razorpay_signature },
-      formData 
+      formData,
     } = req.body;
 
     if (!razorpay_order_id) {
-      return res.status(400).json({ error: 'Invalid request' });
+      return res.status(400).json({ error: "Invalid request" });
     }
 
     const existingOrder = await prisma.order.findFirst({
       where: {
-        razorpayOrderId: razorpay_order_id
-      }
+        razorpayOrderId: razorpay_order_id,
+      },
     });
 
     if (!existingOrder) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     // Update order status
     const updatedOrder = await prisma.order.update({
-      where: { 
-        id: existingOrder.id
+      where: {
+        id: existingOrder.id,
       },
       data: {
-        status: 'PROCESSING',
-        razorpayPaymentId: razorpay_payment_id
-      }
+        status: "PROCESSING",
+        razorpayPaymentId: razorpay_payment_id,
+      },
     });
 
     res.json({ success: true, order: updatedOrder });
   } catch (error) {
-    console.error('Payment callback error:', error);
-    res.status(500).json({ error: 'Failed to process payment callback' });
+    console.error("Payment callback error:", error);
+    res.status(500).json({ error: "Failed to process payment callback" });
   }
 };
 
 export const getBankDetails = async (req: any, res: Response) => {
   try {
     if (!req.user?.userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const bankDetails = await prisma.bankDetail.findMany({
@@ -106,14 +106,14 @@ export const getBankDetails = async (req: any, res: Response) => {
 
     res.json(bankDetails);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch bank details' });
+    res.status(500).json({ error: "Failed to fetch bank details" });
   }
 };
 
 export const addBankDetail = async (req: any, res: Response) => {
   try {
     if (!req.user?.userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const {
@@ -124,7 +124,7 @@ export const addBankDetail = async (req: any, res: Response) => {
       accountNumber,
       cvCode,
       upiId,
-      zipCode
+      zipCode,
     } = req.body;
 
     const bankDetail = await prisma.bankDetail.create({
@@ -137,14 +137,14 @@ export const addBankDetail = async (req: any, res: Response) => {
         cvCode,
         upiId: upiId || "",
         zipCode,
-        userId: req.user.userId
+        userId: req.user.userId,
       },
     });
 
     res.json(bankDetail);
   } catch (error) {
-    console.error('Add bank detail error:', error);
-    res.status(500).json({ error: 'Failed to add bank detail' });
+    console.error("Add bank detail error:", error);
+    res.status(500).json({ error: "Failed to add bank detail" });
   }
 };
 
@@ -157,83 +157,80 @@ export const createPaymentOrder = async (req: any, res: Response) => {
     const order = await prisma.order.findFirst({
       where: {
         id: orderId,
-        buyerId
-      }
+        buyerId,
+      },
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     const razorpayOrder = await razorpay.orders.create({
       amount: amount * 100, // Convert to smallest currency unit
-      currency: 'INR',
+      currency: "INR",
       receipt: orderId,
-      payment_capture: true
+      payment_capture: true,
     });
 
     await prisma.order.update({
       where: { id: orderId },
       data: {
-        razorpayOrderId: razorpayOrder.id
-      }
+        razorpayOrderId: razorpayOrder.id,
+      },
     });
 
     res.json({
       orderId: razorpayOrder.id,
       currency: razorpayOrder.currency,
-      amount: razorpayOrder.amount
+      amount: razorpayOrder.amount,
     });
   } catch (error) {
-    console.error('Create payment order error:', error);
-    res.status(500).json({ error: 'Failed to create payment order' });
+    console.error("Create payment order error:", error);
+    res.status(500).json({ error: "Failed to create payment order" });
   }
 };
 
 export const verifyPayment = async (req: Request, res: Response) => {
   try {
-    const { 
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature 
-    } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
 
     // Verify signature
     const generated_signature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_SECRET!)
-      .update(razorpay_order_id + '|' + razorpay_payment_id)
-      .digest('hex');
+      .createHmac("sha256", process.env.RAZORPAY_SECRET!)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest("hex");
 
     if (generated_signature !== razorpay_signature) {
-      return res.status(400).json({ error: 'Invalid payment signature' });
+      return res.status(400).json({ error: "Invalid payment signature" });
     }
 
     // First find the order
     const existingOrder = await prisma.order.findFirst({
       where: {
-        razorpayOrderId: razorpay_order_id
-      }
+        razorpayOrderId: razorpay_order_id,
+      },
     });
 
     if (!existingOrder) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     // Then update using the order's id
     const order = await prisma.order.update({
       where: {
-        id: existingOrder.id // Use the order's id instead of razorpayOrderId
+        id: existingOrder.id, // Use the order's id instead of razorpayOrderId
       },
       data: {
-        status: 'PROCESSING',
-        razorpayPaymentId: razorpay_payment_id
-      }
+        status: "PROCESSING",
+        razorpayPaymentId: razorpay_payment_id,
+      },
     });
 
     res.json({ success: true, order });
   } catch (error) {
-    console.error('Verify payment error:', error);
-    res.status(500).json({ error: 'Failed to verify payment' });
+    console.error("Verify payment error:", error);
+    res.status(500).json({ error: "Failed to verify payment" });
   }
 };
 
@@ -245,7 +242,7 @@ export const getPaymentDetails = async (req: any, res: Response) => {
     const order = await prisma.order.findFirst({
       where: {
         id: orderId,
-        buyerId
+        buyerId,
       },
       select: {
         id: true,
@@ -253,32 +250,32 @@ export const getPaymentDetails = async (req: any, res: Response) => {
         status: true,
         razorpayOrderId: true,
         razorpayPaymentId: true,
-        createdAt: true
-      }
+        createdAt: true,
+      },
     });
 
     if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+      return res.status(404).json({ error: "Order not found" });
     }
 
     res.json(order);
   } catch (error) {
-    console.error('Get payment details error:', error);
-    res.status(500).json({ error: 'Failed to get payment details' });
+    console.error("Get payment details error:", error);
+    res.status(500).json({ error: "Failed to get payment details" });
   }
-}; 
+};
 
 export const updateBankDetails = async (req: any, res: Response) => {
   try {
     const { bankId, ...bankDetails } = req.body;
     const updatedBank = await prisma.bankDetail.update({
       where: { id: bankId },
-      data: bankDetails
+      data: bankDetails,
     });
 
     res.json(updatedBank);
   } catch (error) {
-    console.error('Update bank details error:', error);
-    res.status(500).json({ error: 'Failed to update bank details' });
+    console.error("Update bank details error:", error);
+    res.status(500).json({ error: "Failed to update bank details" });
   }
-}; 
+};
