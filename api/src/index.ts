@@ -14,7 +14,6 @@ const app = express();
 
 // Basic middleware
 
-console.log("CORS_ORIGIN:", process.env.CORS_ORIGIN);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -34,13 +33,6 @@ app.use(
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-// In your auth middleware
-app.use((req: any, res: any, next: any) => {
-  console.log("Incoming request from:", req.headers.origin);
-  console.log("Cookies received:", req.cookies);
-  next();
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
