@@ -2,6 +2,7 @@ import { CategoryEnum } from "../../types/api";
 import { BusinessType } from "../../types/api";
 import { api } from "../axios";
 import { setToken, removeToken } from "../utils/token";
+import Cookies from "js-cookie";
 
 interface SignupData {
   // User details
@@ -32,11 +33,14 @@ const authUrl = process.env.NEXT_PUBLIC_API_URL;
 export const authApi = {
   login: async (data: { email: string; password: string }) => {
     const response: any = await api.post(`${authUrl}/auth/login`, data);
-    // Set token after sconsuccessful login
+    // Set token after successful login
+    // set cookies as well
+
     console.log(response);
     if (response.token) {
       setToken(response.token);
       localStorage.setItem("token", response.token);
+      Cookies.set("token", response.token);
     }
     return response;
   },
@@ -46,6 +50,7 @@ export const authApi = {
     if (response?.token) {
       setToken(response?.token);
       localStorage.setItem("token", response?.token);
+      Cookies.set("token", response?.token);
     }
     return response;
   },
@@ -72,8 +77,9 @@ export const authApi = {
 
   logout: async () => {
     const response = await api.post(`${authUrl}/auth/logout`);
-
-    return removeToken();
+    removeToken();
+    Cookies.remove("token");
+    return response;
   },
 
   changePassword: async (data: {

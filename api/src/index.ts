@@ -18,6 +18,7 @@ console.log("CORS_ORIGIN:", process.env.CORS_ORIGIN);
 app.use(
   cors({
     origin: (origin, callback) => {
+      console.log("Incoming request from:", origin);
       const allowedOrigins = [
         "https://kollabee-theta.vercel.app",
         "http://localhost:3000", // For local testing
@@ -28,13 +29,11 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true,  // <== Allow cookies and auth headers
+    credentials: true, // <== Allow cookies and auth headers
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-
 
 // In your auth middleware
 app.use((req: any, res: any, next: any) => {
@@ -82,11 +81,7 @@ setupRoutes(app);
 // Export for Vercel
 export default app;
 
-let port: string | number | undefined;
-// Start server only if not in Vercel
-if (process.env.NODE_ENV == "production") {
-  port = process.env.PORT;
-}
+let port = process.env.PORT;
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
