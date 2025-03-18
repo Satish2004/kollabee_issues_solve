@@ -64,7 +64,6 @@ export function BuyerSidebar({ className }: SidebarProps) {
 
   const routes = [
     {
-      label: "MAIN",
       routes: [
         {
           label: "Dashboard",
