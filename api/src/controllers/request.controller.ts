@@ -1,10 +1,10 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
+import type { Request, Response } from "express";
+import prisma from "../db";
 
 export const createRequest = async (req: any, res: Response) => {
   try {
     if (!req.user?.buyerId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      return res.status(401).json({ error: "Unauthorized" });
     }
 
     const {
@@ -16,7 +16,7 @@ export const createRequest = async (req: any, res: Response) => {
       targetPrice,
       orderFrequency,
       country,
-      leadSize
+      leadSize,
     } = req.body;
     console.log(req.body);
     const request = await prisma.request.create({
@@ -31,17 +31,17 @@ export const createRequest = async (req: any, res: Response) => {
         orderFrequency,
         country,
         leadSize,
-        status: 'PENDING',
-        requestType: 'PRODUCT'
-      }
+        status: "PENDING",
+        requestType: "PRODUCT",
+      },
     });
 
     res.json(request);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: 'Failed to create request' });
+    res.status(500).json({ error: "Failed to create request" });
   }
-}; 
+};
 
 export const getAllRequests = async (req: any, res: Response) => {
   try {
@@ -49,7 +49,7 @@ export const getAllRequests = async (req: any, res: Response) => {
     res.json(requests);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: 'Failed to get requests' });
+    res.status(500).json({ error: "Failed to get requests" });
   }
 };
 
@@ -57,12 +57,12 @@ export const getRequestById = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
     const request = await prisma.request.findUnique({
-      where: { id }
+      where: { id },
     });
     res.json(request);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: 'Failed to get request' });
+    res.status(500).json({ error: "Failed to get request" });
   }
 };
 
@@ -73,12 +73,12 @@ export const updateRequest = async (req: any, res: Response) => {
 
     const request = await prisma.request.update({
       where: { id },
-      data: { status }
+      data: { status },
     });
     res.json(request);
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: 'Failed to update request' });
+    res.status(500).json({ error: "Failed to update request" });
   }
 };
 
@@ -86,11 +86,9 @@ export const deleteRequest = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
     await prisma.request.delete({ where: { id } });
-    res.json({ message: 'Request deleted successfully' });
+    res.json({ message: "Request deleted successfully" });
   } catch (error) {
     console.log(error);
-    res.status(500).json({ error: 'Failed to delete request' });
+    res.status(500).json({ error: "Failed to delete request" });
   }
 };
-
-

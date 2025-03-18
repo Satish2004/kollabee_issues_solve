@@ -5,6 +5,9 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 
+declare module "bcryptjs";
+declare module "jsonwebtoken";
+
 // Validation schemas
 const signupSchema = z.object({
   email: z.string().email("Invalid email format"),

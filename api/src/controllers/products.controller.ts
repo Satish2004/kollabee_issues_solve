@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import type { Request, Response } from 'express';
 import prisma from '../db';
 
 enum ProductStatus {
@@ -189,65 +189,6 @@ export const updateProduct = async (req: any, res: Response) => {
   }
 };
 
-// Update Product Status
-// export const updateProductStatus = async (req: any, res: Response) => {
-//   try {
-//     const { id } = req.params;
-//     const { status } = req.body as any;
-
-//     const product = await prisma.product.findFirst({
-//       where: {
-//         id,
-//         sellerId: req.user.sellerId
-//       }
-//     });
-
-//     if (!product) {
-//       return res.status(404).json({ message: 'Product not found' });
-//     }
-
-//     if (status === ProductStatus.ACTIVE) {
-//       const requiredFields = [
-//         'name', 
-//         'description', 
-//         'price', 
-//         'wholesalePrice',
-//         'minOrderQuantity',
-//         'availableQuantity',
-//         'categoryId'
-//       ];
-
-//       const missingFields = requiredFields.filter(
-//         field => !product[field as keyof typeof product]
-//       );
-      
-//       if (missingFields.length > 0) {
-//         return res.status(400).json({
-//           message: 'Cannot publish product with missing required fields',
-//           missingFields
-//         });
-//       }
-//     }
-
-//     const updatedProduct = await prisma.product.update({
-//       where: { id },
-//       data: {
-//         isDraft: status === 'DRAFT',
-//          status
-//       },
-//       include: {
-//         seller: true,
-//         pickupAddress: true
-//       }
-//     });
-
-//     res.json({ data: updatedProduct });
-//   } catch (error) {
-//     console.error('Error updating product status:', error);
-//     res.status(500).json({ message: 'Failed to update product status' });
-//   }
-// };
-
 // Delete Product
 export const deleteProduct = async (req: any, res: Response) => {
   try {
@@ -392,4 +333,4 @@ export const getProductById = async (req: any, res: Response) => {
   }
 };
 
-// Add other product-related controllers 
+// Add other product-related controllers

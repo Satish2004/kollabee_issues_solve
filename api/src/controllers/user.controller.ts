@@ -1,5 +1,5 @@
-import { Request, Response } from 'express';
-import prisma from '../db';
+import type { Request, Response } from "express";
+import prisma from "../db";
 
 export const getUserProfile = async (req: any, res: Response) => {
   try {
@@ -16,17 +16,17 @@ export const getUserProfile = async (req: any, res: Response) => {
         state: true,
         address: true,
         imageUrl: true,
-        companyWebsite: true
-      }
+        companyWebsite: true,
+      },
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
 
     res.json(user);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch user profile' });
+    res.status(500).json({ error: "Failed to fetch user profile" });
   }
 };
 
@@ -44,11 +44,11 @@ export const updateUserProfile = async (req: any, res: Response) => {
         companyWebsite: req.body.companyWebsite,
         zipCode: req.body.zipCode,
         imageUrl: req.body.imageUrl,
-      }
+      },
     });
 
     res.json(updatedUser);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to update profile' });
+    res.status(500).json({ error: "Failed to update profile" });
   }
-}; 
+};
