@@ -38,7 +38,6 @@ const setAuthCookie = (res: Response, token: string) => {
     secure: process.env.NODE_ENV === "production", // Secure in production
     sameSite: "none", // Enable cross-site access
     path: "/",
-    domain: "https://kollabee-theta.vercel.app/", // Ensure the cookie is available on the frontend domain
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
