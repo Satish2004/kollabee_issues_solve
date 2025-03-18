@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Circle, ArrowLeft, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface SignupFormProps {
   formData: {
@@ -256,6 +263,36 @@ export function SignupForm({
     role?: string;
   }>({});
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+
+  const [search, setSearch] = useState("");
+  const [filteredCountries, setFilteredCountries] = useState(countries);
+  const [isSelecting, setIsSelecting] = useState(false);
+
+  useEffect(() => {
+    setFilteredCountries(
+      countries.filter(
+        (country) =>
+          country.name.toLowerCase().includes(search.toLowerCase()) ||
+          country.code.toLowerCase().includes(search.toLowerCase())
+      )
+    );
+  }, [search, countries]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Backspace") {
+        setSearch((prev) => prev.slice(0, -1)); // Remove the last character
+      } else {
+        setSearch((prev) => prev + event.key);
+      }
+    };
+
+    if (isSelecting) window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      if (isSelecting) window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSelecting]);
 
   const isPasswordValid = {
     hasMinLength: formData.password.length >= 12,
@@ -544,6 +581,7 @@ export function SignupForm({
               <Input
                 type="password"
                 placeholder="Re-enter your Password"
+                required
                 value={formData.confirmPassword}
                 onChange={(e) => {
                   setFormData({ ...formData, confirmPassword: e.target.value });
@@ -561,80 +599,67 @@ export function SignupForm({
                 </div>
               )}
             </div>
-            <div className="space-y-2 ">
-              <Label>
-                Phone Number<span className="text-destructive">*</span>
-              </Label>
-              <div className="flex">
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="flex items-center justify-between bg-[#fcfcfc] border border-[#e5e5e5] rounded-l-[6px] px-2 py-2 w-[90px] h-9"
-                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                  >
-                    <span className="flex items-center">
-                      {countries.find((c) => c.code === formData.countryCode)
-                        ?.flag || "🌍"}
-                      {formData.countryCode || "+1"}
-                    </span>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="m6 9 6 6 6-6" />
-                    </svg>
-                  </button>
-
-                  {showCountryDropdown && (
-                    <div className="absolute z-10 mt-1 w-[250px] max-h-[250px] overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
-                      <div className="p-2">
-                        {countries.map((country) => (
-                          <div
-                            key={country.name}
-                            className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 cursor-pointer"
-                            onClick={() => {
-                              setFormData({
-                                ...formData,
-                                countryCode: country.code,
-                              });
-                              setShowCountryDropdown(false);
-                            }}
-                          >
-                            <span>{country.flag}</span>
-                            <span>{country.name}</span>
-                            <span className="text-gray-500 ml-auto">
-                              {country.code}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
+            <div className="flex items-center gap-2">
+              <Select
+                value={formData.countryCode}
+                onValueChange={(value) => {
+                  setFormData({
+                    ...formData,
+                    countryCode: value,
+                    country: countries.find((c) => c.code === value)?.name,
+                  });
+                  setSearch("");
+                  setIsSelecting(false);
+                }}
+                onOpenChange={setIsSelecting}
+              >
+                <SelectTrigger className="w-[100px] h-10 rounded-l-md bg-white border border-gray-300 px-3">
+                  <SelectValue placeholder="🌍 +1">
+                    {
+                      countries.find((c) => c.code === formData.countryCode)
+                        ?.flag
+                    }{" "}
+                    {formData.countryCode || "+1"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2">
+                  {isSelecting && (
+                    <input
+                      autoFocus
+                      type="text"
+                      placeholder="Search country..."
+                      className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
                   )}
-                </div>
+                  {filteredCountries.length > 0 ? (
+                    filteredCountries.map((country) => (
+                      <SelectItem key={country.name} value={country.code}>
+                        <span>{country.flag}</span> {country.name} (
+                        {country.code})
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <p className="text-gray-500 text-sm p-2">
+                      No countries found
+                    </p>
+                  )}
+                </SelectContent>
+              </Select>
 
-                <Input
-                  placeholder="Enter your Phone Number"
-                  value={formData.phone}
-                  onChange={(e) => {
-                    setFormData({ ...formData, phone: e.target.value });
-                    setErrors({ ...errors, phone: undefined });
-                  }}
-                  className={`flex-1 bg-[#fcfcfc] border ${
-                    errors.phone ? "border-red-500" : "border-[#e5e5e5]"
-                  } rounded-r-[6px] rounded-l-none border-l-0 placeholder:text-[#bababb]`}
-                  tabIndex={6}
-                />
-              </div>
-              {errors.phone && (
-                <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
-              )}
+              <Input
+                placeholder="Enter your Phone Number"
+                value={formData.phone}
+                onChange={(e) => {
+                  setFormData({ ...formData, phone: e.target.value });
+                  setErrors({ ...errors, phone: undefined });
+                }}
+                className={`flex-1 bg-white border ${
+                  errors.phone ? "border-red-500" : "border-gray-300"
+                } rounded-md placeholder-gray-400 px-3 py-2`}
+                tabIndex={6}
+              />
             </div>
           </div>
         </div>

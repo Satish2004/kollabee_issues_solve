@@ -18,6 +18,7 @@ model User {
   companyWebsite   String?
   conversations    String[]
   country          String?
+  countryCode      String?
   displayName      String?
   fullName         String?
   imageUrl         String?
