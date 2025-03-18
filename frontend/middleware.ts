@@ -6,6 +6,7 @@ import { jwtVerify } from "jose";
 async function verifyToken(token: string) {
   try {
     // Use the same secret as your backend
+    console.log("process.env.JWT_SECRET", process.env.JWT_SECRET);
     const secret = new TextEncoder().encode(process.env.JWT_SECRET);
     const { payload } = await jwtVerify(token, secret);
     return payload;
@@ -37,6 +38,8 @@ export async function middleware(request: NextRequest) {
 
   // Get token from cookies (more secure than localStorage)
   const token = request.cookies.get("auth-token")?.value;
+  console.log("token :", token);
+  console.log("all cookei: ", request.cookies);
 
   // If no token and trying to access protected route, redirect to login
   if (!token && !isPublicPath) {
@@ -47,7 +50,7 @@ export async function middleware(request: NextRequest) {
   if (token && isPublicPath && path !== "/") {
     // Verify token and get user role
     const payload = await verifyToken(token);
-    console.log(payload);
+    console.log("payload is ehre ", payload);
 
     if (payload) {
       const role = payload.role as string;
