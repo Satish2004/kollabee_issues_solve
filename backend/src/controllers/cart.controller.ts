@@ -41,7 +41,10 @@ export const getCart = async (req: any, res: Response) => {
       return res.json(cart);
     }
 
-    res.json(buyer.Cart);
+    res.json({
+      ...buyer.Cart,
+      timestamp: Date.now(), // Add a timestamp to ensure the response is unique
+    });
   } catch (error) {
     console.error('Get cart error:', error);
     res.status(500).json({ error: 'Failed to fetch cart' });

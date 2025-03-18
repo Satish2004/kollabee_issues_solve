@@ -18,7 +18,7 @@ export function ShoppingCart({ onNext }: ShoppingCartProps) {
     if (products.length === 0) {
       fetchProducts()
     }
-  }, [fetchProducts, products.length])
+  }, [])
 
   if (isLoading && products.length === 0) {
     return (
@@ -45,9 +45,7 @@ export function ShoppingCart({ onNext }: ShoppingCartProps) {
           <h2 className="text-2xl font-bold">Your Cart</h2>
           <span className="text-gray-600">({products.length})</span>
         </div>
-
-        <div className="text-sm text-gray-600 mb-6">Minimum Order Quantity Is: 20,000</div>
-
+        <div className="text-sm text-gray-600 mb-6">Minimum Order Quantity Is: {products.length && products.map((p:any) => p.product.minOrderQuantity).reduce((a, b) => Math.min(a, b))}</div>
         <div className="grid grid-cols-6 text-sm text-gray-500 pb-2 border-b">
           <div className="col-span-4">Product</div>
           <div className="col-span-1 text-center">Quantity</div>
@@ -55,15 +53,15 @@ export function ShoppingCart({ onNext }: ShoppingCartProps) {
         </div>
 
         <div className="divide-y">
-          {products.map((product) => (
+          {products.map((product : any) => (
             <CartItem
               key={product.id}
               id={product.id}
-              name={product.name}
-              image={product.image}
-              price={product.price}
+              name={product.product.name}
+              image={product.product.images[0]}
+              price={product.product.price}
               initialQuantity={product.quantity}
-              minQuantity={product.id === "1" ? 20000 : 1}
+              minQuantity={product?.product.minOrderQuantity}
               onQuantityChange={updateQuantity}
             />
           ))}
