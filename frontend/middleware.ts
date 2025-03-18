@@ -37,9 +37,9 @@ export async function middleware(request: NextRequest) {
   const isBuyerPath = path.startsWith("/buyer");
 
   // Get token from cookies (more secure than localStorage)
-  const token = request.cookies.get("auth-token")?.value;
+  const token = request.cookies.get("token")?.value;
   console.log("token :", token);
-  console.log("all cookei: ", request.cookies);
+  console.log("all cookies: ", request.cookies);
 
   // If no token and trying to access protected route, redirect to login
   if (!token && !isPublicPath) {
@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
   if (token && isPublicPath && path !== "/") {
     // Verify token and get user role
     const payload = await verifyToken(token);
-    console.log("payload is ehre ", payload);
+    console.log("payload is here ", payload);
 
     if (payload) {
       const role = payload.role as string;
