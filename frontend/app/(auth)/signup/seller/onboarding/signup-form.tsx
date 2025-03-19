@@ -5,7 +5,6 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Circle, ArrowLeft, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import {
   Select,
   SelectTrigger,
@@ -341,6 +340,10 @@ export function SignupForm({
     }
 
     if (formData.password) {
+      if (!formData.password) {
+        newErrors.password = "Password is required";
+      }
+
       if (formData.password.length < 12) {
         newErrors.password = "Password must be at least 12 characters";
       }
@@ -361,12 +364,11 @@ export function SignupForm({
       newErrors.email = "Please verify your email";
     }
 
-    setErrors(newErrors);
-
-    // Show all errors in toast
-    if (Object.keys(newErrors).length > 0) {
-      toast.error("Please fill in all required fields correctly");
+    if (!formData.role) {
+      newErrors.role = "Please let us know your role";
     }
+
+    setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
   };
@@ -445,6 +447,9 @@ export function SignupForm({
               className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
               tabIndex={3}
             />
+            {errors.password && (
+              <p className="text-sm text-red-500 mt-1">{errors.password}</p>
+            )}
             <div className=" text-xs text-muted-foreground flex flex-row justify-between">
               <div
                 className={`flex items-center gap-2 ${
@@ -525,6 +530,10 @@ export function SignupForm({
                   ? "Sending..."
                   : "Verify"}
               </Button>
+
+              {errors.email && (
+                <p className="text-sm text-red-500 mt-1">{errors.email}</p>
+              )}
             </div>
           </div>
           <div className="space-y-2">
@@ -548,6 +557,9 @@ export function SignupForm({
                 </Button>
               ))}
             </div>
+            {errors.role && (
+              <p className="text-sm text-red-500 mt-1">{errors.role}</p>
+            )}
           </div>
           <div className="space-y-4"></div>
         </div>
@@ -573,7 +585,7 @@ export function SignupForm({
               <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
             )}
           </div>
-          <div className="space-y-8">
+          <div className="space-y-14">
             <div className="space-y-2 relative">
               <Label>
                 Confirm Password<span className="text-destructive">*</span>
@@ -593,6 +605,7 @@ export function SignupForm({
                 } rounded-[6px] placeholder:text-[#bababb]`}
                 tabIndex={4}
               />
+
               {showPasswordError && (
                 <div className="absolute -bottom-6 left-0 text-xs text-red-500 bg-white px-2 py-1 rounded shadow-sm border border-red-100">
                   Passwords do not match
