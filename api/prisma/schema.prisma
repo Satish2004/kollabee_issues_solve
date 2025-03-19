@@ -18,7 +18,6 @@ model User {
   companyWebsite   String?
   conversations    String[]
   country          String?
-  countryCode      String?
   displayName      String?
   fullName         String?
   imageUrl         String?
@@ -71,38 +70,38 @@ model Category {
 }
 
 model Order {
-  id                String           @id @default(uuid())
-  buyerId           String?
-  sellerId          String?
-  status            OrderStatus
-  totalAmount       Float
-  isAccepted        Boolean          @default(false)
-  razorpayOrderId   String?
-  razorpayPaymentId String?
-  trackingNumber    String?
-  carrier           String?
-  trackingHistory   Json[]
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  buyer             Buyer?           @relation(fields: [buyerId], references: [id])
-  seller            Seller?          @relation(fields: [sellerId], references: [id])
-  items             OrderItem[]
-  shippingAddress   ShippingAddress?
+  id                    String           @id @default(uuid())
+  buyerId               String?
+  sellerId              String?
+  status                OrderStatus
+  totalAmount           Float
+  isAccepted            Boolean          @default(false)
+  trackingNumber        String?
+  carrier               String?
+  trackingHistory       Json[]
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+  stripePaymentId       String?
+  stripePaymentIntentId String?
+  buyer                 Buyer?           @relation(fields: [buyerId], references: [id])
+  seller                Seller?          @relation(fields: [sellerId], references: [id])
+  items                 OrderItem[]
+  shippingAddress       ShippingAddress?
 
   @@index([trackingNumber])
 }
 
 model OrderItem {
-  id        String   @id @default(uuid())
-  orderId   String
-  productId String
-  sellerId  String?
-  quantity  Int
-  price     Float
+  id         String  @id @default(uuid())
+  orderId    String
+  productId  String
+  sellerId   String?
+  quantity   Int
+  price      Float
   isAccepted Boolean @default(false)
-  order     Order   @relation(fields: [orderId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
-  seller    Seller? @relation(fields: [sellerId], references: [id])
+  order      Order   @relation(fields: [orderId], references: [id])
+  product    Product @relation(fields: [productId], references: [id])
+  seller     Seller? @relation(fields: [sellerId], references: [id])
 }
 
 model Cart {
@@ -122,13 +121,13 @@ model CartItem {
 }
 
 model Transaction {
-  id          String   @id @default(uuid())
-  amount      Int
-  currency    String
-  status      String
-  userId      String
-  productIds  String[]
-  createdAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  amount     Int
+  currency   String
+  status     String
+  userId     String
+  productIds String[]
+  createdAt  DateTime @default(now())
 }
 
 model Wishlist {
@@ -238,49 +237,39 @@ model Notification {
 }
 
 model Seller {
-  id                 String         @id @default(uuid())
-  userId             String         @unique
+  id                 String          @id @default(uuid())
+  userId             String          @unique
   businessName       String?
   businessAddress    String?
   websiteLink        String?
   businessCategories CategoryEnum[]
   businessTypes      BusinessType[]
-
-  // Business metrics
-  annualRevenue    Float?
-  employeeCount    Int?
-  exportPercentage Float?
-  moq              Int? // Minimum Order Quantity
-  yearEstablished  Int?
-  rating           Float? @default(0)
-
-  // Location info
-  location String?
-  country  String?  // Ensure this line is present
-  state    String?
-
-  // Business details
-  qualityControl String?
-  rd             String? // Research & Development
-  roleInCompany  String?
-
-  // Business goals
-  challenges  String[]
-  metrics     String[]
-  objectives  String[]
-  mainMarkets String[]
-
-  // Relations
-  user           User            @relation(fields: [userId], references: [id])
-  products       Product[]
-  orders         Order[]
-  orderItems     OrderItem[]
-  inquiries      Inquiry[]
-  requests       Request[]
-  favoritedBy    Buyer[]         @relation("BuyerToSeller")
-  certifications Certification[] @relation("CertificationToSeller")
-  trustBadges    TrustBadge[]    @relation("SellerToTrustBadge")
-  advertisements Advertisement[]
+  annualRevenue      Float?
+  employeeCount      Int?
+  exportPercentage   Float?
+  moq                Int?
+  yearEstablished    Int?
+  rating             Float?          @default(0)
+  location           String?
+  country            String?
+  state              String?
+  qualityControl     String?
+  rd                 String?
+  roleInCompany      String?
+  challenges         String[]
+  metrics            String[]
+  objectives         String[]
+  mainMarkets        String[]
+  advertisements     Advertisement[]
+  inquiries          Inquiry[]
+  orders             Order[]
+  orderItems         OrderItem[]
+  products           Product[]
+  requests           Request[]
+  user               User            @relation(fields: [userId], references: [id])
+  favoritedBy        Buyer[]         @relation("BuyerToSeller")
+  certifications     Certification[] @relation("CertificationToSeller")
+  trustBadges        TrustBadge[]    @relation("SellerToTrustBadge")
 
   @@index([userId])
 }
@@ -297,13 +286,13 @@ model Buyer {
   inquiries              Inquiry[]
   Order                  Order[]
   requests               Request[]
+  reviews                Review[]
   savedSearches          SavedSearch[]
   Wishlist               Wishlist?
   requiredCertifications Certification[] @relation("BuyerToCertification")
   products               Product[]       @relation("BuyerToProduct")
   favoriteSuppliers      Seller[]        @relation("BuyerToSeller")
   interestedCategories   Category[]      @relation("InterestedCategories")
-  reviews                Review[]
 }
 
 model Certification {
@@ -346,21 +335,19 @@ model Admin {
 }
 
 model Product {
-  id                String        @id @default(uuid())
-  name              String
-  description       String
-  price             Float
-  wholesalePrice    Float
-  minOrderQuantity  Int
-  availableQuantity Int
-  images            String[]
-  isDraft           Boolean       @default(true)
-  status            ProductStatus @default(DRAFT)
-  stockStatus       StockStatus   @default(IN_STOCK)
-  rating            Float         @default(0)
-  reviewCount       Int           @default(0)
-
-  // Optional fields
+  id                     String             @id @default(uuid())
+  name                   String
+  description            String
+  price                  Float
+  wholesalePrice         Float
+  minOrderQuantity       Int
+  availableQuantity      Int
+  images                 String[]
+  isDraft                Boolean            @default(true)
+  status                 ProductStatus      @default(DRAFT)
+  stockStatus            StockStatus        @default(IN_STOCK)
+  rating                 Float              @default(0)
+  reviewCount            Int                @default(0)
   dimensions             String?
   material               String?
   artistName             String?
@@ -376,27 +363,21 @@ model Product {
   deliveryCost           Float?
   certificateIssueDate   DateTime?
   galleryCertificateName String?
-
-  // Relations
-  sellerId        String
-  seller          Seller          @relation(fields: [sellerId], references: [id])
-  categoryId      String?
-  pickupAddressId String?
-  pickupAddress   PickupAddress?  @relation(fields: [pickupAddressId], references: [id])
-  advertisements  Advertisement[]
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Other relations
-  cartItems           CartItem[]
-  orderItems          OrderItem[]
-  productAttributes   ProductAttribute[]
-  productCertificates Certification[]
-  wishlistItems       WishlistItem[]
-  interestedBuyers    Buyer[]            @relation("BuyerToProduct")
-  reviews             Review[]
+  sellerId               String
+  categoryId             String?
+  pickupAddressId        String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  advertisements         Advertisement[]
+  cartItems              CartItem[]
+  productCertificates    Certification[]
+  orderItems             OrderItem[]
+  pickupAddress          PickupAddress?     @relation(fields: [pickupAddressId], references: [id])
+  seller                 Seller             @relation(fields: [sellerId], references: [id])
+  productAttributes      ProductAttribute[]
+  reviews                Review[]
+  wishlistItems          WishlistItem[]
+  interestedBuyers       Buyer[]            @relation("BuyerToProduct")
 
   @@index([sellerId])
   @@index([categoryId])
@@ -412,7 +393,7 @@ model ProductAttribute {
 }
 
 model PickupAddress {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   fullName     String
   businessName String?
   street       String
@@ -422,11 +403,9 @@ model PickupAddress {
   postalCode   String
   phone        String
   email        String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @default(now())
-
-  // Relations
-  products Product[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+  products     Product[]
 }
 
 model BankDetail {
@@ -490,12 +469,45 @@ model Review {
   buyerId   String
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now())
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  buyer   Buyer   @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  buyer     Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@index([productId])
   @@index([buyerId])
+}
+
+model Advertisement {
+  id             String                 @id @default(uuid())
+  sellerId       String
+  productId      String
+  budget         Float
+  startDate      DateTime
+  endDate        DateTime
+  targetAudience String[]
+  adType         String
+  description    String?
+  status         AdvertisementStatus    @default(PENDING)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  product        Product                @relation(fields: [productId], references: [id])
+  seller         Seller                 @relation(fields: [sellerId], references: [id])
+  metrics        AdvertisementMetrics[]
+
+  @@index([sellerId])
+  @@index([productId])
+}
+
+model AdvertisementMetrics {
+  id              String        @id @default(uuid())
+  advertisementId String
+  date            DateTime      @default(now())
+  impressions     Int           @default(0)
+  clicks          Int           @default(0)
+  conversions     Int           @default(0)
+  spend           Float         @default(0)
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
+
+  @@index([advertisementId])
 }
 
 enum StockStatus {
@@ -569,44 +581,6 @@ enum RequestStatus {
 enum RequestType {
   PRODUCT
   SERVICE
-}
-
-model Advertisement {
-  id             String              @id @default(uuid())
-  sellerId       String
-  productId      String
-  budget         Float
-  startDate      DateTime
-  endDate        DateTime
-  targetAudience String[]
-  adType         String
-  description    String?
-  status         AdvertisementStatus @default(PENDING)
-  createdAt      DateTime            @default(now())
-  updatedAt      DateTime            @updatedAt
-
-  // Relations
-  seller  Seller                 @relation(fields: [sellerId], references: [id])
-  product Product                @relation(fields: [productId], references: [id])
-  metrics AdvertisementMetrics[]
-
-  @@index([sellerId])
-  @@index([productId])
-}
-
-model AdvertisementMetrics {
-  id              String   @id @default(uuid())
-  advertisementId String
-  date            DateTime @default(now())
-  impressions     Int      @default(0)
-  clicks          Int      @default(0)
-  conversions     Int      @default(0)
-  spend           Float    @default(0)
-
-  // Relations
-  advertisement Advertisement @relation(fields: [advertisementId], references: [id])
-
-  @@index([advertisementId])
 }
 
 enum AdvertisementStatus {
