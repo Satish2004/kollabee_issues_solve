@@ -72,6 +72,7 @@ export const getProducts = async (req: any, res: Response) => {
       categoryId,
       minPrice,
       maxPrice,
+      minOrderQuantity,
       sortBy = 'createdAt',
       sortOrder = 'desc',
       page = 1,
@@ -97,6 +98,12 @@ export const getProducts = async (req: any, res: Response) => {
 
     if (status) {
       filters.isDraft = status === 'DRAFT';
+    }
+
+    if(minOrderQuantity) {
+      filters.minOrderQuantity = {
+        gte: Number(minOrderQuantity)
+      }
     }
 
     if (categoryId) filters.categoryId = categoryId;
@@ -131,6 +138,7 @@ export const getProducts = async (req: any, res: Response) => {
 console.log(products,"products");
     res.json({
       data: products,
+      timestamp: Date.now(),
       meta: {
         total,
         page: Number(page),

@@ -17,85 +17,87 @@ export const createCheckoutSession = async (req: any, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { amount, products, currency, prices, sellerIds } = req.body;
+    const { amount, products, currency } = req.body;
 
     if (currency.length !== 3) {
       return res.status(400).json({ error: 'Invalid currency format' });
     }
 
-    const rzpOrder = await razorpay.orders.create({
-      currency: currency,
-      amount: amount * 100, // Convert to paise
-      receipt: `receipt_${Date.now()}`,
-      notes: {
-        productIds: products.map((product: any) => product.id).join(","),
+    // Create a Stripe PaymentIntent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount * 100, // Convert to smallest currency unit
+      currency: currency.toLowerCase(),
+      metadata: {
+        productIds: products.map((product: any) => product.id).join(','),
+        buyerId: req.user.buyerId,
       },
     });
 
-    // Create order in database
+    // Create order in the database
     const order = await prisma.order.create({
       data: {
         buyerId: req.user.buyerId,
         status: 'PENDING',
         totalAmount: Number(amount),
-        razorpayOrderId: rzpOrder.id,
+        stripePaymentIntentId: paymentIntent.id,
         items: {
           createMany: {
             data: products.map((item: any) => ({
               productId: item.id,
               sellerId: item.sellerId,
               quantity: item.quantity,
-              price: item.price
-            }))
-          }
-        }
-      }
+              price: item.price,
+            })),
+          },
+        },
+      },
     });
 
-    res.json({ order: rzpOrder, dbOrder: order });
+    res.json({ clientSecret: paymentIntent.client_secret, order });
   } catch (error) {
+    console.error('Create checkout session error:', error);
     res.status(500).json({ error: 'Failed to create checkout session' });
   }
 };
 
-export const handlePaymentCallback = async (req: any, res: Response) => {
-  try {
-    const { 
-      response: { razorpay_order_id, razorpay_payment_id, razorpay_signature },
-      formData 
-    } = req.body;
+// export const handlePaymentCallback = async (req: any, res: Response) => {
+//   try {
+//     const { 
+//       response: { razorpay_order_id, razorpay_payment_id, razorpay_signature },
+//       formData 
+//     } = req.body;
 
-    if (!razorpay_order_id) {
-      return res.status(400).json({ error: 'Invalid request' });
-    }
+//     if (!razorpay_order_id) {
+//       return res.status(400).json({ error: 'Invalid request' });
+//     }
 
-    const existingOrder = await prisma.order.findFirst({
-      where: {
-        razorpayOrderId: razorpay_order_id
-      }
-    });
+//     const existingOrder = await prisma.order.findFirst({
+//       where: {
+//         razorpayOrderId: razorpay_order_id
+//       }
+//     });
 
-    if (!existingOrder) {
-      return res.status(404).json({ error: 'Order not found' });
-    }
+//     if (!existingOrder) {
+//       return res.status(404).json({ error: 'Order not found' });
+//     }
 
-    // Update order status
-    const updatedOrder = await prisma.order.update({
-      where: { 
-        id: existingOrder.id
-      },
-      data: {
-        status: 'PROCESSING',
-        razorpayPaymentId: razorpay_payment_id
-      }
-    });
+//     // Update order status
+//     const updatedOrder = await prisma.order.update({
+//       where: { 
+//         id: existingOrder.id
+//       },
+//       data: {
+//         status: 'PROCESSING',
+//         razorpayPaymentId: razorpay_payment_id
+//       }
+//     });
 
-    res.json({ success: true, order: updatedOrder });
-  } catch (error) {
-    console.error('Payment callback error:', error);
-    res.status(500).json({ error: 'Failed to process payment callback' });
-  }
-};
+//     res.json({ success: true, order: updatedOrder });
+//   } catch (error) {
+//     console.error('Payment callback error:', error);
+//     res.status(500).json({ error: 'Failed to process payment callback' });
+//   }
+// };
 
 export const getBankDetails = async (req: any, res: Response) => {
   try {
@@ -151,92 +153,89 @@ export const addBankDetail = async (req: any, res: Response) => {
   }
 };
 
-export const createPaymentOrder = async (req: any, res: Response) => {
+// export const createPaymentOrder = async (req: any, res: Response) => {
+//   try {
+//     const { buyerId } = req.user;
+//     const { orderId, amount } = req.body;
+
+//     // Verify order belongs to buyer
+//     const order = await prisma.order.findFirst({
+//       where: {
+//         id: orderId,
+//         buyerId
+//       }
+//     });
+
+//     if (!order) {
+//       return res.status(404).json({ error: 'Order not found' });
+//     }
+
+//     const razorpayOrder = await razorpay.orders.create({
+//       amount: amount * 100, // Convert to smallest currency unit
+//       currency: 'INR',
+//       receipt: orderId,
+//       payment_capture: true
+//     });
+
+//     await prisma.order.update({
+//       where: { id: orderId },
+//       data: {
+//         razorpayOrderId: razorpayOrder.id
+//       }
+//     });
+
+//     res.json({
+//       orderId: razorpayOrder.id,
+//       currency: razorpayOrder.currency,
+//       amount: razorpayOrder.amount
+//     });
+//   } catch (error) {
+//     console.error('Create payment order error:', error);
+//     res.status(500).json({ error: 'Failed to create payment order' });
+//   }
+// };
+
+export const handlePaymentConfirmation = async (req: any, res: Response) => {
   try {
-    const { buyerId } = req.user;
-    const { orderId, amount } = req.body;
+    const { paymentIntentId } = req.body;
 
-    // Verify order belongs to buyer
-    const order = await prisma.order.findFirst({
-      where: {
-        id: orderId,
-        buyerId
-      }
-    });
-
-    if (!order) {
-      return res.status(404).json({ error: 'Order not found' });
+    if (!paymentIntentId) {
+      return res.status(400).json({ error: 'Invalid request' });
     }
 
-    const razorpayOrder = await razorpay.orders.create({
-      amount: amount * 100, // Convert to smallest currency unit
-      currency: 'INR',
-      receipt: orderId,
-      payment_capture: true
-    });
+    // Retrieve the PaymentIntent from Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-    await prisma.order.update({
-      where: { id: orderId },
-      data: {
-        razorpayOrderId: razorpayOrder.id
-      }
-    });
-
-    res.json({
-      orderId: razorpayOrder.id,
-      currency: razorpayOrder.currency,
-      amount: razorpayOrder.amount
-    });
-  } catch (error) {
-    console.error('Create payment order error:', error);
-    res.status(500).json({ error: 'Failed to create payment order' });
-  }
-};
-
-export const verifyPayment = async (req: Request, res: Response) => {
-  try {
-    const { 
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature 
-    } = req.body;
-
-    // Verify signature
-    const generated_signature = crypto
-      .createHmac('sha256', process.env.RAZORPAY_SECRET!)
-      .update(razorpay_order_id + '|' + razorpay_payment_id)
-      .digest('hex');
-
-    if (generated_signature !== razorpay_signature) {
-      return res.status(400).json({ error: 'Invalid payment signature' });
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ error: 'Payment not succeeded' });
     }
 
-    // First find the order
+    // Find the order in the database
     const existingOrder = await prisma.order.findFirst({
       where: {
-        razorpayOrderId: razorpay_order_id
-      }
+        stripePaymentIntentId: paymentIntentId,
+      },
     });
 
     if (!existingOrder) {
       return res.status(404).json({ error: 'Order not found' });
     }
 
-    // Then update using the order's id
-    const order = await prisma.order.update({
+    // Update the order status
+    const updatedOrder = await prisma.order.update({
       where: {
-        id: existingOrder.id // Use the order's id instead of razorpayOrderId
+        id: existingOrder.id,
       },
       data: {
         status: 'PROCESSING',
-        razorpayPaymentId: razorpay_payment_id
-      }
+        stripePaymentId: paymentIntent.id,
+      },
     });
 
-    res.json({ success: true, order });
+    res.json({ success: true, order: updatedOrder });
   } catch (error) {
-    console.error('Verify payment error:', error);
-    res.status(500).json({ error: 'Failed to verify payment' });
+    console.error('Payment confirmation error:', error);
+    res.status(500).json({ error: 'Failed to confirm payment' });
   }
 };
 
@@ -248,16 +247,16 @@ export const getPaymentDetails = async (req: any, res: Response) => {
     const order = await prisma.order.findFirst({
       where: {
         id: orderId,
-        buyerId
+        buyerId,
       },
       select: {
         id: true,
         totalAmount: true,
         status: true,
-        razorpayOrderId: true,
-        razorpayPaymentId: true,
-        createdAt: true
-      }
+        stripePaymentIntentId: true,
+        stripePaymentId: true,
+        createdAt: true,
+      },
     });
 
     if (!order) {
@@ -269,7 +268,7 @@ export const getPaymentDetails = async (req: any, res: Response) => {
     console.error('Get payment details error:', error);
     res.status(500).json({ error: 'Failed to get payment details' });
   }
-}; 
+};
 
 export const updateBankDetails = async (req: any, res: Response) => {
   try {

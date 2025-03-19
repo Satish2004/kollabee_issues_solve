@@ -76,8 +76,8 @@ model Order {
   status            OrderStatus
   totalAmount       Float
   isAccepted        Boolean          @default(false)
-  razorpayOrderId   String?
-  razorpayPaymentId String?
+  stripePaymentId   String?
+  stripePaymentIntentId String?
   trackingNumber    String?
   carrier           String?
   trackingHistory   Json[]

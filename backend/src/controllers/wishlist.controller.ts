@@ -31,7 +31,10 @@ export const getWishlist = async (req: any, res: Response) => {
       }
     });
 
-    res.json(wishlist?.items || []);
+    res.json({
+      items: wishlist?.items || [],
+      timestamp: Date.now()
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch wishlist' });
   }

@@ -7,6 +7,7 @@ import { OrderSummary } from "./order-summary"
 import { Button } from "@/components/ui/button"
 import { useCheckout } from "../../../../../../checkout-context"
 import { toast } from "sonner"
+import { paymentApi } from "@/lib/api/payment"
 
 // Load Stripe.js asynchronously
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -50,27 +51,25 @@ const StripePaymentForm = ({ onSubmit, isLoading }) => {
       <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
         <h3 className="text-lg font-semibold mb-4">Card Details</h3>
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
-              <div className="p-3 border border-gray-300 rounded-md">
-                <CardElement
-                  options={{
-                    style: {
-                      base: {
-                        fontSize: "16px",
-                        color: "#424770",
-                        "::placeholder": {
-                          color: "#aab7c4",
-                        },
-                      },
-                      invalid: {
-                        color: "#9e2146",
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+            <div className="p-3 border border-gray-300 rounded-md">
+              <CardElement
+                options={{
+                  style: {
+                    base: {
+                      fontSize: "16px",
+                      color: "#424770",
+                      "::placeholder": {
+                        color: "#aab7c4",
                       },
                     },
-                  }}
-                />
-              </div>
+                    invalid: {
+                      color: "#9e2146",
+                    },
+                  },
+                }}
+              />
             </div>
           </div>
         </div>
@@ -91,43 +90,52 @@ export function Payment({ onNext }: PaymentProps) {
   const { products, orderSummary, submitOrder, isLoading } = useCheckout()
   const [orderComplete, setOrderComplete] = useState(false)
   const [orderId, setOrderId] = useState<string | null>(null)
+  const stripe = useStripe()
 
   const handlePayment = async (paymentMethodId: string) => {
     try {
-      // Call your backend to create a payment intent
-      const response = await fetch("/api/payment/callback", {
+      // Call your backend to create a checkout session
+        const response = await paymentApi.createCheckoutSession({
+          amount: orderSummary.total * 100, // Convert to cents
+          products: products.map((product) => ({
+            id: product.id,
+            sellerId: product.sellerId,
+            quantity: product.quantity,
+            price: product.price,
+          })),
+          currency: "usd",
+        })
+
+      const { clientSecret, order } = await response.data
+
+      if (!clientSecret) {
+        throw new Error("Failed to create checkout session")
+      }
+
+      // Confirm the payment on the client side
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: paymentMethodId,
+      })
+
+      if (error) {
+        throw new Error(error.message)
+      }
+
+      // Handle payment confirmation
+      await fetch("/api/handle-payment-confirmation", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          amount: orderSummary.total * 100, // Convert to cents
-          currency: "usd",
-          paymentMethodId,
-          productIds: products.map((product) => product.id), // Include product IDs
-          userId: "user_123", // Replace with actual user ID
+          paymentIntentId: paymentIntent.id,
         }),
       })
 
-      const { success, clientSecret, orderId } = await response.json()
-
-      if (success) {
-        // Confirm the payment on the client side
-        const { error } = await stripe.confirmCardPayment(clientSecret, {
-          payment_method: paymentMethodId,
-        })
-
-        if (error) {
-          throw new Error(error.message)
-        }
-
-        setOrderComplete(true)
-        setOrderId(orderId)
-        submitOrder() // Call your existing order submission logic
-        toast.success("Payment successful!")
-      } else {
-        throw new Error("Payment failed. Please try again.")
-      }
+      setOrderComplete(true)
+      setOrderId(order.id)
+      submitOrder() // Call your existing order submission logic
+      toast.success("Payment successful!")
     } catch (error) {
       console.error("Error processing payment:", error)
       toast.error(error.message)

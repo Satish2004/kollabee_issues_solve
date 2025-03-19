@@ -9,6 +9,12 @@ export const paymentApi = {
     return api.post('/payment/checkout', data);
   },
 
+  handlePaymentConfirmation: async (data: {
+    paymentIntentId: string;
+  }) => {
+    return api.post('/payment/handle-payment-confirmation', data);
+  },
+
   verifyPayment: async (data: {
     razorpay_order_id: string;
     razorpay_payment_id: string;
