@@ -2,6 +2,7 @@
 import React from "react"
 import { Radio } from "@/components/ui/form"
 import { Address } from "../../../../../../checkout-context"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface AddressCardProps {
   address: Address
@@ -16,13 +17,16 @@ export function AddressCard({ address, isSelected, onSelect }: AddressCardProps)
       onClick={() => onSelect(address.id)}
     >
       <div className="flex items-start">
-        <Radio
-          id={`address-${address.id}`}
-          name="selectedAddress"
-          checked={isSelected}
-          onChange={() => onSelect(address.id)}
-          className="mt-1"
-        />
+        <RadioGroup defaultValue={isSelected ? address.id : undefined} className="mt-1">
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem
+              value={address.id}
+              id={`address-${address.id}`}
+              checked={isSelected}
+              onClick={() => onSelect(address.id)}
+            />
+          </div>
+        </RadioGroup>
         <div className="ml-3">
           <p className="font-medium">
             {address.firstName} {address.lastName}
@@ -41,4 +45,6 @@ export function AddressCard({ address, isSelected, onSelect }: AddressCardProps)
     </div>
   )
 }
+
+
 

@@ -1,93 +1,136 @@
 "use client"
 
-import React from "react"
-
-import { useState } from "react"
+import React, { useState } from "react"
+import { loadStripe } from "@stripe/stripe-js"
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { OrderSummary } from "./order-summary"
-import { Form, FormField, Input } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import { useCheckout } from "../../../../../../checkout-context"
+import { toast } from "sonner"
+
+// Load Stripe.js asynchronously
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 interface PaymentProps {
   onNext: () => void
 }
 
-export function Payment({ onNext }: PaymentProps) {
-  const { products, currentAddress, orderSummary, submitOrder, isLoading } = useCheckout()
-  const [paymentDetails, setPaymentDetails] = useState({
-    cardName: "",
-    cardNumber: "",
-    expiry: "",
-    cvv: "",
-    saveCard: false,
-  })
-  const [orderComplete, setOrderComplete] = useState(false)
-  const [orderId, setOrderId] = useState<string | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+// Stripe Payment Form Component
+const StripePaymentForm = ({ onSubmit, isLoading }) => {
+  const stripe = useStripe()
+  const elements = useElements()
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
-    setPaymentDetails((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }))
+  const handleSubmit = async (event) => {
+    event.preventDefault()
 
-    // Clear error for this field if it exists
-    if (formErrors[name]) {
-      setFormErrors((prev) => {
-        const newErrors = { ...prev }
-        delete newErrors[name]
-        return newErrors
-      })
-    }
-  }
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-
-    if (!paymentDetails.cardName) {
-      newErrors.cardName = "Name on card is required"
-    }
-
-    if (!paymentDetails.cardNumber) {
-      newErrors.cardNumber = "Card number is required"
-    } else if (!/^\d{16}$/.test(paymentDetails.cardNumber.replace(/\s/g, ""))) {
-      newErrors.cardNumber = "Please enter a valid 16-digit card number"
-    }
-
-    if (!paymentDetails.expiry) {
-      newErrors.expiry = "Expiry date is required"
-    } else if (!/^\d{2}\/\d{2}$/.test(paymentDetails.expiry)) {
-      newErrors.expiry = "Please use MM/YY format"
-    }
-
-    if (!paymentDetails.cvv) {
-      newErrors.cvv = "CVV is required"
-    } else if (!/^\d{3,4}$/.test(paymentDetails.cvv)) {
-      newErrors.cvv = "CVV must be 3 or 4 digits"
-    }
-
-    setFormErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    if (!validateForm()) {
+    if (!stripe || !elements) {
       return
     }
 
-    const result = await submitOrder()
+    const cardElement = elements.getElement(CardElement)
 
-    if (result.success) {
-      setOrderComplete(true)
-      setOrderId(result.orderId || null)
-      onNext()
-    } else {
-      setError(result.error || "An error occurred while processing your order.")
+    // Create a payment method
+    const { error, paymentMethod } = await stripe.createPaymentMethod({
+      type: "card",
+      card: cardElement,
+    })
+
+    if (error) {
+      console.error("Error creating payment method:", error)
+      toast.error("Payment failed: " + error.message)
+      return
+    }
+
+    // Call the onSubmit prop to handle the payment
+    onSubmit(paymentMethod.id)
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+        <h3 className="text-lg font-semibold mb-4">Card Details</h3>
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Card Number</label>
+              <div className="p-3 border border-gray-300 rounded-md">
+                <CardElement
+                  options={{
+                    style: {
+                      base: {
+                        fontSize: "16px",
+                        color: "#424770",
+                        "::placeholder": {
+                          color: "#aab7c4",
+                        },
+                      },
+                      invalid: {
+                        color: "#9e2146",
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Button
+        type="submit"
+        className="w-full mt-4 bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-md flex items-center justify-center font-semibold"
+        disabled={!stripe || isLoading}
+      >
+        {isLoading ? "Processing..." : "Pay Now"}
+      </Button>
+    </form>
+  )
+}
+
+export function Payment({ onNext }: PaymentProps) {
+  const { products, orderSummary, submitOrder, isLoading } = useCheckout()
+  const [orderComplete, setOrderComplete] = useState(false)
+  const [orderId, setOrderId] = useState<string | null>(null)
+
+  const handlePayment = async (paymentMethodId: string) => {
+    try {
+      // Call your backend to create a payment intent
+      const response = await fetch("/api/payment/callback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: orderSummary.total * 100, // Convert to cents
+          currency: "usd",
+          paymentMethodId,
+          productIds: products.map((product) => product.id), // Include product IDs
+          userId: "user_123", // Replace with actual user ID
+        }),
+      })
+
+      const { success, clientSecret, orderId } = await response.json()
+
+      if (success) {
+        // Confirm the payment on the client side
+        const { error } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: paymentMethodId,
+        })
+
+        if (error) {
+          throw new Error(error.message)
+        }
+
+        setOrderComplete(true)
+        setOrderId(orderId)
+        submitOrder() // Call your existing order submission logic
+        toast.success("Payment successful!")
+      } else {
+        throw new Error("Payment failed. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error processing payment:", error)
+      toast.error(error.message)
     }
   }
 
@@ -142,12 +185,9 @@ export function Payment({ onNext }: PaymentProps) {
     <div className="grid md:grid-cols-3 gap-6">
       <div className="md:col-span-2 bg-white p-6 rounded-lg border">
         <h2 className="text-2xl font-bold mb-6">Payment</h2>
-
-          <Button
-            className="w-full mt-4 bg-pink-500 hover:bg-pink-600 text-white py-2 rounded-md flex items-center justify-center"
-          >
-              "Complete Order"
-          </Button>
+        <Elements stripe={stripePromise}>
+          <StripePaymentForm onSubmit={handlePayment} isLoading={isLoading} />
+        </Elements>
       </div>
 
       <div>
@@ -156,4 +196,3 @@ export function Payment({ onNext }: PaymentProps) {
     </div>
   )
 }
-

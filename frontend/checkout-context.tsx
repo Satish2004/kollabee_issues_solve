@@ -1,6 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { cartApi } from "@/lib/api/cart"
 
 // Types
 export interface Product {
@@ -37,6 +38,7 @@ interface CheckoutContextType {
   setCurrentStep: (step: number) => void
   // Cart state
   products: Product[]
+  setProducts: (products: Product[]) => void
   addProduct: (product: Product) => void
   removeProduct: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
@@ -170,35 +172,9 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const fetchProducts = async () => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Mock data
-      const mockProducts: Product[] = [
-        {
-          id: "1",
-          name: "T-Shirt",
-          image: "/placeholder.svg?height=100&width=100",
-          price: 12,
-          quantity: 20000,
-        },
-        {
-          id: "2",
-          name: "Shipwreck Edibles",
-          image: "/placeholder.svg?height=100&width=100",
-          price: 0.04065,
-          quantity: 123333,
-        },
-        {
-          id: "3",
-          name: "Shipwreck Edibles",
-          image: "/placeholder.svg?height=100&width=100",
-          price: 0.04065,
-          quantity: 123333,
-        },
-      ]
-
-      setProducts(mockProducts)
+      const response = await cartApi.getCart()
+      setProducts(response?.items)
     } catch (error) {
       console.error("Failed to fetch products:", error)
     } finally {
@@ -281,6 +257,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   const value = {
     products,
+    setProducts,
     addProduct,
     removeProduct,
     updateQuantity,

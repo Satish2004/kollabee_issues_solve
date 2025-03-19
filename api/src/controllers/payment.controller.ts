@@ -1,12 +1,15 @@
-import type { Request, Response } from "express";
-import prisma from "../db";
-import Razorpay from "razorpay";
-import crypto from "crypto";
+import { Request, Response } from 'express';
+import prisma from '../db';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
+import Stripe from "stripe";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
   key_secret: process.env.RAZORPAY_SECRET!,
 });
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export const createCheckoutSession = async (req: any, res: Response) => {
   try {
@@ -277,5 +280,38 @@ export const updateBankDetails = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Update bank details error:", error);
     res.status(500).json({ error: "Failed to update bank details" });
+  }
+}; 
+
+export const createPaymentIntent = async (req: any, res: Response) => {
+  const { amount, currency, paymentMethodId, productIds, userId } = req.body;
+  try {
+    const transaction = await prisma.transaction.create({
+      data: {
+        amount,
+        currency,
+        status: "pending",
+        userId,
+        productIds,
+      },
+    })
+
+    // Create a PaymentIntent with Stripe
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency,
+      payment_method: paymentMethodId,
+      confirm: true,
+      metadata: {
+        transactionId: transaction.id,
+        userId,
+        productIds: JSON.stringify(productIds),
+      },
+    })
+
+    res.status(200).json({ success: true, clientSecret: paymentIntent.client_secret, orderId: transaction.id })
+  } catch (error) {
+    console.error('Create payment intent error:', error);
+    res.status(500).json({ error: 'Failed to create payment intent' });
   }
 };

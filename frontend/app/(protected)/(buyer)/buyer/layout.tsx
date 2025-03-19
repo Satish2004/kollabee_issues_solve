@@ -4,6 +4,7 @@ import SellerLayoutHeader from "@/components/buyer/layout-header";
 import { useRouter } from "next/navigation";
 import { IntroTour } from '@/components/tour/IntroTour';
 import { BuyerSidebar } from '../../../../components/buyer/buyer-sidebar';
+import { CheckoutProvider } from '@/checkout-context';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/*This is Scrollable Content Area, currently it's keeping the header */}
       <div className="flex-1 flex flex-col overflow-y-auto">
+        <CheckoutProvider>
         <div className="sticky top-0 z-10 bg-gray-100">
           <SellerLayoutHeader />
         </div>
@@ -30,6 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <main className="flex-1 px-10 py-6 bg-gray-100">
           {children}
         </main>
+        </CheckoutProvider>
       </div>
 
       <IntroTour />

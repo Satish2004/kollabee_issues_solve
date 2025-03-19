@@ -10,8 +10,10 @@ interface OrderSummaryProps {
 }
 
 export function OrderSummary({ onNext, buttonText = "Next" }: OrderSummaryProps) {
-  const { orderSummary, currentStep } = useCheckout()
-  const { subtotal, discount, shippingCost, totalQuantity } = orderSummary
+  const { orderSummary, currentStep, products } = useCheckout()
+  const { discount, shippingCost, totalQuantity } = orderSummary
+  const subtotal = products.reduce((sum, product) => sum + product.product.price * product.quantity, 0)
+
   const freeShippingThreshold = 1000
 
   return (

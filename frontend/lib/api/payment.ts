@@ -29,3 +29,4 @@ export const paymentApi = {
   //   return api.put<BankDetail>(`/payment/bank-details/${id}`, data);
   // }
 }; 
+
