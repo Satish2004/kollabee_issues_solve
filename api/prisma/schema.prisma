@@ -18,6 +18,7 @@ model User {
   companyWebsite   String?
   conversations    String[]
   country          String?
+  countryCode      String?
   displayName      String?
   fullName         String?
   imageUrl         String?
@@ -118,6 +119,16 @@ model CartItem {
   quantity  Int
   cart      Cart    @relation(fields: [cartId], references: [id])
   product   Product @relation(fields: [productId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Int
+  currency    String
+  status      String
+  userId      String
+  productIds  String[]
+  createdAt   DateTime @default(now())
 }
 
 model Wishlist {

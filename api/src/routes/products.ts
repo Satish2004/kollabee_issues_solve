@@ -17,8 +17,8 @@ const router = express.Router();
 router.get('/search', getProducts); // Will only return active products
 
 // Protected seller routes
-router.get('/', isAuthenticated, isSeller, getProducts);
-router.get('/:productId', isAuthenticated, isSeller, getProductById);
+router.get('/', isAuthenticated, getProducts);
+router.get('/:productId', isAuthenticated, getProductById);
 // router.patch('/:id/status', isAuthenticated, isSeller, updateProductStatus);
 
 // Protected routes

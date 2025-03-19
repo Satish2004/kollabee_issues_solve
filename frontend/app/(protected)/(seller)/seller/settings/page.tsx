@@ -1,7 +1,6 @@
 "use client"
 import React, { useState, useEffect ,useRef} from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import AccountSettings from './account-settings';
 import { profileApi } from '@/lib/api/profile';
 import { BankDetail } from '@/types/api';
 import { Country, State, City } from "country-state-city"
@@ -9,7 +8,203 @@ import { toast } from 'sonner';
 import { User } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 
-
+const countries = [
+  { code: "+93", name: "Afghanistan", flag: "🇦🇫" },
+  { code: "+355", name: "Albania", flag: "🇦🇱" },
+  { code: "+213", name: "Algeria", flag: "🇩🇿" },
+  { code: "+376", name: "Andorra", flag: "🇦🇩" },
+  { code: "+244", name: "Angola", flag: "🇦🇴" },
+  { code: "+1", name: "Antigua and Barbuda", flag: "🇦🇬" },
+  { code: "+54", name: "Argentina", flag: "🇦🇷" },
+  { code: "+374", name: "Armenia", flag: "🇦🇲" },
+  { code: "+61", name: "Australia", flag: "🇦🇺" },
+  { code: "+43", name: "Austria", flag: "🇦🇹" },
+  { code: "+994", name: "Azerbaijan", flag: "🇦🇿" },
+  { code: "+1", name: "Bahamas", flag: "🇧🇸" },
+  { code: "+973", name: "Bahrain", flag: "🇧🇭" },
+  { code: "+880", name: "Bangladesh", flag: "🇧🇩" },
+  { code: "+1", name: "Barbados", flag: "🇧🇧" },
+  { code: "+375", name: "Belarus", flag: "🇧🇾" },
+  { code: "+32", name: "Belgium", flag: "🇧🇪" },
+  { code: "+501", name: "Belize", flag: "🇧🇿" },
+  { code: "+229", name: "Benin", flag: "🇧🇯" },
+  { code: "+975", name: "Bhutan", flag: "🇧🇹" },
+  { code: "+591", name: "Bolivia", flag: "🇧🇴" },
+  { code: "+387", name: "Bosnia and Herzegovina", flag: "🇧🇦" },
+  { code: "+267", name: "Botswana", flag: "🇧🇼" },
+  { code: "+55", name: "Brazil", flag: "🇧🇷" },
+  { code: "+673", name: "Brunei", flag: "🇧🇳" },
+  { code: "+359", name: "Bulgaria", flag: "🇧🇬" },
+  { code: "+226", name: "Burkina Faso", flag: "🇧🇫" },
+  { code: "+257", name: "Burundi", flag: "🇧🇮" },
+  { code: "+855", name: "Cambodia", flag: "🇰🇭" },
+  { code: "+237", name: "Cameroon", flag: "🇨🇲" },
+  { code: "+1", name: "Canada", flag: "🇨🇦" },
+  { code: "+238", name: "Cape Verde", flag: "🇨🇻" },
+  { code: "+236", name: "Central African Republic", flag: "🇨🇫" },
+  { code: "+235", name: "Chad", flag: "🇹🇩" },
+  { code: "+56", name: "Chile", flag: "🇨🇱" },
+  { code: "+86", name: "China", flag: "🇨🇳" },
+  { code: "+57", name: "Colombia", flag: "🇨🇴" },
+  { code: "+269", name: "Comoros", flag: "🇰🇲" },
+  { code: "+242", name: "Congo", flag: "🇨🇬" },
+  { code: "+243", name: "Congo, Democratic Republic of the", flag: "🇨🇩" },
+  { code: "+506", name: "Costa Rica", flag: "🇨🇷" },
+  { code: "+385", name: "Croatia", flag: "🇭🇷" },
+  { code: "+53", name: "Cuba", flag: "🇨🇺" },
+  { code: "+357", name: "Cyprus", flag: "🇨🇾" },
+  { code: "+420", name: "Czech Republic", flag: "🇨🇿" },
+  { code: "+45", name: "Denmark", flag: "🇩🇰" },
+  { code: "+253", name: "Djibouti", flag: "🇩🇯" },
+  { code: "+1", name: "Dominica", flag: "🇩🇲" },
+  { code: "+1", name: "Dominican Republic", flag: "🇩🇴" },
+  { code: "+670", name: "East Timor", flag: "🇹🇱" },
+  { code: "+593", name: "Ecuador", flag: "🇪🇨" },
+  { code: "+20", name: "Egypt", flag: "🇪🇬" },
+  { code: "+503", name: "El Salvador", flag: "🇸🇻" },
+  { code: "+240", name: "Equatorial Guinea", flag: "🇬🇶" },
+  { code: "+291", name: "Eritrea", flag: "🇪🇷" },
+  { code: "+372", name: "Estonia", flag: "🇪🇪" },
+  { code: "+251", name: "Ethiopia", flag: "🇪🇹" },
+  { code: "+679", name: "Fiji", flag: "🇫🇯" },
+  { code: "+358", name: "Finland", flag: "🇫🇮" },
+  { code: "+33", name: "France", flag: "🇫🇷" },
+  { code: "+241", name: "Gabon", flag: "🇬🇦" },
+  { code: "+220", name: "Gambia", flag: "🇬🇲" },
+  { code: "+995", name: "Georgia", flag: "🇬🇪" },
+  { code: "+49", name: "Germany", flag: "🇩🇪" },
+  { code: "+233", name: "Ghana", flag: "🇬🇭" },
+  { code: "+30", name: "Greece", flag: "🇬🇷" },
+  { code: "+1", name: "Grenada", flag: "🇬🇩" },
+  { code: "+502", name: "Guatemala", flag: "🇬🇹" },
+  { code: "+224", name: "Guinea", flag: "🇬🇳" },
+  { code: "+245", name: "Guinea-Bissau", flag: "🇬🇼" },
+  { code: "+592", name: "Guyana", flag: "🇬🇾" },
+  { code: "+509", name: "Haiti", flag: "🇭🇹" },
+  { code: "+504", name: "Honduras", flag: "🇭🇳" },
+  { code: "+36", name: "Hungary", flag: "🇭🇺" },
+  { code: "+354", name: "Iceland", flag: "🇮🇸" },
+  { code: "+91", name: "India", flag: "🇮🇳" },
+  { code: "+62", name: "Indonesia", flag: "🇮🇩" },
+  { code: "+98", name: "Iran", flag: "🇮🇷" },
+  { code: "+964", name: "Iraq", flag: "🇮🇶" },
+  { code: "+353", name: "Ireland", flag: "🇮🇪" },
+  { code: "+972", name: "Israel", flag: "🇮🇱" },
+  { code: "+39", name: "Italy", flag: "🇮🇹" },
+  { code: "+1", name: "Jamaica", flag: "🇯🇲" },
+  { code: "+81", name: "Japan", flag: "🇯🇵" },
+  { code: "+962", name: "Jordan", flag: "🇯🇴" },
+  { code: "+7", name: "Kazakhstan", flag: "🇰🇿" },
+  { code: "+254", name: "Kenya", flag: "🇰🇪" },
+  { code: "+686", name: "Kiribati", flag: "🇰🇮" },
+  { code: "+850", name: "North Korea", flag: "🇰🇵" },
+  { code: "+82", name: "South Korea", flag: "🇰🇷" },
+  { code: "+965", name: "Kuwait", flag: "🇰🇼" },
+  { code: "+996", name: "Kyrgyzstan", flag: "🇰🇬" },
+  { code: "+856", name: "Laos", flag: "🇱🇦" },
+  { code: "+371", name: "Latvia", flag: "🇱🇻" },
+  { code: "+961", name: "Lebanon", flag: "🇱🇧" },
+  { code: "+266", name: "Lesotho", flag: "🇱🇸" },
+  { code: "+231", name: "Liberia", flag: "🇱🇷" },
+  { code: "+218", name: "Libya", flag: "🇱🇾" },
+  { code: "+423", name: "Liechtenstein", flag: "🇱🇮" },
+  { code: "+370", name: "Lithuania", flag: "🇱🇹" },
+  { code: "+352", name: "Luxembourg", flag: "🇱🇺" },
+  { code: "+389", name: "North Macedonia", flag: "🇲🇰" },
+  { code: "+261", name: "Madagascar", flag: "🇲🇬" },
+  { code: "+265", name: "Malawi", flag: "🇲🇼" },
+  { code: "+60", name: "Malaysia", flag: "🇲🇾" },
+  { code: "+960", name: "Maldives", flag: "🇲🇻" },
+  { code: "+223", name: "Mali", flag: "🇲🇱" },
+  { code: "+356", name: "Malta", flag: "🇲🇹" },
+  { code: "+692", name: "Marshall Islands", flag: "🇲🇭" },
+  { code: "+222", name: "Mauritania", flag: "🇲🇷" },
+  { code: "+230", name: "Mauritius", flag: "🇲🇺" },
+  { code: "+52", name: "Mexico", flag: "🇲🇽" },
+  { code: "+691", name: "Micronesia", flag: "🇫🇲" },
+  { code: "+373", name: "Moldova", flag: "🇲🇩" },
+  { code: "+377", name: "Monaco", flag: "🇲🇨" },
+  { code: "+976", name: "Mongolia", flag: "🇲🇳" },
+  { code: "+382", name: "Montenegro", flag: "🇲🇪" },
+  { code: "+212", name: "Morocco", flag: "🇲🇦" },
+  { code: "+258", name: "Mozambique", flag: "🇲🇿" },
+  { code: "+95", name: "Myanmar", flag: "🇲🇲" },
+  { code: "+264", name: "Namibia", flag: "🇳🇦" },
+  { code: "+674", name: "Nauru", flag: "🇳🇷" },
+  { code: "+977", name: "Nepal", flag: "🇳🇵" },
+  { code: "+31", name: "Netherlands", flag: "🇳🇱" },
+  { code: "+64", name: "New Zealand", flag: "🇳🇿" },
+  { code: "+505", name: "Nicaragua", flag: "🇳🇮" },
+  { code: "+227", name: "Niger", flag: "🇳🇪" },
+  { code: "+234", name: "Nigeria", flag: "🇳🇬" },
+  { code: "+47", name: "Norway", flag: "🇳🇴" },
+  { code: "+968", name: "Oman", flag: "🇴🇲" },
+  { code: "+92", name: "Pakistan", flag: "🇵🇰" },
+  { code: "+680", name: "Palau", flag: "🇵🇼" },
+  { code: "+970", name: "Palestine", flag: "🇵🇸" },
+  { code: "+507", name: "Panama", flag: "🇵🇦" },
+  { code: "+675", name: "Papua New Guinea", flag: "🇵🇬" },
+  { code: "+595", name: "Paraguay", flag: "🇵🇾" },
+  { code: "+51", name: "Peru", flag: "🇵🇪" },
+  { code: "+63", name: "Philippines", flag: "🇵🇭" },
+  { code: "+48", name: "Poland", flag: "🇵🇱" },
+  { code: "+351", name: "Portugal", flag: "🇵🇹" },
+  { code: "+974", name: "Qatar", flag: "🇶🇦" },
+  { code: "+40", name: "Romania", flag: "🇷🇴" },
+  { code: "+7", name: "Russia", flag: "🇷🇺" },
+  { code: "+250", name: "Rwanda", flag: "🇷🇼" },
+  { code: "+1", name: "Saint Kitts and Nevis", flag: "🇰🇳" },
+  { code: "+1", name: "Saint Lucia", flag: "🇱🇨" },
+  { code: "+1", name: "Saint Vincent and the Grenadines", flag: "🇻🇨" },
+  { code: "+685", name: "Samoa", flag: "🇼🇸" },
+  { code: "+378", name: "San Marino", flag: "🇸🇲" },
+  { code: "+239", name: "Sao Tome and Principe", flag: "🇸🇹" },
+  { code: "+966", name: "Saudi Arabia", flag: "🇸🇦" },
+  { code: "+221", name: "Senegal", flag: "🇸🇳" },
+  { code: "+381", name: "Serbia", flag: "🇷🇸" },
+  { code: "+248", name: "Seychelles", flag: "🇸🇨" },
+  { code: "+232", name: "Sierra Leone", flag: "🇸🇱" },
+  { code: "+65", name: "Singapore", flag: "🇸🇬" },
+  { code: "+421", name: "Slovakia", flag: "🇸🇰" },
+  { code: "+386", name: "Slovenia", flag: "🇸🇮" },
+  { code: "+677", name: "Solomon Islands", flag: "🇸🇧" },
+  { code: "+252", name: "Somalia", flag: "🇸🇴" },
+  { code: "+27", name: "South Africa", flag: "🇿🇦" },
+  { code: "+211", name: "South Sudan", flag: "🇸🇸" },
+  { code: "+34", name: "Spain", flag: "🇪🇸" },
+  { code: "+94", name: "Sri Lanka", flag: "🇱🇰" },
+  { code: "+249", name: "Sudan", flag: "🇸🇩" },
+  { code: "+597", name: "Suriname", flag: "🇸🇷" },
+  { code: "+268", name: "Eswatini", flag: "🇸🇿" },
+  { code: "+46", name: "Sweden", flag: "🇸🇪" },
+  { code: "+41", name: "Switzerland", flag: "🇨🇭" },
+  { code: "+963", name: "Syria", flag: "🇸🇾" },
+  { code: "+886", name: "Taiwan", flag: "🇹🇼" },
+  { code: "+992", name: "Tajikistan", flag: "🇹🇯" },
+  { code: "+255", name: "Tanzania", flag: "🇹🇿" },
+  { code: "+66", name: "Thailand", flag: "🇹🇭" },
+  { code: "+228", name: "Togo", flag: "🇹🇬" },
+  { code: "+676", name: "Tonga", flag: "🇹🇴" },
+  { code: "+1", name: "Trinidad and Tobago", flag: "🇹🇹" },
+  { code: "+216", name: "Tunisia", flag: "🇹🇳" },
+  { code: "+90", name: "Turkey", flag: "🇹🇷" },
+  { code: "+993", name: "Turkmenistan", flag: "🇹🇲" },
+  { code: "+688", name: "Tuvalu", flag: "🇹🇻" },
+  { code: "+256", name: "Uganda", flag: "🇺🇬" },
+  { code: "+380", name: "Ukraine", flag: "🇺🇦" },
+  { code: "+971", name: "United Arab Emirates", flag: "🇦🇪" },
+  { code: "+44", name: "United Kingdom", flag: "🇬🇧" },
+  { code: "+1", name: "United States", flag: "🇺🇸" },
+  { code: "+598", name: "Uruguay", flag: "🇺🇾" },
+  { code: "+998", name: "Uzbekistan", flag: "🇺🇿" },
+  { code: "+678", name: "Vanuatu", flag: "🇻🇺" },
+  { code: "+379", name: "Vatican City", flag: "🇻🇦" },
+  { code: "+58", name: "Venezuela", flag: "🇻🇪" },
+  { code: "+84", name: "Vietnam", flag: "🇻🇳" },
+  { code: "+967", name: "Yemen", flag: "🇾🇪" },
+  { code: "+260", name: "Zambia", flag: "🇿🇲" },
+  { code: "+263", name: "Zimbabwe", flag: "🇿🇼" },
+];
 
 type TabType = 'account' | 'password' | 'payment';
 
@@ -20,6 +215,7 @@ const Settings: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordResponse, setPasswordResponse] = useState<any>({newPassword:'',currentPassword:'',confirmPassword:''});
   const [isLoading, setIsLoading] = useState(false);
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [bankDetails, setBankDetails] = useState<any>({
     fullName: '',
     holderName: '',
@@ -33,6 +229,7 @@ const Settings: React.FC = () => {
 
   const getUser = async () => {
     const response:any = await profileApi.getCurrentUser();
+    console.log("User",response);
    setFormData(response);
   }
 
@@ -58,10 +255,9 @@ const Settings: React.FC = () => {
     fullName: '',
     address: '',
     name: '',
-
-    phoneCountry: 'US',
+    phoneCountry: '',
     phoneNumber: '',
-    country: 'IN',
+    country: '',
     state: '',
     accountHolder: '',
     bank: '',
@@ -220,15 +416,58 @@ const Settings: React.FC = () => {
               Phone Number*
             </label>
             <div className="flex">
-              <select
-                name="phoneCountry"
-                className="px-3 py-2 border rounded-l-lg border-r-0 bg-gray-50"
-                value={formData.phoneCountry || 'US'}
-                onChange={handleSelectChange}
-              >
-                <option value="US">🇺🇸 +1</option>
-                <option value="IN">🇮🇳 +91</option>
-              </select>
+            <div className="relative">
+                  <button
+                    type="button"
+                    className="flex items-center justify-between bg-[#fcfcfc] border border-[#e5e5e5] rounded-l-[6px] px-2 py-2 w-[90px] h-9"
+                    onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                  >
+                    <span className="flex items-center">
+                      {countries.find((c) => c.code === formData.country)
+                        ?.flag || "🌍"}
+                      {formData.country || "+1"}
+                    </span>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="m6 9 6 6 6-6" />
+                    </svg>
+                  </button>
+
+                  {showCountryDropdown && (
+                    <div className="absolute z-10 mt-1 w-[250px] max-h-[250px] overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg">
+                      <div className="p-2">
+                        {countries.map((country) => (
+                          <div
+                            key={country.name}
+                            className="flex items-center gap-2 px-2 py-1.5 hover:bg-gray-100 cursor-pointer"
+                            onClick={() => {
+                              setFormData({
+                                ...formData,
+                                country: country.code,
+                              });
+                              setShowCountryDropdown(false);
+                            }}
+                          >
+                            <span>{country.flag}</span>
+                            <span>{country.name}</span>
+                            <span className="text-gray-500 ml-auto">
+                              {country.code}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               <input
                 type="tel"
                 name="phoneNumber"
@@ -246,12 +485,15 @@ const Settings: React.FC = () => {
             </label>
             <select
               name="country"
-              value={formData.country || ''}
+              value={formData.country || "Select"}
               onChange={handleSelectChange}
               className="w-full px-3 py-2 border rounded-lg"
             >
          {Country.getAllCountries().map((country,index) => (
+          <>
+          <option key={"none"} value="">Select Country</option>
             <option key={index} value={country.name}>{country.name}</option>
+          </>
          ))}
             </select>
           </div>
@@ -268,7 +510,10 @@ const Settings: React.FC = () => {
                 className="w-full px-3 py-2 border rounded-lg"
               >
                 {State.getAllStates().map((state,index) => (
+                  <>
+                  <option key={"none"} value="">Select State</option>
                   <option key={index} value={state.name}>{state.name}</option>
+                  </>
                 ))}
               </select>
             </div>

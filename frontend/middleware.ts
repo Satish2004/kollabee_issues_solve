@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     "/login",
     "/signup",
     "/signup/seller",
-    "/seller/buyer",
+    "/signup/buyer",
     "/forgot-password",
     "/reset-password",
   ].includes(path);
@@ -38,9 +38,9 @@ export async function middleware(request: NextRequest) {
   // Get token from cookies (more secure than localStorage)
   const token = request.cookies.get("token")?.value;
 
-
   // If no token and trying to access protected route, redirect to login
   if (!token && !isPublicPath) {
+    console.log("redirecting to ");
     return NextResponse.redirect(new URL("/login", request.url));
   }
 

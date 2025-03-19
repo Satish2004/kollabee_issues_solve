@@ -16,6 +16,7 @@ const signupSchema = z.object({
   role: z.enum(["BUYER", "SELLER", "ADMIN"]),
   companyName: z.string().optional(),
   phoneNumber: z.string().optional(),
+  countryCode: z.string().optional(),
   country: z.string().optional(),
   state: z.string().optional(),
   address: z.string().optional(),
@@ -31,7 +32,6 @@ const supabase = createClient(
   process.env.SUPABASE_URL!,
   process.env.SUPABASE_ANON_KEY!
 );
-
 
 const setAuthCookie = (res: Response, token: string) => {
   res.setHeader(
@@ -71,6 +71,7 @@ export const signup = async (req: Request, res: Response) => {
           companyName: validatedData.companyName,
           phoneNumber: validatedData.phoneNumber,
           country: validatedData.country,
+          countryCode: validatedData.countryCode,
           state: validatedData.state,
           address: validatedData.address,
           companyWebsite: validatedData.companyWebsite,
@@ -324,6 +325,7 @@ export const generateOTP = async (req: Request, res: Response) => {
 
     // Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("OTP:", otp);
 
     // Store OTP in Redis
     // await storeOTP(email, otp);

@@ -61,13 +61,13 @@ export function UserDropdown({ currentUser, onLogout }: UserDropdownProps) {
                             <span>Profile</span>
                         </Link>
                     </DropdownMenuItem> */}
-                    <DropdownMenuItem onClick={() => router.push('/seller/settings')}>
+                    <DropdownMenuItem onClick={() => router.push('/seller/settings')} className='cursor-pointer'>
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>
                     </DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onLogout} className="text-red-600">
+                <DropdownMenuItem onClick={onLogout} className="text-red-600 cursor-pointer">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                 </DropdownMenuItem>
