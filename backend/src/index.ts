@@ -1,4 +1,5 @@
 import express from "express";
+import http from "http";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -7,8 +8,8 @@ import rateLimit from "express-rate-limit";
 import path from "path";
 import prisma from "./db/index";
 import { setupRoutes } from "./routes";
-import "dotenv/config";
-import fs from "fs";
+import { handleSocketConnection } from "./socket";
+import { Server } from "socket.io";
 
 const app = express();
 
@@ -16,26 +17,15 @@ const app = express();
 app.use(
   cors({
     origin: "http://localhost:3000",
-    credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// In your auth middleware
-app.use((req, res, next) => {
-  console.log("Incoming request from:", req.headers.origin);
-  console.log("Cookies received:", req.cookies);
-  next();
-});
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow images to be served
-  })
-);
+app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 
@@ -50,29 +40,36 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Error handling middleware
-app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Something broke!" });
-  }
-);
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something broke!" });
+});
 
 // Setup all routes
 setupRoutes(app);
 
-// Export for Vercel
-export default app;
-
-// Start server only if not in Vercel
+// Start server
 if (process.env.NODE_ENV !== "production") {
-  const port = process.env.PORT || 3000;
-  app.listen(port, () => {
+  const port = process.env.PORT || 2000;
+
+  // Create an HTTP server using app.listen()
+  const server = app.listen(port, () => {
     console.log(`Server running on port ${port}`);
+  });
+
+  // Initialize Socket.IO and attach it to the server
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
+
+  // Set up Socket.io connection handler
+  io.on("connection", (socket) => {
+    console.log("A client connected:", socket.id);
+    handleSocketConnection(socket, io, prisma);
   });
 }
 

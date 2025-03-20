@@ -5,6 +5,15 @@ export const paymentApi = {
     amount: number;
     products: any[];
     currency: string;
+    customerName: string;
+    customerAddress: {
+      line1: string;
+      line2: string;
+      city: string;
+      state: string;
+      postalCode: string;
+      country: string;
+    }
   }) => {
     return api.post('/payment/checkout', data);
   },

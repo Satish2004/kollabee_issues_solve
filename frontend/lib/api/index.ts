@@ -12,3 +12,4 @@ export * from './dashboard';
 export * from './marketplace';
 export * from './upload';
 export * from './advertise';
+export * from './chat';

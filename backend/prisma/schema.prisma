@@ -16,7 +16,6 @@ model User {
   createdAt        DateTime                  @default(now())
   updatedAt        DateTime                  @updatedAt
   companyWebsite   String?
-  conversations    String[]
   country          String?
   displayName      String?
   fullName         String?
@@ -34,12 +33,12 @@ model User {
   analytics        Analytics[]
   bankDetails      BankDetail[]
   buyer            Buyer?
-  receivedMessages Message[]                 @relation("ReceivedMessages")
-  sentMessages     Message[]                 @relation("SentMessages")
   notifications    Notification[]
   seller           Seller?
   subscription     Subscription?
   subscribe        SubscriptionTransaction[]
+  messages         Message[]
+  conversations    ConversationParticipant[]
 }
 
 model Address {
@@ -68,6 +67,42 @@ model Category {
   categoryName CategoryEnum
   buyers       Buyer[]      @relation("InterestedCategories")
 }
+
+model Conversation {
+  id            String                  @id @default(uuid())
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  participants  ConversationParticipant[]
+  messages      Message[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  userId         String
+  isOnline       Boolean      @default(false)
+  lastSeen       DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  attachments    String[]     @default([])
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
 
 model Order {
   id                String           @id @default(uuid())
@@ -143,16 +178,6 @@ model WishlistItem {
   productId  String
   product    Product  @relation(fields: [productId], references: [id])
   wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
-}
-
-model Message {
-  id         String   @id @default(uuid())
-  content    String
-  senderId   String
-  receiverId String
-  createdAt  DateTime @default(now())
-  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
 }
 
 model Analytics {

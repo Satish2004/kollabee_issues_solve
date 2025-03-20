@@ -17,7 +17,9 @@ export const createCheckoutSession = async (req: any, res: Response) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { amount, products, currency } = req.body;
+
+
+    const { amount, products, currency, customerAddress, customerName } = req.body;
 
     if (currency.length !== 3) {
       return res.status(400).json({ error: 'Invalid currency format' });
@@ -26,6 +28,18 @@ export const createCheckoutSession = async (req: any, res: Response) => {
     // Create a Stripe PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100, // Convert to smallest currency unit
+      description: "Payment for products",
+      shipping: {
+        name: customerName,
+        address: {
+          line1: customerAddress.line1,
+          line2: customerAddress.line2,
+          city: customerAddress.city,
+          state: customerAddress.state,
+          postal_code: customerAddress.postalCode,
+          country: customerAddress.country,
+        },
+      },
       currency: currency.toLowerCase(),
       metadata: {
         productIds: products.map((product: any) => product.id).join(','),
@@ -52,6 +66,7 @@ export const createCheckoutSession = async (req: any, res: Response) => {
         },
       },
     });
+
 
     res.json({ clientSecret: paymentIntent.client_secret, order });
   } catch (error) {

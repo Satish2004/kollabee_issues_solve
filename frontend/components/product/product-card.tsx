@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { cartApi } from "@/lib/api/cart"
 import { useCheckout } from "@/checkout-context"
 import { wishlistApi } from "@/lib/api/wishlist"
+import { chatApi } from "@/lib/api/chat"
+import { useRouter } from "next/navigation"
 
 interface ProductCardProps {
   product: any;
@@ -17,8 +19,10 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, isInCart, isInWishlist, removeFromCart, removeFromWishlist, setWishlistProducts, wishlistProducts }: ProductCardProps) {
-  const { products, setProducts } = useCheckout()
+  const { setProducts } = useCheckout()
   const [isLoading, setIsLoading] = React.useState(false)
+
+  const router = useRouter()
 
   useEffect(() => {
     console.log("Is in wishlist:", isInWishlist(product.id)); // Log the result
@@ -48,6 +52,16 @@ export default function ProductCard({ product, isInCart, isInWishlist, removeFro
       removeFromWishlist(product.id)
     }
   }
+
+  const handleContactSupplier = () => {
+    const response = chatApi.createConversation({
+      participantId: product.seller.userId,
+      participantType: "seller",
+    })
+    console.log("Response:", response)
+    // router.push("/buyer/chat")
+  }
+  console.log(product)
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -99,7 +113,7 @@ export default function ProductCard({ product, isInCart, isInWishlist, removeFro
           <Button onClick={handleCart} className="w-full py-6 px-4 rounded-md text-white font-semibold bg-gradient-to-r from-[#950b72] via-[#e0655d] to-[#f2bd6d]">
             {isLoading ? "Adding..." : isInCart(product.id) ? "Remove from Cart" : "Add to Cart"}
           </Button>
-          <Button className="w-full py-6 px-4 rounded-lg gradient-border">
+          <Button onClick={handleContactSupplier} className="w-full py-6 px-4 rounded-lg gradient-border">
             <span className="gradient-text font-semibold">Contact Supplier</span>
           </Button>
         </div>

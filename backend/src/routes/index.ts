@@ -15,6 +15,8 @@ import uploadRoutes from './upload';
 import advertiseRoutes from './advertise';
 import categoryRoutes from './category';  
 import requestRoutes from './request';
+import conversationRoutes from './conversation';
+import messagesRoutes from './messages';
 export const setupRoutes = (app: Express) => {
   // API Routes
   app.use('/api/auth', authRoutes);
@@ -33,6 +35,8 @@ export const setupRoutes = (app: Express) => {
   app.use('/api/advertise', advertiseRoutes);
   app.use('/api/categories', categoryRoutes);
   app.use('/api/requests', requestRoutes);
+  app.use('/api/conversations', conversationRoutes);
+  app.use('/api/messages', messagesRoutes);
 
   // Health check route
   app.get('/health', (req, res) => {

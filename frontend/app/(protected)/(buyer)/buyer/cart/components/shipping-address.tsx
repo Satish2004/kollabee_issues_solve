@@ -19,12 +19,13 @@ const formSchema = z.object({
   firstName: z.string().min(1, "First name is required"),
   lastName: z.string().min(1, "Last name is required"),
   email: z.string().email("Please enter a valid email address"),
+  companyName: z.string().min(1, "Company name is required"),
   address: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
   state: z.string().min(1, "State is required"),
+  country: z.string().min(1, "Country is required"),
   zipCode: z.string().min(1, "ZIP code is required"),
-  phone: z.string().min(1, "Phone number is required"),
-  saveAsDefault: z.boolean().default(false),
+  phoneNumber: z.string().min(1, "Phone number is required"),
 })
 
 interface ShippingAddressProps {
@@ -45,45 +46,44 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
 
   const [showNewAddressForm, setShowNewAddressForm] = useState(false)
 
-  // Initialize the form with react-hook-form and zod validation
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: currentAddress?.firstName || "",
       lastName: currentAddress?.lastName || "",
       email: currentAddress?.email || "",
+      companyName: currentAddress?.companyName || "",
       address: currentAddress?.address || "",
       city: currentAddress?.city || "",
       state: currentAddress?.state || "",
+      country: currentAddress?.country || "",
       zipCode: currentAddress?.zipCode || "",
-      phone: currentAddress?.phone || "",
-      saveAsDefault: false,
+      phoneNumber: currentAddress?.phoneNumber || "",
     },
   })
 
-  // Update form values when currentAddress changes
   useEffect(() => {
     if (currentAddress) {
       form.reset({
         firstName: currentAddress.firstName || "",
         lastName: currentAddress.lastName || "",
         email: currentAddress.email || "",
+        companyName: currentAddress.companyName || "",
         address: currentAddress.address || "",
         city: currentAddress.city || "",
         state: currentAddress.state || "",
+        country: currentAddress.country || "",
         zipCode: currentAddress.zipCode || "",
-        phone: currentAddress.phone || "",
-        saveAsDefault: false,
+        phoneNumber: currentAddress.phoneNumber || "",
       })
     }
   }, [currentAddress, form])
 
   useEffect(() => {
-    // Fetch saved addresses when component mounts
     if (savedAddresses.length === 0) {
       fetchAddresses()
     }
-  }, [fetchAddresses, savedAddresses.length])
+  }, [])
 
   const handleAddressSelect = (addressId: string) => {
     setSelectedAddressId(addressId)
@@ -98,37 +98,41 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
       firstName: "",
       lastName: "",
       email: "",
+      companyName: "",
       address: "",
       city: "",
       state: "",
+      country: "",
       zipCode: "",
-      phone: "",
-      saveAsDefault: false,
+      phoneNumber: "",
     })
   }
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     if (selectedAddressId) {
-      // Using existing address
       onNext()
     } else if (showNewAddressForm) {
-      // Save new address
-      const newAddress: Address = {
+      const newAddress: any = {
         id: currentAddress?.id || `new-${Date.now()}`,
         ...values,
-        isDefault: values.saveAsDefault,
       }
       addNewAddress(newAddress)
       onNext()
     } else {
-      // No address selected
       alert("Please select a shipping address or add a new one")
     }
   }
 
-  // Handle form field changes and update context
   const handleFieldChange = (field: keyof z.infer<typeof formSchema>, value: string | boolean) => {
     updateCurrentAddress({ [field]: value })
+  }
+
+  const handleOrderSummaryNext = () => {
+    if (showNewAddressForm) {
+      form.handleSubmit(onSubmit)()
+    } else {
+      onNext()
+    }
   }
 
   if (isLoading && savedAddresses.length === 0) {
@@ -229,27 +233,50 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
                 />
               </div>
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email Address</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="email"
-                        placeholder="john.doe@example.com"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e)
-                          handleFieldChange("email", e.target.value)
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email Address</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="email"
+                          placeholder="john.doe@example.com"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e)
+                            handleFieldChange("email", e.target.value)
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="companyName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Company</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Acme Corp"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e)
+                            handleFieldChange("companyName", e.target.value)
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
@@ -272,7 +299,7 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
                 )}
               />
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="city"
@@ -294,6 +321,28 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
                   )}
                 />
 
+                <FormField
+                  control={form.control}
+                  name="country"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Country</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="America"
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e)
+                            handleFieldChange("country", e.target.value)
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="state"
@@ -339,7 +388,7 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
 
               <FormField
                 control={form.control}
-                name="phone"
+                name="phoneNumber"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Phone Number</FormLabel>
@@ -349,7 +398,7 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
                         {...field}
                         onChange={(e) => {
                           field.onChange(e)
-                          handleFieldChange("phone", e.target.value)
+                          handleFieldChange("phoneNumber", e.target.value)
                         }}
                       />
                     </FormControl>
@@ -357,51 +406,13 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="saveAsDefault"
-                render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-4">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={(checked) => {
-                          field.onChange(checked)
-                          handleFieldChange("saveAsDefault", !!checked)
-                        }}
-                      />
-                    </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>Save as default address</FormLabel>
-                    </div>
-                  </FormItem>
-                )}
-              />
-
-              <Button type="submit" className="w-full mt-4 bg-green-500 hover:bg-green-600 text-white">
-                Continue to Payment
-              </Button>
             </form>
           </Form>
-        )}
-
-        {!showNewAddressForm && (
-          <div className="mt-6">
-            <Button
-              onClick={() =>
-                selectedAddressId ? onNext() : alert("Please select a shipping address or add a new one")
-              }
-              className="w-full bg-green-500 hover:bg-green-600 text-white"
-            >
-              Continue to Payment
-            </Button>
-          </div>
         )}
       </div>
 
       <div>
-        <OrderSummary onNext={onNext} buttonText={`Checkout | `} />
+        <OrderSummary onNext={handleOrderSummaryNext} buttonText={`Checkout | `} />
       </div>
     </div>
   )
