@@ -33,23 +33,19 @@ export default function ChatModule() {
 
     
     useEffect(() => {
-        // Initialize socket connection
         const socket = io("http://localhost:2000", {
         withCredentials: true,
         })
     
         socketRef.current = socket
     
-        // Setup socket event listeners
         socket.on("connect", () => {
         console.log("Socket connected")
 
-              // Identify the user to the server (without authentication)
       if (user?.id) {
         socket.emit("identify", { userId: user.id })
       }
     
-        // Fetch conversations after socket connection is established
         fetchConversations()
         })
     
@@ -58,20 +54,18 @@ export default function ChatModule() {
         })
     
         socket.on("new_message", (message: Message) => {
-        // Add new message to state if it belongs to the active conversation
         if (message.conversationId === activeConversation) {
-            setMessages((prev) => [...prev, message])
-
-            console.log
-        if(tempMessageId) {
-            console.log("Mila Mila", messages.find(msg => msg.id === tempMessageId))
-
-            setMessages((prev) => prev.filter(msg => msg.id !== tempMessageId))
-        }
-        }
+            setMessages((prev) => [...prev, message]);
+        
+            // THis will check if theres a corimed message and replace a pending mesage
+            const tempId = tempMessageIdRef.current;
+            if (tempId) {
+              setMessages((prev) => prev.filter((msg) => msg.id !== tempId));
+              tempMessageIdRef.current = null;
+            }
+          }
 
     
-        // Update last message in conversation list
         setConversations((prev) =>
             prev.map((conv) =>
             conv.id === message.conversationId
@@ -85,7 +79,6 @@ export default function ChatModule() {
             ),
         )
     
-        // Show toast for new message if conversation is not active
         if (message.conversationId !== activeConversation) {
             toast({
             title: `New message from ${message.senderName}`,
@@ -95,11 +88,9 @@ export default function ChatModule() {
         })
     
         socket.on("user_status_change", ({ userId, isOnline }: { userId: string; isOnline: boolean }) => {
-        // Update online status in conversations list
         setConversations((prev) => prev.map((conv) => (conv.participantId === userId ? { ...conv, isOnline } : conv)))
         })
     
-        // Clean up on unmount
         return () => {
         if (socketRef.current) {
             socketRef.current.disconnect()
@@ -138,12 +129,11 @@ export default function ChatModule() {
             setMessages(response.messages)
         }
     
-        // Mark conversation as read
+        // THis is for marking as read
         if (socketRef.current) {
             socketRef.current.emit("mark_as_read", { conversationId })
         }
     
-        // Update conversation unread count
         setConversations((prev) => prev.map((conv) => (conv.id === conversationId ? { ...conv, unreadCount: 0 } : conv)))
     
         setIsLoading(false)
@@ -158,12 +148,10 @@ export default function ChatModule() {
         }
     }
     
-    // Send a message
     const sendMessage = async (content: string, attachments: File[] = []) => {
         if (!activeConversation || !socketRef.current || (!content.trim() && attachments.length === 0)) return
     
         try {
-        // Handle file uploads first if there are any attachments
         let uploadedFiles: string[] = []
     
         if (attachments.length > 0) {
@@ -197,7 +185,7 @@ export default function ChatModule() {
             ...(newMessage as any),
             status: "pending",
         }
-        setTempMessageId(tempId)
+        tempMessageIdRef.current = tempId;
         setMessages((prev) => [...prev, tempMessage])
         } catch (error) {
         console.error("Failed to send message:", error)
