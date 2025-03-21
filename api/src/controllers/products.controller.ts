@@ -17,6 +17,8 @@ export const createProduct = async (req: any, res: Response) => {
     const {
       name,
       price,
+      discount,
+      deliveryCost,
       wholesalePrice,
       minOrderQuantity,
       availableQuantity,
@@ -43,6 +45,8 @@ export const createProduct = async (req: any, res: Response) => {
         name,
         description,
         price: Number(price),
+        discount: parseFloat(discount),
+        deliveryCost: parseFloat(deliveryCost),
         wholesalePrice: Number(wholesalePrice),
         minOrderQuantity: Number(minOrderQuantity),
         availableQuantity: Number(availableQuantity),
