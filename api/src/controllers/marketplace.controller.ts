@@ -117,7 +117,6 @@ export const getProductDetails = async (req: Request, res: Response) => {
             createdAt: "desc",
           },
         },
-        productAttributes: true,
         productCertificates: true,
       },
     });

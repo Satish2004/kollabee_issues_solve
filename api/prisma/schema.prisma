@@ -334,6 +334,7 @@ model Admin {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+
 model Product {
   id                     String             @id @default(uuid())
   name                   String
@@ -348,6 +349,7 @@ model Product {
   stockStatus            StockStatus        @default(IN_STOCK)
   rating                 Float              @default(0)
   reviewCount            Int                @default(0)
+  attributes             Json?              // JSON field for storing all attributes
   dimensions             String?
   material               String?
   artistName             String?
@@ -374,7 +376,6 @@ model Product {
   orderItems             OrderItem[]
   pickupAddress          PickupAddress?     @relation(fields: [pickupAddressId], references: [id])
   seller                 Seller             @relation(fields: [sellerId], references: [id])
-  productAttributes      ProductAttribute[]
   reviews                Review[]
   wishlistItems          WishlistItem[]
   interestedBuyers       Buyer[]            @relation("BuyerToProduct")
@@ -384,13 +385,7 @@ model Product {
   @@index([pickupAddressId])
 }
 
-model ProductAttribute {
-  id        String  @id @default(uuid())
-  name      String
-  value     String
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-}
+
 
 model PickupAddress {
   id           String    @id @default(uuid())
