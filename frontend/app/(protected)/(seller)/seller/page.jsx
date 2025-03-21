@@ -59,7 +59,7 @@ const Dashboard = () => {
       });
 
       // Update chart data if needed
-      if (analyticsRes.data.orders?.length) {
+      if (analyticsRes.data?.orders?.length) {
         const newChartData = analyticsRes.data.orders.map(order => ({
           name: new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short' }),
           orders: order.totalAmount,

@@ -1,46 +1,85 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-} from "recharts";
-import {
-  Bell,
-  TrendingUp,
-  TrendingDown,
-  AlertCircle,
-  User,
-  CheckCircle,
-  Bug,
-  Info,
-  ArrowRight,
-  ArrowUpRightFromCircle,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import SupplierCards from "../../../../components/buyer/supplier-cards";
-import Link from "next/link";
-import ProductCard from "../../../../components/product/product-card";
+import React, { useEffect, useState } from 'react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import { Bell, TrendingUp, TrendingDown, AlertCircle, User, CheckCircle, Bug, Info, ArrowRight, ArrowUpRightFromCircle } from 'lucide-react';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import SupplierCards from '../../../../components/buyer/supplier-cards';
+import Link from 'next/link';
+import ProductCard from '../../../../components/product/product-card';
+import { wishlistApi } from '@/lib/api/wishlist';
+import { cartApi } from '@/lib/api/cart';
+import { useCheckout } from '@/checkout-context';
+import { productsApi } from '@/lib/api/products';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
-  const [cart, setCart] = useState([]);
+    const [allProducts, setAllProducts] = useState<any[]>([])
+    const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
+    const [isLoading, setIsLoading] = useState(true)
+    const {products, fetchProducts, setProducts } = useCheckout()
+  
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        setIsLoading(true)
+        const response = await productsApi.getProducts()
+        console.log("Response:", response.data);
+        setAllProducts(response.data)
+      } catch (error) {
+        console.error('Failed to fetch products:', error)
+      }
+    }
+    const getWishlistProducts = async () => {
+      try {
+        setIsLoading(true)
+        const response = await wishlistApi.getWishlist()
+        setWishlistProducts(response.items)
+      } catch (error) {
+        console.error('Failed to fetch products:', error)
+      }
+    }
 
-  const isInCart = (productId) => {
-    return cart.some((item) => item.id === productId);
-  };
+    getProducts()
+    getWishlistProducts()
+    fetchProducts()
 
-  const removeFromCart = (productId) => {
-    setCart(cart.filter((item) => item.id !== productId));
-  };
+    if (products && wishlistProducts) {
+      setIsLoading(false)
+    }
+  }, [])
 
+  
+      const isInCart = ( productId: string) => {
+        return products.findIndex((p:any) => p.product.id === productId) > -1
+      }
+  
+      const isInWishlist = ( productId: string) => {
+        return wishlistProducts.findIndex((p:any) => p.product.id === productId) > -1
+      }
+    
+      const removeFromCart = (productId: string) => {
+        const item = products.find((p:any) => p.product.id === productId)
+        const itemId = item?.id
+        cartApi.removeFromCart(itemId)
+        setProducts(products.filter((p:any) => p.id !== itemId))
+      }
+      
+      const removeFromWishlist = (productId: string) => {
+        try {
+          const item = wishlistProducts.find((p:any) => p.product.id === productId)
+          const itemId = item?.id
+          wishlistApi.removeFromWishlist(itemId)
+          setWishlistProducts(wishlistProducts.filter((p:any) => p.id !== itemId))
+        } catch {
+          console.error('Failed to remove product from wishlist')
+        }
+      }
+  
   return (
-    <main className="min-h-screen max-w-7xl bg-gray-50 p-4 md:p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <main className="min-h-screen max-w-5xl bg-gray-50 p-4 md:p-6">
+      <div className=" mx-auto space-y-6">
         {/* Top section with 4 feature boxes */}
         <FeatureBoxes />
 
@@ -102,36 +141,92 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recently Viewed Products */}
-        <div className="space-y-4 bg-white rounded-xl p-5">
-          <h2 className=" font-semibold">Recently Viewed Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product, index) => (
-              <ProductCard
-                key={index}
+    {/* Recently Viewed Products */}
+    <div className="space-y-4 bg-white rounded-xl p-5">
+        <h2 className=" font-semibold">Recently Viewed Products</h2>
+        <div className=" w-full">
+        {isLoading ? ( 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            { Array(4).fill(0).map((_, i) => (
+          <Skeleton key={i} className="h-[450px] w-full bg-gray-200 flex flex-col gap-4 p-4">
+            <Skeleton className="h-40 w-full bg-gray-400" />
+            <Skeleton className="h-4 w-10 bg-gray-400" />
+            <Skeleton className="h-4 w-16 bg-gray-400" />
+            <Skeleton className="h-6 w-32 bg-gray-400" />
+            <Skeleton className="h-8 w-32 bg-gray-400" />
+            <div className='space-y-4'> 
+              <Skeleton className="h-10 w-full bg-gray-400" />
+              <Skeleton className="h-10 w-full bg-gray-400" />
+            </div>
+          </Skeleton>
+        )) }
+        </div> ): (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {
+              allProducts && allProducts.map((product, index) => {
+                console.log("index", product)
+                return (
+                <ProductCard
+                key={index + 1}
                 product={product}
                 isInCart={isInCart}
+                isInWishlist={isInWishlist}
                 removeFromCart={removeFromCart}
-              />
-            ))}
-          </div>
-        </div>
+                removeFromWishlist={removeFromWishlist}
+                setWishlistProducts={setWishlistProducts}
+                wishlistProducts={wishlistProducts}
+              />)
+})
+            }
 
-        {/* Recommended Products */}
-        <div className="space-y-4 bg-white rounded-xl p-5">
-          <h2 className=" font-semibold">Recommended Products</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product, index) => (
-              <ProductCard
-                key={index}
+          </div>
+        )}
+      </div>
+        </div>
+    </div>
+
+    {/* Recommended Products */}
+    <div className="space-y-4 bg-white rounded-xl p-5">
+    <h2 className=" font-semibold">Recommended Products</h2>
+    <div className="w-full">
+    {isLoading ? ( 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            { Array(4).fill(0).map((_, i) => (
+          <Skeleton key={i} className="h-[450px] w-full bg-gray-200 flex flex-col gap-4 p-4">
+            <Skeleton className="h-40 w-full bg-gray-400" />
+            <Skeleton className="h-4 w-10 bg-gray-400" />
+            <Skeleton className="h-4 w-16 bg-gray-400" />
+            <Skeleton className="h-6 w-32 bg-gray-400" />
+            <Skeleton className="h-8 w-32 bg-gray-400" />
+            <div className='space-y-4'> 
+              <Skeleton className="h-10 w-full bg-gray-400" />
+              <Skeleton className="h-10 w-full bg-gray-400" />
+            </div>
+          </Skeleton>
+        )) }
+        </div> ): (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {
+              allProducts && allProducts.map((product, index) => {
+                console.log("index", product)
+                return (
+                <ProductCard
+                key={index + 1}
                 product={product}
                 isInCart={isInCart}
+                isInWishlist={isInWishlist}
                 removeFromCart={removeFromCart}
-              />
-            ))}
+                removeFromWishlist={removeFromWishlist}
+                setWishlistProducts={setWishlistProducts}
+                wishlistProducts={wishlistProducts}
+              />)
+})
+            }
+
           </div>
-        </div>
-      </div>
+        )}
+    </div>
+    </div>
     </main>
   );
 };
@@ -224,38 +319,38 @@ const featureBoxes = [
   },
 ];
 
-const actionCards = [
-  {
-    icon: "👤",
-    bgColor: "bg-red-100",
-    title: "Saved Suppliers",
-    description: "You don't have any suppliers here, saved",
-    link: "#",
-  },
-  {
-    icon: "💬",
-    bgColor: "bg-blue-100",
-    title: "Chat Requests",
-    description: "Your chat requests from the suppliers and admins",
-    link: "#",
-  },
-  {
-    icon: "📱",
-    bgColor: "bg-pink-100",
-    title: "Saved Products",
-    description: "You don't have saved products right now,",
-    link: "#",
-    actionText: "browse products",
-    actionLink: "#",
-  },
-  {
-    icon: "📩",
-    bgColor: "bg-yellow-100",
-    title: "Chat Requests",
-    description: "Your chat requests from the suppliers and admins",
-    link: "#",
-  },
-];
+  const actionCards = [
+    {
+      icon: "👤",
+      bgColor: "bg-red-100",
+      title: "Saved Suppliers",
+      description: "You don't have any suppliers here, saved",
+      link: "#",
+    },
+    {
+      icon: "💬",
+      bgColor: "bg-blue-100",
+      title: "Chat Requests",
+      description: "Your chat requests from the suppliers and admins",
+      link: "#",
+    },
+    {
+      icon: "📱",
+      bgColor: "bg-pink-100",
+      title: "Saved Products",
+      description: "You don't have saved products right now,",
+      link: "/buyer/wishlist",
+      actionText: "browse products",
+      actionLink: "/buyer/marketplace",
+    },
+    {
+      icon: "📩",
+      bgColor: "bg-yellow-100",
+      title: "Chat Requests",
+      description: "Your chat requests from the suppliers and admins",
+      link: "#",
+    },
+  ]
 
 const products = Array(3).fill({
   image: "/placeholder.svg?height=300&width=400",

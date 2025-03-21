@@ -13,7 +13,7 @@ interface AddressCardProps {
 export function AddressCard({ address, isSelected, onSelect }: AddressCardProps) {
   return (
     <div
-      className={`p-4 border rounded-md cursor-pointer ${isSelected ? "border-green-500 bg-green-50" : "border-gray-200"}`}
+      className={`p-4 border rounded-md cursor-pointer ${isSelected ? " bg-red-50" : "border-gray-200"}`}
       onClick={() => onSelect(address.id)}
     >
       <div className="flex items-start">
@@ -37,9 +37,7 @@ export function AddressCard({ address, isSelected, onSelect }: AddressCardProps)
           </p>
           <p className="text-sm text-gray-600">{address.phone}</p>
           <p className="text-sm text-gray-600">{address.email}</p>
-          {address.isDefault && (
-            <span className="inline-block mt-1 text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">Default</span>
-          )}
+
         </div>
       </div>
     </div>

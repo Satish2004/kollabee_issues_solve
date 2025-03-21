@@ -1,9 +1,10 @@
 "use client"
-import React from "react"
+import React, { useEffect, useState } from "react"
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Link from "next/link"
+import { ordersApi } from "@/lib/api/orders"
 
 type Order = {
   id: string
@@ -12,32 +13,6 @@ type Order = {
   total: number
 }
 
-const data: Order[] = [
-  {
-    id: "78A6431D409",
-    orderDate: "Feb 6, 2023",
-    status: "in_progress",
-    total: 2105.9,
-  },
-  {
-    id: "78A6431D409",
-    orderDate: "Feb 6, 2023",
-    status: "delivered",
-    total: 2105.9,
-  },
-  {
-    id: "78A6431D409",
-    orderDate: "Feb 6, 2023",
-    status: "cancelled",
-    total: 2105.9,
-  },
-  {
-    id: "78A6431D409",
-    orderDate: "Feb 6, 2023",
-    status: "in_progress",
-    total: 2105.9,
-  },
-]
 
 const columns: ColumnDef<Order>[] = [
   {
@@ -45,8 +20,16 @@ const columns: ColumnDef<Order>[] = [
     header: "Order#",
   },
   {
-    accessorKey: "orderDate",
+    accessorKey: "createdAt",
     header: "Order Date",
+    cell: ({ row }) => {
+      const createdAt = row.getValue("createdAt") as string
+      return (
+        <div className="flex items-center gap-2">
+          <span>{formatDate(createdAt)}</span>
+        </div>
+      )
+    }
   },
   {
     accessorKey: "status",
@@ -68,10 +51,10 @@ const columns: ColumnDef<Order>[] = [
     },
   },
   {
-    accessorKey: "total",
+    accessorKey: "totalAmount",
     header: "Total",
     cell: ({ row }) => {
-      const amount = Number.parseFloat(row.getValue("total"))
+      const amount = Number.parseFloat(row.getValue("totalAmount"))
       const formatted = new Intl.NumberFormat("en-US", {
         style: "currency",
         currency: "USD",
@@ -98,8 +81,20 @@ const columns: ColumnDef<Order>[] = [
 ]
 
 export default function OrdersTable() {
+
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    const fetchOrders = async () => {
+      const response = await ordersApi.getOrders();
+      console.log("Response:", response);
+      setOrders(response?.orders);
+    }
+    fetchOrders();
+  }, []);
+
   const table = useReactTable({
-    data,
+    data: orders,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
@@ -108,7 +103,7 @@ export default function OrdersTable() {
     <div className="space-y-4 bg-white p-5 rounded-xl">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Orders</h2>
-        <span className="text-gray-500">({data.length})</span>
+        <span className="text-gray-500">({orders.length})</span>
       </div>
       <div className="w-full">
         <div className="w-full rounded-md">
@@ -154,3 +149,11 @@ export default function OrdersTable() {
   )
 }
 
+const formatDate = (date: string) => {
+  const dateObj = new Date(date);
+  return dateObj.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+}

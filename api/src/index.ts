@@ -1,4 +1,5 @@
-import express from "express";
+import express, { Application, Request, Response, NextFunction } from "express";
+import http from "http";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -7,13 +8,12 @@ import rateLimit from "express-rate-limit";
 import path from "path";
 import prisma from "./db/index";
 import { setupRoutes } from "./routes";
-import "dotenv/config";
-import fs from "fs";
+import { Server } from "socket.io";
+import { handleSocketConnection } from "./sockets";
 
-const app = express();
+const app: Application = express();
 
 // Basic middleware
-
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -28,7 +28,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // <== Allow cookies and auth headers
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -36,11 +36,7 @@ app.use(
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow images to be served
-  })
-);
+app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 
@@ -55,33 +51,45 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Error handling middleware
-app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Something broke!" });
-  }
-);
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Something broke!" });
+});
 
 // Setup all routes
 setupRoutes(app);
 
-// Export for Vercel
-export default app;
+// Create HTTP server
+const port = process.env.PORT || 2000;
+const server = http.createServer(app);
 
-let port = process.env.PORT;
-
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`Server running on port ${port}`);
+});
+
+// Initialize Socket.IO and attach it to the server
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+// Set up Socket.io connection handler
+io.on("connection", (socket) => {
+  console.log("A client connected:", socket.id);
+  handleSocketConnection(socket, io, prisma);
 });
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
-  prisma.$disconnect();
-  process.exit(0);
+  server.close(() => {
+    console.log("HTTP server closed");
+    prisma.$disconnect().then(() => {
+      console.log("Prisma disconnected");
+      process.exit(0);
+    });
+  });
 });
