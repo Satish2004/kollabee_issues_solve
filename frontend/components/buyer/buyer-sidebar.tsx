@@ -20,7 +20,7 @@ import {
   Package,
   User2,
   Users2,
-  MessagesSquare
+  MessagesSquare,
 } from "lucide-react";
 import { BsFillCartCheckFill } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
@@ -49,22 +49,21 @@ export function BuyerSidebar({ className }: SidebarProps) {
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleLogout = async () => {
     try {
       await authApi.logout(); // Add logout endpoint to authApi if not exists
-      router.push('/login');
+      router.push("/login");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
   const routes = [
     {
-      label: "MAIN",
       routes: [
         {
           label: "Dashboard",
@@ -138,7 +137,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
               width={isCollapsed ? 40 : 150}
               height={40}
               className="rounded-full cursor-pointer"
-              onClick={()=>router.push("/seller")}
+              onClick={() => router.push("/seller")}
             />
           </div>
           <Button
@@ -157,17 +156,17 @@ export function BuyerSidebar({ className }: SidebarProps) {
         </div>
 
         <div className="flex flex-1 flex-col gap-6">
-          {routes.map((group) => (
-            <div key={group.label} className="flex flex-col gap-2">
+          {routes.map((group, groupIndex) => (
+            <div key={groupIndex} className="flex flex-col gap-2">
               {!isCollapsed && (
                 <span className="text-xs text-muted-foreground">
                   {group.label}
                 </span>
               )}
               <div className="flex flex-col gap-1">
-                {group.routes.map((route) => (
+                {group.routes.map((route, routeIndex) => (
                   <Link
-                    key={route.href}
+                    key={routeIndex}
                     href={route.href}
                     className={`${cn(
                       "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent text-[#78787A]",

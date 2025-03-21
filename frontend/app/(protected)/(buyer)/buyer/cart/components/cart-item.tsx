@@ -56,7 +56,7 @@ export function CartItem({
     <div className="flex items-center py-4 border-b">
       <div className="flex items-center flex-1">
         <div className="w-12 h-12 mr-4 relative">
-          <Image src={"/placeholder.png"} alt={name} fill className="object-cover rounded-md" />
+          <Image src={image || "/placeholder.png"} alt={name} fill className="object-cover rounded-md" />
         </div>
         <span className="font-medium">{name}</span>
       </div>

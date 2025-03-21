@@ -1,6 +1,8 @@
 "use client"
 
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { cartApi } from "@/lib/api/cart"
+import { addressApi } from "@/lib/api/address"
 
 // Types
 export interface Product {
@@ -15,13 +17,14 @@ export interface Address {
   id: string
   firstName: string
   lastName: string
+  companyName: string
   email: string
   address: string
   city: string
   state: string
+  country: string
   zipCode: string
-  phone: string
-  isDefault?: boolean
+  phoneNumber: string
 }
 
 export interface OrderSummary {
@@ -37,6 +40,7 @@ interface CheckoutContextType {
   setCurrentStep: (step: number) => void
   // Cart state
   products: Product[]
+  setProducts: (products: Product[]) => void
   addProduct: (product: Product) => void
   removeProduct: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
@@ -51,6 +55,8 @@ interface CheckoutContextType {
 
   // Order summary
   orderSummary: OrderSummary
+  orderId: string
+  setOrderId: (id: string) => void
 
   // Loading states
   isLoading: boolean
@@ -67,11 +73,13 @@ const defaultAddress: Address = {
   firstName: "",
   lastName: "",
   email: "",
+  companyName: "",
   address: "",
   city: "",
+  country: "",
   state: "",
   zipCode: "",
-  phone: "",
+  phoneNumber: "",
 }
 
 const defaultOrderSummary: OrderSummary = {
@@ -99,13 +107,15 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   // Order summary
   const [orderSummary, setOrderSummary] = useState<OrderSummary>(defaultOrderSummary)
+  const [orderId, setOrderId] = useState<string | null>(null)
+  
 
   // Loading state
   const [isLoading, setIsLoading] = useState(false)
 
   // Update order summary whenever products change
   useEffect(() => {
-    const subtotal = products.reduce((sum, product) => sum + product.price * product.quantity, 0)
+    const subtotal = products.reduce((sum, product) => sum + product.product.price * product.quantity, 0)
     const totalQuantity = products.reduce((sum, product) => sum + product.quantity, 0)
     const discount = 0 // Could be calculated based on promo codes, etc.
     const shippingCost = totalQuantity >= 1000 ? 0 : 50
@@ -160,45 +170,28 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     })
   }
 
-  const addNewAddress = (address: Address) => {
-    const newAddress = { ...address, id: address.id || `addr-${Date.now()}` }
-    setSavedAddresses((prev) => [...prev, newAddress])
-    setSelectedAddressId(newAddress.id)
+  const addNewAddress = async (address: Address) => {
+    try {
+      console.log(address)
+      const newAddress = { ...address, type: 'SHIPPING'}
+      setSavedAddresses((prev) => [...prev, newAddress])
+      setSelectedAddressId(newAddress.firstName)
+      console.log("New address:", newAddress)
+      const response = await addressApi.createAddress(newAddress)
+      console.log("Response:", response)
+    }
+    catch (error) {
+      console.error("Failed to add new address:", error)
+    }
   }
 
   // API methods
   const fetchProducts = async () => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 500))
 
-      // Mock data
-      const mockProducts: Product[] = [
-        {
-          id: "1",
-          name: "T-Shirt",
-          image: "/placeholder.svg?height=100&width=100",
-          price: 12,
-          quantity: 20000,
-        },
-        {
-          id: "2",
-          name: "Shipwreck Edibles",
-          image: "/placeholder.svg?height=100&width=100",
-          price: 0.04065,
-          quantity: 123333,
-        },
-        {
-          id: "3",
-          name: "Shipwreck Edibles",
-          image: "/placeholder.svg?height=100&width=100",
-          price: 0.04065,
-          quantity: 123333,
-        },
-      ]
-
-      setProducts(mockProducts)
+      const response = await cartApi.getCart()
+      setProducts(response?.items)
     } catch (error) {
       console.error("Failed to fetch products:", error)
     } finally {
@@ -209,41 +202,12 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
   const fetchAddresses = async () => {
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 300))
-
-      // Mock data
-      const mockAddresses: Address[] = [
-        {
-          id: "addr-1",
-          firstName: "John",
-          lastName: "Doe",
-          email: "john.doe@example.com",
-          address: "123 Main St",
-          city: "New York",
-          state: "NY",
-          zipCode: "10001",
-          phone: "(123) 456-7890",
-          isDefault: true,
-        },
-        {
-          id: "addr-2",
-          firstName: "Jane",
-          lastName: "Smith",
-          email: "jane.smith@example.com",
-          address: "456 Park Ave",
-          city: "Boston",
-          state: "MA",
-          zipCode: "02108",
-          phone: "(987) 654-3210",
-          isDefault: false,
-        },
-      ]
-
-      setSavedAddresses(mockAddresses)
+      const response = await addressApi.getAddresses()
+      console.log("Response:", response)
+      setSavedAddresses(response)
 
       // Set default address
-      const defaultAddr = mockAddresses.find((addr) => addr.isDefault)
+      const defaultAddr = response[0];
       if (defaultAddr) {
         setSelectedAddressId(defaultAddr.id)
       }
@@ -281,6 +245,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   const value = {
     products,
+    setProducts,
     addProduct,
     removeProduct,
     updateQuantity,
@@ -291,6 +256,8 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     updateCurrentAddress,
     addNewAddress,
     orderSummary,
+    orderId,
+    setOrderId,
     isLoading,
     fetchProducts,
     fetchAddresses,

@@ -6,6 +6,7 @@ export const cartApi = {
   },
 
   addToCart: async (data: { productId: string; quantity: number }) => {
+    console.log("add to cart is called")
     return api.post('/cart', data);
   },
 
@@ -14,6 +15,7 @@ export const cartApi = {
   },
 
   removeFromCart: async (itemId: string) => {
+    console.log("remove cart is called")
     return api.delete(`/cart/items/${itemId}`);
   },
 

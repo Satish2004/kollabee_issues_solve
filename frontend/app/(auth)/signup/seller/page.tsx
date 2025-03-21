@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 
 import { toast } from "sonner";
@@ -27,6 +27,8 @@ export default function SignupSellerPage() {
     lastName: "",
     email: "",
     phone: "",
+    country: "India",
+    countryCode: "+91",
     password: "",
     confirmPassword: "",
     role: "",
@@ -90,10 +92,8 @@ export default function SignupSellerPage() {
       toast.error("Email already verified");
       return;
     }
-    console.log("API_URL", process.env.API_URL);
     setGenerateOTPLoading(true);
     try {
-      console.log("authApi: ", authApi);
       await authApi.generateOTP(formData.email);
       setShowOTP(true);
       setCountdown(30);

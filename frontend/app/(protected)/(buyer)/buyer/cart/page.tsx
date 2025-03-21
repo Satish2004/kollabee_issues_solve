@@ -8,6 +8,7 @@ import { CheckoutProvider, useCheckout } from "../../../../../checkout-context"
 import { ShoppingCart } from "./components/shopping-cart"
 import { ShippingAddress } from "./components/shipping-address"
 import { Payment } from "./components/payment"
+import OrderConfirmation from "./components/order-confirmation"
 
 export default function CheckoutStepper() {
 
@@ -35,12 +36,7 @@ export default function CheckoutStepper() {
       case 3:
         return <Payment onNext={() => setCurrentStep(4)} />
       case 4:
-        return (
-          <div className="text-center py-8">
-            <h2 className="text-2xl font-bold mb-4">Thank you for your order!</h2>
-            <p className="text-gray-600">Your order has been placed successfully.</p>
-          </div>
-        )
+        return <OrderConfirmation />
       default:
         return null
     }
