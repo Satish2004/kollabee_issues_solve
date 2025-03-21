@@ -4,9 +4,12 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { Resend } from "resend";
 
 declare module "bcryptjs";
 declare module "jsonwebtoken";
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Validation schemas
 const signupSchema = z.object({
@@ -243,7 +246,11 @@ export const logout = async (req: Request, res: Response) => {
 export const forgotPassword = async (req: Request, res: Response) => {
   try {
     const { email } = req.body;
-    const user = await prisma.user.findUnique({ where: { email } });
+
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -254,10 +261,25 @@ export const forgotPassword = async (req: Request, res: Response) => {
       expiresIn: "1h",
     });
 
-    // Here you would typically send an email with the reset link
-    // For now, just return the token
-    res.json({ message: "Password reset email sent", resetToken });
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    // Send email using Resend
+    const emailResponse = await resend.emails.send({
+      from: "hello@tejasgk.com",
+      to: email,
+      subject: "Password Reset",
+      html: `<p>Click the link below to reset your password:</p>
+             <a href="${resetLink}">${resetLink}</a>`,
+    });
+
+    if (emailResponse.error) {
+      console.log("Email error:", emailResponse.error);
+      return res.status(500).json({ error: "Failed to send email" });
+    }
+
+    res.json({ message: "Password reset email sent" });
   } catch (error) {
+    console.error("Error:", error);
     res.status(500).json({ error: "Failed to process password reset" });
   }
 };

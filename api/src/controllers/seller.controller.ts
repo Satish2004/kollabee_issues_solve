@@ -34,7 +34,6 @@ export const getSellerProducts = async (req: any, res: Response) => {
       where,
       include: {
         pickupAddress: true,
-        productAttributes: true,
         productCertificates: true,
         reviews: {
           include: {
@@ -342,17 +341,9 @@ export const createProduct = async (req: any, res: Response) => {
         ...(pickupAddressId && {
           pickupAddress: { connect: { id: pickupAddressId } },
         }),
-        ...(productAttributes && {
-          productAttributes: {
-            createMany: {
-              data: productAttributes,
-            },
-          },
-        }),
       },
       include: {
         pickupAddress: true,
-        productAttributes: true,
       },
     });
 
