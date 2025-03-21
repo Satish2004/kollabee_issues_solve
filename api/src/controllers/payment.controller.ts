@@ -1,34 +1,48 @@
-import { Request, Response } from "express";
-import prisma from "../db";
-import Razorpay from "razorpay";
-import crypto from "crypto";
+import { Request, Response } from 'express';
+import prisma from '../db';
+import Razorpay from 'razorpay';
+import crypto from 'crypto';
 import Stripe from "stripe";
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_SECRET!,
+  key_secret: process.env.RAZORPAY_SECRET!
 });
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export const createCheckoutSession = async (req: any, res: Response) => {
   try {
     if (!req.user?.buyerId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { amount, products, currency } = req.body;
+
+
+    const { amount, products, currency, customerAddress, customerName } = req.body;
 
     if (currency.length !== 3) {
-      return res.status(400).json({ error: "Invalid currency format" });
+      return res.status(400).json({ error: 'Invalid currency format' });
     }
 
     // Create a Stripe PaymentIntent
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount * 100, // Convert to smallest currency unit
+      description: "Payment for products",
+      shipping: {
+        name: customerName,
+        address: {
+          line1: customerAddress.line1,
+          line2: customerAddress.line2,
+          city: customerAddress.city,
+          state: customerAddress.state,
+          postal_code: customerAddress.postalCode,
+          country: customerAddress.country,
+        },
+      },
       currency: currency.toLowerCase(),
       metadata: {
-        productIds: products.map((product: any) => product.id).join(","),
+        productIds: products.map((product: any) => product.id).join(','),
         buyerId: req.user.buyerId,
       },
     });
@@ -37,7 +51,7 @@ export const createCheckoutSession = async (req: any, res: Response) => {
     const order = await prisma.order.create({
       data: {
         buyerId: req.user.buyerId,
-        status: "PENDING",
+        status: 'PENDING',
         totalAmount: Number(amount),
         stripePaymentIntentId: paymentIntent.id,
         items: {
@@ -53,18 +67,19 @@ export const createCheckoutSession = async (req: any, res: Response) => {
       },
     });
 
+
     res.json({ clientSecret: paymentIntent.client_secret, order });
   } catch (error) {
-    console.error("Create checkout session error:", error);
-    res.status(500).json({ error: "Failed to create checkout session" });
+    console.error('Create checkout session error:', error);
+    res.status(500).json({ error: 'Failed to create checkout session' });
   }
 };
 
 // export const handlePaymentCallback = async (req: any, res: Response) => {
 //   try {
-//     const {
+//     const { 
 //       response: { razorpay_order_id, razorpay_payment_id, razorpay_signature },
-//       formData
+//       formData 
 //     } = req.body;
 
 //     if (!razorpay_order_id) {
@@ -83,7 +98,7 @@ export const createCheckoutSession = async (req: any, res: Response) => {
 
 //     // Update order status
 //     const updatedOrder = await prisma.order.update({
-//       where: {
+//       where: { 
 //         id: existingOrder.id
 //       },
 //       data: {
@@ -102,7 +117,7 @@ export const createCheckoutSession = async (req: any, res: Response) => {
 export const getBankDetails = async (req: any, res: Response) => {
   try {
     if (!req.user?.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const bankDetails = await prisma.bankDetail.findMany({
@@ -111,14 +126,14 @@ export const getBankDetails = async (req: any, res: Response) => {
 
     res.json(bankDetails);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch bank details" });
+    res.status(500).json({ error: 'Failed to fetch bank details' });
   }
 };
 
 export const addBankDetail = async (req: any, res: Response) => {
   try {
     if (!req.user?.userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const {
@@ -129,7 +144,7 @@ export const addBankDetail = async (req: any, res: Response) => {
       accountNumber,
       cvCode,
       upiId,
-      zipCode,
+      zipCode
     } = req.body;
 
     const bankDetail = await prisma.bankDetail.create({
@@ -142,14 +157,14 @@ export const addBankDetail = async (req: any, res: Response) => {
         cvCode,
         upiId: upiId || "",
         zipCode,
-        userId: req.user.userId,
+        userId: req.user.userId
       },
     });
 
     res.json(bankDetail);
   } catch (error) {
-    console.error("Add bank detail error:", error);
-    res.status(500).json({ error: "Failed to add bank detail" });
+    console.error('Add bank detail error:', error);
+    res.status(500).json({ error: 'Failed to add bank detail' });
   }
 };
 
@@ -200,14 +215,14 @@ export const handlePaymentConfirmation = async (req: any, res: Response) => {
     const { paymentIntentId } = req.body;
 
     if (!paymentIntentId) {
-      return res.status(400).json({ error: "Invalid request" });
+      return res.status(400).json({ error: 'Invalid request' });
     }
 
     // Retrieve the PaymentIntent from Stripe
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-    if (paymentIntent.status !== "succeeded") {
-      return res.status(400).json({ error: "Payment not succeeded" });
+    if (paymentIntent.status !== 'succeeded') {
+      return res.status(400).json({ error: 'Payment not succeeded' });
     }
 
     // Find the order in the database
@@ -218,7 +233,7 @@ export const handlePaymentConfirmation = async (req: any, res: Response) => {
     });
 
     if (!existingOrder) {
-      return res.status(404).json({ error: "Order not found" });
+      return res.status(404).json({ error: 'Order not found' });
     }
 
     // Update the order status
@@ -227,15 +242,15 @@ export const handlePaymentConfirmation = async (req: any, res: Response) => {
         id: existingOrder.id,
       },
       data: {
-        status: "PROCESSING",
+        status: 'PROCESSING',
         stripePaymentId: paymentIntent.id,
       },
     });
 
     res.json({ success: true, order: updatedOrder });
   } catch (error) {
-    console.error("Payment confirmation error:", error);
-    res.status(500).json({ error: "Failed to confirm payment" });
+    console.error('Payment confirmation error:', error);
+    res.status(500).json({ error: 'Failed to confirm payment' });
   }
 };
 
@@ -260,13 +275,13 @@ export const getPaymentDetails = async (req: any, res: Response) => {
     });
 
     if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+      return res.status(404).json({ error: 'Order not found' });
     }
 
     res.json(order);
   } catch (error) {
-    console.error("Get payment details error:", error);
-    res.status(500).json({ error: "Failed to get payment details" });
+    console.error('Get payment details error:', error);
+    res.status(500).json({ error: 'Failed to get payment details' });
   }
 };
 
@@ -275,15 +290,15 @@ export const updateBankDetails = async (req: any, res: Response) => {
     const { bankId, ...bankDetails } = req.body;
     const updatedBank = await prisma.bankDetail.update({
       where: { id: bankId },
-      data: bankDetails,
+      data: bankDetails
     });
 
     res.json(updatedBank);
   } catch (error) {
-    console.error("Update bank details error:", error);
-    res.status(500).json({ error: "Failed to update bank details" });
+    console.error('Update bank details error:', error);
+    res.status(500).json({ error: 'Failed to update bank details' });
   }
-};
+}; 
 
 export const createPaymentIntent = async (req: any, res: Response) => {
   const { amount, currency, paymentMethodId, productIds, userId } = req.body;
@@ -296,7 +311,7 @@ export const createPaymentIntent = async (req: any, res: Response) => {
         userId,
         productIds,
       },
-    });
+    })
 
     // Create a PaymentIntent with Stripe
     const paymentIntent = await stripe.paymentIntents.create({
@@ -309,15 +324,11 @@ export const createPaymentIntent = async (req: any, res: Response) => {
         userId,
         productIds: JSON.stringify(productIds),
       },
-    });
+    })
 
-    res.status(200).json({
-      success: true,
-      clientSecret: paymentIntent.client_secret,
-      orderId: transaction.id,
-    });
+    res.status(200).json({ success: true, clientSecret: paymentIntent.client_secret, orderId: transaction.id })
   } catch (error) {
-    console.error("Create payment intent error:", error);
-    res.status(500).json({ error: "Failed to create payment intent" });
+    console.error('Create payment intent error:', error);
+    res.status(500).json({ error: 'Failed to create payment intent' });
   }
 };

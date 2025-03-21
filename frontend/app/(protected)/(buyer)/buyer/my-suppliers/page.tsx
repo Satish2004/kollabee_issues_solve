@@ -5,6 +5,7 @@ import { productsApi } from '@/lib/api/products';
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCheckout } from '@/checkout-context';
 import { cartApi } from '@/lib/api/cart';
+import { wishlistApi } from '@/lib/api/wishlist';
 import { set } from 'date-fns';
 import ProductFilters from './product-filters';
 
@@ -35,11 +36,22 @@ export interface FilterState {
     max: string
   }
   minOrders: string
+  countries: {
+    china: boolean
+    hongKong: boolean
+    india: boolean
+    pakistan: boolean
+    uk: boolean
+    us: boolean
+    vietnam: boolean
+  }
+  countrySearch: string
 }
 
 
 function page() {
   const [allProducts, setAllProducts] = useState<any[]>([])
+  const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const {products, fetchProducts, setProducts } = useCheckout()
   const [filters, setFilters] = useState<FilterState>({
@@ -76,14 +88,29 @@ function page() {
       try {
         setIsLoading(true)
         const response = await productsApi.getProducts()
+        console.log("Response:", response.data);
         setAllProducts(response.data)
-        setIsLoading(false)
       } catch (error) {
         console.error('Failed to fetch products:', error)
       }
     }
+    const getWishlistProducts = async () => {
+      try {
+        setIsLoading(true)
+        const response = await wishlistApi.getWishlist()
+        setWishlistProducts(response.items)
+      } catch (error) {
+        console.error('Failed to fetch products:', error)
+      }
+    }
+
     getProducts()
+    getWishlistProducts()
     fetchProducts()
+
+    if (products && wishlistProducts) {
+      setIsLoading(false)
+    }
   }, [])
 
   
@@ -140,12 +167,23 @@ function page() {
     return products.findIndex((p:any) => p.product.id === productId) > -1
   }
 
-  const removeFromCart = (productId: string) => {
-    const item = products.find((p:any) => p.product.id === productId)
-    const itemId = item?.id
-    cartApi.removeFromCart(itemId)
-    setProducts(products.filter((p:any) => p.id !== itemId))
-  }
+    const isInWishlist = ( productId: string) => {
+      return wishlistProducts.findIndex((p:any) => p.product.id === productId) > -1
+    }
+  
+    const removeFromCart = (productId: string) => {
+      const item = products.find((p:any) => p.product.id === productId)
+      const itemId = item?.id
+      cartApi.removeFromCart(itemId)
+      setProducts(products.filter((p:any) => p.id !== itemId))
+    }
+    
+    const removeFromWishlist = (productId: string) => {
+      const item = wishlistProducts.find((p:any) => p.product.id === productId)
+      const itemId = item?.id
+      wishlistApi.removeFromWishlist(itemId)
+      setWishlistProducts(wishlistProducts.filter((p:any) => p.id !== itemId))
+    }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -168,10 +206,22 @@ function page() {
         </div> ): (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {
-              allProducts.map((product, index) => (
-                <ProductCard key={index} product={product} isInCart={isInCart} removeFromCart={removeFromCart} />
-              ))
+              allProducts && allProducts.map((product, index) => {
+                console.log("index", product)
+                return (
+                <ProductCard
+                key={index + 1}
+                product={product}
+                isInCart={isInCart}
+                isInWishlist={isInWishlist}
+                removeFromCart={removeFromCart}
+                removeFromWishlist={removeFromWishlist}
+                setWishlistProducts={setWishlistProducts}
+                wishlistProducts={wishlistProducts}
+              />)
+})
             }
+
           </div>
         )}
       </div>

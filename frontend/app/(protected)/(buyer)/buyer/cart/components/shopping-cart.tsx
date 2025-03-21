@@ -20,6 +20,8 @@ export function ShoppingCart({ onNext }: ShoppingCartProps) {
     }
   }, [])
 
+  console.log(products)
+
   if (isLoading && products.length === 0) {
     return (
       <div className="grid md:grid-cols-3 gap-6">
