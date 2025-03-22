@@ -1,5 +1,4 @@
 import express, { Application, Request, Response, NextFunction } from "express";
-import http from "http";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -51,7 +50,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error(err.stack);
   res.status(500).json({ error: "Something broke!" });
 });
@@ -59,37 +58,34 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 // Setup all routes
 setupRoutes(app);
 
-// Create HTTP server
-const port = process.env.PORT || 2000;
-const server = http.createServer(app);
+// Start server
+if (process.env.NODE_ENV !== "production") {
+  const port = process.env.PORT || 2000;
 
-server.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
+  // Create an HTTP server using app.listen()
+  const server = app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 
-// Initialize Socket.IO and attach it to the server
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
-    methods: ["GET", "POST"],
-    credentials: true,
-  },
-});
+  // Initialize Socket.IO and attach it to the server
+  const io = new Server(server, {
+    cors: {
+      origin: process.env.FRONTEND_URL || "http://localhost:3000",
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
 
-// Set up Socket.io connection handler
-io.on("connection", (socket) => {
-  console.log("A client connected:", socket.id);
-  handleSocketConnection(socket, io, prisma);
-});
+  // Set up Socket.io connection handler
+  io.on("connection", (socket) => {
+    console.log("A client connected:", socket.id);
+    handleSocketConnection(socket, io, prisma);
+  });
+}
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
   console.log("SIGTERM signal received: closing HTTP server");
-  server.close(() => {
-    console.log("HTTP server closed");
-    prisma.$disconnect().then(() => {
-      console.log("Prisma disconnected");
-      process.exit(0);
-    });
-  });
+  prisma.$disconnect();
+  process.exit(0);
 });

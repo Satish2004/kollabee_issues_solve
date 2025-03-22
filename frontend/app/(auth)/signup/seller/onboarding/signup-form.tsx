@@ -279,15 +279,17 @@ export function SignupForm({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Backspace") {
-        setSearch((prev) => prev.slice(0, -1)); // Remove the last character
-      } else {
-        setSearch((prev) => prev + event.key);
+      const { key } = event;
+  
+      if (/^[a-zA-Z0-9]$/.test(key)) {
+        setSearch((prev) => prev + key);
+      } else if (key === "Backspace") {
+        setSearch((prev) => prev.slice(0, -1));
       }
     };
-
+  
     if (isSelecting) window.addEventListener("keydown", handleKeyDown);
-
+  
     return () => {
       if (isSelecting) window.removeEventListener("keydown", handleKeyDown);
     };
@@ -635,7 +637,7 @@ export function SignupForm({
                     {formData.countryCode || "+1"}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2">
+                <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2 bg-white">
                   {isSelecting && (
                     <input
                       autoFocus
@@ -688,7 +690,7 @@ export function SignupForm({
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168] disabled:opacity-50"
+          className="rounded-[6px] text-white px-8 py-2 button-bg font-semibold disabled:opacity-50"
           onClick={handleSubmit}
           // disabled={isSubmitting || Object.keys(errors).length > 0}
         >
