@@ -41,7 +41,7 @@ export function LandingNavbar() {
 
           {/* Get Started Button */}
           <Button size="lg" className="bg-gradient-to-r from-[#930a72] via-[#db4d60] to-[#f2bc6d] text-white hover:opacity-90 font-semibold text-lg h-14">
-            <Link href="/signup">Get Started</Link>
+            <Link href="/login">Get Started</Link>
           </Button>
         </nav>
       </div>
