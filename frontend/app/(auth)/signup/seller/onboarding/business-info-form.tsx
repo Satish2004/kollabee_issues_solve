@@ -5,6 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info } from "lucide-react";
 import { CategoryEnum, BusinessType } from "@/types/api";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -118,7 +124,16 @@ export function BusinessInfoForm({
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
               Business Name<span className="text-destructive">*</span>
-              <Info className="w-4 h-4 text-muted-foreground" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200  max-w-sm">
+                    <p>Enter the official name of your business as it appears on legal documents and branding materials. This name will be visible to customers</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </label>
             <Input
               placeholder="Enter your Business Name"
@@ -140,7 +155,16 @@ export function BusinessInfoForm({
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
               Website Link<span className="text-destructive">*</span>
-              <Info className="w-4 h-4 text-muted-foreground" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200 max-w-sm">
+                    <p>Enter the complete URL of your business website (e.g., https://yourbusiness.com). Ensure the link is valid and accessible to customers.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </label>
             <Input
               placeholder="Enter your Website Link"
@@ -200,7 +224,16 @@ export function BusinessInfoForm({
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
               Business Address<span className="text-destructive">*</span>
-              <Info className="w-4 h-4 text-muted-foreground" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger> 
+                  <TooltipContent className="bg-gray-200  max-w-sm">
+                    <p>Provide the full physical address of your business location, including street, city, state, and ZIP code. This helps customers find your business.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </label>
             <Input
               placeholder="Enter your Business Address"
