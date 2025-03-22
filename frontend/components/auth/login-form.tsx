@@ -124,7 +124,7 @@ export function LoginForm() {
 
           <Button
             type="submit"
-            className="w-full bg-gradient-to-r from-[#950a73] via-[#e36d5d] to-[#f1b56a] text-white hover:opacity-90 rounded-[6px] font-semibold"
+            className="w-full button-bg text-white hover:opacity-90 rounded-[6px] font-semibold"
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Log in"}

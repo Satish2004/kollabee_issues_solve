@@ -25,6 +25,10 @@ import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { authApi } from "@/lib/api/auth";
 import { removeToken } from "@/lib/utils/token";
+import { HiChatBubbleLeftRight } from "react-icons/hi2";
+import { PiChatCenteredDotsFill } from "react-icons/pi";
+import { IoStorefront } from "react-icons/io5";
+
 
 type SidebarProps = {
   className?: string;
@@ -69,7 +73,7 @@ export function SellerSidebar({ className }: SidebarProps) {
         },
         {
           label: "Your Products",
-          icon: Store,
+          icon: IoStorefront,
           href: "/seller/products",
           className: "tour-products"
         },
@@ -80,13 +84,13 @@ export function SellerSidebar({ className }: SidebarProps) {
         // },
         {
           label: "Messages",
-          icon: MessageSquare,
+          icon: HiChatBubbleLeftRight,
           href: "/seller/chat",
           className: "tour-chat"
         },
         {
           label: "Requests",
-          icon: MessageSquare,
+          icon: PiChatCenteredDotsFill,
           href: "/seller/request",
           className: "tour-requests"
         },

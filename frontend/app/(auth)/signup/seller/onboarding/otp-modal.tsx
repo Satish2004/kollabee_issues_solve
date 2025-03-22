@@ -104,7 +104,7 @@ export function OTPModal({
           </div>
 
           <Button
-            className="w-full bg-gradient-to-r from-[#B01B1B] to-[#FF9900] hover:from-[#B01B1B]/90 hover:to-[#FF9900]/90"
+            className="w-full button-bg text-white font-semibold hover:from-[#B01B1B]/90 hover:to-[#FF9900]/90"
             onClick={onVerify}
             disabled={otp.some((digit) => !digit) || isVerifying}
           >

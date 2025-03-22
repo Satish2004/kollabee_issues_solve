@@ -29,6 +29,8 @@ import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { authApi } from "@/lib/api/auth";
 import { removeToken } from "@/lib/utils/token";
+import { HiChatBubbleLeftRight } from "react-icons/hi2";
+import { IoStorefront } from "react-icons/io5";
 
 type SidebarProps = {
   className?: string;
@@ -72,7 +74,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
         },
         {
           label: "Marketplace",
-          icon: Store,
+          icon: IoStorefront,
           href: "/buyer/marketplace",
           // className: "tour-products"
         },
@@ -90,7 +92,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
         },
         {
           label: "Messages",
-          icon: MessagesSquare,
+          icon: HiChatBubbleLeftRight,
           href: "/buyer/chat",
           // className: "tour-requests"
         },
