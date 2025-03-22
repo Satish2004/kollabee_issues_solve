@@ -92,7 +92,7 @@ function page() {
         )}
       </div>
     </div>
-  )
+  );
 }
 
 export default page

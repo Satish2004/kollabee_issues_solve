@@ -27,7 +27,8 @@ export default function SignupSellerPage() {
     lastName: "",
     email: "",
     phone: "",
-    countryCode: "",
+    country: "India",
+    countryCode: "+91",
     password: "",
     confirmPassword: "",
     role: "",
@@ -91,10 +92,8 @@ export default function SignupSellerPage() {
       toast.error("Email already verified");
       return;
     }
-    console.log("API_URL", process.env.API_URL);
     setGenerateOTPLoading(true);
     try {
-      console.log("authApi: ", authApi);
       await authApi.generateOTP(formData.email);
       setShowOTP(true);
       setCountdown(30);

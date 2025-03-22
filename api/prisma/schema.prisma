@@ -1,0 +1,627 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String                    @id @default(uuid())
+  email            String                    @unique
+  name             String?
+  role             Role                      @default(BUYER)
+  companyName      String?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  companyWebsite   String?
+  country          String?
+  displayName      String?
+  fullName         String?
+  imageUrl         String?
+  phoneNumber      String?
+  secondaryEmail   String?
+  state            String?
+  address          String?
+  zipCode          String?
+  lastLogin        DateTime?
+  password         String?
+  aiPreferences    AIMatchingPreference?
+  addresses        Address[]
+  admin            Admin?
+  analytics        Analytics[]
+  bankDetails      BankDetail[]
+  buyer            Buyer?
+  notifications    Notification[]
+  seller           Seller?
+  subscription     Subscription?
+  subscribe        SubscriptionTransaction[]
+  messages         Message[]
+  conversations    ConversationParticipant[]
+}
+
+model Address {
+  id          String          @id @default(uuid())
+  firstName   String
+  lastName    String
+  companyName String?
+  address     String
+  country     String
+  state       String
+  city        String
+  zipCode     String
+  email       String
+  phoneNumber String
+  userId      String
+  type        AddressTypeEnum
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type])
+}
+
+model Category {
+  id           String       @id @default(uuid())
+  categoryName CategoryEnum
+  buyers       Buyer[]      @relation("InterestedCategories")
+}
+
+model Conversation {
+  id            String                  @id @default(uuid())
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  participants  ConversationParticipant[]
+  messages      Message[]
+}
+
+model ConversationParticipant {
+  id             String       @id @default(uuid())
+  conversationId String
+  userId         String
+  isOnline       Boolean      @default(false)
+  lastSeen       DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  attachments    String[]     @default([])
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+}
+
+
+model Order {
+  id                String           @id @default(uuid())
+  buyerId           String?
+  sellerId          String?
+  status            OrderStatus
+  totalAmount       Float
+  isAccepted        Boolean          @default(false)
+  stripePaymentId   String?
+  stripePaymentIntentId String?
+  trackingNumber    String?
+  carrier           String?
+  trackingHistory   Json[]
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  buyer             Buyer?           @relation(fields: [buyerId], references: [id])
+  seller            Seller?          @relation(fields: [sellerId], references: [id])
+  items             OrderItem[]
+  shippingAddress   ShippingAddress?
+
+  @@index([trackingNumber])
+}
+
+model OrderItem {
+  id         String  @id @default(uuid())
+  orderId    String
+  productId  String
+  sellerId   String?
+  quantity   Int
+  price      Float
+  isAccepted Boolean @default(false)
+  order      Order   @relation(fields: [orderId], references: [id])
+  product    Product @relation(fields: [productId], references: [id])
+  seller     Seller? @relation(fields: [sellerId], references: [id])
+}
+
+model Cart {
+  id      String     @id @default(uuid())
+  buyerId String     @unique
+  buyer   Buyer      @relation(fields: [buyerId], references: [id])
+  items   CartItem[]
+}
+
+model CartItem {
+  id        String  @id @default(uuid())
+  cartId    String
+  productId String
+  quantity  Int
+  cart      Cart    @relation(fields: [cartId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+}
+
+model Transaction {
+  id         String   @id @default(uuid())
+  amount     Int
+  currency   String
+  status     String
+  userId     String
+  productIds String[]
+  createdAt  DateTime @default(now())
+}
+
+model Wishlist {
+  id      String         @id @default(uuid())
+  buyerId String         @unique
+  buyer   Buyer          @relation(fields: [buyerId], references: [id])
+  items   WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  wishlistId String
+  productId  String
+  product    Product  @relation(fields: [productId], references: [id])
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+}
+
+model Analytics {
+  id        String   @id @default(uuid())
+  userId    String
+  pageViews Int      @default(0)
+  inquiries Int      @default(0)
+  responses Int      @default(0)
+  date      DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model TrustBadge {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String
+  criteria    String
+  suppliers   Seller[] @relation("SellerToTrustBadge")
+}
+
+model AIMatchingPreference {
+  id       String   @id @default(uuid())
+  userId   String   @unique
+  keywords String[]
+  weights  Json
+  user     User     @relation(fields: [userId], references: [id])
+}
+
+model Subscription {
+  id          String             @id @default(uuid())
+  userId      String             @unique
+  planId      String
+  startDate   DateTime           @default(now())
+  endDate     DateTime
+  status      SubscriptionStatus
+  paymentInfo Json?
+  autoRenew   Boolean            @default(true)
+  plan        Plan               @relation(fields: [planId], references: [id])
+  user        User               @relation(fields: [userId], references: [id])
+}
+
+model Plan {
+  id            String         @id @default(uuid())
+  name          String
+  price         Float
+  duration      Int
+  features      String[]
+  subscriptions Subscription[]
+}
+
+model Event {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  date        DateTime
+  location    String?
+  type        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SubscriptionTransaction {
+  id                 String    @id @default(uuid()) @map("_id")
+  userId             String
+  amount             Float
+  subscriptionExpiry DateTime?
+  createdAt          DateTime  @default(now())
+  providerId         String
+  isCompleted        Boolean   @default(false)
+  type               String    @default("Payment")
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Seller {
+  id                 String          @id @default(uuid())
+  userId             String          @unique
+  businessName       String?
+  businessAddress    String?
+  websiteLink        String?
+  businessCategories CategoryEnum[]
+  businessTypes      BusinessType[]
+  annualRevenue      Float?
+  employeeCount      Int?
+  exportPercentage   Float?
+  moq                Int?
+  yearEstablished    Int?
+  rating             Float?          @default(0)
+  location           String?
+  country            String?
+  state              String?
+  qualityControl     String?
+  rd                 String?
+  roleInCompany      String?
+  challenges         String[]
+  metrics            String[]
+  objectives         String[]
+  mainMarkets        String[]
+  advertisements     Advertisement[]
+  inquiries          Inquiry[]
+  orders             Order[]
+  orderItems         OrderItem[]
+  products           Product[]
+  requests           Request[]
+  user               User            @relation(fields: [userId], references: [id])
+  favoritedBy        Buyer[]         @relation("BuyerToSeller")
+  certifications     Certification[] @relation("CertificationToSeller")
+  trustBadges        TrustBadge[]    @relation("SellerToTrustBadge")
+
+  @@index([userId])
+}
+
+model Buyer {
+  id                     String          @id @default(uuid())
+  userId                 String          @unique
+  location               String?
+  maxMOQ                 Int?
+  minMOQ                 Int?
+  preferences            Json?
+  user                   User            @relation(fields: [userId], references: [id])
+  Cart                   Cart?
+  inquiries              Inquiry[]
+  Order                  Order[]
+  requests               Request[]
+  reviews                Review[]
+  savedSearches          SavedSearch[]
+  Wishlist               Wishlist?
+  requiredCertifications Certification[] @relation("BuyerToCertification")
+  products               Product[]       @relation("BuyerToProduct")
+  favoriteSuppliers      Seller[]        @relation("BuyerToSeller")
+  interestedCategories   Category[]      @relation("InterestedCategories")
+}
+
+model Certification {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  image       String?
+  issueDate   DateTime?
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  buyers      Buyer[]   @relation("BuyerToCertification")
+  suppliers   Seller[]  @relation("CertificationToSeller")
+}
+
+model SavedSearch {
+  id        String   @id @default(uuid())
+  buyerId   String
+  criteria  Json
+  name      String?
+  createdAt DateTime @default(now())
+  buyer     Buyer    @relation(fields: [buyerId], references: [id])
+}
+
+model Inquiry {
+  id         String        @id @default(uuid())
+  buyerId    String
+  supplierId String
+  message    String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  status     InquiryStatus @default(PENDING)
+  buyer      Buyer         @relation(fields: [buyerId], references: [id])
+  supplier   Seller        @relation(fields: [supplierId], references: [id])
+}
+
+model Admin {
+  id     String @id @default(uuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+model Product {
+  id                     String             @id @default(uuid())
+  name                   String
+  description            String
+  price                  Float
+  wholesalePrice         Float
+  minOrderQuantity       Int
+  availableQuantity      Int
+  images                 String[]
+  isDraft                Boolean            @default(true)
+  status                 ProductStatus      @default(DRAFT)
+  stockStatus            StockStatus        @default(IN_STOCK)
+  rating                 Float              @default(0)
+  reviewCount            Int                @default(0)
+  attributes             Json?              // JSON field for storing all attributes
+  dimensions             String?
+  material               String?
+  artistName             String?
+  certifications         String?
+  rarity                 String?
+  label                  String?
+  techniques             String?
+  color                  String?
+  fabricType             String?
+  fabricWeight           String?
+  fitType                String?
+  discount               Float?
+  deliveryCost           Float?
+  certificateIssueDate   DateTime?
+  galleryCertificateName String?
+  sellerId               String
+  categoryId             String?
+  pickupAddressId        String?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  advertisements         Advertisement[]
+  cartItems              CartItem[]
+  productCertificates    Certification[]
+  orderItems             OrderItem[]
+  pickupAddress          PickupAddress?     @relation(fields: [pickupAddressId], references: [id])
+  seller                 Seller             @relation(fields: [sellerId], references: [id])
+  reviews                Review[]
+  wishlistItems          WishlistItem[]
+  interestedBuyers       Buyer[]            @relation("BuyerToProduct")
+
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([pickupAddressId])
+}
+
+
+
+model PickupAddress {
+  id           String    @id @default(uuid())
+  fullName     String
+  businessName String?
+  street       String
+  city         String
+  state        String
+  country      String
+  postalCode   String
+  phone        String
+  email        String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
+  products     Product[]
+}
+
+model BankDetail {
+  fullName      String
+  holderName    String?
+  id            String   @id @default(uuid())
+  userId        String
+  bankName      String
+  bankType      BankType
+  accountNumber String
+  cvCode        String
+  upiId         String?
+  zipCode       String
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model Request {
+  id             String        @id @default(uuid())
+  buyerId        String
+  sellerId       String
+  productName    String
+  category       String
+  subCategory    String?
+  productType    String?
+  quantity       Int
+  targetPrice    Float?
+  orderFrequency String?
+  country        String
+  leadSize       Float?
+  status         RequestStatus @default(PENDING)
+  requestType    RequestType   @default(PRODUCT)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  buyer          Buyer         @relation(fields: [buyerId], references: [id])
+  seller         Seller        @relation(fields: [sellerId], references: [id])
+}
+
+model ShippingAddress {
+  id          String   @id @default(uuid())
+  firstName   String?
+  lastName    String?
+  fullName    String?
+  address     String?
+  email       String?
+  companyName String?
+  phoneNumber String?
+  country     String?
+  state       String?
+  zipCode     String?
+  orderId     String?  @unique
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  order       Order?   @relation(fields: [orderId], references: [id])
+}
+
+model Review {
+  id        String   @id @default(uuid())
+  rating    Float
+  comment   String?
+  productId String
+  buyerId   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  buyer     Buyer    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+  @@index([buyerId])
+}
+
+model Advertisement {
+  id             String                 @id @default(uuid())
+  sellerId       String
+  productId      String
+  budget         Float
+  startDate      DateTime
+  endDate        DateTime
+  targetAudience String[]
+  adType         String
+  description    String?
+  status         AdvertisementStatus    @default(PENDING)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  product        Product                @relation(fields: [productId], references: [id])
+  seller         Seller                 @relation(fields: [sellerId], references: [id])
+  metrics        AdvertisementMetrics[]
+
+  @@index([sellerId])
+  @@index([productId])
+}
+
+model AdvertisementMetrics {
+  id              String        @id @default(uuid())
+  advertisementId String
+  date            DateTime      @default(now())
+  impressions     Int           @default(0)
+  clicks          Int           @default(0)
+  conversions     Int           @default(0)
+  spend           Float         @default(0)
+  advertisement   Advertisement @relation(fields: [advertisementId], references: [id])
+
+  @@index([advertisementId])
+}
+
+enum StockStatus {
+  IN_STOCK
+  OUT_OF_STOCK
+  LOW_STOCK
+}
+
+enum BankType {
+  SAVINGS
+  CURRENT
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum CategoryEnum {
+  FASHION_APPAREL_ACCESSORIES
+  BEAUTY_COSMETICS
+  HOME_CLEANING_ESSENTIALS
+  HERBAL_NATURAL_PRODUCTS
+  FOOD_BEVERAGES
+  HEALTH_WELLNESS
+  OTHER
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  PACKED
+  SHIPPED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURNED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  PREMIUM
+}
+
+enum InquiryStatus {
+  PENDING
+  RESPONDED
+  CLOSED
+}
+
+enum AddressTypeEnum {
+  BILLING
+  SHIPPING
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum RequestType {
+  PRODUCT
+  SERVICE
+}
+
+enum AdvertisementStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  COMPLETED
+  REJECTED
+}
+
+enum BusinessType {
+  MANUFACTURER
+  DISTRIBUTOR
+  SERVICE_PROVIDER
+  PACKAGING_SUPPLIER
+  CO_PACKER
+  OTHER
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}

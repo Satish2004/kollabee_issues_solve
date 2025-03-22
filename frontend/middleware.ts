@@ -24,7 +24,7 @@ export async function middleware(request: NextRequest) {
     "/login",
     "/signup",
     "/signup/seller",
-    "/seller/buyer",
+    "/signup/buyer",
     "/forgot-password",
     "/reset-password",
   ].includes(path);
@@ -36,10 +36,11 @@ export async function middleware(request: NextRequest) {
   const isBuyerPath = path.startsWith("/buyer");
 
   // Get token from cookies (more secure than localStorage)
-  const token = request.cookies.get("auth-token")?.value;
+  const token = request.cookies.get("token")?.value;
 
   // If no token and trying to access protected route, redirect to login
   if (!token && !isPublicPath) {
+    console.log("redirecting to ");
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
@@ -47,7 +48,6 @@ export async function middleware(request: NextRequest) {
   if (token && isPublicPath && path !== "/") {
     // Verify token and get user role
     const payload = await verifyToken(token);
-    console.log(payload);
 
     if (payload) {
       const role = payload.role as string;

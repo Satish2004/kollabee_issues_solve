@@ -1,5 +1,4 @@
-import express from "express";
-import http from "http";
+import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
@@ -8,19 +7,14 @@ import rateLimit from "express-rate-limit";
 import path from "path";
 import prisma from "./db/index";
 import { setupRoutes } from "./routes";
-import { handleSocketConnection } from "./socket";
 import { Server } from "socket.io";
+import { handleSocketConnection } from "sockets";
 
-const app = express();
+const app: Application = express();
 
 // Basic middleware
-
 app.use(
   cors({
-<<<<<<< HEAD:backend/src/index.ts
-    origin: "http://localhost:3000",
-    credentials: true,
-=======
     origin: (origin, callback) => {
       console.log("Incoming request from:", origin);
       const allowedOrigins = [
@@ -33,8 +27,7 @@ app.use(
         callback(new Error("Not allowed by CORS"));
       }
     },
-    credentials: true, // <== Allow cookies and auth headers
->>>>>>> upstream/suraj:api/src/index.ts
+    credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -65,7 +58,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 // Setup all routes
 setupRoutes(app);
 
-<<<<<<< HEAD:backend/src/index.ts
 // Start server
 if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 2000;
@@ -90,16 +82,6 @@ if (process.env.NODE_ENV !== "production") {
     handleSocketConnection(socket, io, prisma);
   });
 }
-=======
-// Export for Vercel
-export default app;
-
-let port = process.env.PORT;
-
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
-});
->>>>>>> upstream/suraj:api/src/index.ts
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
