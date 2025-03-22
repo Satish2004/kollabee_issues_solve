@@ -468,7 +468,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       const productData = {
         ...formData,
-        isDraft: saveStatus === "unsaved" ? true : false,
+        // isDraft: saveStatus === "unsaved" ? true : false,  // TODO: This is supposed to be removed as the drafts are products which are not confirmed by admin
         attributes: attributesObject,
         thumbnail: thumbnail,
         documents: documents,

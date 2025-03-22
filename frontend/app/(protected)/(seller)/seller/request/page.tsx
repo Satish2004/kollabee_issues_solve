@@ -147,104 +147,104 @@ const KollaBeeRequests = () => {
           {(activeTab !== 'manufacturing') && isLoading ? (
             <div>Loading...</div>
           ) : activeTab !== 'manufacturing' && (
-            requests.map((request) => (
-<div className="max-w-6xl mx-auto rounded-lg overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center gap-3 p-1 border-2 rounded-[10px] border-gray-200">
-        <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
-          <span className="text-indigo-600 font-semibold">G</span>
-        </div>
-        <div className="font-medium text-lg">{request.items[0].product.artistName || "Guangzhou Duoxi Trading Firm (Sole Proprietorship)"}</div>
-        <div className="flex items-center gap-1 ml-2">
-          <div className="w-5 h-3 bg-red-600"></div>
-          <span className="text-gray-700">CN</span>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row mt-2">
-        {/* Product Image */}
-        <div className="w-full md:w-60 lg:w-72">
-          <Image 
-            src="/placeholder.svg?height=400&width=400" 
-            alt="Product Image" 
-            width={200} 
-            height={200}
-            className="w-full h-full object-cover bg-neutral-300 rounded-xl"
-          />
-        </div>
-
-        {/* Product Details */}
-        <div className="flex-1 p-4">
-          {/* Breadcrumb */}
-          <div className="flex items-center text-gray-500 text-sm font-medium mb-4 flex-wrap">
-            <span>Beauty & Personal Care</span>
-            <ChevronRight className="w-4 h-4 mx-1" />
-            <span>Skin Care & Body Care</span>
-            <ChevronRight className="w-4 h-4 mx-1" />
-            <span>Facial Care</span>
-            <ChevronRight className="w-4 h-4 mx-1" />
-            <span>Face Mask Sheet</span>
-
-            {/* Take Action Button */}
-            <div className="ml-auto">
-              <button className=" w-40 py-2 text-purple-600 font-medium gradient-border text-xl"  onClick={() => router.push(`/seller/chat`)}>
-                <span className="text-rose-500">Take Action </span>
-              </button>
-            </div>
-          </div>
-
-          {/* Product Title */}
-          <h1 className="text-3xl font-bold text-gray-800 mb-4">{request.items[0].product.name}</h1>
-
-          {/* Product Tabs */}
-          <div className="flex gap-2 mb-6">
-            <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Product</span>
-            <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Packaging</span>
-            <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Request for proposal</span>
-          </div>
-
-          {/* Product Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="text-left p-3 font-medium text-stone-700 rounded-tl-xl">
-                    Lead size <span className="text-gray-400 text-xs">↑</span>
-                  </th>
-                  <th className="text-left p-3 font-medium text-gray-700">Country</th>
-                  <th className="text-left p-3 font-medium text-gray-700">
-                    Quantity <span className="text-gray-400 text-xs">↑</span>
-                  </th>
-                  <th className="text-left p-3 font-medium text-gray-700">Target Price</th>
-                  <th className="text-left p-3 font-medium text-gray-700">
-                    Order frequency <span className="text-gray-400 text-xs">↑</span>
-                  </th>
-                  <th className="text-left p-3 font-medium text-gray-700 rounded-tr-xl">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr className="border-t border-gray-200">
-                  <td className="p-3 text-gray-800">{request.totalAmount}</td>
-                  <td className="p-3 text-gray-800">{request.shippingAddress.country}</td>
-                  <td className="p-3 text-gray-800">{request.items[0].quantity}</td>
-                  <td className="p-3 text-gray-800">{request.items[0].price}</td>
-                  <td className="p-3 text-gray-800">
-                    <div className="flex items-center">
-                      <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
-                      Monthly
+            requests.length > 0 ?             requests.map((request) => (
+              <div className="max-w-6xl mx-auto rounded-lg overflow-hidden">
+                    {/* Header */}
+                    <div className="flex items-center gap-3 p-1 border-2 rounded-[10px] border-gray-200">
+                      <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center">
+                        <span className="text-indigo-600 font-semibold">G</span>
+                      </div>
+                      <div className="font-medium text-lg">{request.items[0].product.artistName || "Guangzhou Duoxi Trading Firm (Sole Proprietorship)"}</div>
+                      <div className="flex items-center gap-1 ml-2">
+                        <div className="w-5 h-3 bg-red-600"></div>
+                        <span className="text-gray-700">CN</span>
+                      </div>
                     </div>
-                  </td>
-                  <td className="p-3">
-                    <button className="bg-zinc-800 text-white px-6 py-1 rounded-xl" onClick={() => router.push(`/seller/request/${request.id}`)}>View</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </div>
-            ))
+              
+                    <div className="flex flex-col md:flex-row mt-2">
+                      {/* Product Image */}
+                      <div className="w-full md:w-60 lg:w-72">
+                        <Image 
+                          src="/placeholder.svg?height=400&width=400" 
+                          alt="Product Image" 
+                          width={200} 
+                          height={200}
+                          className="w-full h-full object-cover bg-neutral-300 rounded-xl"
+                        />
+                      </div>
+              
+                      {/* Product Details */}
+                      <div className="flex-1 p-4">
+                        {/* Breadcrumb */}
+                        <div className="flex items-center text-gray-500 text-sm font-medium mb-4 flex-wrap">
+                          <span>Beauty & Personal Care</span>
+                          <ChevronRight className="w-4 h-4 mx-1" />
+                          <span>Skin Care & Body Care</span>
+                          <ChevronRight className="w-4 h-4 mx-1" />
+                          <span>Facial Care</span>
+                          <ChevronRight className="w-4 h-4 mx-1" />
+                          <span>Face Mask Sheet</span>
+              
+                          {/* Take Action Button */}
+                          <div className="ml-auto">
+                            <button className=" w-40 py-2 text-purple-600 font-medium gradient-border text-xl"  onClick={() => router.push(`/seller/chat`)}>
+                              <span className="text-rose-500">Take Action </span>
+                            </button>
+                          </div>
+                        </div>
+              
+                        {/* Product Title */}
+                        <h1 className="text-3xl font-bold text-gray-800 mb-4">{request.items[0].product.name}</h1>
+              
+                        {/* Product Tabs */}
+                        <div className="flex gap-2 mb-6">
+                          <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Product</span>
+                          <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Packaging</span>
+                          <span className="px-4 py-1 border border-gray-400 text-sm rounded-[5px] text-gray-800">Request for proposal</span>
+                        </div>
+              
+                        {/* Product Table */}
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse">
+                            <thead>
+                              <tr className="bg-gray-100">
+                                <th className="text-left p-3 font-medium text-stone-700 rounded-tl-xl">
+                                  Lead size <span className="text-gray-400 text-xs">↑</span>
+                                </th>
+                                <th className="text-left p-3 font-medium text-gray-700">Country</th>
+                                <th className="text-left p-3 font-medium text-gray-700">
+                                  Quantity <span className="text-gray-400 text-xs">↑</span>
+                                </th>
+                                <th className="text-left p-3 font-medium text-gray-700">Target Price</th>
+                                <th className="text-left p-3 font-medium text-gray-700">
+                                  Order frequency <span className="text-gray-400 text-xs">↑</span>
+                                </th>
+                                <th className="text-left p-3 font-medium text-gray-700 rounded-tr-xl">Action</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr className="border-t border-gray-200">
+                                <td className="p-3 text-gray-800">{request.totalAmount}</td>
+                                <td className="p-3 text-gray-800">{request.shippingAddress.country}</td>
+                                <td className="p-3 text-gray-800">{request.items[0].quantity}</td>
+                                <td className="p-3 text-gray-800">{request.items[0].price}</td>
+                                <td className="p-3 text-gray-800">
+                                  <div className="flex items-center">
+                                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                                    Monthly
+                                  </div>
+                                </td>
+                                <td className="p-3">
+                                  <button className="bg-zinc-800 text-white px-6 py-1 rounded-xl" onClick={() => router.push(`/seller/request/${request.id}`)}>View</button>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                          )) : <div className='px-8 pt-20 text-center flex items-center justify-center'>No requests found</div>
           )}
           {activeTab === 'manufacturing' && (
            <ManufactureForm setActiveTab={setActiveTab}/>

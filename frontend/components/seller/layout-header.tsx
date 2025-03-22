@@ -105,6 +105,7 @@ export default function SellerLayoutHeader() {
     try {
       await authApi.logout();
       router.push('/login');
+      router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
     }

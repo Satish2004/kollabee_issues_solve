@@ -20,17 +20,17 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const [chartData, setChartData] = useState([]);
+  // const [chartData, setChartData] = useState([]);
   // Sample data for the line chart
-  // const chartData = [
-  //   { name: 'Jan', orders: 15000, requests: 12000 },
-  //   { name: 'Feb', orders: 20000, requests: 18000 },
-  //   { name: 'Mar', orders: 18000, requests: 16000 },
-  //   { name: 'Apr', orders: 22000, requests: 19000 },
-  //   { name: 'May', orders: 25000, requests: 22000 },
-  //   { name: 'Jun', orders: 28000, requests: 24000 },
-  //   { name: 'Jul', orders: 30000, requests: 26000 },
-  // ];
+  const chartData = [
+    { name: 'Jan', orders: 0, requests: 0 },
+    { name: 'Feb', orders: 0, requests: 0 },
+    { name: 'Mar', orders: 0, requests: 0 },
+    { name: 'Apr', orders: 0, requests: 0 },
+    { name: 'May', orders: 0, requests: 0 },
+    { name: 'Jun', orders: 0, requests: 0 },
+    { name: 'Jul', orders: 0, requests: 0 },
+  ];
 
   const trendingProducts = [
     'Lux', 'Sanitoor', 'Lifeboy', 'Joy', 'Boro+', 'Gold', 'Diamond'
@@ -172,7 +172,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="h-64">
-                <LineChart width={700} height={250} data={chartData}>
+                <LineChart width={650} height={250} data={chartData} className=''>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -230,7 +230,7 @@ const Dashboard = () => {
             {/* Notifications */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h3 className="font-semibold mb-4">Notifications/Event Alerts</h3>
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <NotificationItem
                   icon={<Bug className="w-4 h-4" />}
                   text="You have a bug that needs to be fixed"
@@ -246,13 +246,15 @@ const Dashboard = () => {
                   text="You have a bug that needs to be fixed"
                   time="12 hours ago"
                 />
-              </div>
+              </div> */}
+
+              <p className='p-10 flex items-center justify-center text-sm font-semibold text-gray-400'>No New Notifications</p>
             </div>
 
             {/* Latest Orders */}
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <h3 className="font-semibold mb-4">Latest Orders</h3>
-              <div className="space-y-4">
+              {/* <div className="space-y-4">
                 <OrderItem
                   icon={<Bug className="w-4 h-4" />}
                   text="You have a bug that needs to be fixed"
@@ -268,7 +270,8 @@ const Dashboard = () => {
                   text="Submitted a bug"
                   time="12 hours ago"
                 />
-              </div>
+              </div> */}
+              <p className='p-10 flex items-center justify-center text-sm font-semibold text-gray-400'>No Orders Yet</p>
             </div>
           </div>
         </div>

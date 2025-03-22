@@ -54,7 +54,7 @@ export const createProduct = async (req: any, res: Response) => {
         sellerId: req.user.sellerId,
         pickupAddressId: addressId,
         categoryId,
-        isDraft: isDraft,
+        isDraft: true, //coz all poducts will be draft until approved by admin
         attributes: attributes, // Store attributes directly as JSON
       },
       include: {
@@ -136,6 +136,8 @@ export const getProducts = async (req: any, res: Response) => {
       }),
       prisma.product.count({ where: filters }),
     ]);
+
+    console.log("products", products)
 
     // No need to transform attributes as they're already in JSON format
     res.json({
