@@ -64,7 +64,7 @@ export function SellerSidebar({ className }: SidebarProps) {
 
   const routes = [
     {
-      label: "MAIN",
+      label: "",
       routes: [
         {
           label: "Dashboard",
