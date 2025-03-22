@@ -1085,7 +1085,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                               />
                             ) : (
                               <div
-                                className="w-full cursor-pointer"
+                                className="w-full cursor-pointer "
                                 onDoubleClick={() =>
                                   setEditingOtherIndex(index)
                                 }
