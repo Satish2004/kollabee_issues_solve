@@ -1,0 +1,353 @@
+"use client"
+
+import type React from "react"
+
+import { useState, useRef, useEffect } from "react"
+import { Send, Paperclip, Smile, User, Phone } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import data from "@emoji-mart/data"
+// import Picker from "@emoji-mart/react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import type { Message, User as UserType, Conversation } from "./types/chat"
+import Spinner from "@/components/ui/spinner"
+
+interface ChatWindowProps {
+  messages: Message[]
+  activeConversationId: string | null
+  onSendMessage: (content: string, attachments: File[]) => void
+  currentUser: UserType | null
+  isLoading: boolean
+  conversation: Conversation | undefined
+}
+
+export default function ChatWindow({
+  messages,
+  activeConversationId,
+  onSendMessage,
+  currentUser,
+  isLoading,
+  conversation,
+}: ChatWindowProps) {
+  const [messageInput, setMessageInput] = useState("")
+  const [attachments, setAttachments] = useState<File[]>([])
+  const [previewUrls, setPreviewUrls] = useState<string[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  // Clean up preview URLs when component unmounts
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach((url) => URL.revokeObjectURL(url))
+    }
+  }, [previewUrls])
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (messageInput.trim() || attachments.length > 0) {
+      onSendMessage(messageInput, attachments)
+      setMessageInput("")
+      setAttachments([])
+      setPreviewUrls([])
+    }
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files)
+      setAttachments((prev) => [...prev, ...newFiles])
+
+      // Create preview URLs for the files
+      const newPreviewUrls = newFiles.map((file) => URL.createObjectURL(file))
+      setPreviewUrls((prev) => [...prev, ...newPreviewUrls])
+    }
+  }
+
+  const handleEmojiSelect = (emoji: any) => {
+    setMessageInput((prev) => prev + emoji.native)
+  }
+
+  const removeAttachment = (index: number) => {
+    URL.revokeObjectURL(previewUrls[index])
+    setAttachments((prev) => prev.filter((_, i) => i !== index))
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index))
+  }
+
+  // Render empty state if no conversation is selected
+  if (!activeConversationId) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gray-50">
+        <div className="text-center">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Conversation Selected</h3>
+          <p className="text-gray-500 mb-6">Select a conversation from the list to start chatting</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Render loading state
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <Spinner size="lg" />
+        <p className="mt-2 text-gray-500">Loading conversation...</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 flex flex-col h-full">
+      {/* Conversation Header */}
+      <div className="p-4 border-b flex justify-between items-center">
+        <div className="flex items-center">
+          <Avatar className="mr-2">
+            {conversation?.participantAvatar ? (
+              <AvatarImage src={conversation.participantAvatar} alt={conversation?.participantName || ""} />
+            ) : (
+              <AvatarFallback>
+                <User className="h-6 w-6" />
+              </AvatarFallback>
+            )}
+          </Avatar>
+          <div>
+            <h3 className="font-medium">{conversation?.participantName || "Chat"}</h3>
+            <div className="flex items-center text-xs text-gray-500">
+              {conversation?.isOnline ? (
+                <span className="flex items-center">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
+                  Online
+                </span>
+              ) : (
+                <span>Offline</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <Button variant="outline" size="sm">
+          <Phone className="h-4 w-4 mr-1" />
+          Call
+        </Button>
+      </div>
+
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {messages.length > 0 ? (
+          <>
+            {/* Group messages by date */}
+            {groupMessagesByDate(messages).map(([date, dateMessages]) => (
+              <div key={date}>
+                <div className="text-center text-xs text-gray-500 my-2">{date}</div>
+
+                {dateMessages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`mb-4 flex ${message.senderId === currentUser?.id ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md ${message.senderId === currentUser?.id ? "order-2" : "order-1"}`}
+                    >
+                      <div className="flex items-end">
+                        {message.senderId !== currentUser?.id && (
+                          <Avatar className="w-6 h-6 rounded-full mr-2 mb-1">
+                            {conversation?.participantAvatar ? (
+                              <AvatarImage
+                                src={conversation.participantAvatar}
+                                alt={conversation?.participantName || ""}
+                              />
+                            ) : (
+                              <AvatarFallback>
+                                <User className="h-4 w-4" />
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                        )}
+
+                        <div>
+                          <div
+                            className={`px-4 py-2 rounded-lg ${
+                              message.senderId === currentUser?.id
+                                ? "bg-primary text-primary-foreground"
+                                : "bg-gray-100"
+                            }`}
+                          >
+                            {message.content && <p>{message.content}</p>}
+
+                            {message.attachments && message.attachments.length > 0 && (
+                              <div className="mt-2 space-y-2">
+                                {message.attachments.map((url, index) => {
+                                  const fileExt = url.split(".").pop()?.toLowerCase()
+                                  const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(fileExt || "")
+                                  const isVideo = ["mp4", "webm", "ogg"].includes(fileExt || "")
+
+                                  if (isImage) {
+                                    return (
+                                      <div key={index} className="relative rounded-lg overflow-hidden">
+                                        <img
+                                          src={url || "/placeholder.svg"}
+                                          alt="Attachment"
+                                          className="max-w-full h-auto max-h-40 rounded-lg"
+                                        />
+                                      </div>
+                                    )
+                                  } else if (isVideo) {
+                                    return (
+                                      <div key={index} className="relative rounded-lg overflow-hidden">
+                                        <video src={url} controls className="max-w-full h-auto max-h-40 rounded-lg" />
+                                      </div>
+                                    )
+                                  } else {
+                                    return (
+                                      <a
+                                        key={index}
+                                        href={url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center p-2 bg-gray-200 rounded"
+                                      >
+                                        <Paperclip className="h-4 w-4 mr-2" />
+                                        <span className="truncate">{url.split("/").pop() || "file"}</span>
+                                      </a>
+                                    )
+                                  }
+                                })}
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            className={`text-xs bg-red-300 text-gray-500 mt-1 flex items-center ${
+                              message.senderId === currentUser?.id ? "justify-end" : "justify-start"
+                            }`}
+                          >
+                            {formatTime(message.createdAt)}
+                            {message.senderId === currentUser?.id && (
+                              <span className="ml-1">
+                                {message.status === "pending"
+                                  ? "⌛"
+                                  : message.status === "sent"
+                                    ? "✓"
+                                    : message.status === "delivered"
+                                      ? "✓✓"
+                                      : "✓✓"}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full">
+            <p className="text-gray-500">No messages yet</p>
+            <p className="text-gray-400 text-sm">Send a message to start the conversation</p>
+          </div>
+        )}
+      </div>
+
+      {/* File Preview Area */}
+      {attachments.length > 0 && (
+        <div className="p-2 border-t border-gray-200 flex gap-2 overflow-x-auto">
+          {previewUrls.map((url, index) => {
+            const file = attachments[index]
+            const isImage = file.type.startsWith("image/")
+            const isVideo = file.type.startsWith("video/")
+
+            return (
+              <div key={index} className="relative group h-16 min-w-16 rounded overflow-hidden border">
+                {isImage ? (
+                  <img src={url || "/placeholder.svg"} alt="Preview" className="h-full w-full object-cover" />
+                ) : isVideo ? (
+                  <video src={url} className="h-full w-full object-cover" />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-gray-100">
+                    <Paperclip className="h-5 w-5 text-gray-400" />
+                  </div>
+                )}
+                <button
+                  className="absolute top-0 right-0 bg-black bg-opacity-50 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                  onClick={() => removeAttachment(index)}
+                >
+                  ×
+                </button>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Message Input */}
+      <div className="p-4 border-t">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+          <input type="file" ref={fileInputRef} multiple onChange={handleFileChange} className="hidden" />
+
+          <Button type="button" size="icon" variant="ghost" onClick={() => fileInputRef.current?.click()}>
+            <Paperclip className="h-5 w-5" />
+          </Button>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button type="button" size="icon" variant="ghost">
+                <Smile className="h-5 w-5" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              {/* <Picker data={data} onEmojiSelect={handleEmojiSelect} /> */}
+            </PopoverContent>
+          </Popover>
+
+          <Input
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            placeholder="Type a message..."
+            className="flex-1"
+          />
+
+          <Button type="submit">
+            <Send className="h-5 w-5" />
+          </Button>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// Helper function to format time
+function formatTime(dateString: string): string {
+  const date = new Date(dateString)
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+}
+
+// Helper function to group messages by date
+function groupMessagesByDate(messages: Message[]): [string, Message[]][] {
+  const groups: Record<string, Message[]> = {}
+
+  messages.forEach((message) => {
+    const date = new Date(message.createdAt)
+    const dateString = date.toLocaleDateString([], { weekday: "long", month: "long", day: "numeric" })
+
+    if (!groups[dateString]) {
+      groups[dateString] = []
+    }
+
+    groups[dateString].push(message)
+  })
+
+  return Object.entries(groups)
+}
+

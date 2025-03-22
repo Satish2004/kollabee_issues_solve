@@ -38,3 +38,12 @@ body {
   mask-composite: exclude;
 }
 
+.button-bg {
+  background: linear-gradient(
+    to left,
+    #f2bd6d 0%,
+    #e9895a 40%,
+    #d53362 69%,
+    #8e0774 100%
+  );
+}

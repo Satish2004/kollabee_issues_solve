@@ -8,7 +8,7 @@ import path from "path";
 import prisma from "./db/index";
 import { setupRoutes } from "./routes";
 import { Server } from "socket.io";
-import { handleSocketConnection } from "sockets";
+import { handleSocketConnection } from "./sockets";
 
 const app: Application = express();
 
