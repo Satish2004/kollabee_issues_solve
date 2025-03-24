@@ -24,13 +24,15 @@ import { authApi } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
-import { useCheckout } from "@/checkout-context";
+import { useCheckout } from "@/contexts/checkout-context";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function BuyerLayoutHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const { products } = useCheckout();
+  const { user } = useAuth();
+
   const numberOfCartItems = products.length;
   const routes = [
     {
@@ -116,13 +118,6 @@ export default function BuyerLayoutHeader() {
     }
   };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const response:any = await authApi.getCurrentUser();
-      setUser(response);
-    };
-    fetchUser();
-  }, []);
 
   return (
     <div className="w-[94%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6 ">
@@ -131,7 +126,7 @@ export default function BuyerLayoutHeader() {
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
       <div className="flex items-center gap-4 ">
-        <Button variant="outline" className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold">
+        <Button variant="outline" className="button-bg text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold">
           Upgrade
         </Button>
         <Link href="/buyer/wishlist">

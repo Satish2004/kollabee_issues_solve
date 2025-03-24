@@ -395,3 +395,84 @@ export const updateProduct = async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to update product" });
   }
 };
+
+
+export const getSellers = async (req: any, res: Response) => {
+  try {
+    const sellers = await prisma.seller.findMany({
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+            country: true,
+            state: true,
+            address: true,
+            companyWebsite: true,
+          },
+        },
+      },
+    });
+
+    res.json(sellers);
+  } catch (error) {
+    console.error("Get sellers error:", error);
+    res.status(500).json({ error: "Failed to get sellers" });
+  }
+};
+
+export const getSeller = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+            country: true,
+            state: true,
+            address: true,
+            companyWebsite: true,
+          },
+        },
+        products: {
+          include: {
+            pickupAddress: true,
+            productCertificates: true,
+            reviews: {
+              include: {
+                buyer: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        imageUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            updatedAt: "desc",
+            price: "asc",
+          },
+        },
+      },
+    });   
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller);
+  } catch (error) {
+    console.error("Get seller error:", error);
+    res.status(500).json({ error: "Failed to get seller" });
+  }
+};

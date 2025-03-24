@@ -484,6 +484,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         response = await productsApi.create(productData);
         // Clear localStorage draft after successful creation
         localStorage.removeItem("productDraft");
+        console.log("Draft Removed")
         setFormData({
           name: "",
           description: "",
@@ -519,7 +520,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       upload: uploadRef,
       "general-info": generalInfoRef,
       "product-details": productDetailsRef,
-      documents: documentsRef,
+      "documents": documentsRef,
     };
 
     refs[sectionId]?.current?.scrollIntoView({
@@ -537,15 +538,28 @@ const ProductForm: React.FC<ProductFormProps> = ({
       { id: "product-details", ref: productDetailsRef },
       { id: "documents", ref: documentsRef },
     ];
-
+  
     for (const section of sections) {
       const element = section.ref.current;
       if (element) {
         const rect = element.getBoundingClientRect();
-        if (rect.top <= 100 && rect.bottom >= 100) {
+        const isVisible = rect.top <= 100 && rect.bottom >= 100;
+  
+        if (isVisible) {
           setActiveSection(section.id);
           break;
         }
+      }
+    }
+  
+    // Special handling for the documents section at the end of the page
+    const documentsElement = documentsRef.current;
+    if (documentsElement) {
+      const rect = documentsElement.getBoundingClientRect();
+      const isAtEndOfPage = rect.bottom <= window.innerHeight + 100;
+  
+      if (isAtEndOfPage) {
+        setActiveSection("documents");
       }
     }
   };
@@ -823,8 +837,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
             {/* Product Details Section */}
             <section
-              id="product-details"
-              ref={productDetailsRef}
+              id="general-info"
+              ref={generalInfoRef}
               className="mb-8"
             >
               <h2 className="text-lg font-semibold mb-4">Product Details</h2>
@@ -1004,7 +1018,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </section>
 
             {/* Product Attributes Section */}
-            <section id="general-info" ref={generalInfoRef} className="mb-8">
+            <section id="product-details" ref={productDetailsRef} className="mb-8">
               <h2 className="text-lg font-semibold mb-4">Key attributes</h2>
 
               {/* Industry-specific attributes */}

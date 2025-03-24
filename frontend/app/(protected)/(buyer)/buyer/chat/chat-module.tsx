@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, use } from "react"
 import { io, type Socket } from "socket.io-client"
 import type { Message, Conversation } from "./types/chat"
 import ChatWindow from "./chat-window"
@@ -12,7 +12,8 @@ import { useToast } from "@/hooks/use-toast"
 
 
 export default function ChatModule() {
-    const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer")
+    const [activeTab, setActiveTab] = useState< "user" | "admin">("user")
+    const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([])
     const [activeConversation, setActiveConversation] = useState<string | null>(null)
     const [conversations, setConversations] = useState<Conversation[]>([])
     const [messages, setMessages] = useState<Message[]>([])
@@ -228,33 +229,44 @@ export default function ChatModule() {
         })
         }
     }
+
+    useEffect(() => { 
+        if(activeTab === "user"){
+            const participant =  user?.role === "BUYER" ? "SELLER" : "BUYER"
+            setFilteredConversations(conversations.filter((c) => c.participantType === participant))
+        }
+        else if(activeTab === "admin"){
+            console.log(conversations)
+            setFilteredConversations([])
+        }
+    }, [activeTab])
     
     return (
-        <div className="border rounded-lg shadow-sm overflow-hidden bg-white">
-        <div className="flex border-b py-2 px-4">
+        <div className="rounded-lg shadow-sm overflow-hidden">
+        <div className="flex rounded-xl px-6 py-4 bg-white mb-6 ">
             <div className="flex space-x-8">
             <button
                 className={`py-1 text-sm ${
-                activeTab === "buyer" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
+                activeTab === "user" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("buyer")}
+                onClick={() => setActiveTab("user")}
             >
-                Buyer Messages
+                {user?.role === "BUYER" ? "Seller Messages" : "Buyer Messages"}
             </button>
             <button
                 className={`py-1 text-sm ${
-                activeTab === "seller" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
+                activeTab === "admin" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("seller")}
+                onClick={() => setActiveTab("admin")}
             >
-                Seller Messages
+                Admin Messages
             </button>
             </div>
         </div>
     
-        <div className="flex h-[600px]">
+        <div className="flex h-[430px] space-x-6">
             <ContactList
-            conversations={conversations}
+            conversations={filteredConversations}
             activeConversationId={activeConversation}
             onSelectConversation={handleConversationChange}
             isLoading={isLoading}

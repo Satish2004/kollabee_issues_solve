@@ -138,19 +138,19 @@ export function SellerSidebar({ className }: SidebarProps) {
     <div className={cn("relative min-h-screen", className)}>
       <div
         className={cn(
-          "flex h-screen flex-col gap-4 border-r p-4 transition-all duration-300",
+          "flex h-screen flex-col gap-4 border-r p-4 transition-all duration-300 relative",
           isCollapsed ? "w-[80px]" : "w-[250px]",
           "relative"
         )}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between ">
           <div className="flex items-center justify-center py-2">
             <Image
               src="/kollabee.jpg"
               alt="KollaBee"
               width={isCollapsed ? 40 : 150}
               height={40}
-              className="rounded-full cursor-pointer"
+              className={`rounded-full cursor-pointer ${isCollapsed ? 'hidden' : ''}`}
               onClick={()=>router.push("/seller")}
             />
           </div>
@@ -158,7 +158,7 @@ export function SellerSidebar({ className }: SidebarProps) {
             variant="ghost"
             size="icon"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="border border-border hover:bg-muted rounded-md"
+            className=" hover:bg-muted rounded-md absolute top-5 right-4 bg-white p-4 z-90"
           >
             <ChevronLeft
               className={cn(
@@ -169,7 +169,7 @@ export function SellerSidebar({ className }: SidebarProps) {
           </Button>
         </div>
 
-        <div className="flex flex-1 flex-col gap-6">
+        <div className={`flex flex-1 flex-col gap-6 ${isCollapsed ? 'mt-10' : ''}`}>
           {routes.map((group) => (
             <div key={group.label} className="flex flex-col gap-2">
               {!isCollapsed && (

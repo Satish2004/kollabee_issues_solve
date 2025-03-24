@@ -27,9 +27,9 @@ interface GetProductsParams {
 }
 
 export const sellerApi = {
-  getProducts: async (params?: GetProductsParams) => {
-    return api.get<Product[]>('/seller/products', { params });
-  },
+  // getProducts: async (params?: GetProductsParams) => {
+  //   return api.get<Product[]>('/seller/products', { params });
+  // },
 
 
  
@@ -43,6 +43,14 @@ export const sellerApi = {
 
   getBusinessInfo: async () => {
     return api.get('/seller/business');
+  },
+
+  getSellers: async () => {
+    return api.get('/seller/sellers');
+  },
+
+  getSeller: async (userId: string) => {
+    return api.get(`/seller/seller/${userId}`);
   },
 
   updateBusinessInfo: (data: BusinessInfo) => 
@@ -78,5 +86,3 @@ export const sellerApi = {
   //   return api.post(`/seller/requests/${requestId}/accept`);
   // }
 };
-
-sellerApi.getProducts(); 

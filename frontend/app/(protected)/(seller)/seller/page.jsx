@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
 const Dashboard = () => {
+
   const [dashboardData, setDashboardData] = useState({
     totalOrders: 4,
     totalRevenue: 0,
@@ -19,6 +20,7 @@ const Dashboard = () => {
     publishedProducts: 1
   });
   const [isLoading, setIsLoading] = useState(true);
+
   const router = useRouter();
   // const [chartData, setChartData] = useState([]);
   // Sample data for the line chart
@@ -171,15 +173,19 @@ const Dashboard = () => {
                   <span className="flex items-center"><span className="w-2 h-2 bg-orange-500 rounded-full mr-1"></span>Requests</span>
                 </div>
               </div>
-              <div className="h-64">
-                <LineChart width={650} height={250} data={chartData} className=''>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
+              <div className="h-64 relative">
+                <LineChart width={650} height={250} data={chartData} className='cursor-pointer'>
+                  <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="ccc" />
+                  <XAxis dataKey="name"  tick={{ fill: "#616161", fontSize: 14 }} tickLine={false} />
+                  <YAxis stroke='#616161' tick={{ fill: "#616161", fontSize: 14 }} tickLine={false} />
                   <Tooltip />
                   <Line type="monotone" dataKey="orders" stroke="#ef4444" />
                   <Line type="monotone" dataKey="requests" stroke="#f97316" />
                 </LineChart>
+
+                <div className='absolute w-80 h-40 rounded-lg top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/4 flex flex-col items-center justify-center'>
+                  <span className='text-gray-500 text-sm'>No Data Currently</span>
+                </div>
               </div>
             </div>
           </div>

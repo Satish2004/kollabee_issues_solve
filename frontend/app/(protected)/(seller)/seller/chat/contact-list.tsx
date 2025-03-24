@@ -30,7 +30,7 @@ export default function ContactList({
 
   if (isLoading) {
     return (
-      <div className="w-80 border-r h-full flex flex-col">
+      <div className="w-80 border-r h-full flex flex-col bg-white">
         <div className="p-4 border-b">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -55,16 +55,21 @@ export default function ContactList({
   }
 
   return (
-    <div className="w-80 border-r h-full flex flex-col">
-      <div className="p-4 border-b">
+    <div className="w-80 rounded-xl h-full flex flex-col bg-white">
+      <div className="px-6 py-4 flex items-center space-x-2">
+        <h1 className="font-semibold text-lg">Messages</h1>
+        <span className="rounded-full bg-gray-100 text-xs font-semibold px-2">{conversations.length}</span>
+      </div>
+        <hr className="w-full"></hr>
+      <div className="p-2">
         <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search contacts"
-            className="pl-8"
+            className="pr-8 border-neutral-200"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+          <Search className="absolute right-2.5 top-1.5 h-6 w-6 text-neutral-400 bg-neutral-200 p-1 rounded-full" />
         </div>
       </div>
 
@@ -80,11 +85,11 @@ export default function ContactList({
               onClick={() => onSelectConversation(conversation.id)}
             >
               <div className="flex-shrink-0 relative">
-                <Avatar>
+                <Avatar className="rounded-lg">
                   {conversation.participantAvatar ? (
                     <AvatarImage src={conversation.participantAvatar} alt={conversation.participantName} />
                   ) : (
-                    <AvatarFallback>
+                    <AvatarFallback className="bg-neutral-200 rounded-lg">
                       <User className="h-6 w-6" />
                     </AvatarFallback>
                   )}

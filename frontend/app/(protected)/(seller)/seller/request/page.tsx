@@ -112,7 +112,6 @@ const KollaBeeRequests = () => {
         <div className="p-4 bg-white rounded-xl">
           <div className="flex justify-between items-center">
             <div className="flex space-x-4">
-            <ChevronsLeft className='w-4 h-4' onClick={() => router.push('/seller')}/>
               <button 
                 className={`pb-2 px-2 text-sm flex items-center space-x-2 gap-2 ${activeTab === 'all' ? 'text-rose-600 border-b-2 border-rose-600' : 'text-gray-500'}`}
                 onClick={() => setActiveTab('all')}

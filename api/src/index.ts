@@ -19,7 +19,9 @@ app.use(
       console.log("Incoming request from:", origin);
       const allowedOrigins = [
         "https://kollabee-theta.vercel.app",
-        "http://localhost:3000", // For local testing
+        "http://localhost:3000",
+        "http://localhost:3001",
+         // For local testing
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
