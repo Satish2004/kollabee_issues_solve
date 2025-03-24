@@ -3,7 +3,9 @@ import {
   getSellerProducts, 
   getSellerOrders, 
   updateBusinessInfo, 
-  getBusinessInfo 
+  getBusinessInfo, 
+  getSellers,
+  getSeller
 } from '../controllers/seller.controller';
 import { authMiddleware } from '../middleware/auth';
 
@@ -13,5 +15,7 @@ router.get('/business', authMiddleware, getBusinessInfo);
 router.put('/business', authMiddleware, updateBusinessInfo);
 router.get('/products', authMiddleware, getSellerProducts);
 router.get('/orders', authMiddleware, getSellerOrders);
+router.get('/sellers', getSellers);
+router.get('/seller', getSeller);
 
 export default router; 

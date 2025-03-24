@@ -4,7 +4,7 @@ import React, { useState } from "react"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-import { CheckoutProvider, useCheckout } from "../../../../../checkout-context"
+import { CheckoutProvider, useCheckout } from "../../../../../contexts/checkout-context"
 import { ShoppingCart } from "./components/shopping-cart"
 import { ShippingAddress } from "./components/shipping-address"
 import { Payment } from "./components/payment"
@@ -48,7 +48,7 @@ export default function CheckoutStepper() {
           <div className="flex items-center justify-start">
             {steps.map((step, index) => (
  <div key={step.id} className="flex items-center">
- <div className="flex flex-col items-center w-fit  cursor-pointer" onClick={() => setCurrentStep(currentStep - step.id > 0 ? currentStep - step.id : currentStep)}>
+ <div className="flex flex-col items-center w-fit  cursor-pointer" onClick={() => setCurrentStep(currentStep - step.id > 0 ? step.id : currentStep)}>
 {/* Step circle */}
  <div
  className={cn(

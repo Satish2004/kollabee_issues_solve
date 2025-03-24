@@ -5,11 +5,12 @@ import { loadStripe } from "@stripe/stripe-js"
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js"
 import { OrderSummary } from "./order-summary"
 import { Button } from "@/components/ui/button"
-import { useCheckout } from "../../../../../../checkout-context"
+import { useCheckout } from "../../../../../../contexts/checkout-context"
 import { toast } from "sonner"
 import { paymentApi } from "@/lib/api/payment"
 import { authApi } from "@/lib/api/auth"
 import { cartApi } from "@/lib/api/cart"
+import { useAuth } from "@/contexts/auth-context"
 
 // Load Stripe.js asynchronously
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -80,7 +81,7 @@ const StripePaymentForm = ({ onSubmit, isLoading }) => {
 
       <Button
         type="submit"
-        className="w-full mt-4 bg-pink-500 hover:bg-pink-600 text-white py-3 rounded-md flex items-center justify-center font-semibold"
+        className="w-full mt-4 button-bg text-white hover:text-neutral-200 py-3 rounded-md flex items-center justify-center font-semibold"
         disabled={!stripe || isLoading}
       >
         {isLoading ? "Processing..." : "Pay Now"}
@@ -92,16 +93,7 @@ const StripePaymentForm = ({ onSubmit, isLoading }) => {
 export function Payment({ onNext }: PaymentProps) {
   const { products, setProducts, orderSummary, submitOrder, isLoading, orderId, setOrderId } = useCheckout()
   const [orderComplete, setOrderComplete] = useState(false)
-  const [user, setUser] = useState<any>(null);
-
-
-    useEffect(() => {
-      const fetchUser = async () => {
-        const response:any = await authApi.getCurrentUser();
-        setUser(response);
-      };
-      fetchUser();
-    }, []);
+  const { user } = useAuth();
 
   const handlePayment = async (paymentMethodId: string) => {
     try {
@@ -167,8 +159,8 @@ export function Payment({ onNext }: PaymentProps) {
 
   return (
     <div className="grid md:grid-cols-3 gap-6">
-      <div className="md:col-span-2 bg-white p-6 rounded-lg border">
-        <h2 className="text-2xl font-bold mb-6">Payment</h2>
+      <div className="md:col-span-2 bg-white px-6 pb-6 rounded-lg">
+        <h2 className="text-2xl font-[900] mb-6">Payment</h2>
         <Elements stripe={stripePromise}>
           <StripePaymentForm onSubmit={handlePayment} isLoading={isLoading} />
         </Elements>

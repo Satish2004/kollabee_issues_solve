@@ -8,6 +8,7 @@ import ContactList from "./contact-list"
 import { authApi } from "@/lib/api/auth"
 import { chatApi } from "@/lib/api/chat"
 import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 
 
 
@@ -19,17 +20,8 @@ export default function ChatModule() {
     const [isLoading, setIsLoading] = useState(true)
     const socketRef = useRef<Socket | null>(null)
     const { toast } = useToast()
-    const [user, setUser] = useState<any>(null);
     const tempMessageIdRef = useRef<string | null>(null);
-
-
-        useEffect(() => {
-        const fetchUser = async () => {
-            const response:any = await authApi.getCurrentUser();
-            setUser(response);
-        };
-        fetchUser();
-        }, []);
+    const { user } = useAuth();
 
     
     useEffect(() => {
@@ -230,8 +222,8 @@ export default function ChatModule() {
     }
     
     return (
-        <div className="border rounded-lg shadow-sm overflow-hidden bg-white">
-        <div className="flex border-b py-2 px-4">
+        <div className="rounded-lg shadow-sm overflow-hidden">
+        <div className="flex rounded-xl px-6 py-4 bg-white mb-6 ">
             <div className="flex space-x-8">
             <button
                 className={`py-1 text-sm ${
@@ -252,7 +244,7 @@ export default function ChatModule() {
             </div>
         </div>
     
-        <div className="flex h-[600px]">
+        <div className="flex h-[430px] space-x-6">
             <ContactList
             conversations={conversations}
             activeConversationId={activeConversation}

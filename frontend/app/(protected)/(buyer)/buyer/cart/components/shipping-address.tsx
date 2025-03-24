@@ -11,7 +11,7 @@ import { PlusCircle } from "lucide-react"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
-import { useCheckout } from "../../../../../../checkout-context"
+import { useCheckout } from "../../../../../../contexts/checkout-context"
 import { useForm } from "react-hook-form"
 
 // Define the form schema with Zod
@@ -45,45 +45,53 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
   } = useCheckout()
 
   const [showNewAddressForm, setShowNewAddressForm] = useState(false)
+  const [hasFetchedAddresses, setHasFetchedAddresses] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      firstName: currentAddress?.firstName || "",
-      lastName: currentAddress?.lastName || "",
-      email: currentAddress?.email || "",
-      companyName: currentAddress?.companyName || "",
-      address: currentAddress?.address || "",
-      city: currentAddress?.city || "",
-      state: currentAddress?.state || "",
-      country: currentAddress?.country || "",
-      zipCode: currentAddress?.zipCode || "",
-      phoneNumber: currentAddress?.phoneNumber || "",
+      firstName:  "",
+      lastName: "",
+      email: "",
+      companyName:  "",
+      address: "",
+      city:  "",
+      state: "",
+      country: "",
+      zipCode: "",
+      phoneNumber: "",
     },
   })
 
   useEffect(() => {
     if (currentAddress) {
       form.reset({
-        firstName: currentAddress.firstName || "",
-        lastName: currentAddress.lastName || "",
-        email: currentAddress.email || "",
-        companyName: currentAddress.companyName || "",
-        address: currentAddress.address || "",
-        city: currentAddress.city || "",
-        state: currentAddress.state || "",
-        country: currentAddress.country || "",
-        zipCode: currentAddress.zipCode || "",
-        phoneNumber: currentAddress.phoneNumber || "",
+        firstName:  "",
+        lastName: "",
+        email: "",
+        companyName:  "",
+        address: "",
+        city:  "",
+        state: "",
+        country: "",
+        zipCode: "",
+        phoneNumber: "",
       })
     }
   }, [currentAddress, form])
 
   useEffect(() => {
-    if (savedAddresses.length === 0) {
-      fetchAddresses()
+    if (savedAddresses.length === 0 && !hasFetchedAddresses) {
+      fetchAddresses().then(() => {
+        setHasFetchedAddresses(true)
+        if (savedAddresses.length === 0) {
+          setShowNewAddressForm(true)
+        }
+      })
     }
-  }, [])
+  }, [savedAddresses, hasFetchedAddresses, fetchAddresses])
+
+
 
   const handleAddressSelect = (addressId: string) => {
     setSelectedAddressId(addressId)
@@ -155,8 +163,8 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
 
   return (
     <div className="grid md:grid-cols-3 gap-6">
-      <div className="md:col-span-2 bg-white p-6 rounded-lg border">
-        <h2 className="text-2xl font-bold mb-6">Shipping Address</h2>
+      <div className="md:col-span-2 bg-white px-6 pb-6 rounded-lg">
+        <h2 className="text-2xl font-[900] mb-6">Shipping Address</h2>
 
         {savedAddresses.length > 0 && (
           <div className="mb-6">

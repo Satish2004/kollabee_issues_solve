@@ -7,6 +7,8 @@ import { Country, State, City } from "country-state-city"
 import { toast } from 'sonner';
 import { User } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
+import { authApi } from '@/lib/api/auth';
+import { Button } from '@/components/ui/button';
 
 const countries = [
   { code: "+93", name: "Afghanistan", flag: "🇦🇫" },
@@ -215,7 +217,9 @@ const Settings: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordResponse, setPasswordResponse] = useState<any>({newPassword:'',currentPassword:'',confirmPassword:''});
   const [isLoading, setIsLoading] = useState(false);
+  const [forgotPassoword, setForgotPassword] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [bankDetails, setBankDetails] = useState<any>({
     fullName: '',
     holderName: '',
@@ -224,6 +228,17 @@ const Settings: React.FC = () => {
     cvCode: '',
     zipCode: '',
     accountNumber: '',
+  });
+  const [alert, setAlert] = useState<{
+    show: boolean;
+    type: "error" | "success";
+    message1: string;
+    message2: string;
+  }>({
+    show: false,
+    type: "error",
+    message1: "",
+    message2: "",
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -336,6 +351,35 @@ const Settings: React.FC = () => {
   const handleDeleteImage = () => {
     setFormData({...formData, imageUrl: ''});
   }
+
+    const handleForgotPasswordSubmit = async () => {
+      setIsLoading(true);
+      setAlert({ ...alert, show: false });
+  
+      try {
+        await authApi.forgotPassword(formData.email);
+        setEmailSent(true);
+        setAlert({
+          show: true,
+          type: "success",
+          message1: "Reset link sent",
+          message2: "Please check your email for the password reset link",
+        });
+        toast.success("Password reset link sent to your email");
+      } catch (error: any) {
+        setAlert({
+          show: true,
+          type: "error",
+          message1: "Failed to send reset link",
+          message2: error?.response?.data?.error || "Please try again later",
+        });
+        toast.error(error?.response?.data?.error || "Failed to send reset link");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+
   const renderAccountSettings = () => (
     <div className="p-6">
       <div className="grid grid-cols-5 gap-8">
@@ -419,7 +463,7 @@ const Settings: React.FC = () => {
             <div className="relative">
                   <button
                     type="button"
-                    className="flex items-center justify-between bg-[#fcfcfc] border border-[#e5e5e5] rounded-l-[6px] px-2 py-2 w-[90px] h-9"
+                    className="flex items-center justify-between bg-[#fcfcfc] border-l border-t border-b border-[#e5e5e5] rounded-l-[6px] px-2 py-2 w-[90px]"
                     onClick={() => setShowCountryDropdown(!showCountryDropdown)}
                   >
                     <span className="flex items-center">
@@ -551,7 +595,7 @@ const Settings: React.FC = () => {
       <div className="space-y-6">
         {/* Current Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Current Password*
           </label>
           <div className="relative">
@@ -575,14 +619,15 @@ const Settings: React.FC = () => {
               )}
             </button>
           </div>
-          {/* <button className="text-red-500 text-sm mt-1">
+          <button className=" underline text-sm mt-2 ml-1" onClick={()=>setForgotPassword(true)}>
             Forgot Password?
-          </button> */}
+          </button>
         </div>
 
-        {/* New Password */}
+        <div className='grid grid-cols-2 gap-4'>
+         {/* New Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             New Password*
           </label>
           <div className="relative">
@@ -610,7 +655,7 @@ const Settings: React.FC = () => {
 
         {/* Confirm Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Confirm Password*
           </label>
           <div className="relative">
@@ -635,8 +680,9 @@ const Settings: React.FC = () => {
             </button>
           </div>
         </div>
+        </div>
       </div>
-      <div className="pt-4 flex justify-end">
+      <div className="pt-8 flex justify-end">
       <button
         onClick={updatePassword}
         className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] "
@@ -648,35 +694,47 @@ const Settings: React.FC = () => {
   );
 
   const renderForgotPassword = () => (
-    <div className="p-6">
-      <h2 className="text-xl font-semibold mb-4">Forgot Password</h2>
-      <p className="text-gray-600 mb-6">
+      emailSent ? (
+        <>
+          <div className="text-center flex flex-col items-center justify-center py-4">
+            <p className="mb-4">
+              A password reset link has been sent to your email.
+            </p>
+            <p>
+              Please check your inbox and click on the link to reset your
+              password.
+            </p>
+            <button className='underline font-semibold' onClick={()=>setForgotPassword(false)}>
+              Go back
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+            <div className="px-4">
+      <h2 className="text-xl font-[900] mb-4">Forgot Password</h2>
+      <p className="text-gray-500 mb-8">
         Enter the email address you used when you joined and we'll send you instructions to reset your password.
       </p>
-      <div className="space-y-4">
+      <div className="space-y-8">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             Email Address*
           </label>
           <input
             type="email"
             value={formData.email}
             readOnly
-            className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+            className=" px-3 py-2 border rounded-lg bg-gray-50 w-1/2"
           />
         </div>
-        <button className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white py-2 rounded-lg">
-          Reset Password
-        </button>
-        <div className="text-center">
-          <p className="text-gray-500 text-sm mb-2">Or try to log in with Email</p>
-          <button className="flex items-center justify-center space-x-2 w-full border border-gray-300 py-2 rounded-lg">
-            <img src="/api/placeholder/20/20" alt="Google" className="w-5 h-5" />
-            <span>Sign up with Google</span>
-          </button>
-        </div>
+        <Button  type="submit" className="w-1/4 button-bg text-white py-2 rounded-lg" onClick={handleForgotPasswordSubmit} disabled={isLoading}>
+        {isLoading ? "Sending..." : "Send Reset Link"}
+        </Button>
       </div>
     </div>
+        </>
+      )
   );
 
   const renderPaymentMethod = () => (
@@ -802,13 +860,13 @@ const Settings: React.FC = () => {
   );
 
   return (
-    <div className="bg-white rounded-lg shadow">
-      <div className="border-b">
-        <div className="flex space-x-6 px-6">
+    <div className="">
+      <div className=" bg-white rounded-xl mb-4">
+        <div className="flex space-x-6 px-6 py-4">
           <button
-            className={`py-4 px-2 border-b-2 font-medium ${
+            className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
               activeTab === 'account'
-                ? 'border-red-500 text-red-500'
+                ? 'bg-rose-100'
                 : 'border-transparent text-gray-500'
             }`}
             onClick={() => setActiveTab('account')}
@@ -816,9 +874,9 @@ const Settings: React.FC = () => {
             Account Settings
           </button>
           <button
-            className={`py-4 px-2 border-b-2 font-medium ${
+            className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
               activeTab === 'password'
-                ? 'border-red-500 text-red-500'
+                ? 'bg-rose-100'
                 : 'border-transparent text-gray-500'
             }`}
             onClick={() => setActiveTab('password')}
@@ -826,9 +884,9 @@ const Settings: React.FC = () => {
             Password Management
           </button>
           <button
-            className={`py-4 px-2 border-b-2 font-medium ${
+            className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
               activeTab === 'payment'
-                ? 'border-red-500 text-red-500'
+                ? 'bg-rose-100'
                 : 'border-transparent text-gray-500'
             }`}
             onClick={() => setActiveTab('payment')}
@@ -838,9 +896,11 @@ const Settings: React.FC = () => {
         </div>
       </div>
 
+      <div className='bg-white rounded-xl p-4'>
       {activeTab === 'account' && renderAccountSettings()}
-      {activeTab === 'password' && renderPasswordManagement()}
+      {activeTab === 'password' && forgotPassoword ? renderForgotPassword() : renderPasswordManagement()}
       {activeTab === 'payment' && renderPaymentMethod()}
+      </div>
     </div>
   );
 };

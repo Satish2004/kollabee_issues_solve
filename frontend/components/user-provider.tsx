@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import { authApi } from "@/lib/api/auth";
 import { getToken } from "@/lib/utils/token";
 import { User } from "@/types/api";
+
+const UserContext = createContext<User | null>(null);
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -14,7 +16,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     if (token) {
       authApi.getCurrentUser()
         .then((response) => {
-          setUser(response.data);
+          setUser(response);
         })
         .catch((error) => {
           console.error('Failed to fetch user:', error);
@@ -31,5 +33,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     return <div>Loading...</div>;
   }
 
-  return <>{children}</>;
+
+  return (
+    <UserContext.Provider value={user}>
+      {children}
+    </UserContext.Provider>
+  );
+}
+
+export function useUser() {
+  return useContext(UserContext);
 }

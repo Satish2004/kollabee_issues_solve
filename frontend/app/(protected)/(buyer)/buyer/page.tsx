@@ -10,14 +10,16 @@ import Link from 'next/link';
 import ProductCard from '../../../../components/product/product-card';
 import { wishlistApi } from '@/lib/api/wishlist';
 import { cartApi } from '@/lib/api/cart';
-import { useCheckout } from '@/checkout-context';
 import { productsApi } from '@/lib/api/products';
 import { Skeleton } from '@/components/ui/skeleton';
+import { sellerApi } from '@/lib/api/seller';
+import { useCheckout } from '@/contexts/checkout-context';
 
 const Dashboard = () => {
     const [allProducts, setAllProducts] = useState<any[]>([])
     const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [sellers, setSellers] = useState<any[]>([])
     const {products, fetchProducts, setProducts } = useCheckout()
   
   useEffect(() => {
@@ -25,7 +27,6 @@ const Dashboard = () => {
       try {
         setIsLoading(true)
         const response = await productsApi.getProducts()
-        console.log("Response:", response.data);
         setAllProducts(response.data)
       } catch (error) {
         console.error('Failed to fetch products:', error)
@@ -41,8 +42,19 @@ const Dashboard = () => {
       }
     }
 
+    const getSellers = async () => {
+      try {
+        setIsLoading(true)
+        const response = await sellerApi.getSellers()
+        setSellers(response)
+      } catch (error) {
+        console.error('Failed to fetch sellers:', error)
+      }
+    }
+
     getProducts()
     getWishlistProducts()
+    getSellers()
     fetchProducts()
 
     if (products && wishlistProducts) {
@@ -78,7 +90,7 @@ const Dashboard = () => {
       }
   
   return (
-    <main className="min-h-screen max-w-5xl bg-gray-50 p-4 md:p-6">
+    <main className="min-h-screen">
       <div className=" mx-auto space-y-6">
         {/* Top section with 4 feature boxes */}
         <FeatureBoxes />
@@ -114,7 +126,7 @@ const Dashboard = () => {
         {/* Bottom section with Recommended Supplier */}
         <div className="bg-white rounded-xl p-6">
           <h2 className="text-lg font-medium mb-4">Recommended Supplier</h2>
-          <SupplierCards />
+          <SupplierCards sellers={sellers} />
         </div>
 
         {/* Promotional Banner */}
@@ -280,12 +292,12 @@ export function FeatureBoxes() {
           <h2 className="text-gray-500 font-medium mb-2 text-sm">
             {box.title}
           </h2>
-          <div className="flex justify-between items-center">
-            <span className="text-xs font-semibold">{box.action}</span>
+          <div className="flex justify-between items-center gap-4">
+            <span className="text-[10px] font-semibold">{box.action}</span>
             <div className="flex items-center gradient-text">
-              <span className="text-sm  font-medium mr-1">{box.count}</span>
-              <span className="text-sm text-gray-500">Suppliers for you</span>
-              <ArrowUpRightFromCircle className="w-4 h-4 cursor-pointer ml-2 text-gray-500" />
+              <span className="text-[12px]  font-medium mr-1">{box.count}</span>
+              <span className="text-[12px] text-gray-500">Suppliers for you</span>
+              <ArrowUpRightFromCircle className="w-3 h-3 cursor-pointer ml-2 text-gray-500" />
             </div>
           </div>
         </div>

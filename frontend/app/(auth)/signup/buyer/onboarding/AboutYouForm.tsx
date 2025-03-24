@@ -6,6 +6,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface AboutYouFormProps {
   formData: {
@@ -59,7 +65,16 @@ export function AboutYouForm({
             <Label htmlFor="businessType" className="text-base font-medium">
               Who Are You?
             </Label>
-            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+            <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200 max-w-sm">
+                    <p>Select the option that best describes your role in the business. This helps us tailor the experience based on your business type</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
           </div>
 
           <RadioGroup
@@ -112,7 +127,16 @@ export function AboutYouForm({
             <Label htmlFor="businessName" className="text-base font-medium">
               Business Name<span className="text-destructive">*</span>
             </Label>
-            <Info className="h-4 w-4 text-muted-foreground cursor-pointer" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200 max-w-sm">
+                    <p>Enter the official name of your business as registered. If you don't have a registered business name, enter the name you operate under.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
           </div>
           <Input
             id="businessName"
@@ -137,7 +161,7 @@ export function AboutYouForm({
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+          className="rounded-[6px] text-white px-8 py-2 button-bg"
           onClick={onNext}
         >
           Continue

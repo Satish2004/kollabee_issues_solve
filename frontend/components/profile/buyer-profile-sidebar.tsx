@@ -1,5 +1,5 @@
 "use client"
-
+import React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
@@ -20,30 +20,19 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"
 import { profileApi } from "@/lib/api/profile"
-import { authApi } from "@/lib/api/auth"
+import { authApi } from "@/lib/api/auth"a
 import { User as UserType } from "@/types/api"
+import { useAuth } from "../../contexts/auth-context"
 
 export default function BuyerProfileSidebar() {
   const pathname = usePathname()
   const router = useRouter()
-  const [userData, setUserData] = useState<UserType | null>(null);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const response = await profileApi.getCurrentUser();
-        setUserData(response.data);
-      } catch (error) {
-        console.error('Failed to fetch user data:', error);
-      }
-    };
-
-    fetchUserData();
-  }, []);
+  const { user, loading, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
       await authApi.logout();
+      logout();
       router.push('/login');
     } catch (error) {
       console.error('Logout failed:', error);

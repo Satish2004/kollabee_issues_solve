@@ -4,6 +4,8 @@ import React from "react"
 
 import Image from "next/image"
 import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+import { Trash } from "lucide-react"
 
 interface CartItemProps {
   id: string
@@ -13,6 +15,7 @@ interface CartItemProps {
   initialQuantity: number
   minQuantity?: number
   onQuantityChange: (id: string, quantity: number) => void
+  removeFromCart: (id: string) => void
 }
 
 export function CartItem({
@@ -23,6 +26,7 @@ export function CartItem({
   initialQuantity,
   minQuantity = 1,
   onQuantityChange,
+  removeFromCart,
 }: CartItemProps) {
   const [quantity, setQuantity] = useState(initialQuantity)
 
@@ -46,6 +50,10 @@ export function CartItem({
       setQuantity(newQuantity)
       onQuantityChange(id, newQuantity)
     }
+  }
+
+  const handleRemoveProduct = () => {
+    removeFromCart(id)
   }
 
   useEffect(() => {
@@ -83,6 +91,8 @@ export function CartItem({
       </div>
 
       <div className="w-24 text-right font-medium">${(price * quantity).toFixed(2)}</div>
+
+      <Button className="shadow-none border-none ml-4" onClick={handleRemoveProduct}><Trash className="text-amber-500 hover:text-amber-600" size={16} /></Button>
     </div>
   )
 }

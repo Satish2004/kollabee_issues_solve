@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import React from "react"
-import { useCheckout } from "../../../../../../checkout-context"
+import { useCheckout } from "../../../../../../contexts/checkout-context"
 
 interface OrderSummaryProps {
   onNext?: () => void

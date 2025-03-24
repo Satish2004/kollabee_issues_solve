@@ -51,10 +51,17 @@ export function LoginForm() {
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
-      await authApi.login({ email, password });
+      const response = await authApi.login({ email, password });
+      const user = await response.user;
 
       toast.success("Signed in successfully");
-      router.push("/seller"); // or appropriate route based on user role
+
+      if (user.role === "BUYER") {
+        router.push("/buyer");
+      } else {
+        router.push("/seller");
+      }
+
     } catch (error: any) {
       const err = error as LoginError;
       setAlert({

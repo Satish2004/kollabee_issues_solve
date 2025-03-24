@@ -507,7 +507,6 @@ export function SignupForm({
           <div className="space-y-2 ">
             <Label htmlFor="email" className="flex items-center gap-2">
               Business Email<span className="text-destructive">*</span>
-              <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer" />
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

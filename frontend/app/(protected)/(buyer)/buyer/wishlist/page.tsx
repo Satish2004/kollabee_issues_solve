@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react'
 import ProductCard from '../../../../../components/product/product-card'
 import { wishlistApi } from '@/lib/api/wishlist';
-import { useCheckout } from '@/checkout-context';
 import { cartApi } from '@/lib/api/cart';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCheckout } from '@/contexts/checkout-context';
 
 function page() {
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
@@ -53,6 +53,14 @@ function page() {
       }
     }
 
+    if(!isLoading && wishlistProducts.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full bg-white rounded-xl">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Products Found</h3>
+          <p className="text-gray-500 mb-6">No products found in your wishlist. Start shopping to add items to your wishlist.</p>
+        </div>
+      )
+    }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
