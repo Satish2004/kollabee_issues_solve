@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, use } from "react"
 import { io, type Socket } from "socket.io-client"
 import type { Message, Conversation } from "./types/chat"
 import ChatWindow from "./chat-window"
@@ -8,20 +8,29 @@ import ContactList from "./contact-list"
 import { authApi } from "@/lib/api/auth"
 import { chatApi } from "@/lib/api/chat"
 import { useToast } from "@/hooks/use-toast"
-import { useAuth } from "@/contexts/auth-context"
 
 
 
 export default function ChatModule() {
-    const [activeTab, setActiveTab] = useState<"buyer" | "seller">("buyer")
+    const [activeTab, setActiveTab] = useState< "user" | "admin">("user")
+    const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([])
     const [activeConversation, setActiveConversation] = useState<string | null>(null)
     const [conversations, setConversations] = useState<Conversation[]>([])
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const socketRef = useRef<Socket | null>(null)
     const { toast } = useToast()
+    const [user, setUser] = useState<any>(null);
     const tempMessageIdRef = useRef<string | null>(null);
-    const { user } = useAuth();
+
+
+        useEffect(() => {
+        const fetchUser = async () => {
+            const response:any = await authApi.getCurrentUser();
+            setUser(response);
+        };
+        fetchUser();
+        }, []);
 
     
     useEffect(() => {
@@ -220,6 +229,17 @@ export default function ChatModule() {
         })
         }
     }
+
+    useEffect(() => { 
+        if(activeTab === "user"){
+            const participant =  user?.role === "BUYER" ? "SELLER" : "BUYER"
+            setFilteredConversations(conversations.filter((c) => c.participantType === participant))
+        }
+        else if(activeTab === "admin"){
+            console.log(conversations)
+            setFilteredConversations([])
+        }
+    }, [activeTab, conversations])
     
     return (
         <div className="rounded-lg shadow-sm overflow-hidden">
@@ -227,26 +247,26 @@ export default function ChatModule() {
             <div className="flex space-x-8">
             <button
                 className={`py-1 text-sm ${
-                activeTab === "buyer" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
+                activeTab === "user" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("buyer")}
+                onClick={() => setActiveTab("user")}
             >
-                Buyer Messages
+                {user?.role === "BUYER" ? "Seller Messages" : "Buyer Messages"}
             </button>
             <button
                 className={`py-1 text-sm ${
-                activeTab === "seller" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
+                activeTab === "admin" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab("seller")}
+                onClick={() => setActiveTab("admin")}
             >
-                Seller Messages
+                Admin Messages
             </button>
             </div>
         </div>
     
         <div className="flex h-[430px] space-x-6">
             <ContactList
-            conversations={conversations}
+            conversations={filteredConversations}
             activeConversationId={activeConversation}
             onSelectConversation={handleConversationChange}
             isLoading={isLoading}

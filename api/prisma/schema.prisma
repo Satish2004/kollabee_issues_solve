@@ -121,6 +121,7 @@ model Order {
   buyer             Buyer?           @relation(fields: [buyerId], references: [id])
   seller            Seller?          @relation(fields: [sellerId], references: [id])
   items             OrderItem[]
+  return            Return?
   shippingAddress   ShippingAddress?
 
   @@index([trackingNumber])
@@ -289,6 +290,7 @@ model Seller {
   inquiries          Inquiry[]
   orders             Order[]
   orderItems         OrderItem[]
+  returns            Return[]
   products           Product[]
   requests           Request[]
   user               User            @relation(fields: [userId], references: [id])
@@ -310,6 +312,7 @@ model Buyer {
   Cart                   Cart?
   inquiries              Inquiry[]
   Order                  Order[]
+  returns                Return[]
   requests               Request[]
   reviews                Review[]
   savedSearches          SavedSearch[]
@@ -399,6 +402,7 @@ model Product {
   cartItems              CartItem[]
   productCertificates    Certification[]
   orderItems             OrderItem[]
+  returnItems            ReturnItem[]
   pickupAddress          PickupAddress?     @relation(fields: [pickupAddressId], references: [id])
   seller                 Seller             @relation(fields: [sellerId], references: [id])
   reviews                Review[]
@@ -410,6 +414,44 @@ model Product {
   @@index([pickupAddressId])
 }
 
+
+enum ReturnStatus {
+  REQUESTED
+  APPROVED
+  PROCESSING
+  REFUNDED
+  REJECTED
+  COMPLETED
+}
+
+model Return {
+  id          String       @id @default(uuid())
+  order       Order        @relation(fields: [orderId], references: [id])
+  orderId     String       @unique
+  buyerId     String
+  sellerId    String
+  buyer       Buyer        @relation(fields: [buyerId], references: [id])
+  seller      Seller       @relation(fields: [sellerId], references: [id])
+  returnItems ReturnItem[]
+  reason      String
+  status      ReturnStatus @default(REQUESTED)
+  refundAmount Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model ReturnItem {
+  id          String   @id @default(uuid())
+  return      Return   @relation(fields: [returnId], references: [id])
+  returnId    String
+  product     Product  @relation(fields: [productId], references: [id])
+  productId   String
+  quantity    Int
+  reason      String?
+  refundAmount Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
 
 
 model PickupAddress {

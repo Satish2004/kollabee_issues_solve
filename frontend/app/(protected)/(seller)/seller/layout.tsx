@@ -10,16 +10,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user } = useAuth(); 
 
-    if (user?.role !== "SELLER") {
-    router.push("/unauthorized");
-  }
-
   useEffect(() => {
     if(!localStorage.getItem("token")){
       router.push("/login");
       console.log("Token not found")
     }
+    else {
+      if (user?.role !== "SELLER") {
+        router.push("/unauthorized");
+        console.log("This happende")
+      }
+    }
   }, []);
+
 
 
   return (
