@@ -111,7 +111,6 @@ export default function BuyerLayoutHeader() {
       href: "/seller/update-product",
     };
   }
-  console.log("riyte test ", currentRoute);
 
   const handleLogout = async () => {
     try {
