@@ -10,16 +10,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { user } = useAuth(); 
 
-    if (user?.role !== "SELLER") {
-    router.push("/unauthorized");
-  }
-
   useEffect(() => {
     if(!localStorage.getItem("token")){
       router.push("/login");
       console.log("Token not found")
     }
+    else {
+      if (user?.role !== "SELLER") {
+        router.push("/unauthorized");
+        console.log("This happende")
+      }
+    }
   }, []);
+
 
 
   return (
@@ -35,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <SellerLayoutHeader />
         </div>
 
-        <main className="flex-1 p-4 bg-gray-100">
+        <main className="flex-1 px-6 py-3 bg-gray-100">
           {children}
         </main>
       </div>

@@ -5,7 +5,6 @@ import { Toaster } from "sonner";
 import Script from "next/script";
 import { PropsWithChildren } from "react";
 import React from "react"; // Add this line
-import { AuthProvider } from "../contexts/auth-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +26,6 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary`}>
-        <AuthProvider>
 
             {children}
             <Toaster position="top-center" />
@@ -35,7 +33,6 @@ export default function RootLayout({ children }: PropsWithChildren) {
           src="https://example.com/script.js"
           strategy="lazyOnload"
           />
-          </AuthProvider>
       </body>
     </html>
   );
