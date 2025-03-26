@@ -13,7 +13,7 @@ const page = () => {
   }
 
   return (
-    <div className="w-full h-full rounded-xl bg-white border flex flex-col items-center justify-center">
+    <div className="w-full h-full rounded-xl  bg-white border flex flex-col items-center justify-center">
       <h1>You don't have any projects</h1>
 
       <div className="flex items-center justify-center">

@@ -18,13 +18,12 @@ const Step0 = ({ handleNext }: { handleNext: () => void }) => {
     );
   };
 
-
-
-
   return (
     <div className="h-full w-full rounded-xl gap-4 bg-white flex flex-col items-center justify-center">
-      <h1 className="font-bold text-5xl">What are you looking for?</h1>
-      <p className="text-[#78787A] text-sm">
+      <h1 className="font-bold font-futura text-5xl">
+        What are you looking for?
+      </h1>
+      <p className="text-[#78787A] font-futura font-normal text-sm">
         Choose the product you're looking to create
       </p>
 
