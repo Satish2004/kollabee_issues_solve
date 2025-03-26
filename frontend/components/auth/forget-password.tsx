@@ -15,11 +15,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/lib/api/auth";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 
 export function ForgotPasswordForm() {
   const router = useRouter();
@@ -67,78 +69,106 @@ export function ForgotPasswordForm() {
   };
 
   return (
-    <Card className="w-full max-w-[600px]">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-xl font-medium text-center">
-          Reset Password
-        </CardTitle>
-        <CardDescription className="text-center text-[15px] font-medium">
-          {!emailSent
-            ? "Enter your email to receive a password reset link"
-            : "Check your email for the password reset link"}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {alert.show && (
-          <Alert
-            className={cn(
-              "mb-6 border-2",
-              alert.type === "error"
-                ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                : "border-green-500 bg-green-50 dark:bg-green-900/20"
-            )}
-          >
-            <Info className="h-5 w-5" />
-            <AlertTitle className="font-medium">{alert.message1}</AlertTitle>
-            <AlertDescription>{alert.message2}</AlertDescription>
-          </Alert>
-        )}
+    <div className="flex flex-col items-center w-full max-w-lg mx-auto font-futura font-normal">
+      <div className="mb-8">
+        <div className="flex justify-center">
+          <Image
+            onClick={() => router.push("/")}
+            src="/kollabee.jpg"
+            alt="KollaBee Logo"
+            width={160}
+            height={42}
+            className="mx-auto"
+          />
+        </div>
+      </div>
 
-        {!emailSent ? (
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                required
-                placeholder="m@example.com"
-                className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-gradient-to-r from-[#950a73] via-[#e36d5d] to-[#f1b56a] text-white hover:opacity-90 rounded-[6px] font-semibold"
-              disabled={isLoading}
+      <Card className="w-full">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-normal">Reset Password</CardTitle>
+          <CardDescription className="text-center text-[15px] font-normal">
+            {!emailSent
+              ? "Enter your email to receive a password reset link"
+              : "Check your email for the password reset link"}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {alert.show && (
+            <Alert
+              className={cn(
+                "mb-6 border-2",
+                alert.type === "error"
+                  ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                  : "border-green-500 bg-green-50 dark:bg-green-900/20"
+              )}
             >
-              {isLoading ? "Sending..." : "Send Reset Link"}
-            </Button>
-          </form>
-        ) : (
-          <div className="text-center py-4">
-            <p className="mb-4">
-              A password reset link has been sent to your email.
-            </p>
-            <p>
-              Please check your inbox and click on the link to reset your
-              password.
-            </p>
+              <Info className="h-5 w-5" />
+              <AlertTitle>{alert.message1}</AlertTitle>
+              <AlertDescription>{alert.message2}</AlertDescription>
+            </Alert>
+          )}
+
+          {!emailSent ? (
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-normal">
+                  Email Address*
+                </Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  placeholder="Enter your Email Address"
+                  className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              <div className="space-y-4 mt-6">
+                <Button
+                  type="submit"
+                  className="rounded-[6px] w-full text-white font-normal px-8 py-2 button-bg"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Sending..." : "Send Reset Link"}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <div className="text-center py-4">
+              <p className="mb-4">
+                A password reset link has been sent to your email.
+              </p>
+              <p>
+                Please check your inbox and click on the link to reset your
+                password.
+              </p>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="flex flex-col items-center border-t pt-6 mt-4">
+          <div className="text-sm text-gray-600">
+            Remember your password?{" "}
+            <Link
+              href="/login"
+              className="ml-1 text-pink-600 hover:underline font-normal"
+            >
+              Log in
+            </Link>
           </div>
-        )}
-      </CardContent>
-      <CardFooter>
-        <Button
-          variant="ghost"
-          className="w-full"
-          onClick={() => router.push("/login")}
-        >
-          Back to Login
-        </Button>
-      </CardFooter>
-    </Card>
+
+          {/* <Button
+            variant="ghost"
+            className="mt-4 gradient-text"
+            onClick={() => router.push("/login")}
+          >
+            <ArrowLeft className="h-4 w-4 text-rose-500 " />
+            Back
+          </Button> */}
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
