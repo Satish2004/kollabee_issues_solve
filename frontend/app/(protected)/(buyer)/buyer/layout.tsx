@@ -5,22 +5,10 @@ import { IntroTour } from '@/components/tour/IntroTour';
 import { BuyerSidebar } from '../../../../components/buyer/buyer-sidebar';
 import  BuyerLayoutHeader  from '../../../../components/buyer/buyer-layout-header';
 import { CheckoutProvider } from '@/contexts/checkout-context';
-import { useAuth } from '@/contexts/auth-context';
 
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-
-    const { user } = useAuth();
-    console.log("User:", user)
-
-    if(!user) {
-      return null;
-    }
-  
-    if (user?.role !== "BUYER") {
-      router.push("/unauthorized");
-    }
 
   useEffect(() => {
     if(!localStorage.getItem("token")){

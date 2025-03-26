@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { profileApi } from "@/lib/api/profile"
 import { toast } from "sonner"
 
@@ -31,6 +31,9 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
   })
 
   const [originalFormStates, setOriginalFormStates] = useState<Record<string, any>>({})
+
+  // useRef to track loading state of sections to prevent duplicate API calls
+  const sectionLoadingRef = useRef<string[]>([])
 
   // Get default form state for a section
   const getDefaultFormState = (sectionId: string) => {
@@ -94,9 +97,12 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
     }
   }
 
-  // Load data for a specific section
   const loadSectionData = async (sectionId: string) => {
-    if (formStates[sectionId] !== null) return // Already loaded
+    // If data is already loaded or a request is in progress, don't make another call
+    if (formStates[sectionId] !== null || sectionLoadingRef.current.includes(sectionId)) return
+
+    // Add this section to the loading tracker
+    sectionLoadingRef.current = [...sectionLoadingRef.current, sectionId]
 
     setSectionLoading(sectionId)
     try {
@@ -168,6 +174,7 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
         [sectionId]: JSON.parse(JSON.stringify(defaultState)),
       }))
     } finally {
+      sectionLoadingRef.current = sectionLoadingRef.current.filter((id) => id !== sectionId)
       setSectionLoading(null)
     }
   }
