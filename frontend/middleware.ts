@@ -50,6 +50,7 @@ export async function middleware(request: NextRequest) {
   if (token && isPublicPath && path !== "/") {
     // Verify token and get user role
     const payload = await verifyToken(token);
+    console.log("payload", payload);
 
     if (payload) {
       const role = payload.role as string;

@@ -25,11 +25,9 @@ export default function ProtectedLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <AuthProvider>
       <div className="flex">
         <div className="flex-1">{children}</div>
         <Toaster position="top-center" richColors />
       </div>
-    </AuthProvider>
   );
 }

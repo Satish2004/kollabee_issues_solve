@@ -64,10 +64,34 @@ const KollaBeeProfile = () => {
   }, [])
 
   // Load data for the current step when it changes
+useEffect(() => {
+    const currentStepId = steps[activeStep].id
+    // Only load if not already loaded
+    if (formStates[currentStepId] === null) {
+      loadSectionData(currentStepId)
+    }
+  }, [activeStep, steps, loadSectionData, formStates])
+
+  // Add preloading for the next section to improve UX
+  // Preload the next section data when the current step is loaded
   useEffect(() => {
     const currentStepId = steps[activeStep].id
-    loadSectionData(currentStepId)
-  }, [activeStep, steps, loadSectionData])
+
+    // If current step is loaded and there's a next step, preload it
+    if (formStates[currentStepId] !== null && activeStep < steps.length - 1) {
+      const nextStepId = steps[activeStep + 1].id
+
+      // Use a timeout to avoid rate limiting
+      const timer = setTimeout(() => {
+        if (formStates[nextStepId] === null) {
+          loadSectionData(nextStepId)
+        }
+      }, 1000) // 1 second delay
+
+      return () => clearTimeout(timer)
+    }
+  }, [activeStep, formStates, steps, loadSectionData])
+
 
   // Handle certificate upload
   const handleCertificateUpload = async () => {
