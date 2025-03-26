@@ -395,3 +395,524 @@ export const updateProduct = async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to update product" });
   }
 };
+
+
+export const getSellers = async (req: any, res: Response) => {
+  try {
+    const sellers = await prisma.seller.findMany({
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+            country: true,
+            state: true,
+            address: true,
+            companyWebsite: true,
+          },
+        },
+      },
+    });
+
+    res.json(sellers);
+  } catch (error) {
+    console.error("Get sellers error:", error);
+    res.status(500).json({ error: "Failed to get sellers" });
+  }
+};
+
+export const getSeller = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+            country: true,
+            state: true,
+            address: true,
+            companyWebsite: true,
+          },
+        },
+        products: {
+          include: {
+            pickupAddress: true,
+            productCertificates: true,
+            reviews: {
+              include: {
+                buyer: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        imageUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          orderBy: {
+            updatedAt: "desc",
+            price: "asc",
+          },
+        },
+      },
+    });   
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller);
+  } catch (error) {
+    console.error("Get seller error:", error);
+    res.status(500).json({ error: "Failed to get seller" });
+  }
+};
+
+export const getSellerProfileCategories = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.businessCategories);
+  } catch (error) {
+    console.error("Get seller profile categories error:", error);
+    res.status(500).json({ error: "Failed to get seller profile categories" });
+  }
+};
+
+export const updateSellerProfileCategories = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { categories } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        businessCategories: categories,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update seller profile categories error:", error);
+    res.status(500).json({ error: "Failed to update seller profile categories" });
+  }
+};
+
+export const getSellerProfileProductionServices = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.productionServices);
+  } catch (error) {
+    console.error("Get seller profile production services error:", error);
+    res.status(500).json({ error: "Failed to get seller profile production services" });
+  }
+};
+
+export const updateSellerProfileProductionServices = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { productionServices } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        productionServices: productionServices,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update seller profile production services error:", error);
+    res.status(500).json({ error: "Failed to update seller profile production services" });
+  }
+};
+
+export const getSellerProfileProductionManagement = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.productionManaged);
+  } catch (error) {
+    console.error("Get seller profile production management error:", error);
+    res.status(500).json({ error: "Failed to get seller profile production management" });
+  }
+};
+
+export const updateSellerProfileProductionManagement = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { productionManaged } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        productionManaged: productionManaged,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update seller profile production management error:", error);
+    res.status(500).json({ error: "Failed to update seller profile production management" });
+  }
+};
+
+export const getSellerProfileManufacturingLocations = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.manufacturingLocations);
+  } catch (error) {
+    console.error("Get seller profile manufacturing locations error:", error);
+    res.status(500).json({ error: "Failed to get seller profile manufacturing locations" });
+  }
+};
+
+export const updateSellerProfileManufacturingLocations = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { manufacturingLocations } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        manufacturingLocations: manufacturingLocations,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update manufacturing locations error:", error);
+    res.status(500).json({ error: "Failed to update manufacturing locations" });
+  }
+};
+
+export const getSellerProfileCapabilities = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.challenges);
+  } catch (error) {
+    console.error("Get capabilities error:", error);
+    res.status(500).json({ error: "Failed to get capabilities" });
+  }
+};
+
+export const updateSellerProfileCapabilities = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { businessCapabilities } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        challenges: businessCapabilities,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update capabilities error:", error);
+    res.status(500).json({ error: "Failed to update capabilities" });
+  }
+};
+
+export const getSellerProfileTargetAudience = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.targetAudience);
+  } catch (error) {
+    console.error("Get target audience error:", error);
+    res.status(500).json({ error: "Failed to get target audience" });
+  }
+};
+
+export const updateSellerProfileTargetAudience = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { targetAudience } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        targetAudience: targetAudience,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update target audience error:", error);
+    res.status(500).json({ error: "Failed to update target audience" });
+  }
+};
+
+export const getSellerProfileTeamSize = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.teamSize);
+  } catch (error) {
+    console.error("Get team size error:", error);
+    res.status(500).json({ error: "Failed to get team size" });
+  }
+};
+
+export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { teamSize } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        teamSize: teamSize,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update team size error:", error);
+    res.status(500).json({ error: "Failed to update team size" });
+  }
+};
+
+export const getSellerProfileAnnualRevenue = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.annualRevenue);
+  } catch (error) {
+    console.error("Get annual revenue error:", error);
+    res.status(500).json({ error: "Failed to get annual revenue" });
+  }
+};
+
+export const updateSellerProfileAnnualRevenue = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { annualRevenue } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        annualRevenue: annualRevenue,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update annual revenue error:", error);
+    res.status(500).json({ error: "Failed to update annual revenue" });
+  } 
+};
+
+export const getSellerProfileMinimumOrder = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.minimumOrderQuantity);
+  } catch (error) {
+    console.error("Get minimum order error:", error);
+    res.status(500).json({ error: "Failed to get minimum order" });
+  }
+};
+
+export const updateSellerProfileMinimumOrder = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { minimumOrderQuantity } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        minimumOrderQuantity: minimumOrderQuantity,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update minimum order error:", error);
+    res.status(500).json({ error: "Failed to update minimum order" });
+  }
+};
+
+export const getSellerProfileComments = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     res.json(seller.comments);
+  } catch (error) {
+    console.error("Get comments error:", error);
+    res.status(500).json({ error: "Failed to get comments" });
+  }
+};
+
+export const updateSellerProfileComments = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { comments } = req.body;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+  
+     await prisma.seller.update({
+      where: { userId },
+      data: {
+        comments: comments,
+      },
+    });
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Update comments error:", error);
+    res.status(500).json({ error: "Failed to update comments" });
+  }
+};

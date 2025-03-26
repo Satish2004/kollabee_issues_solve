@@ -2,9 +2,9 @@
 import Image from 'next/image'
 import React, { useEffect, useState } from 'react'
 import { OrderSummary } from './order-summary'
-import { useCheckout } from '@/checkout-context'
 import { Button } from '@/components/ui/button'
 import { ordersApi } from '@/lib/api/orders'
+import { useCheckout } from '@/contexts/checkout-context'
 
 function OrderConfirmation() {
  const { products, isLoading, orderSummary, orderId } = useCheckout()

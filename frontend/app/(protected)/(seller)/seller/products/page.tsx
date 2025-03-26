@@ -178,10 +178,10 @@ const ProductsPage: React.FC = () => {
             </div>
             <Link 
               href="/seller/products/add-product"
-              className="flex items-center space-x-2 px-4 py-2 rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+              className="flex items-center space-x-2 px-4 py-2 rounded-[6px] gradient-border bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
             >
-              <Plus className="w-4 h-4 text-black" />
-              <span>Add Product</span>
+              <Plus className="w-4 h-4 text-pink-500" strokeWidth={3} />
+              <span className='gradient-text font-semibold'>Add Product</span>
             </Link>
           </div>
 

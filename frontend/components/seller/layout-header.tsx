@@ -21,11 +21,12 @@ import { UserDropdown } from "./user-dropdown";
 import { authApi } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/auth-context";
 
 export default function SellerLayoutHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const routes = [
     {
       label: "Dashboard",
@@ -105,27 +106,20 @@ export default function SellerLayoutHeader() {
     try {
       await authApi.logout();
       router.push('/login');
+      router.refresh();
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const response:any = await authApi.getCurrentUser();
-      setUser(response);
-    };
-    fetchUser();
-  }, []);
-
   return (
-    <div className="w-[94%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6 ">
+    <div className="w-[96%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6">
       <div className="flex items-center justify-between gap-2">
         {currentRoute && <currentRoute.icon className="w-5 h-5" />}
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
       <div className="flex items-center gap-2 ">
-        <Button variant="outline" className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold">
+        <Button variant="outline" className="button-bg text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold">
           Upgrade
         </Button>
         <Button variant="ghost" size="icon" className="size-10" onClick={()=>router.push("/seller/notifications")}>

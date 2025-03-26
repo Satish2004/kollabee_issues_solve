@@ -30,8 +30,9 @@ import IconRenderer from "./icon-render";
 export default function BuyerLayoutHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const { products } = useCheckout();
+  const { user } = useAuth();
+
   const numberOfCartItems = products.length;
   const routes = [
     {

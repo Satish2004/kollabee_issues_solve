@@ -29,6 +29,8 @@ import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { authApi } from "@/lib/api/auth";
 import { removeToken } from "@/lib/utils/token";
+import { HiChatBubbleLeftRight } from "react-icons/hi2";
+import { IoStorefront } from "react-icons/io5";
 
 type SidebarProps = {
   className?: string;
@@ -90,7 +92,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
         },
         {
           label: "Marketplace",
-          icon: Store,
+          icon: IoStorefront,
           href: "/buyer/marketplace",
           // className: "tour-products"
         },
@@ -108,7 +110,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
         },
         {
           label: "Messages",
-          icon: MessagesSquare,
+          icon: HiChatBubbleLeftRight,
           href: "/buyer/chat",
           // className: "tour-requests"
         },
@@ -154,8 +156,8 @@ export function BuyerSidebar({ className }: SidebarProps) {
               alt="KollaBee"
               width={isCollapsed ? 40 : 150}
               height={40}
-              className="rounded-full cursor-pointer"
-              onClick={() => router.push("/seller")}
+              className={`rounded-full cursor-pointer ${isCollapsed ? 'hidden' : ''}`}
+              onClick={() => router.push("/buyer")}
             />
           </div>
           <Button

@@ -12,6 +12,12 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface SignupFormProps {
   formData: {
@@ -501,7 +507,16 @@ export function SignupForm({
           <div className="space-y-2 ">
             <Label htmlFor="email" className="flex items-center gap-2">
               Business Email<span className="text-destructive">*</span>
-              <Info className="h-3.5 w-3.5 text-muted-foreground cursor-pointer" />
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200 max-w-sm">
+                    <p>Enter your business email address. This email will be used to send you OTP for verification.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </Label>
             <div className="relative">
               <Input

@@ -3,11 +3,11 @@ import React, { useEffect, useState } from 'react'
 import ProductCard from '../../../../../components/product/product-card'
 import { productsApi } from '@/lib/api/products';
 import { Skeleton } from "@/components/ui/skeleton"
-import { useCheckout } from '@/checkout-context';
 import { cartApi } from '@/lib/api/cart';
 import { wishlistApi } from '@/lib/api/wishlist';
 import { set } from 'date-fns';
 import ProductFilters from './product-filters';
+import { useCheckout } from '@/contexts/checkout-context';
 
 export interface FilterState {
   supplierFeatures: {

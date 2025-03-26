@@ -2,6 +2,12 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface SuccessMessageProps {
   userType?: "buyer" | "seller";
@@ -40,7 +46,7 @@ export function SuccessMessage({
       </div>
 
       <Button
-        className="w-full py-6 rounded-[6px] text-white bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+        className="w-full py-6 rounded-[6px] text-white button-bg font-semibold"
         onClick={onContinue}
       >
         {buttonText}

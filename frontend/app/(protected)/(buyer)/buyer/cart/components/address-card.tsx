@@ -1,7 +1,7 @@
 "use client"
 import React from "react"
 import { Radio } from "@/components/ui/form"
-import { Address } from "../../../../../../checkout-context"
+import { Address } from "../../../../../../contexts/checkout-context"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 
 interface AddressCardProps {

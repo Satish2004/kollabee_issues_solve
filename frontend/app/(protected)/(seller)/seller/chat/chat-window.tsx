@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Paperclip, Smile, User, Phone } from "lucide-react"
+import { Send, Paperclip, Smile, User, Phone, CheckCheckIcon, CheckIcon, SendHorizonal } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -106,7 +106,7 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full">
+    <div className="flex-1 flex flex-col h-full bg-white">
       {/* Conversation Header */}
       <div className="p-4 border-b flex justify-between items-center">
         <div className="flex items-center">
@@ -114,7 +114,7 @@ export default function ChatWindow({
             {conversation?.participantAvatar ? (
               <AvatarImage src={conversation.participantAvatar} alt={conversation?.participantName || ""} />
             ) : (
-              <AvatarFallback>
+              <AvatarFallback className="bg-neutral-200">
                 <User className="h-6 w-6" />
               </AvatarFallback>
             )}
@@ -123,22 +123,25 @@ export default function ChatWindow({
             <h3 className="font-medium">{conversation?.participantName || "Chat"}</h3>
             <div className="flex items-center text-xs text-gray-500">
               {conversation?.isOnline ? (
-                <span className="flex items-center">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
-                  Online
-                </span>
+                <div className="flex items-center space-x-1 bg-green-100 px-2 rounded-xl py-0.5">
+                <div className="h-1.5 w-1.5 bg-green-500 rounded-full"></div>
+                <span className="text-green-600">Online</span>
+              </div>
               ) : (
-                <span>Offline</span>
+                <div className="flex items-center space-x-1 bg-neutral-100 px-2 rounded-xl py-0.5">
+                  <div className="h-1.5 w-1.5 bg-neutral-500 rounded-full"></div>
+                  <span className="text-neutral-500">Offline</span>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        <Button variant="outline" size="sm">
+        {/* <Button variant="outline" size="sm">
           <Phone className="h-4 w-4 mr-1" />
           Call
-        </Button>
-      </div>
+        </Button> */}
+      </div>  
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4">
@@ -152,14 +155,14 @@ export default function ChatWindow({
                 {dateMessages.map((message) => (
                   <div
                     key={message.id}
-                    className={`mb-4 flex ${message.senderId === currentUser?.id ? "justify-end" : "justify-start"}`}
+                    className={`mb-2 flex ${message.senderId === currentUser?.id ? "justify-end" : "justify-start"}`}
                   >
                     <div
                       className={`max-w-xs lg:max-w-md ${message.senderId === currentUser?.id ? "order-2" : "order-1"}`}
                     >
                       <div className="flex items-end">
                         {message.senderId !== currentUser?.id && (
-                          <Avatar className="w-6 h-6 rounded-full mr-2 mb-1">
+                          <Avatar className="w-8 h-8 rounded-full mr-2 mb-1">
                             {conversation?.participantAvatar ? (
                               <AvatarImage
                                 src={conversation.participantAvatar}
@@ -173,15 +176,15 @@ export default function ChatWindow({
                           </Avatar>
                         )}
 
-                        <div>
-                          <div
-                            className={`px-4 py-2 rounded-lg ${
+                        <div className={`flex flex-row items-center space-x-2 rounded-2xl ${
                               message.senderId === currentUser?.id
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-gray-100"
-                            }`}
+                                ? "bg-[#ea3d4f] px-2 py-2 text-white"
+                                : "bg-stone-200 px-2 py-2 text-black"
+                            }`}>
+                          <div
+                            className={`rounded-lg`}
                           >
-                            {message.content && <p>{message.content}</p>}
+                            {message.content && <p className="text-sm rounded-2xl">{message.content}</p>}
 
                             {message.attachments && message.attachments.length > 0 && (
                               <div className="mt-2 space-y-2">
@@ -226,8 +229,8 @@ export default function ChatWindow({
                           </div>
 
                           <div
-                            className={`text-xs bg-red-300 text-gray-500 mt-1 flex items-center ${
-                              message.senderId === currentUser?.id ? "justify-end" : "justify-start"
+                            className={`text-[12px]  flex items-center ${
+                              message.senderId === currentUser?.id ? "justify-end text-white" : "justify-start text-stone-500"
                             }`}
                           >
                             {formatTime(message.createdAt)}
@@ -236,10 +239,10 @@ export default function ChatWindow({
                                 {message.status === "pending"
                                   ? "⌛"
                                   : message.status === "sent"
-                                    ? "✓"
+                                    ? <CheckIcon className="h-4 w-4 text-green-300" />
                                     : message.status === "delivered"
-                                      ? "✓✓"
-                                      : "✓✓"}
+                                      ? <CheckCheckIcon className="h-4 w-4 text-green-300" />
+                                      : <CheckCheckIcon className="h-4 w-4 text-green-300" />}
                               </span>
                             )}
                           </div>
@@ -292,18 +295,28 @@ export default function ChatWindow({
       )}
 
       {/* Message Input */}
-      <div className="p-4 border-t">
-        <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      <div className="m-4 rounded-xl bg-gray-100 pb-3 px-3 pt-2">
+        <form onSubmit={handleSubmit} className="flex flex-col items-end gap-2">
           <input type="file" ref={fileInputRef} multiple onChange={handleFileChange} className="hidden" />
 
-          <Button type="button" size="icon" variant="ghost" onClick={() => fileInputRef.current?.click()}>
+          <div className="w-full relative">
+          <Button type="button" size="icon" variant="ghost" onClick={() => fileInputRef.current?.click()} className="absolute">
             <Paperclip className="h-5 w-5" />
           </Button>
 
+          <Input
+            value={messageInput}
+            onChange={(e) => setMessageInput(e.target.value)}
+            placeholder="Send a message..."
+            className="flex-1 pl-10 border-none text-wrap shadow-none"
+          />
+          </div>
+
+          <div className="flex items-center gap-2">
           <Popover>
             <PopoverTrigger asChild>
-              <Button type="button" size="icon" variant="ghost">
-                <Smile className="h-5 w-5" />
+              <Button type="button" size="icon" variant="ghost" className="bg-white p-1 rounded-full">
+                <Smile className="h-6 w-6 text-neutral-500" />
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -311,16 +324,13 @@ export default function ChatWindow({
             </PopoverContent>
           </Popover>
 
-          <Input
-            value={messageInput}
-            onChange={(e) => setMessageInput(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1"
-          />
 
-          <Button type="submit">
-            <Send className="h-5 w-5" />
+          <Button type="submit" className="border-none shadow-none text-white bg-[#ea3d4f] ">
+            Send
+            <SendHorizonal className="h-5 w-5" />
           </Button>
+          </div>
+
         </form>
       </div>
     </div>

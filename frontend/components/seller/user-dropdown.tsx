@@ -25,23 +25,24 @@ export function UserDropdown({ currentUser, onLogout }: UserDropdownProps) {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 rounded-full pr-3 pl-1 py-1 hover:bg-accent transition-colors">
+            <button className="flex items-center gap-3 rounded-full pr-3 pl-1 py-1 hover:bg-accent transition-colors">
                     <div className="flex items-center gap-3">
-                        <Avatar className="h-11 w-11 ring-4 ring-pink-100">
+                        <Avatar className="h-12 w-12">
                             <AvatarImage
-                                src={`https://api.dicebear.com/9.x/adventurer/svg?seed=${currentUser?.name}`}
+                                src={currentUser?.imageUrl}
                                 alt={currentUser?.name}
+                                className='bg-cover'
                             />
                             <AvatarFallback className="bg-primary/10">
                                 {currentUser?.name?.slice(0, 1)?.toUpperCase()}
                             </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col items-start">
-                            <span className="text-xs font-medium text-muted-foreground">{currentUser?.role}</span>
-                            <span className="text-sm font-medium">{currentUser?.name || 'Aman K'}</span>
+                            <span className="text-xs font-semibold text-muted-foreground">{currentUser?.role}</span>
+                            <span className="text-xs text-neutral-500 font-medium">{currentUser?.name || 'Username'}</span>
                         </div>
                     </div>
-                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    <ChevronDown className="h-6 w-6 text-muted-foreground" strokeWidth={1} />
                 </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56 bg-white" align="end" forceMount>
@@ -55,12 +56,13 @@ export function UserDropdown({ currentUser, onLogout }: UserDropdownProps) {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                    {/* <DropdownMenuItem>
-                        <Link href="/seller/profile-management/account-settings" className="flex gap-x-4">
-                            <User className="mr-2 h-4 w-4" />
+                    <DropdownMenuItem>
+                        <Link href="/seller/profile/seller" className="flex">
+                            <User className="mr-4 h-4 w-4" />
                             <span>Profile</span>
                         </Link>
-                    </DropdownMenuItem> */}
+                    </DropdownMenuItem>
+                    
                     <DropdownMenuItem onClick={() => router.push('/seller/settings')} className='cursor-pointer'>
                         <Settings className="mr-2 h-4 w-4" />
                         <span>Settings</span>

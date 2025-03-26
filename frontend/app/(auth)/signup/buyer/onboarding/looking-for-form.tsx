@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 interface LookingForFormProps {
   formData: {
@@ -117,7 +123,7 @@ export function LookingForForm({
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+          className="rounded-[6px] text-white px-8 py-2 button-bg"
           onClick={onSubmit}
           disabled={isSubmitting}
         >

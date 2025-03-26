@@ -71,9 +71,19 @@ export const profileApi = {
     return api.put('/seller/profile/categories', data);
   },
 
+  //Get Categories
+  getCategories: async () => {
+    return api.get('/seller/profile/categories');
+  },
+
   // Update production services
   updateProductionServices: async (data: any) => {
     return api.put('/seller/profile/production-services', data);
+  },
+
+  //Get Production Services
+  getProductionServices: async () => {
+    return api.get('/seller/profile/production-services');
   },
 
   // Update production management
@@ -81,9 +91,19 @@ export const profileApi = {
     return api.put('/seller/profile/production-management', data);
   },
 
+  //Get Production Management
+  getProductionManagement: async () => {
+    return api.get('/seller/profile/production-management');
+  },
+
   // Update manufacturing locations
   updateManufacturingLocations: async (data: any) => {
     return api.put('/seller/profile/manufacturing-locations', data);
+  },
+
+  // Get manufacturing locations
+  getManufacturingLocations: async () => {
+    return api.get('/seller/profile/manufacturing-locations');
   },
 
   // Update business capabilities
@@ -91,9 +111,19 @@ export const profileApi = {
     return api.put('/seller/profile/capabilities', data);
   },
 
+  // Get business capabilities
+  getBusinessCapabilities: async () => {
+    return api.get('/seller/profile/capabilities');
+  },
+
   // Update target audience
   updateTargetAudience: async (data: any) => {
     return api.put('/seller/profile/target-audience', data);
+  },
+
+  // Get target audience
+  getTargetAudience: async () => {
+    return api.get('/seller/profile/target-audience');
   },
 
   // Update team size
@@ -101,9 +131,19 @@ export const profileApi = {
     return api.put('/seller/profile/team-size', data);
   },
 
+  // Get team size
+  getTeamSize: async () => {
+    return api.get('/seller/profile/team-size');
+  },
+
   // Update annual revenue
   updateAnnualRevenue: async (data: any) => {
     return api.put('/seller/profile/annual-revenue', data);
+  },
+
+  // Get annual revenue
+  getAnnualRevenue: async () => {
+    return api.get('/seller/profile/annual-revenue');
   },
 
   // Update minimum order quantity
@@ -111,13 +151,28 @@ export const profileApi = {
     return api.put('/seller/profile/minimum-order', data);
   },
 
+  // Get minimum order quantity
+  getMinimumOrder: async () => {
+    return api.get('/seller/profile/minimum-order');
+  },
+
   // Update comments and notes
-  updateComments: async (data: any) => {
+  updateCommentsNotes: async (data: any) => {
     return api.put('/seller/profile/comments', data);
+  },
+
+  // Get comments and notes
+  getCommentsNotes: async () => {
+    return api.get('/seller/profile/comments');
   },
 
   // Update certificates
   updateCertificates: async (data: any) => {
     return api.put('/seller/profile/certificates', data);
-  }
+  },
+
+  // Get certificates
+  getCertificates: async () => {
+    return api.get('/seller/profile/certificates');
+  },
 }; 

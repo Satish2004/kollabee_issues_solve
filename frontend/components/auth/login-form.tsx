@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { ArrowBigLeft, ArrowLeft, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/lib/api/auth";
 import { toast } from "sonner";
@@ -51,10 +51,17 @@ export function LoginForm() {
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
-      await authApi.login({ email, password });
+      const response = await authApi.login({ email, password });
+      const user = await response.user;
 
       toast.success("Signed in successfully");
-      router.push("/seller"); // or appropriate route based on user role
+
+      if (user.role === "BUYER") {
+        router.push("/buyer");
+      } else {
+        router.push("/seller");
+      }
+
     } catch (error: any) {
       const err = error as LoginError;
       setAlert({
@@ -70,10 +77,9 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-[600px]">
+    <Card className="w-full max-w-lg">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-xl font-medium text-center">Login</CardTitle>
-        <CardDescription className="text-center text-[15px] font-medium">
+        <CardDescription className="text-left text-[15px] font-medium">
           Fill in your details to login to your account and get started with
           Kollabee
         </CardDescription>
@@ -135,12 +141,12 @@ export function LoginForm() {
       <CardFooter>
         <Button
           variant="ghost"
-          className="w-full"
-          onClick={() => router.push("/signup")}
+          className="w-full gradient-text"
+          onClick={() => router.push("/login")}
         >
-          Don&apos;t have an account?
+          <ArrowLeft className="text-rose-500" />
+            Back
           <br />
-          Sign up
         </Button>
       </CardFooter>
     </Card>
