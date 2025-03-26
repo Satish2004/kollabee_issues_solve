@@ -26,7 +26,21 @@ import { useAuth } from "@/contexts/auth-context";
 export default function SellerLayoutHeader() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const [ user , setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await authApi.getCurrentUser();
+        setUser(user);
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+
+    fetchUser();
+  }, []);
+  
   const routes = [
     {
       label: "Dashboard",

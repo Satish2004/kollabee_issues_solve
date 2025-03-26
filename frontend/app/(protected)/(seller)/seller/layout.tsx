@@ -4,22 +4,14 @@ import { SellerSidebar } from "@/components/seller/seller-sidebar";
 import SellerLayoutHeader from "@/components/seller/layout-header";
 import { useRouter } from "next/navigation";
 import { IntroTour } from '@/components/tour/IntroTour';
-import { useAuth } from '@/contexts/auth-context';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { user } = useAuth(); 
 
   useEffect(() => {
     if(!localStorage.getItem("token")){
       router.push("/login");
       console.log("Token not found")
-    }
-    else {
-      if (user?.role !== "SELLER") {
-        router.push("/unauthorized");
-        console.log("This happende")
-      }
     }
   }, []);
 

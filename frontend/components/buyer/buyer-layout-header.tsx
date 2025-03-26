@@ -24,14 +24,27 @@ import { authApi } from "@/lib/api/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
-import { useCheckout } from "@/checkout-context";
 import IconRenderer from "./icon-render";
+import { useCheckout } from "@/contexts/checkout-context";
 
 export default function BuyerLayoutHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { products } = useCheckout();
-  const { user } = useAuth();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const user = await authApi.getCurrentUser();
+        setUser(user);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
+    };
+
+    fetchUser();
+  }, []);
 
   const numberOfCartItems = products.length;
   const routes = [

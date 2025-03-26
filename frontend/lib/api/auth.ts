@@ -36,7 +36,6 @@ export const authApi = {
     // Set token after successful login
     // set cookies as well
 
-    console.log(response);
     if (response.token) {
       setToken(response.token);
       localStorage.setItem("token", response.token);

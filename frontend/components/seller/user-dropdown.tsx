@@ -57,7 +57,7 @@ export function UserDropdown({ currentUser, onLogout }: UserDropdownProps) {
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
                     <DropdownMenuItem>
-                        <Link href="/seller/profile/seller" className="flex">
+                        <Link href="/seller/profile" className="flex">
                             <User className="mr-4 h-4 w-4" />
                             <span>Profile</span>
                         </Link>
