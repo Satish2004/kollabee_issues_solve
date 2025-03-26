@@ -6,23 +6,24 @@ import { toast } from "sonner"
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-import { useProfileSections } from "@/hooks/use-profile-sections"
-import { useProfileFormState } from "@/hooks/use-profile-form-state"
-import CategoriesForm from "./components/forms/categories-form"
-import ProductionServicesForm from "./components/forms/production-services-form"
-import ProductionManagedForm from "./components/forms/production-managed-form"
-import ProductionManufacturedForm from "./components/forms/production-manufactured-form"
-import BusinessCapabilitiesForm from "./components/forms/business-capabilities-form"
-import TargetAudienceForm from "./components/forms/target-audience-form"
-import TeamSizeForm from "./components/forms/team-size-form"
-import AnnualRevenueForm from "./components/forms/annual-revenue-form"
-import MinimumOrderForm from "./components/forms/minimum-order-form"
-import CommentsNotesForm from "./components/forms/comments-notes-form"
-import CertificatesForm from "./components/forms/certificates-form"
-import CertificateModal from "./components/certificate-modal"
-import ProfileChart from "./components/profile-chart"
-import ProfileStepper from "./components/profile-stepper"
+import { useProfileSections } from "@/lib/hooks/use-profile-sections"
+import { useProfileFormState } from "@/lib/hooks/use-profile-form-state"
+import ProfileStepper from "@/components/profile/profile-stepper"
+import ProfileChart from "@/components/profile/profile-chart"
+import CertificateModal from "@/components/profile/certificate-modal"
 
+// Individual form components
+import CategoriesForm from "@/components/profile/forms/categories-form"
+import ProductionServicesForm from "@/components/profile/forms/production-services-form"
+import ProductionManagedForm from "@/components/profile/forms/production-managed-form"
+import ProductionManufacturedForm from "@/components/profile/forms/production-manufactured-form"
+import BusinessCapabilitiesForm from "@/components/profile/forms/business-capabilities-form"
+import TargetAudienceForm from "@/components/profile/forms/target-audience-form"
+import TeamSizeForm from "@/components/profile/forms/team-size-form"
+import AnnualRevenueForm from "@/components/profile/forms/annual-revenue-form"
+import MinimumOrderForm from "@/components/profile/forms/minimum-order-form"
+import CommentsNotesForm from "@/components/profile/forms/comments-notes-form"
+import CertificatesForm from "@/components/profile/forms/certificates-form"
 
 const KollaBeeProfile = () => {
   const [activeStep, setActiveStep] = useState(0)
@@ -303,13 +304,13 @@ const KollaBeeProfile = () => {
   }, [activeStep])
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col h-screen bg-white">
       {/* Main content */}
       <div className="flex-1 flex flex-col md:flex-row">
         {/* Main content area */}
-        <div className="flex-1 overflow-visible">
+        <div className="flex-1 overflow-visible p-6">
           {/* Profile completion and updates */}
-          <div className="space-y-6 w-full bg-white">
+          <div className="space-y-6">
             {/* Stepper */}
             <ProfileStepper
               steps={steps}
@@ -320,10 +321,10 @@ const KollaBeeProfile = () => {
             />
 
             {/* Content and Chart in grid layout */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Content */}
               <div className="md:col-span-2">
-                <div className="border rounded-md p-4">
+                <div className="border rounded-md">
                   <div className="p-4">
                     <h3 className="font-semibold">{sections[steps[activeStep].id]?.title}</h3>
                     <p className="text-sm text-gray-500">{sections[steps[activeStep].id]?.description}</p>

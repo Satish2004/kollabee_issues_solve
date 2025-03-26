@@ -145,7 +145,7 @@ const Dashboard = () => {
         </div>
       </header> */}
 
-      <div className="p-6">
+      <div className="">
         <div className="flex flex-row w-full justify-between gap-6">
           {/* Main Content Area */}
           <div className="w-[85%] space-y-6">

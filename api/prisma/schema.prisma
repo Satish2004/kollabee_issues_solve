@@ -270,7 +270,6 @@ model Seller {
   websiteLink        String?
   businessCategories CategoryEnum[]
   businessTypes      BusinessType[]
-  annualRevenue      Float?
   employeeCount      Int?
   exportPercentage   Float?
   moq                Int?
@@ -282,6 +281,15 @@ model Seller {
   qualityControl     String?
   rd                 String?
   roleInCompany      String?
+  categories         Json?
+  productionServices String[]
+  productionManaged  productionManaged[]
+  manufacturingLocations String[]
+  targetAudience      audience[]
+  teamSize           String?
+  annualRevenue      String?
+  minimumOrderQuantity String?
+  comments           String?
   challenges         String[]
   metrics            String[]
   objectives         String[]
@@ -666,4 +674,19 @@ enum ProductStatus {
   DRAFT
   ACTIVE
   ARCHIVED
+}
+
+enum productionManaged {
+  INHOUSE
+  OUTSOURCED
+  HYBRID
+}
+
+enum audience {
+  RETAILERS
+  WHOLESALERS
+  DISTRIBUTOR
+  CONSUMERS
+  STARTUPS
+  OTHER
 }

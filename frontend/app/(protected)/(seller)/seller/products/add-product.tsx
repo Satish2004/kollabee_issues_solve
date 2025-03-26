@@ -80,6 +80,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("upload");
+  const [activeNumber, setActiveNumber] = useState<number>(1);
   const thumbnailRef = useRef<HTMLInputElement>(null);
   const [thumbnail, setThumbnail] = useState<any>(null);
   const [documents, setDocuments] = useState<any>([]);
@@ -529,6 +530,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     });
 
     setActiveSection(sectionId);
+    setActiveNumber(sectionId === "upload" ? 1 : sectionId === "general-info" ? 2 : sectionId === "product-details" ? 3 : 4);
   };
 
   const handleScroll = () => {
@@ -562,6 +564,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setActiveSection("documents");
       }
     }
+
+    setActiveNumber(activeSection === "upload" ? 1 : activeSection === "general-info" ? 2 : activeSection === "product-details" ? 3 : 4);
   };
 
   // Functions to handle attribute updates
@@ -707,48 +711,70 @@ const ProductForm: React.FC<ProductFormProps> = ({
           {/* Navigation Section */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="space-y-2">
-              <button
-                onClick={() => scrollToSection("upload")}
+              <button onClick={() => scrollToSection("upload")} className="flex items-center space-x-1 w-full">
+              <div className={`w-10 aspect-square ${activeNumber >= 1 ? "bg-pink-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
+                <span className={`font-semibold text-sm ${activeNumber >= 1 ? "text-white" : ""}`}>01</span>
+              </div>
+              <div
                 className={`w-full text-left p-2 rounded ${
                   activeSection === "upload"
-                    ? "bg-pink-50 text-pink-600"
+                  ? "bg-pink-50 text-pink-600"
                     : "hover:bg-gray-50"
                 }`}
               >
                 Upload Art Cover
+              </div>
               </button>
+              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 1 ? "bg-pink-500" : " bg-neutral-200 "}`}></div>
+              
 
-              <button
-                onClick={() => scrollToSection("general-info")}
+              <button onClick={() => scrollToSection("general-info")}  className="flex items-center space-x-1 w-full">
+              <div className={`w-10 aspect-square ${activeNumber >= 2 ? "bg-pink-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
+                <span className={`font-semibold text-sm ${activeNumber >= 2 ? "text-white" : ""}`}>02</span>
+              </div>
+              <div
                 className={`w-full text-left p-2 rounded ${
                   activeSection === "general-info"
-                    ? "bg-pink-50 text-pink-600"
+                  ? "bg-pink-50 text-pink-600"
                     : "hover:bg-gray-50"
                 }`}
               >
                 General Information
+              </div>
               </button>
+              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 2 ? "bg-pink-500" : " bg-neutral-200 "}`}></div>
 
-              <button
-                onClick={() => scrollToSection("product-details")}
+
+              <button  onClick={() => scrollToSection("product-details")}  className="flex items-center space-x-1 w-full">
+              <div className={`w-10 aspect-square ${activeNumber >= 3 ? "bg-pink-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
+                <span className={`font-semibold text-sm ${activeNumber >= 3 ? "text-white" : ""}`}>03</span>
+              </div>
+              <div
                 className={`w-full text-left p-2 rounded ${
                   activeSection === "product-details"
-                    ? "bg-pink-50 text-pink-600"
+                  ? "bg-pink-50 text-pink-600"
                     : "hover:bg-gray-50"
                 }`}
               >
                 Product Details
+              </div>
               </button>
+              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 3 ? "bg-pink-500" : " bg-neutral-200 "}`}></div>
 
-              <button
-                onClick={() => scrollToSection("documents")}
+
+              <button  onClick={() => scrollToSection("documents")}  className="flex items-center space-x-1 w-full">
+              <div className={`w-10 aspect-square ${activeNumber >= 4 ? "bg-pink-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
+                <span className={`font-semibold text-sm ${activeNumber >= 4 ? "text-white" : ""}`}>04</span>
+              </div>
+              <div
                 className={`w-full text-left p-2 rounded ${
                   activeSection === "documents"
-                    ? "bg-pink-50 text-pink-600"
+                  ? "bg-pink-50 text-pink-600"
                     : "hover:bg-gray-50"
                 }`}
               >
                 Documents
+              </div>
               </button>
             </div>
           </div>
