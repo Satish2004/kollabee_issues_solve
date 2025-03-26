@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { BsFillCartCheckFill } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, ElementType } from "react";
 import Image from "next/image";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { authApi } from "@/lib/api/auth";
@@ -34,6 +34,24 @@ import { IoStorefront } from "react-icons/io5";
 
 type SidebarProps = {
   className?: string;
+};
+
+type IconType = ElementType | "custom";
+
+const IconRenderer = ({ icon }: { icon: IconType }) => {
+  if (icon === "custom") {
+    return (
+      <Image
+        src="/cross-supplier.svg"
+        width={18}
+        height={12}
+        alt="Custom Icon"
+      />
+    );
+  }
+
+  const IconComponent = icon as ElementType;
+  return <IconComponent className="h-4 w-4" />;
 };
 
 export function BuyerSidebar({ className }: SidebarProps) {
@@ -86,7 +104,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
         },
         {
           label: "Cross-Supplier",
-          icon: Users2,
+          icon: "custom",
           href: "/buyer/cross-supplier",
           // className: "tour-requests"
         },
@@ -175,7 +193,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
                       pathname === route.href && "bg-[#FDECED] text-[#363638]"
                     )} `}
                   >
-                    <route.icon className="h-4 w-4" />
+                    <IconRenderer icon={route.icon} />
                     {!isCollapsed && <span>{route.label}</span>}
                   </Link>
                 ))}
