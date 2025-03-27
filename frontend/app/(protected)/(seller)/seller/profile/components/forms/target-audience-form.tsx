@@ -11,12 +11,12 @@ type TargetAudienceFormProps = {
 
 const TargetAudienceForm = ({ formState, onChange, onSave, hasChanges, isSaving }: TargetAudienceFormProps) => {
   const audiences = [
-    { id: "retailers", label: "Retailers" },
-    { id: "wholesalers", label: "Wholesalers" },
-    { id: "distributors", label: "Distributors" },
-    { id: "direct-consumers", label: "Direct to Consumers" },
-    { id: "manufacturers", label: "Other Manufacturers" },
-    { id: "startups", label: "Startups and Small Businesses" },
+    { id: "RETAILERS", label: "Retailers" },
+    { id: "WHOLESALERS", label: "Wholesalers" },
+    { id: "DISTRIBUTORS", label: "Distributors" },
+    { id: "DIRECT-CONSUMERS", label: "Direct to Consumers" },
+    { id: "MANUFACTURERS", label: "Other Manufacturers" },
+    { id: "STARTUPS", label: "Startups and Small Businesses" },
   ]
 
   const handleAudienceToggle = (audienceId: string) => {
@@ -26,6 +26,7 @@ const TargetAudienceForm = ({ formState, onChange, onSave, hasChanges, isSaving 
 
     onChange({ ...formState, audiences: newAudiences })
   }
+
 
   return (
     <div className="mt-4 space-y-2">

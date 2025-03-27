@@ -31,7 +31,12 @@ const KollaBeeProfile = () => {
   const [isSaving, setIsSaving] = useState(false)
   const [sectionLoading, setSectionLoading] = useState<string | null>(null)
   const [certificateModalOpen, setCertificateModalOpen] = useState(false)
-  const [newCertificate, setNewCertificate] = useState({ title: "", file: null })
+  const [newCertificate, setNewCertificate] = useState({
+    name: "",
+    file: null,
+    issuerName: "",
+    expiryDate: null,
+  })
 
   const stepperContainerRef = useRef<HTMLDivElement>(null)
   const activeStepRef = useRef<HTMLDivElement>(null)
@@ -70,46 +75,32 @@ useEffect(() => {
     if (formStates[currentStepId] === null) {
       loadSectionData(currentStepId)
     }
-  }, [activeStep, steps, loadSectionData, formStates])
+  }, [activeStep, steps])
 
-  // Add preloading for the next section to improve UX
-  // Preload the next section data when the current step is loaded
-  useEffect(() => {
-    const currentStepId = steps[activeStep].id
-
-    // If current step is loaded and there's a next step, preload it
-    if (formStates[currentStepId] !== null && activeStep < steps.length - 1) {
-      const nextStepId = steps[activeStep + 1].id
-
-      // Use a timeout to avoid rate limiting
-      const timer = setTimeout(() => {
-        if (formStates[nextStepId] === null) {
-          loadSectionData(nextStepId)
-        }
-      }, 1000) // 1 second delay
-
-      return () => clearTimeout(timer)
-    }
-  }, [activeStep, formStates, steps, loadSectionData])
 
 
   // Handle certificate upload
   const handleCertificateUpload = async () => {
-    if (!newCertificate.title || !newCertificate.file) {
-      toast.error("Please provide both title and file")
+    if (!newCertificate.name || !newCertificate.file || !newCertificate.issuerName) {
+      toast.error("Please provide all required certificate information")
       return
     }
 
     setIsSaving(true)
     try {
       const formData = new FormData()
-      formData.append("title", newCertificate.title)
-      formData.append("file", newCertificate.file as any)
+      formData.append("title", newCertificate.name)
+      formData.append("image", newCertificate.file) // Field name must match backend
+      formData.append("issuer", newCertificate.issuerName)
+
+      if (newCertificate.expiryDate) {
+        formData.append("expiryDate", newCertificate.expiryDate.toISOString())
+      }
 
       const response = await profileApi.uploadCertificate(formData)
 
       // Update certificates list
-      const updatedCertificates = [...(formStates.certificates?.certificates || []), response.data]
+      const updatedCertificates = [...(formStates.certificates?.certificates || []), response]
 
       handleFormChange("certificates", {
         ...formStates.certificates,
@@ -117,7 +108,7 @@ useEffect(() => {
       })
 
       setCertificateModalOpen(false)
-      setNewCertificate({ title: "", file: null })
+      setNewCertificate({ title: "", file: null, issuer: "", expiryDate: null })
       toast.success("Certificate uploaded successfully")
     } catch (error) {
       console.error("Error uploading certificate:", error)
@@ -344,7 +335,7 @@ useEffect(() => {
             />
 
             {/* Content and Chart in grid layout */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white">
+            <div className="bg-white">
               {/* Content */}
               <div className="md:col-span-2">
                 <div className="border rounded-md p-4">
@@ -386,9 +377,6 @@ useEffect(() => {
                   </div>
                 </div>
               </div>
-
-              {/* Chart */}
-              <ProfileChart />
             </div>
           </div>
         </div>

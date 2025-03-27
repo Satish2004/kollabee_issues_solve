@@ -20,15 +20,15 @@ const ProductionManagedForm = ({ formState, onChange, onSave, hasChanges, isSavi
     <div className="mt-4 space-y-3">
       <RadioGroup value={formState.managementType} onValueChange={handleChange}>
         <div className="flex items-center space-x-2">
-          <RadioGroupItem value="in-house" id="in-house" />
+          <RadioGroupItem value="INHOUSE" id="in-house" />
           <Label htmlFor="in-house">In-House Production</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <RadioGroupItem value="outsourced" id="outsourced" />
+          <RadioGroupItem value="OUSOURCED" id="outsourced" />
           <Label htmlFor="outsourced">Outsourced Production</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <RadioGroupItem value="hybrid" id="hybrid" />
+          <RadioGroupItem value="HYBRID" id="hybrid" />
           <Label htmlFor="hybrid">Hybrid Model (Both In-House and Outsourced)</Label>
         </div>
       </RadioGroup>

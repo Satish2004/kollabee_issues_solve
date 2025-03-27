@@ -33,11 +33,15 @@ const ProductionServicesForm = ({ formState, onChange, onSave, hasChanges, isSav
     },
   ]
 
-  const handleServiceToggle = (serviceId: string) => {
-    const newServices = formState.services.includes(serviceId)
-      ? formState.services.filter((id: string) => id !== serviceId)
-      : [...formState.services, serviceId]
+  // Extract the services array from formState or use empty array if not available
+  const selectedServices = formState?.services || []
 
+  const handleServiceToggle = (serviceId: string) => {
+    const newServices = selectedServices.includes(serviceId)
+      ? selectedServices.filter((id: string) => id !== serviceId)
+      : [...selectedServices, serviceId]
+
+    // Call onChange with the proper structure expected by the form hook
     onChange({ ...formState, services: newServices })
   }
 
@@ -47,7 +51,7 @@ const ProductionServicesForm = ({ formState, onChange, onSave, hasChanges, isSav
         <div key={service.id} className="flex items-start gap-3">
           <Checkbox
             id={service.id}
-            checked={formState.services.includes(service.id)}
+            checked={selectedServices.includes(service.id)}
             onCheckedChange={() => handleServiceToggle(service.id)}
             className="mt-1"
           />
@@ -64,4 +68,3 @@ const ProductionServicesForm = ({ formState, onChange, onSave, hasChanges, isSav
 }
 
 export default ProductionServicesForm
-
