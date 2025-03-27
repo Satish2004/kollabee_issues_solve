@@ -61,7 +61,6 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
 setupRoutes(app);
 
 // Start server
-if (process.env.NODE_ENV !== "production") {
   const port = process.env.PORT || 2000;
 
   // Create an HTTP server using app.listen()
@@ -83,7 +82,6 @@ if (process.env.NODE_ENV !== "production") {
     console.log("A client connected:", socket.id);
     handleSocketConnection(socket, io, prisma);
   });
-}
 
 // Graceful shutdown
 process.on("SIGTERM", () => {
