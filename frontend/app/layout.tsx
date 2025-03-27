@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import Script from "next/script";
@@ -17,6 +17,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const outfit = Outfit({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
   title: "Marketplace",
   description: "A modern marketplace for buyers and sellers",
@@ -26,7 +31,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" className={futura.variable} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary `}
       >
         {children}
         <Toaster position="top-center" />

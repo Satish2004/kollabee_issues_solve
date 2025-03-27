@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { useState } from "react";
 import {
   Card,
@@ -13,20 +15,20 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowBigLeft, ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/lib/api/auth";
 import { toast } from "sonner";
-// import GoogleSignin from '@/components/auth/google-signin'
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 
 interface LoginError {
   message: string;
   details?: string;
 }
 
-export function LoginForm() {
+export function LoginForm({ message }: { message?: string }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<{
@@ -61,7 +63,6 @@ export function LoginForm() {
       } else {
         router.push("/seller");
       }
-
     } catch (error: any) {
       const err = error as LoginError;
       setAlert({
@@ -77,78 +78,114 @@ export function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-lg">
-      <CardHeader className="space-y-1">
-        <CardDescription className="text-left text-[15px] font-medium">
-          Fill in your details to login to your account and get started with
-          Kollabee
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          {alert.show && (
-            <Alert
-              className={cn(
-                "mb-6 border-2",
-                "border-red-500 bg-red-50 dark:bg-red-900/20"
-              )}
-            >
-              <Info className="h-5 w-5" />
-              <AlertTitle className="font-medium">{alert.message1}</AlertTitle>
-              <AlertDescription>{alert.message2}</AlertDescription>
-            </Alert>
-          )}
+    <div className="flex flex-col items-center w-full max-w-lg mx-auto font-futura">
+      <div className="mb-8">
+        <div className="flex justify-center">
+          <Image
+            onClick={() => router.push("/")}
+            src="/kollabee.jpg"
+            alt="KollaBee Logo"
+            width={160}
+            height={42}
+            className="mx-auto"
+          />
+        </div>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              placeholder="m@example.com"
-              className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-            />
-          </div>
+      <Card className="w-full  ">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-normal">
+            {message ?? "Login"}
+          </CardTitle>
+          <CardDescription className="text-center text-[15px]">
+            Fill in your details to login your account and get started with
+            Kollabee.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            {alert.show && (
+              <Alert
+                className={cn(
+                  "mb-6 border-2",
+                  "border-red-500 bg-red-50 dark:bg-red-900/20"
+                )}
+              >
+                <Info className="h-5 w-5" />
+                <AlertTitle>{alert.message1}</AlertTitle>
+                <AlertDescription>{alert.message2}</AlertDescription>
+              </Alert>
+            )}
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-sm font-normal ">
+                Email Address*
+              </Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                placeholder="Enter your Email Address"
+                className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-normal">
+                Password*
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                placeholder="Create your Password"
+                className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              />
+            </div>
+
+            <div className="space-y-4 mt-6">
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-gray-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
+              <Button
+                type="submit"
+                className="rounded-[6px] w-full text-white font-normal px-8 py-2 button-bg"
+                disabled={isLoading}
+              >
+                {isLoading ? "Logging in..." : "Log in"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center border-t pt-6 mt-4">
+          <div className="text-sm text-gray-600">
+            Don't have an account?
             <Link
-              href="/forgot-password"
-              className="text-sm text-muted-foreground hover:underline"
+              href="/signup"
+              className="ml-1 text-pink-600 hover:underline"
             >
-              Forgot password?
+              Sign up
             </Link>
           </div>
 
           <Button
-            type="submit"
-            className="w-full button-bg text-white hover:opacity-90 rounded-[6px] font-semibold"
-            disabled={isLoading}
+            variant="ghost"
+            className="mt-4 gradient-text font-normal"
+            onClick={() => router.push("/login")}
           >
-            {isLoading ? "Logging in..." : "Log in"}
-          </Button>
-          {/* <GoogleSignin /> */}
-        </form>
-      </CardContent>
-      <CardFooter>
-        <Button
-          variant="ghost"
-          className="w-full gradient-text"
-          onClick={() => router.push("/login")}
-        >
-          <ArrowLeft className="text-rose-500" />
+            <ArrowLeft className=" h-4 w-4 text-rose-500" />
             Back
-          <br />
-        </Button>
-      </CardFooter>
-    </Card>
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
