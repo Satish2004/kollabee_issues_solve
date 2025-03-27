@@ -32,10 +32,6 @@ export default function ProductCard({
 
   const router = useRouter();
 
-  useEffect(() => {
-    console.log("Is in wishlist:", isInWishlist(product.id));
-  }, [wishlistProducts]);
-
   const handleCart = async () => {
     if (!isInCart(product.id)) {
       setIsLoading(true);

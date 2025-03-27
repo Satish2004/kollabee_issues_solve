@@ -124,7 +124,7 @@ export function Payment({ onNext }: PaymentProps) {
     try {
       // Call your backend to create a checkout session
       const response = await paymentApi.createCheckoutSession({
-        amount: orderSummary.subtotal, // Convert to cents
+        amount: orderSummary.total, // Convert to cents
         products: products.map((p) => ({
           id: p.productId,
           sellerId: p.product.sellerId,
