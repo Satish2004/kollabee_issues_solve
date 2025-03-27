@@ -4,31 +4,52 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { Eye, Upload, X, Plus } from "lucide-react"
 
+type Certificate = {
+  id: string
+  title: string
+  filename: string
+  thumbnailUrl?: string
+  fileUrl?: string
+  status: "completed" | "pending" | "rejected"
+  uploadDate?: string
+  expiryDate?: string | null
+  issuer?: string
+  approved?: boolean
+  verificationCode?: string | null
+}
+
 type CertificatesFormProps = {
-  formState: any
+  formState: {
+    certificates: Certificate[]
+  }
   onAddCertificate: () => void
   onRemoveCertificate: (certificateId: string) => void
   isSaving: boolean
 }
 
 const CertificatesForm = ({ formState, onAddCertificate, onRemoveCertificate, isSaving }: CertificatesFormProps) => {
+  // Helper function to format date
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A"
+    const date = new Date(dateString)
+    return date.toLocaleDateString()
+  }
+
+  console.log(formState)
+
   return (
     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Existing Certificates */}
-      {formState.certificates.map((certificate: any) => (
+      {formState.certificates.map((certificate) => (
         <div key={certificate.id}>
-          <div className="flex items-center mb-4 font-semibold">
-            <h3 className="text-sm">{certificate.title}</h3>
-            <span className="text-red-500 ml-0.5">*</span>
-          </div>
           <div className="relative">
             <div className="border rounded-lg p-4 bg-white mb-4">
               <div className="flex items-start">
                 <div className="bg-gray-100 w-24 h-32 rounded-lg flex-shrink-0">
-                  {certificate.thumbnailUrl && (
+                  {certificate.image && (
                     <img
-                      src={certificate.thumbnailUrl || "/placeholder.svg"}
-                      alt={certificate.title}
+                      src={certificate.image || "/placeholder.svg"}
+                      alt={certificate.name}
                       className="w-full h-full object-cover rounded-lg"
                     />
                   )}
@@ -36,10 +57,26 @@ const CertificatesForm = ({ formState, onAddCertificate, onRemoveCertificate, is
                 <div className="flex-grow min-w-0 ml-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-medium">{certificate.title}</p>
+                      <p className="font-medium text-xl">{certificate.name}</p>
                       <p className="text-sm text-gray-500">{certificate.filename}</p>
+                      {certificate.issuerName && <p className="text-xs text-gray-500 mt-1">Issued By: {certificate.issuerName}</p>}
+                      {certificate.createdAt && (
+                        <p className="text-xs text-gray-500">Uploaded: {formatDate(certificate.createdAt)}</p>
+                      )}
+                      {certificate.expiryDate && (
+                        <p className="text-xs text-gray-500">Expires: {formatDate(certificate.expiryDate)}</p>
+                      )}
                     </div>
-                    <Button variant="ghost" size="sm" className="h-8 -mt-1 -mr-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 -mt-1 -mr-2"
+                      onClick={() => {
+                        if (certificate.image) {
+                          window.open(certificate.image, "_blank")
+                        }
+                      }}
+                    >
                       <Eye className="w-4 h-4 mr-2" />
                       View
                     </Button>
@@ -76,7 +113,7 @@ const CertificatesForm = ({ formState, onAddCertificate, onRemoveCertificate, is
                         : "",
                 )}
               >
-                Status: {certificate.status.charAt(0).toUpperCase() + certificate.status.slice(1)}
+                Status: {certificate.approved ? <span className="text-green-500 font-semibold">Approved</span> : <span className="text-yellow-500 font-semibold" >Pending</span>}
               </span>
             </div>
           </div>

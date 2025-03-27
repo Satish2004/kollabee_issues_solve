@@ -25,13 +25,17 @@ const BusinessCapabilitiesForm = ({
     { id: "custom-design", label: "Custom Design Services" },
   ]
 
+  const selectedCapabilities = formState?.capabilities || []
+  console.log("selectedCapabilities", selectedCapabilities)
+
   const handleCapabilityToggle = (capabilityId: string) => {
-    const newCapabilities = formState.capabilities.includes(capabilityId)
-      ? formState.capabilities.filter((id: string) => id !== capabilityId)
-      : [...formState.capabilities, capabilityId]
+    const newCapabilities = selectedCapabilities.includes(capabilityId)
+      ? selectedCapabilities.filter((id: string) => id !== capabilityId)
+      : [...selectedCapabilities, capabilityId]
 
     onChange({ ...formState, capabilities: newCapabilities })
   }
+
 
   return (
     <div className="mt-4 space-y-2">
@@ -39,7 +43,7 @@ const BusinessCapabilitiesForm = ({
         <div key={capability.id} className="flex items-center">
           <Checkbox
             id={capability.id}
-            checked={formState.capabilities.includes(capability.id)}
+            checked={selectedCapabilities.includes(capability.id)}
             onCheckedChange={() => handleCapabilityToggle(capability.id)}
             className="mr-2"
           />
