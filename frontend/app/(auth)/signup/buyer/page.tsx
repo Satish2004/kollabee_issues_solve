@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
 import Image from "next/image";
-import { ProgressStepper } from "../seller/onboarding/progress-stepper";
+import { ProgressStepper } from "@/components/onboarding/progress-stepper";
 import { SignupForm } from "../seller/onboarding/signup-form";
 import { AboutYouForm } from "./onboarding/AboutYouForm";
 import { LookingForForm } from "./onboarding/looking-for-form";

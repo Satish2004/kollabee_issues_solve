@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
-import { User } from "../../../frontend/app/(protected)/(buyer)/buyer/chat/types/chat";
 
 interface TrackingUpdate {
   status: any;
