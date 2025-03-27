@@ -80,14 +80,16 @@ export const getProducts = async (req: any, res: Response) => {
       minPrice,
       maxPrice,
       minOrderQuantity,
-      sortBy = 'createdAt',
-      sortOrder = 'desc',
+      sortBy = "createdAt",
+      sortOrder = "desc",
       page = 1,
       limit = 10,
     } = req.query;
 
+    console.log("req.user.sellerId: ", req.user);
+
     const filters: any = {
-      ...(req.user?.sellerId && { sellerId: req.user.sellerId }),
+      ...(req.user?.seller.id && { sellerId: req.user.seller.id }),
     };
 
     if (search) {
@@ -98,13 +100,13 @@ export const getProducts = async (req: any, res: Response) => {
     }
 
     if (status) {
-      filters.isDraft = status === 'DRAFT';
+      filters.isDraft = status === "DRAFT";
     }
 
-    if(minOrderQuantity) {
+    if (minOrderQuantity) {
       filters.minOrderQuantity = {
-        gte: Number(minOrderQuantity)
-      }
+        gte: Number(minOrderQuantity),
+      };
     }
 
     if (categoryId) filters.categoryId = categoryId;
@@ -136,8 +138,6 @@ export const getProducts = async (req: any, res: Response) => {
       }),
       prisma.product.count({ where: filters }),
     ]);
-
-    console.log("products", products)
 
     // No need to transform attributes as they're already in JSON format
     res.json({
