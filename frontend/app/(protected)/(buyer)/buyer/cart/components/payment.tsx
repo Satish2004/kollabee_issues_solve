@@ -143,7 +143,6 @@ export function Payment({ onNext }: PaymentProps) {
         },
       });
 
-      console.log(response);
       const { clientSecret, order } = await response;
 
       if (!clientSecret) {
