@@ -49,7 +49,7 @@ const companyRoles = [
   "Other",
 ];
 
-const countries = [
+export const countries = [
   { code: "+93", name: "Afghanistan", flag: "🇦🇫" },
   { code: "+355", name: "Albania", flag: "🇦🇱" },
   { code: "+213", name: "Algeria", flag: "🇩🇿" },
@@ -636,9 +636,8 @@ export function SignupForm({
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center gap-2">
-             
               <Select
                 value={formData.countryCode}
                 onValueChange={(value) => {

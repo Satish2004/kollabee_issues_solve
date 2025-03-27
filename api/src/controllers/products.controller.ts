@@ -86,10 +86,9 @@ export const getProducts = async (req: any, res: Response) => {
       limit = 10,
     } = req.query;
 
-    console.log("req.user.sellerId: ", req.user);
 
     const filters: any = {
-      ...(req.user?.seller.id && { sellerId: req.user.seller.id }),
+      ...(req.user?.seller?.id && { sellerId: req.user.seller.id }),
     };
 
     if (search) {
@@ -116,6 +115,8 @@ export const getProducts = async (req: any, res: Response) => {
         ...(maxPrice && { lte: Number(maxPrice) }),
       };
     }
+
+    console.log("filteres :", filters);
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({

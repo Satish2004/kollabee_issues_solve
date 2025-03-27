@@ -1,4 +1,4 @@
-import { api } from '../axios';
+import { api } from "../axios";
 
 export const ordersApi = {
   createOrder: async (data: {
@@ -6,15 +6,22 @@ export const ordersApi = {
     shippingAddress: any;
     totalAmount: number;
   }) => {
-    return api.post('/orders', data);
+    return api.post("/orders", data);
   },
 
+  getOrdersForSeller: async (params?: {
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    return api.get("/orders/seller", { params });
+  },
   getOrders: async (params?: {
     status?: string;
     page?: number;
     limit?: number;
   }) => {
-    return api.get('/orders', { params });
+    return api.get("/orders/seller", { params });
   },
 
   getOrderDetails: async (id: string) => {
@@ -31,5 +38,5 @@ export const ordersApi = {
 
   declineOrder: async (id: string) => {
     return api.put(`/orders/${id}/decline`);
-  }
-}; 
+  },
+};

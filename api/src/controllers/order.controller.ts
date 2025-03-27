@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
+import { User } from "../../../frontend/app/(protected)/(buyer)/buyer/chat/types/chat";
 
 interface TrackingUpdate {
   status: any;
@@ -12,6 +13,8 @@ export const createOrder = async (req: any, res: Response) => {
   try {
     const { buyerId } = req.user;
     const { items, shippingAddress, totalAmount } = req.body;
+
+    console.log("items: ", items);
 
     // Create order with items and shipping address
     const order = await prisma.order.create({
@@ -105,6 +108,80 @@ export const getOrders = async (req: any, res: Response) => {
         take: Number(limit),
       }),
       prisma.order.count({ where }),
+    ]);
+
+    res.json({
+      orders,
+      pagination: {
+        total,
+        pages: Math.ceil(total / Number(limit)),
+        page: Number(page),
+        limit: Number(limit),
+      },
+    });
+  } catch (error) {
+    console.error("Get orders error:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+};
+
+export const getOrdersForSeller = async (req: any, res: Response) => {
+  try {
+    const { sellerId } = req.user;
+    const { status, page = 1, limit = 10 } = req.query;
+
+    const where = {
+      items: {
+        some: {
+          sellerId,
+        },
+      },
+      ...(status && { status }),
+    };
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        include: {
+          items: {
+            where: { sellerId }, // Filter by sellerId at the item level
+            include: {
+              product: true,
+              seller: {
+                include: {
+                  user: {
+                    select: {
+                      name: true,
+                      imageUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+          shippingAddress: true,
+          buyer: {
+            include: {
+              user: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+      }),
+      prisma.order.count({
+        where: {
+          items: {
+            some: {
+              sellerId,
+            },
+          },
+          ...(status && { status }),
+        },
+      }),
     ]);
 
     res.json({
