@@ -12,7 +12,7 @@ type MinimumOrderFormProps = {
 
 const MinimumOrderForm = ({ formState, onChange, onSave, hasChanges, isSaving }: MinimumOrderFormProps) => {
   const handleQuantityChange = (value: string) => {
-    onChange({ ...formState, quantity: value })
+    onChange({ ...formState, minimumOrderQuantity: value })
   }
 
   return (
@@ -24,7 +24,7 @@ const MinimumOrderForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
       <Input
         type="text"
         placeholder="Type Here"
-        value={formState.quantity}
+        value={formState.minimumOrderQuantity}
         onChange={(e) => handleQuantityChange(e.target.value)}
         className="border border-gray-200 p-2 w-full rounded text-sm"
       />

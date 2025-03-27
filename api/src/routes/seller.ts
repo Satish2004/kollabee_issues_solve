@@ -25,9 +25,13 @@ import {
   getSellerProfileMinimumOrder,
   updateSellerProfileMinimumOrder,
   getSellerProfileComments,
-  updateSellerProfileComments
+  updateSellerProfileComments,
+  uploadProfileCertificate,
+  getAllProfileCertificates,
+  deleteProfileCertificate
 } from '../controllers/seller.controller';
 import { authMiddleware } from '../middleware/auth';
+import { upload } from '../utils/multer';
 
 const router = express.Router();
 
@@ -61,5 +65,7 @@ router.get('/profile/comments', authMiddleware, getSellerProfileComments);
 router.put('/profile/comments', authMiddleware, updateSellerProfileComments);
 // router.get('/profile/certificates', authMiddleware, getSellerProfileCertificates);
 // router.put('/profile/certificates', authMiddleware, updateSellerProfileCertificates);
-
+router.post('/profile/certificates', authMiddleware, upload.single('image'), uploadProfileCertificate);
+router.get('/profile/certificates', authMiddleware, getAllProfileCertificates);
+router.delete('/profile/certificates/:id', authMiddleware, deleteProfileCertificate);
 export default router; 

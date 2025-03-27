@@ -15,6 +15,49 @@ type ProfileFormProps = {
   setSectionLoading: (value: string | null) => void
 }
 
+const exampleCertificatesResponse = {
+  data: {
+    certificates: [
+      {
+        id: "cert-123",
+        title: "ISO 9001 Certification",
+        filename: "iso-9001-2023.pdf",
+        thumbnailUrl: "https://example.com/thumbnails/iso-9001.png",
+        fileUrl: "https://example.com/certificates/iso-9001-2023.pdf",
+        status: "completed", // Status can be: "completed", "pending", "rejected"
+        uploadDate: "2023-05-15T10:30:00Z",
+        expiryDate: "2026-05-15T00:00:00Z",
+        issuer: "International Organization for Standardization",
+        verificationCode: "ISO-9001-ABC-123456",
+      },
+      {
+        id: "cert-456",
+        title: "Fair Trade Certification",
+        filename: "fair-trade-certificate.pdf",
+        thumbnailUrl: "https://example.com/thumbnails/fair-trade.png",
+        fileUrl: "https://example.com/certificates/fair-trade-certificate.pdf",
+        status: "completed",
+        uploadDate: "2023-08-22T14:15:00Z",
+        expiryDate: "2025-08-22T00:00:00Z",
+        issuer: "Fair Trade International",
+        verificationCode: "FT-2023-XYZ-789012",
+      },
+      {
+        id: "cert-789",
+        title: "Organic Product Certification",
+        filename: "organic-cert-2023.pdf",
+        thumbnailUrl: "https://example.com/thumbnails/organic.png",
+        fileUrl: "https://example.com/certificates/organic-cert-2023.pdf",
+        status: "pending", // Still being verified
+        uploadDate: "2023-11-05T09:45:00Z",
+        expiryDate: null,
+        issuer: "Global Organic Certification Agency",
+        verificationCode: null, // Not yet verified
+      },
+    ],
+  },
+}
+
 export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: ProfileFormProps) {
   const [formStates, setFormStates] = useState<Record<string, any>>({
     categories: null,
@@ -40,16 +83,8 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
     switch (sectionId) {
       case "categories":
         return {
-          apparel: {
-            clothing: [],
-            footwear: [],
-            jewelry: [],
-            designServices: [],
-          },
-          food: {
-            other: "",
-          },
-          motherBaby: [],
+          selectedCategories: [],
+          subcategories: {},
         }
       case "production-services":
         return {
@@ -62,7 +97,6 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
       case "production-manufactured":
         return {
           locations: [],
-          customLocation: "",
         }
       case "business-capabilities":
         return {
@@ -82,7 +116,7 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
         }
       case "minimum-order":
         return {
-          quantity: "",
+          minimumOrderQuantity: "",
         }
       case "comments-notes":
         return {
@@ -146,8 +180,9 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
           break
       }
 
+        console.log("Response: ", response)
       if (response) {
-        const newFormState = response.data || getDefaultFormState(sectionId)
+        const newFormState = response || getDefaultFormState(sectionId)
 
         setFormStates((prev) => ({
           ...prev,

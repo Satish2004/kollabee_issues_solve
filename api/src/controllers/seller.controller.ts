@@ -1,5 +1,7 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
+import { audience } from "@prisma/client";
+import { upload, uploadToCloudinary } from '../utils/multer';
 
 export const getSellerProducts = async (req: any, res: Response) => {
   try {
@@ -487,8 +489,16 @@ export const getSellerProfileCategories = async (req: any, res: Response) => {
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+  const categoryData = {
+    selectedCategories: seller.businessCategories,
+    subcategories: seller.subCategories,
+  };
   
-     res.json(seller.businessCategories);
+
+  console.log(categoryData)
+
+    res.json(categoryData);
   } catch (error) {
     console.error("Get seller profile categories error:", error);
     res.status(500).json({ error: "Failed to get seller profile categories" });
@@ -498,7 +508,7 @@ export const getSellerProfileCategories = async (req: any, res: Response) => {
 export const updateSellerProfileCategories = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { categories } = req.body;
+    const { selectedCategories, subcategories } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -510,7 +520,8 @@ export const updateSellerProfileCategories = async (req: any, res: Response) => 
      await prisma.seller.update({
       where: { userId },
       data: {
-        businessCategories: categories,
+        businessCategories: selectedCategories,
+        subCategories: subcategories,
       },
     });
 
@@ -531,8 +542,9 @@ export const getSellerProfileProductionServices = async (req: any, res: Response
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
-  
-     res.json(seller.productionServices);
+
+  const prodServices = { services: seller.productionServices };
+     res.json(prodServices);
   } catch (error) {
     console.error("Get seller profile production services error:", error);
     res.status(500).json({ error: "Failed to get seller profile production services" });
@@ -542,7 +554,8 @@ export const getSellerProfileProductionServices = async (req: any, res: Response
 export const updateSellerProfileProductionServices = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { productionServices } = req.body;
+    const { services } = req.body;
+
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -554,7 +567,7 @@ export const updateSellerProfileProductionServices = async (req: any, res: Respo
      await prisma.seller.update({
       where: { userId },
       data: {
-        productionServices: productionServices,
+        productionServices: services,
       },
     });
 
@@ -575,8 +588,8 @@ export const getSellerProfileProductionManagement = async (req: any, res: Respon
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
-  
-     res.json(seller.productionManaged);
+    const prodManagement = { managementType: seller.productionManagementType };
+     res.json(prodManagement);
   } catch (error) {
     console.error("Get seller profile production management error:", error);
     res.status(500).json({ error: "Failed to get seller profile production management" });
@@ -586,7 +599,7 @@ export const getSellerProfileProductionManagement = async (req: any, res: Respon
 export const updateSellerProfileProductionManagement = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { productionManaged } = req.body;
+    const { managementType } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -598,7 +611,7 @@ export const updateSellerProfileProductionManagement = async (req: any, res: Res
      await prisma.seller.update({
       where: { userId },
       data: {
-        productionManaged: productionManaged,
+        productionManagementType: managementType,
       },
     });
 
@@ -619,8 +632,9 @@ export const getSellerProfileManufacturingLocations = async (req: any, res: Resp
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+  const locations = { locations: seller.manufacturingLocations };
   
-     res.json(seller.manufacturingLocations);
+     res.json(locations);
   } catch (error) {
     console.error("Get seller profile manufacturing locations error:", error);
     res.status(500).json({ error: "Failed to get seller profile manufacturing locations" });
@@ -630,7 +644,7 @@ export const getSellerProfileManufacturingLocations = async (req: any, res: Resp
 export const updateSellerProfileManufacturingLocations = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { manufacturingLocations } = req.body;
+    const { locations } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -642,7 +656,7 @@ export const updateSellerProfileManufacturingLocations = async (req: any, res: R
      await prisma.seller.update({
       where: { userId },
       data: {
-        manufacturingLocations: manufacturingLocations,
+        manufacturingLocations: locations,
       },
     });
 
@@ -663,8 +677,8 @@ export const getSellerProfileCapabilities = async (req: any, res: Response) => {
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
-  
-     res.json(seller.challenges);
+  const capabilities = { capabilities: seller.challenges };
+     res.json(capabilities);
   } catch (error) {
     console.error("Get capabilities error:", error);
     res.status(500).json({ error: "Failed to get capabilities" });
@@ -674,7 +688,7 @@ export const getSellerProfileCapabilities = async (req: any, res: Response) => {
 export const updateSellerProfileCapabilities = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { businessCapabilities } = req.body;
+    const { capabilities } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -686,7 +700,7 @@ export const updateSellerProfileCapabilities = async (req: any, res: Response) =
      await prisma.seller.update({
       where: { userId },
       data: {
-        challenges: businessCapabilities,
+        challenges: capabilities,
       },
     });
 
@@ -707,8 +721,8 @@ export const getSellerProfileTargetAudience = async (req: any, res: Response) =>
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
-  
-     res.json(seller.targetAudience);
+    const audiences = { audiences: seller.targetAudience };
+     res.json(audiences);
   } catch (error) {
     console.error("Get target audience error:", error);
     res.status(500).json({ error: "Failed to get target audience" });
@@ -718,7 +732,7 @@ export const getSellerProfileTargetAudience = async (req: any, res: Response) =>
 export const updateSellerProfileTargetAudience = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { targetAudience } = req.body;
+    const { audiences } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -730,7 +744,7 @@ export const updateSellerProfileTargetAudience = async (req: any, res: Response)
      await prisma.seller.update({
       where: { userId },
       data: {
-        targetAudience: targetAudience,
+        targetAudience: audiences,
       },
     });
 
@@ -751,8 +765,8 @@ export const getSellerProfileTeamSize = async (req: any, res: Response) => {
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
-  
-     res.json(seller.teamSize);
+    const size = { size: seller.teamSize };
+     res.json(size);
   } catch (error) {
     console.error("Get team size error:", error);
     res.status(500).json({ error: "Failed to get team size" });
@@ -762,7 +776,7 @@ export const getSellerProfileTeamSize = async (req: any, res: Response) => {
 export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { teamSize } = req.body;
+    const { size } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -774,7 +788,7 @@ export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
      await prisma.seller.update({
       where: { userId },
       data: {
-        teamSize: teamSize,
+        teamSize: size,
       },
     });
 
@@ -796,7 +810,9 @@ export const getSellerProfileAnnualRevenue = async (req: any, res: Response) => 
       return res.status(404).json({ error: "Seller not found" });
   }
   
-     res.json(seller.annualRevenue);
+  const revenue = { revenue: seller.annualRevenue };
+  
+     res.json(revenue);
   } catch (error) {
     console.error("Get annual revenue error:", error);
     res.status(500).json({ error: "Failed to get annual revenue" });
@@ -806,7 +822,7 @@ export const getSellerProfileAnnualRevenue = async (req: any, res: Response) => 
 export const updateSellerProfileAnnualRevenue = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { annualRevenue } = req.body;
+    const { revenue } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -818,7 +834,7 @@ export const updateSellerProfileAnnualRevenue = async (req: any, res: Response) 
      await prisma.seller.update({
       where: { userId },
       data: {
-        annualRevenue: annualRevenue,
+        annualRevenue: revenue,
       },
     });
 
@@ -839,8 +855,8 @@ export const getSellerProfileMinimumOrder = async (req: any, res: Response) => {
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
-  
-     res.json(seller.minimumOrderQuantity);
+  const minimumOrderQuantity = { minimumOrderQuantity: seller.minimumOrderQuantity };
+     res.json(minimumOrderQuantity);
   } catch (error) {
     console.error("Get minimum order error:", error);
     res.status(500).json({ error: "Failed to get minimum order" });
@@ -883,8 +899,11 @@ export const getSellerProfileComments = async (req: any, res: Response) => {
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
   
-     res.json(seller.comments);
+  const notes = { notes: seller.comments };
+  
+     res.json(notes);
   } catch (error) {
     console.error("Get comments error:", error);
     res.status(500).json({ error: "Failed to get comments" });
@@ -894,7 +913,7 @@ export const getSellerProfileComments = async (req: any, res: Response) => {
 export const updateSellerProfileComments = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { comments } = req.body;
+    const { notes } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
@@ -906,7 +925,7 @@ export const updateSellerProfileComments = async (req: any, res: Response) => {
      await prisma.seller.update({
       where: { userId },
       data: {
-        comments: comments,
+        comments: notes,
       },
     });
 
@@ -914,5 +933,107 @@ export const updateSellerProfileComments = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Update comments error:", error);
     res.status(500).json({ error: "Failed to update comments" });
+  }
+};
+
+export const uploadProfileCertificate = async (req: any, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const { userId } = req.user;
+    const { title, issuer, expiryDate } = req.body;
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+    }
+
+    const cloudinaryResult: any = await uploadToCloudinary(
+      req.file.buffer, 
+      'seller-certificates'
+    );
+    const certificate = await prisma.certification.create({
+      data: {
+        name: title,
+        image: cloudinaryResult.secure_url,
+        issuerName: issuer,
+        suppliers: {
+          connect: { id: seller.id }
+        }
+      },
+      include: {
+        suppliers: true
+      }
+    });
+
+    res.json({
+        id: certificate.id,
+        name: certificate.name,
+        image: certificate.image,
+        issuerName: certificate.issuerName,
+        issueDate: certificate.issueDate,
+        createdAt: certificate.createdAt,
+        approved: certificate.approved ? "approved" : "pending",
+      });
+  } catch (error) {
+    console.error("Upload certificate error:", error);
+    res.status(500).json({ error: "Failed to upload certificate" });
+  }
+};
+
+export const getAllProfileCertificates = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      include: {
+        certifications: true
+      }
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+  }
+
+  const certificates = { certificates : seller.certifications };
+  
+  res.json(certificates);
+  } catch (error) {
+    console.error("Get all profile certificates error:", error);
+    res.status(500).json({ error: "Failed to get all profile certificates" });
+  }
+};
+
+export const deleteProfileCertificate = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+
+    const { id } = req.params;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      include: {
+        certifications: true
+      }
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller profile not found" });
+  }
+  
+     await prisma.certification.delete({
+      where: { id }
+    });
+
+    const certificates = { certificates : seller.certifications };
+    res.json(certificates);
+  } catch (error) {
+    console.error("Delete profile certificate error:", error);
+    res.status(500).json({ error: "Failed to delete profile certificate" });
   }
 };

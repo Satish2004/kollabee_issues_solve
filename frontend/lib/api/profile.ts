@@ -166,13 +166,33 @@ export const profileApi = {
     return api.get('/seller/profile/comments');
   },
 
-  // Update certificates
-  updateCertificates: async (data: any) => {
-    return api.put('/seller/profile/certificates', data);
+  //Upload Certificate
+  uploadCertificate: async (formData: FormData) => { // Accept full FormData
+    return api.post('/seller/profile/certificates', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
   },
+  
+
+  // Update certificates
+  // updateCertificates: async (file: File) => {
+  //   const formData = new FormData();
+  //   formData.append('image', file);
+  //   return api.post<{ url: string }>('/seller/profile/certificates', formData, {
+  //     headers: {
+  //       'Content-Type': 'multipart/form-data',
+  //     },
+  //   })
+  // },
 
   // Get certificates
   getCertificates: async () => {
     return api.get('/seller/profile/certificates');
+  },
+
+  deleteCertificate: async (certificateId: string) => {
+    return api.delete(`/seller/profile/certificates/${certificateId}`);
   },
 }; 

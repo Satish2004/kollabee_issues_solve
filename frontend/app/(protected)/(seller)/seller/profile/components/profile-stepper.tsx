@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import { Check, Cross, X } from "lucide-react"
 import type { RefObject } from "react"
 
 type Step = {
@@ -24,7 +25,7 @@ const ProfileStepper = ({
   activeStepRef,
 }: ProfileStepperProps) => {
   return (
-    <div className="overflow-x-auto custom-scrollbar max-w-5xl mx-auto py-6 relative bg-white rounded-xl" ref={stepperContainerRef}>
+    <div className="overflow-x-auto max-w-vh custom-scrollbar  mx-auto py-6 relative bg-white rounded-xl" ref={stepperContainerRef}>
       <div className="flex">
         {steps.map((step, index) => (
           <div key={step.id} className="flex items-center" ref={index === activeStep ? activeStepRef : null}>
@@ -40,12 +41,21 @@ const ProfileStepper = ({
                   "w-8 h-8 rounded-full flex items-center justify-center mb-1",
                   activeStep === index
                     ? "bg-green-100 text-gray-800 border-2 border-green-500"
-                    : index < activeStep
+                    : index < activeStep && index != 3
                       ? "bg-green-500 text-white"
-                      : "bg-gray-100 text-gray-500",
+                      : index === 3 
+                      ? "bg-red-400 text-white"
+                      :"bg-gray-100 text-gray-500",
                 )}
               >
-                {index + 1}
+                {index < activeStep && index !== 3 ? <Check className="w-4 h-4" /> : index === 3 ? "!" : "0" + (index + 1)}
+
+                { index === 111 && (
+                                  <div className="absolute top-0 right-9 animate-ping w-2 aspect-square bg-red-500 rounded-full flex items-center justify-center">
+                                  <div className="w-1 aspect-square bg-red-900 rounded-full">
+                                  </div>
+                                </div>
+                )}
               </div>
               <span
                 className={cn(
