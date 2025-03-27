@@ -13,9 +13,9 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 
 const fileFilter = (req: any, file: any, cb: any) => {
-  if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF)$/)) {
-    req.fileValidationError = 'Only image files are allowed!';
-    return cb(new Error('Only image files are allowed!'), false);
+  if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|pdf|PDF)$/)) {
+    req.fileValidationError = 'Only image and PDF files are allowed!';
+    return cb(new Error('Only image and PDF files are allowed!'), false);
   }
   cb(null, true);
 };

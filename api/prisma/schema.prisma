@@ -281,9 +281,9 @@ model Seller {
   qualityControl     String?
   rd                 String?
   roleInCompany      String?
-  categories         Json?
+  subCategories         Json?
   productionServices String[]
-  productionManaged  productionManaged[]
+  productionManagementType  productionManaged?
   manufacturingLocations String[]
   targetAudience      audience[]
   teamSize           String?
@@ -337,10 +337,13 @@ model Certification {
   description String?
   image       String?
   issueDate   DateTime?
-  productId   String
-  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  issuerName  String?
+  approved    Boolean   @default(false)
+  productId   String?
+  product     Product?   @relation(fields: [productId], references: [id], onDelete: Cascade)
   buyers      Buyer[]   @relation("BuyerToCertification")
   suppliers   Seller[]  @relation("CertificationToSeller")
+  createdAt   DateTime  @default(now())
 }
 
 model SavedSearch {
