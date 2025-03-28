@@ -3,7 +3,7 @@ export interface User {
     name: string
     email: string
     avatar?: string
-    role: "buyer" | "seller" | "admin"
+    role: "BUYER" | "SELLER" | "ADMIN"
   }
   
   export interface Message {
@@ -12,7 +12,7 @@ export interface User {
     content: string
     senderId: string
     senderName: string
-    senderType: "buyer" | "seller" | "admin"
+    senderType: "BUYER" | "SELLER" | "ADMIN"
     attachments?: string[]
     createdAt: string
     updatedAt?: string
@@ -23,12 +23,14 @@ export interface User {
     id: string
     participantId: string
     participantName: string
-    participantType: "buyer" | "seller" | "admin"
+    participantType: "BUYER" | "SELLER" | "ADMIN"
     participantAvatar?: string
     lastMessage?: string
     lastMessageTime?: string
     unreadCount?: number
     isOnline?: boolean
+    status: "PENDING" | "ACCEPTED" | "DECLINED"
+    initiatedBy: string
   }
   
   

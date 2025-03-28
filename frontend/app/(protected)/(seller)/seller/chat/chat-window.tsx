@@ -3,7 +3,7 @@
 import type React from "react"
 
 import { useState, useRef, useEffect } from "react"
-import { Send, Paperclip, Smile, User, Phone, CheckCheckIcon, CheckIcon, SendHorizonal } from "lucide-react"
+import { Send, Paperclip, Smile, User, Phone, CheckCheckIcon, CheckIcon, SendHorizonal, Clock, AlertCircle } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,9 @@ import data from "@emoji-mart/data"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import type { Message, User as UserType, Conversation } from "./types/chat"
 import Spinner from "@/components/ui/spinner"
+import { useToast } from "@/hooks/use-toast"
+import { chatApi } from "@/lib/api/chat"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface ChatWindowProps {
   messages: Message[]
@@ -35,6 +38,7 @@ export default function ChatWindow({
   const [previewUrls, setPreviewUrls] = useState<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const { toast } = useToast()
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -83,6 +87,62 @@ export default function ChatWindow({
     setPreviewUrls((prev) => prev.filter((_, i) => i !== index))
   }
 
+   // Handle accepting a conversation request
+   const handleAcceptRequest = async () => {
+    if (!activeConversationId) return
+
+    try {
+      await chatApi.acceptConversation(activeConversationId)
+
+      toast({
+        title: "Success",
+        description: "Conversation request accepted",
+      })
+    } catch (error) {
+      console.error("Failed to accept conversation:", error)
+      toast({
+        title: "Error",
+        description: "Failed to accept conversation request",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Handle declining a conversation request
+  const handleDeclineRequest = async () => {
+    if (!activeConversationId) return
+
+    try {
+      await chatApi.declineConversation(activeConversationId)
+
+      toast({
+        title: "Success",
+        description: "Conversation request declined",
+      })
+    } catch (error) {
+      console.error("Failed to decline conversation:", error)
+      toast({
+        title: "Error",
+        description: "Failed to decline conversation request",
+        variant: "destructive",
+      })
+    }
+  }
+
+  // Check if the current user can send messages in this conversation
+  const canSendMessages = () => {
+    if (!conversation || !currentUser) return false
+
+    // If conversation is accepted, anyone can send messages
+    if (conversation.status === "ACCEPTED") return true
+
+    // If conversation is pending, only the initiator can send the first message
+    if (conversation.status === "PENDING" && conversation.initiatedBy === currentUser.id) return true
+
+    return false
+  }
+
+
   // Render empty state if no conversation is selected
   if (!activeConversationId) {
     return (
@@ -101,6 +161,63 @@ export default function ChatWindow({
       <div className="flex-1 flex flex-col items-center justify-center p-6">
         <Spinner size="lg" />
         <p className="mt-2 text-gray-500">Loading conversation...</p>
+      </div>
+    )
+  }
+
+  if (conversation?.status === "PENDING" && conversation?.initiatedBy !== currentUser?.id) {
+    return (
+      <div className="flex-1 flex flex-col h-full">
+        {/* Conversation Header */}
+        <div className="p-4 border-b flex justify-between items-center">
+          <div className="flex items-center">
+            <Avatar className="mr-2">
+              {conversation?.participantAvatar ? (
+                <AvatarImage src={conversation.participantAvatar} alt={conversation?.participantName || ""} />
+              ) : (
+                <AvatarFallback>
+                  <User className="h-6 w-6" />
+                </AvatarFallback>
+              )}
+            </Avatar>
+            <div>
+              <h3 className="font-medium">{conversation?.participantName || "Chat"}</h3>
+              <div className="flex items-center text-xs text-gray-500">
+                {conversation?.isOnline ? (
+                  <span className="flex items-center">
+                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
+                    Online
+                  </span>
+                ) : (
+                  <span>Offline</span>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex flex-col items-center justify-center h-full">
+            <Alert className="max-w-md">
+              <Clock className="h-4 w-4 mr-2" />
+              <AlertDescription>
+                <div className="text-center">
+                  <p className="font-medium mb-2">Message Request</p>
+                  <p className="text-sm mb-4">
+                    {conversation?.participantName} wants to start a conversation with you.
+                  </p>
+                  <div className="flex justify-center space-x-2">
+                    <Button variant="outline" onClick={handleDeclineRequest}>
+                      Decline
+                    </Button>
+                    <Button onClick={handleAcceptRequest}>Accept</Button>
+                  </div>
+                </div>
+              </AlertDescription>
+            </Alert>
+          </div>
+        </div>
       </div>
     )
   }
@@ -178,7 +295,7 @@ export default function ChatWindow({
 
                         <div className={`flex flex-row items-center space-x-2 rounded-2xl ${
                               message.senderId === currentUser?.id
-                                ? "bg-[#ea3d4f] px-2 py-2 text-white"
+                                ? " bg-[#ea3d4f] px-2 py-2 text-white"
                                 : "bg-stone-200 px-2 py-2 text-black"
                             }`}>
                           <div
@@ -295,6 +412,7 @@ export default function ChatWindow({
       )}
 
       {/* Message Input */}
+      {canSendMessages() ? (
       <div className="m-4 rounded-xl bg-gray-100 pb-3 px-3 pt-2">
         <form onSubmit={handleSubmit} className="flex flex-col items-end gap-2">
           <input type="file" ref={fileInputRef} multiple onChange={handleFileChange} className="hidden" />
@@ -330,9 +448,23 @@ export default function ChatWindow({
             <SendHorizonal className="h-5 w-5" />
           </Button>
           </div>
-
         </form>
       </div>
+      ) : conversation?.status === "PENDING" && conversation?.initiatedBy === currentUser?.id ? (
+        <div className="p-4 border-t bg-gray-50">
+          <div className="text-center text-sm text-gray-500">
+            <Clock className="h-4 w-4 inline mr-1" />
+            Waiting for {conversation?.participantName} to accept your message request
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 border-t bg-gray-50">
+          <div className="text-center text-sm text-gray-500">
+            <AlertCircle className="h-4 w-4 inline mr-1" />
+            You cannot send messages in this conversation
+          </div>
+        </div>
+      )}
     </div>
   )
 }
