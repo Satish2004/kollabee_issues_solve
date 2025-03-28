@@ -133,12 +133,6 @@ const KollaBeeRequestDetails = () => {
                 <h2 className="text-xl font-semibold">
                   {orderData.items[0]?.product.name}
                 </h2>
-                <button
-                  className="px-4 py-2 rounded text-sm bg-rose-600 text-white"
-                  onClick={() => router.push(`/seller/chat`)}
-                >
-                  Start Chat
-                </button>
               </div>
 
               <div className="grid grid-cols-5 gap-4 mt-4">
