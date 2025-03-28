@@ -1,16 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
-import ContactSupplierForm from "./contact-supplier-form"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import ContactSupplierForm from "./contact-supplier-form";
+import { useRouter } from "next/navigation";
 
 interface ContactSupplierButtonProps {
-  supplierId: string
-  supplierName: string
-  variant?: "default" | "outline" | "secondary" | "destructive" | "ghost" | "link"
-  size?: "default" | "sm" | "lg" | "icon"
+  supplierId: string;
+  supplierName: string;
+  variant?:
+    | "default"
+    | "outline"
+    | "secondary"
+    | "destructive"
+    | "ghost"
+    | "link";
+  size?: "default" | "sm" | "lg" | "icon";
 }
 
 export default function ContactSupplierButton({
@@ -19,23 +25,27 @@ export default function ContactSupplierButton({
   variant = "default",
   size = "default",
 }: ContactSupplierButtonProps) {
-  const [open, setOpen] = useState(false)
-  const router = useRouter()
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const handleSuccess = (conversationId: string) => {
-    setOpen(false)
+    setOpen(false);
     // Navigate to the chat page with the new conversation selected
-    router.push(`/chat?conversation=${conversationId}`)
-  }
+    router.push(`/chat?conversation=${conversationId}`);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant={variant} size={size}>
+        <Button
+          variant={variant}
+          className="w-full gradient-border gradient-text font-bold py-6 px-4"
+          // size={size}
+        >
           Contact Supplier
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white " >
         <ContactSupplierForm
           supplierId={supplierId}
           supplierName={supplierName}
@@ -44,6 +54,5 @@ export default function ContactSupplierButton({
         />
       </DialogContent>
     </Dialog>
-  )
+  );
 }
-

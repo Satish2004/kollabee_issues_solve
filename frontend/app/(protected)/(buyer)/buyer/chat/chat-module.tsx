@@ -91,19 +91,35 @@ export default function ChatModule() {
         socket.on("user_status_change", ({ userId, isOnline }: { userId: string; isOnline: boolean }) => {
         setConversations((prev) => prev.map((conv) => (conv.participantId === userId ? { ...conv, isOnline } : conv)))
         })
+
+        // Listen for conversation status updates
+        socket.on("conversation_updated", ({ conversationId, status }) => {
+        setConversations((prev) => prev.map((conv) => (conv.id === conversationId ? { ...conv, status } : conv)))
+  
+        // Show toast for accepted conversation
+        if (status === "accepted") {
+          const conversation = conversations.find((c) => c.id === conversationId)
+          if (conversation) {
+            toast({
+              title: "Conversation Accepted",
+              description: `${conversation.participantName} accepted your message request`,
+            })
+          }
+        }
+      })
     
         return () => {
         if (socketRef.current) {
             socketRef.current.disconnect()
         }
         }
-    }, [activeConversation, toast, user])
+    }, [activeConversation, toast, user, conversations])
     
     // Fetch conversations from API
     const fetchConversations = async () => {
         try {
-        const userType = "buyer"
-        const response = await chatApi.getConversations(userType as "buyer" | "seller")
+        const userType = "BUYER"
+        const response = await chatApi.getConversations(userType as "BUYER" | "SELLER")
     
         if (response) {
             setConversations(response?.conversations)
@@ -205,7 +221,7 @@ export default function ChatModule() {
     }
     
     // Create new conversation
-    const createConversation = async (participantId: string, participantType: "buyer" | "seller") => {
+    const createConversation = async (participantId: string, participantType: "BUYER" | "SELLER") => {
         try {
         const response = await chatApi.createConversation({
             participantId,
@@ -270,6 +286,7 @@ export default function ChatModule() {
             activeConversationId={activeConversation}
             onSelectConversation={handleConversationChange}
             isLoading={isLoading}
+            currentUserId={user?.id || ""}
             />
     
             <ChatWindow

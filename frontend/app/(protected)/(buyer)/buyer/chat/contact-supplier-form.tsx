@@ -1,21 +1,26 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Paperclip, X } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { chatApi } from "@/lib/api/chat"
-
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Paperclip, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { chatApi } from "@/lib/api/chat";
 
 interface ContactSupplierFormProps {
-  supplierId: string
-  supplierName: string
-  onSuccess?: (conversationId: string) => void
-  onCancel?: () => void
+  supplierId: string;
+  supplierName: string;
+  onSuccess?: (conversationId: string) => void;
+  onCancel?: () => void;
 }
 
 export default function ContactSupplierForm({
@@ -24,91 +29,98 @@ export default function ContactSupplierForm({
   onSuccess,
   onCancel,
 }: ContactSupplierFormProps) {
-  const [message, setMessage] = useState("")
-  const [attachments, setAttachments] = useState<File[]>([])
-  const [previewUrls, setPreviewUrls] = useState<string[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { toast } = useToast()
+  const [message, setMessage] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [responseMessage, setResponseMessage] = useState("");
+  const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      const newFiles = Array.from(e.target.files)
-      setAttachments((prev) => [...prev, ...newFiles])
+      const newFiles = Array.from(e.target.files);
+      setAttachments((prev) => [...prev, ...newFiles]);
 
       // Create preview URLs for the files
-      const newPreviewUrls = newFiles.map((file) => URL.createObjectURL(file))
-      setPreviewUrls((prev) => [...prev, ...newPreviewUrls])
+      const newPreviewUrls = newFiles.map((file) => URL.createObjectURL(file));
+      setPreviewUrls((prev) => [...prev, ...newPreviewUrls]);
     }
-  }
+  };
 
   const removeAttachment = (index: number) => {
-    URL.revokeObjectURL(previewUrls[index])
-    setAttachments((prev) => prev.filter((_, i) => i !== index))
-    setPreviewUrls((prev) => prev.filter((_, i) => i !== index))
-  }
+    URL.revokeObjectURL(previewUrls[index]);
+    setAttachments((prev) => prev.filter((_, i) => i !== index));
+    setPreviewUrls((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!message.trim() && attachments.length === 0) {
       toast({
         title: "Error",
         description: "Please enter a message or attach a file",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       // Handle file uploads first if there are any attachments
-      let uploadedFiles: string[] = []
+      let uploadedFiles: string[] = [];
 
       if (attachments.length > 0) {
-        const uploadResponse = await chatApi.uploadFiles(attachments)
+        const uploadResponse = await chatApi.uploadFiles(attachments);
 
         if (!uploadResponse.data.fileUrls) {
-          throw new Error("Failed to upload files")
+          throw new Error("Failed to upload files");
         }
 
-        uploadedFiles = uploadResponse.data.fileUrls
+        uploadedFiles = uploadResponse.data.fileUrls;
       }
 
       // Create conversation with initial message
       const response = await chatApi.createConversation({
         participantId: supplierId,
-        participantType: "seller",
+        participantType: "SELLER",
         initialMessage: message,
         attachments: uploadedFiles,
-      })
+      });
+
+      setResponseMessage("Message sent successfully");
+      setMessage("");
+
+      // Automatically clear the response message after a few seconds
+      setTimeout(() => setResponseMessage(""), 3000);
 
       toast({
         title: "Success",
         description: `Message sent to ${supplierName}`,
-      })
+      });
 
       // Clean up preview URLs
-      previewUrls.forEach((url) => URL.revokeObjectURL(url))
+      previewUrls.forEach((url) => URL.revokeObjectURL(url));
 
       // Call onSuccess callback with the new conversation ID
       if (onSuccess && response.data.conversation) {
-        onSuccess(response.data.conversation.id)
+        onSuccess(response.data.conversation.id);
       }
     } catch (error) {
-      console.error("Failed to send message:", error)
+      console.error("Failed to send message:", error);
       toast({
         title: "Error",
         description: "Failed to send message",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md bg-white border-none">
       <CardHeader>
         <CardTitle>Contact {supplierName}</CardTitle>
       </CardHeader>
@@ -131,7 +143,9 @@ export default function ContactSupplierForm({
                   <div key={index} className="relative group">
                     <div className="flex items-center p-2 border rounded bg-gray-50">
                       <Paperclip className="h-4 w-4 mr-2 text-gray-500" />
-                      <span className="text-sm truncate max-w-[150px]">{file.name}</span>
+                      <span className="text-sm truncate max-w-[150px]">
+                        {file.name}
+                      </span>
                       <button
                         type="button"
                         onClick={() => removeAttachment(index)}
@@ -152,21 +166,40 @@ export default function ContactSupplierForm({
                   <Paperclip className="h-4 w-4 mr-1" />
                   <span>Attach files</span>
                 </div>
-                <input id="file-upload" type="file" multiple onChange={handleFileChange} className="hidden" />
+                <input
+                  id="file-upload"
+                  type="file"
+                  multiple
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
               </label>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Sending..." : "Send Message"}
-          </Button>
+          <div className="w-full flex flex-col gap-4">
+            <div className="text-sm text-gray-500">{responseMessage}</div>
+            <div className="flex justify-between">
+              <Button
+                className="gradient-border gradient-text font-semibold hover:gradient-border w-24"
+                type="button"
+                onClick={onCancel}
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="button-bg text-white font-semibold"
+              >
+                {isSubmitting ? "Sending..." : "Send Message"}
+              </Button>
+            </div>
+          </div>
         </CardFooter>
       </form>
     </Card>
-  )
+  );
 }
-

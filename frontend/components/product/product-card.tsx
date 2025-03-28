@@ -7,6 +7,7 @@ import { wishlistApi } from "@/lib/api/wishlist";
 import { chatApi } from "@/lib/api/chat";
 import { useRouter } from "next/navigation";
 import { useCheckout } from "@/contexts/checkout-context";
+import ContactSupplierButton from "@/app/(protected)/(buyer)/buyer/chat/contact-supplier-button";
 
 interface ProductCardProps {
   product: any;
@@ -57,14 +58,14 @@ export default function ProductCard({
     }
   };
 
-  const handleContactSupplier = () => {
-    const response = chatApi.createConversation({
-      participantId: product.seller.userId,
-      participantType: "seller",
-    });
-    // console.log("Response:", response)
-    router.push("/buyer/chat");
-  };
+  // const handleContactSupplier = () => {
+  //   const response = chatApi.createConversation({
+  //     participantId: product.seller.userId,
+  //     participantType: "SELLER",
+  //   });
+  //   // console.log("Response:", response)
+  //   router.push("/buyer/chat");
+  // };
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
@@ -140,14 +141,15 @@ export default function ProductCard({
               ? "Remove from Cart"
               : "Add to Cart"}
           </Button>
-          <Button
+          {/* <Button
             onClick={handleContactSupplier}
             className="w-full py-6 px-4 rounded-lg gradient-border"
           >
             <span className="gradient-text font-semibold">
               Contact Supplier
             </span>
-          </Button>
+          </Button> */}
+          <ContactSupplierButton supplierId={product.seller.userId} supplierName={product.seller.businessName} />
         </div>
       </div>
     </div>
