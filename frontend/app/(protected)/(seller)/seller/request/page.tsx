@@ -354,9 +354,10 @@ const KollaBeeRequests = () => {
             ))
           )}
 
-          {activeTab === "manufacturing" && (
-            <ManufactureForm setActiveTab={setActiveTab} />
-          )}
+          {
+            activeTab === "manufacturing" && "No data to show"
+            // <ManufactureForm setActiveTab={setActiveTab} />
+          }
         </div>
       </div>
 

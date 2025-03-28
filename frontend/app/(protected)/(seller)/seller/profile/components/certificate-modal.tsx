@@ -65,7 +65,7 @@ const CertificateModal = ({
         return
       }
 
-      setNewCertificate({ ...newCertificate, file })
+      setNewCertificate({ ...newCertificate, image: file });
     }
   }
 
