@@ -83,7 +83,7 @@ export function ForgotPasswordForm() {
         </div>
       </div>
 
-      <Card className="w-full">
+      <Card className="w-full gradient-border-auth">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-normal">Reset Password</CardTitle>
           <CardDescription className="text-center text-[15px] font-normal">

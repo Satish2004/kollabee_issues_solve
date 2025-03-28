@@ -113,7 +113,7 @@ export default function CheckoutStepper() {
       </div>
 
       {/* Step content */}
-      <div className="pt-6 bg-white rounded-xl">{renderStepContent()}</div>
+      <div className="pt-6 bg-white rounded-xl min-h-[300px]">{renderStepContent()}</div>
     </div>
   );
 }
