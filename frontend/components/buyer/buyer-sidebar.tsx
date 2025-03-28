@@ -152,11 +152,13 @@ export function BuyerSidebar({ className }: SidebarProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center justify-center py-2">
             <Image
-              src="/kollabee.jpg"
+              src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway"
               alt="KollaBee"
               width={isCollapsed ? 40 : 150}
               height={40}
-              className={`rounded-full cursor-pointer ${isCollapsed ? 'hidden' : ''}`}
+              className={`rounded-full cursor-pointer ${
+                isCollapsed ? "hidden" : ""
+              }`}
               onClick={() => router.push("/buyer")}
             />
           </div>

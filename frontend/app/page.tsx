@@ -1,20 +1,19 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { FeatureGrid } from "@/components/home/feature-grid"
-import { LandingNavbar } from "@/components/home/landing-navbar"
-import { ArrowRight } from "lucide-react"
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { FeatureGrid } from "@/components/home/feature-grid";
+import { LandingNavbar } from "@/components/home/landing-navbar";
+import { ArrowRight } from "lucide-react";
 import ProductShowcase from "@/components/home/product-showcase";
 import SAPFeatures from "@/components/home/sap-features";
-import WhyKollabee from "@/components/home/why-kollabee"
-import ContactSection from "@/components/home/contact-section"
-import PricingSection from "@/components/home/pricing-section"
-import TestimonialsSection from "@/components/home/testimonials-section"
-import FreeTrialContact from "@/components/home/free-trial"
-import WhatKollabee from "@/components/home/what-kollabee"
-import KeyFeatures from "../components/home/key-features"
-import Footer from "@/components/home/footer"
-
+import WhyKollabee from "@/components/home/why-kollabee";
+import ContactSection from "@/components/home/contact-section";
+import PricingSection from "@/components/home/pricing-section";
+import TestimonialsSection from "@/components/home/testimonials-section";
+import FreeTrialContact from "@/components/home/free-trial";
+import WhatKollabee from "@/components/home/what-kollabee";
+import KeyFeatures from "../components/home/key-features";
+import Footer from "@/components/home/footer";
 
 export default function LandingPage() {
   return (
@@ -52,11 +51,19 @@ export default function LandingPage() {
             <div className="flex items-center justify-center gap-4 mb-6 bg-white w-fit mx-auto p-3 rounded-xl">
               <div className="flex -space-x-2">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-gray-200" />
+                  <div
+                    key={i}
+                    className="w-8 h-8 rounded-full border-2 border-white bg-gray-200"
+                  />
                 ))}
               </div>
-              <span className="text-gray-800">30k+ Companies Joined Already</span>
-              <Button size="lg" className="bg-gradient-to-r from-[#930a72] via-[#db4d60] to-[#f2bc6d] text-white hover:opacity-90 font-semibold text-lg h-12 flex justify-between rounded-[8px] items-center px-6">
+              <span className="text-gray-800">
+                30k+ Companies Joined Already
+              </span>
+              <Button
+                size="lg"
+                className="bg-gradient-to-r from-[#930a72] via-[#db4d60] to-[#f2bc6d] text-white hover:opacity-90 font-semibold text-lg h-12 flex justify-between rounded-[8px] items-center px-6"
+              >
                 <span>
                   <Link href="/signup">Create Account</Link>
                 </span>
@@ -68,7 +75,8 @@ export default function LandingPage() {
               Transform Your Vision Into Reality in Weeks, Not Months
             </h1>
             <p className="text-gray-900 max-w-6xl mx-auto mb-20 text-lg">
-              Turn your startup ideas into market-ready products with a technical partner who moves at startup speed.
+              Turn your startup ideas into market-ready products with a
+              technical partner who moves at startup speed.
             </p>
 
             {/* Dashboard Preview with double border and fade effect */}
@@ -83,7 +91,7 @@ export default function LandingPage() {
               <div className="relative rounded-lg bg-white overflow-hidden">
                 <div className="relative w-full" style={{ paddingTop: "60%" }}>
                   <Image
-                    src="/dashboard-preview.png"
+                    src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/zhaf88v3h67tu7udmtof"
                     alt="KollaBee Dashboard"
                     fill
                     className="object-cover object-top rounded-[1.25rem]"
@@ -118,5 +126,5 @@ export default function LandingPage() {
       <ContactSection />
       <Footer />
     </div>
-  )
+  );
 }

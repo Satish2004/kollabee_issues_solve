@@ -83,7 +83,7 @@ export function LoginForm({ message }: { message?: string }) {
         <div className="flex justify-center">
           <Image
             onClick={() => router.push("/")}
-            src="/kollabee.jpg"
+            src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway"
             alt="KollaBee Logo"
             width={160}
             height={42}
@@ -146,15 +146,6 @@ export function LoginForm({ message }: { message?: string }) {
             </div>
 
             <div className="space-y-4 mt-6">
-              <div className="flex justify-end">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-gray-600 hover:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
               <Button
                 type="submit"
                 className="rounded-[6px] w-full text-white font-normal px-8 py-2 button-bg"
@@ -162,29 +153,27 @@ export function LoginForm({ message }: { message?: string }) {
               >
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
+
+              <div className="flex justify-between">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-gray-600 hover:underline"
+                >
+                  Forgot password?
+                </Link>
+                <div className="text-sm text-gray-600 ">
+                  Don't have an account?
+                  <Link
+                    href="/signup"
+                    className="ml-1 text-pink-600 hover:underline"
+                  >
+                    Sign up
+                  </Link>
+                </div>
+              </div>
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col items-center border-t pt-6 mt-4">
-          <div className="text-sm text-gray-600">
-            Don't have an account?
-            <Link
-              href="/signup"
-              className="ml-1 text-pink-600 hover:underline"
-            >
-              Sign up
-            </Link>
-          </div>
-
-          <Button
-            variant="ghost"
-            className="mt-4 gradient-text font-normal"
-            onClick={() => router.push("/login")}
-          >
-            <ArrowLeft className=" h-4 w-4 text-rose-500" />
-            Back
-          </Button>
-        </CardFooter>
       </Card>
     </div>
   );

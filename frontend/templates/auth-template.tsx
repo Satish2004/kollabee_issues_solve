@@ -27,7 +27,7 @@ export default function AuthTemplate({
             <div className="flex flex-col space-y-4 text-center">
               <Link href="/">
                 <Image
-                  src="/kollabee.jpg"
+                  src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway"
                   alt="KollaBee Logo"
                   width={160}
                   height={42}
