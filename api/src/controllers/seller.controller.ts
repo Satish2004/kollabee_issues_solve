@@ -516,12 +516,20 @@ export const updateSellerProfileCategories = async (req: any, res: Response) => 
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+  const currentCompletion = seller.profileCompletion || [];
+  const hasCategories = selectedCategories.length > 0;
   
+  const newCompletion = hasCategories
+    ? [...new Set([...currentCompletion, 1])] 
+    : currentCompletion.filter(step => step !== 1);
+
      await prisma.seller.update({
       where: { userId },
       data: {
         businessCategories: selectedCategories,
         subCategories: subcategories,
+        profileCompletion: newCompletion
       },
     });
 
@@ -563,11 +571,20 @@ export const updateSellerProfileProductionServices = async (req: any, res: Respo
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+  const currentCompletion = seller.profileCompletion || [];
+  const hasData = services.length > 0;
   
+  const newCompletion = hasData
+    ? [...new Set([...currentCompletion, 2])] 
+    : currentCompletion.filter(step => step !== 2);
+
+
      await prisma.seller.update({
       where: { userId },
       data: {
         productionServices: services,
+        profileCompletion: newCompletion
       },
     });
 
@@ -608,10 +625,20 @@ export const updateSellerProfileProductionManagement = async (req: any, res: Res
       return res.status(404).json({ error: "Seller not found" });
   }
   
+
+  const currentCompletion = seller.profileCompletion || [];
+  const hasData = managementType.length > 0;
+  
+  const newCompletion = hasData
+    ? [...new Set([...currentCompletion, 3])] 
+    : currentCompletion.filter(step => step !== 3);
+
+
      await prisma.seller.update({
       where: { userId },
       data: {
         productionManagementType: managementType,
+        profileCompletion: newCompletion
       },
     });
 
@@ -652,11 +679,19 @@ export const updateSellerProfileManufacturingLocations = async (req: any, res: R
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+  const currentCompletion = seller.profileCompletion || [];
+  const hasData = locations.length > 0;
+  
+  const newCompletion = hasData
+    ? [...new Set([...currentCompletion, 4])] 
+    : currentCompletion.filter(step => step !== 4);
   
      await prisma.seller.update({
       where: { userId },
       data: {
         manufacturingLocations: locations,
+        profileCompletion: newCompletion
       },
     });
 
@@ -696,11 +731,20 @@ export const updateSellerProfileCapabilities = async (req: any, res: Response) =
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+  
+  const currentCompletion = seller.profileCompletion || [];
+  const hasData = capabilities.length > 0;
+  
+  const newCompletion = hasData
+    ? [...new Set([...currentCompletion, 5])] 
+    : currentCompletion.filter(step => step !== 5);
   
      await prisma.seller.update({
       where: { userId },
       data: {
         challenges: capabilities,
+        profileCompletion: newCompletion
       },
     });
 
@@ -741,10 +785,19 @@ export const updateSellerProfileTargetAudience = async (req: any, res: Response)
       return res.status(404).json({ error: "Seller not found" });
   }
   
+  const currentCompletion = seller.profileCompletion || [];
+  const hasData = audiences !== undefined && audiences.length !== null && audiences !== '';
+
+  const newCompletion = hasData
+    ? [...new Set([...currentCompletion, 6])] 
+    : currentCompletion.filter(step => step !== 6);
+
+
      await prisma.seller.update({
       where: { userId },
       data: {
         targetAudience: audiences,
+        profileCompletion: newCompletion
       },
     });
 
@@ -785,10 +838,18 @@ export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Seller not found" });
   }
   
+  const currentCompletion = seller.profileCompletion || [];
+  const hasData = size !== undefined && size.length !== null && size !== '';
+
+  const newCompletion = hasData
+    ? [...new Set([...currentCompletion, 7])] 
+    : currentCompletion.filter(step => step !== 7);
+
      await prisma.seller.update({
       where: { userId },
       data: {
         teamSize: size,
+        profileCompletion: newCompletion
       },
     });
 
@@ -830,11 +891,19 @@ export const updateSellerProfileAnnualRevenue = async (req: any, res: Response) 
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData = revenue !== undefined && revenue.length !== null && revenue !== '';
+
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 8])] 
+      : currentCompletion.filter(step => step !== 8);
   
      await prisma.seller.update({
       where: { userId },
       data: {
         annualRevenue: revenue,
+        profileCompletion: newCompletion
       },
     });
 
@@ -874,11 +943,19 @@ export const updateSellerProfileMinimumOrder = async (req: any, res: Response) =
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData = minimumOrderQuantity !== undefined && minimumOrderQuantity.length !== null && minimumOrderQuantity !== '';
+
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 9])] 
+      : currentCompletion.filter(step => step !== 9);
   
      await prisma.seller.update({
       where: { userId },
       data: {
         minimumOrderQuantity: minimumOrderQuantity,
+        profileCompletion: newCompletion
       },
     });
 
@@ -921,11 +998,20 @@ export const updateSellerProfileComments = async (req: any, res: Response) => {
    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
   }
+
+  
+  const currentCompletion = seller.profileCompletion || [];
+  const hasData = notes !== undefined && notes.length !== null && notes !== '';
+
+  const newCompletion = hasData
+    ? [...new Set([...currentCompletion, 10])] 
+    : currentCompletion.filter(step => step !== 10);
   
      await prisma.seller.update({
       where: { userId },
       data: {
         comments: notes,
+        profileCompletion: newCompletion
       },
     });
 
@@ -947,7 +1033,7 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
 
     const seller = await prisma.seller.findUnique({
       where: { userId },
-      select: { id: true }
+      select: { id: true, profileCompletion: true }
     });
 
     if (!seller) {
@@ -958,6 +1044,7 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
       req.file.buffer, 
       'seller-certificates'
     );
+
     const certificate = await prisma.certification.create({
       data: {
         name: title,
@@ -971,6 +1058,17 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
         suppliers: true
       }
     });
+
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = [...new Set([...currentCompletion, 11])];
+
+    await prisma.seller.update({
+      where: { userId },
+      data: {
+        profileCompletion: newCompletion
+      }
+    });
+
 
     res.json({
         id: certificate.id,
@@ -1013,27 +1111,66 @@ export const getAllProfileCertificates = async (req: any, res: Response) => {
 export const deleteProfileCertificate = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-
     const { id } = req.params;
+
     const seller = await prisma.seller.findUnique({
       where: { userId },
-      include: {
-        certifications: true
-      }
+      include: { certifications: true }
     });
 
     if (!seller) {
       return res.status(404).json({ error: "Seller profile not found" });
-  }
-  
-     await prisma.certification.delete({
-      where: { id }
-    });
+    }
 
-    const certificates = { certificates : seller.certifications };
-    res.json(certificates);
+    const certificateToDelete = seller.certifications.find(c => c.id === id);
+    if (!certificateToDelete) {
+      return res.status(404).json({ error: "Certificate not found" });
+    }
+
+    const isLastCertificate = seller.certifications.length === 1;
+    
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = isLastCertificate 
+      ? currentCompletion.filter(step => step !== 11) 
+      : currentCompletion;
+
+    const [_, updatedSeller] = await prisma.$transaction([
+      prisma.certification.delete({ where: { id } }),
+      prisma.seller.update({
+        where: { userId },
+        data: { profileCompletion: newCompletion }
+      })
+    ]);
+
+    const remainingCertificates = seller.certifications.filter(c => c.id !== id);
+    res.json({ certificates: remainingCertificates });
+
   } catch (error) {
     console.error("Delete profile certificate error:", error);
     res.status(500).json({ error: "Failed to delete profile certificate" });
+  }
+};
+
+
+export const getProfileCompletion = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: {
+        profileCompletion: true
+      }
+    });
+    
+   if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+  }
+
+  const completion = seller.profileCompletion || [];
+  
+  res.json(completion);
+  } catch (error) {
+    console.error("Get profile completion error:", error);
+    res.status(500).json({ error: "Failed to get profile completion" });
   }
 };

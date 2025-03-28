@@ -294,6 +294,50 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
     }
   }
 
+  const hasData = (sectionId: string): boolean => {
+    const data = formStates[sectionId]
+    if (!data) return false
+
+    // Check based on section type
+    switch (sectionId) {
+      case "categories":
+        return data.selectedCategories && data.selectedCategories.length > 0
+
+      case "production-services":
+        return data.services && data.services.length > 0
+
+      case "production-managed":
+        return !!data.managementType
+
+      case "production-manufactured":
+        return data.locations && data.locations.length > 0
+
+      case "business-capabilities":
+        return data.capabilities && data.capabilities.length > 0
+
+      case "target-audience":
+        return data.audiences && data.audiences.length > 0
+
+      case "team-size":
+        return !!data.size
+
+      case "annual-revenue":
+        return !!data.revenue
+
+      case "minimum-order":
+        return !!data.quantity
+
+      case "comments-notes":
+        return !!data.notes && data.notes.trim() !== ""
+
+      case "certificates":
+        return data.certificates && data.certificates.length > 0
+
+      default:
+        return false
+    }
+  }
+
   return {
     formStates,
     originalFormStates,
@@ -301,6 +345,7 @@ export function useProfileFormState({ steps, setIsSaving, setSectionLoading }: P
     handleFormChange,
     hasFormChanges,
     handleSectionUpdate,
+    hasData
   }
 }
 

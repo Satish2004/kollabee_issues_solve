@@ -195,4 +195,8 @@ export const profileApi = {
   deleteCertificate: async (certificateId: string) => {
     return api.delete(`/seller/profile/certificates/${certificateId}`);
   },
+
+  getProfileCompletion: async () => {
+    return api.get('/seller/profile/completion');
+  },
 }; 

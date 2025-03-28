@@ -122,7 +122,7 @@ const CertificatesForm = ({ formState, onAddCertificate, onRemoveCertificate, is
 
       {/* Add Certificate Button */}
       <div className="col-span-full mt-4">
-        <Button onClick={onAddCertificate} disabled={isSaving}>
+        <Button onClick={onAddCertificate} disabled={isSaving} className="button-bg text-white">
           <Plus className="w-4 h-4 mr-2" />
           Add Certificate
         </Button>

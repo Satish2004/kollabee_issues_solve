@@ -70,6 +70,8 @@ model Category {
 
 model Conversation {
   id            String                  @id @default(uuid())
+  status        conversationStatus      @default(PENDING)
+  initiatedBy   String?         
   createdAt     DateTime                @default(now())
   updatedAt     DateTime                @updatedAt
   participants  ConversationParticipant[]
@@ -291,6 +293,7 @@ model Seller {
   minimumOrderQuantity String?
   comments           String?
   challenges         String[]
+  profileCompletion  Int[]
   metrics            String[]
   objectives         String[]
   mainMarkets        String[]
@@ -692,4 +695,10 @@ enum audience {
   CONSUMERS
   STARTUPS
   OTHER
+}
+
+enum conversationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }

@@ -7,12 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import type { Conversation } from "./types/chat"
+import { useToast } from "@/hooks/use-toast"
 
 interface ContactListProps {
   conversations: Conversation[]
   activeConversationId: string | null
   onSelectConversation: (id: string) => void
   isLoading: boolean
+  currentUserId: string
 }
 
 export default function ContactList({
@@ -20,8 +22,10 @@ export default function ContactList({
   activeConversationId,
   onSelectConversation,
   isLoading,
+  currentUserId,
 }: ContactListProps) {
   const [searchTerm, setSearchTerm] = useState("")
+  const { toast } = useToast()
 
   // Filter conversations based on search term
   const filteredConversations = conversations.filter((conv) =>

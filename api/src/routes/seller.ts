@@ -28,7 +28,8 @@ import {
   updateSellerProfileComments,
   uploadProfileCertificate,
   getAllProfileCertificates,
-  deleteProfileCertificate
+  deleteProfileCertificate,
+  getProfileCompletion
 } from '../controllers/seller.controller';
 import { authMiddleware } from '../middleware/auth';
 import { upload } from '../utils/multer';
@@ -68,4 +69,5 @@ router.put('/profile/comments', authMiddleware, updateSellerProfileComments);
 router.post('/profile/certificates', authMiddleware, upload.single('image'), uploadProfileCertificate);
 router.get('/profile/certificates', authMiddleware, getAllProfileCertificates);
 router.delete('/profile/certificates/:id', authMiddleware, deleteProfileCertificate);
+router.get('/profile/completion', authMiddleware, getProfileCompletion);
 export default router; 

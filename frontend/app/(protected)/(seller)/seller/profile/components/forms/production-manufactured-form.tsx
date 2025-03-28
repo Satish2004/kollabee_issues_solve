@@ -104,7 +104,7 @@ const ProductionManufacturedForm = ({
         {/* Country Dropdown */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+            <Button variant="outline" role="combobox" aria-expanded={open} className="w-80 justify-between">
               <span className="truncate">
                 {formState.locations.length > 0
                   ? `${formState.locations.length} ${formState.locations.length === 1 ? "country" : "countries"} selected`
@@ -113,10 +113,9 @@ const ProductionManufacturedForm = ({
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-full p-0">
+          <PopoverContent className="w-full p-0 bg-white">
             <Command>
               <div className="flex items-center border-b px-3">
-                <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                 <CommandInput
                   placeholder="Search countries..."
                   className="h-9 flex-1"
@@ -162,7 +161,7 @@ const ProductionManufacturedForm = ({
               if (!country) return null
 
               return (
-                <Badge key={locationId} variant="secondary" className="pl-2 pr-1 py-1.5">
+                <Badge key={locationId} variant="secondary" className="pl-2 pr-1 py-1.5 h-8 bg-zinc-600 text-white hover:bg-red-500 hover:text-white cursor-pointer">
                   <div className="flex items-center">
                     <span className="mr-1 text-sm">{country.flag}</span>
                     <span>{country.name}</span>
@@ -178,7 +177,7 @@ const ProductionManufacturedForm = ({
                 </Badge>
               )
             })}
-          </div>
+          </div>                            
         )}
       </div>
     </div>
