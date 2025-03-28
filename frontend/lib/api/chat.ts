@@ -6,7 +6,7 @@ export const chatApi = {
     return api.get(`/conversations${type ? `?type=${type}` : ""}`)
   },
 
-  createConversation: async (data: { participantId: string; participantType: "buyer" | "seller" }) => {
+  createConversation: async (data: { participantId: string; participantType: "buyer" | "seller"; initialMessage: string; attachments: any }) => {
     return api.post("/conversations", data)
   },
 

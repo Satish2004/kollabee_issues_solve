@@ -26,7 +26,7 @@ const MinimumOrderForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
         placeholder="Type Here"
         value={formState.minimumOrderQuantity}
         onChange={(e) => handleQuantityChange(e.target.value)}
-        className="border border-gray-200 p-2 w-full rounded text-sm"
+        className="border border-gray-200 p-2 w-80 rounded text-sm"
       />
     </div>
   )

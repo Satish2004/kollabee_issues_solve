@@ -95,7 +95,7 @@ const defaultAddress: Address = {
 const defaultOrderSummary: OrderSummary = {
   subtotal: 0,
   discount: 0,
-  shippingCost: 50,
+  shippingCost: 20,
   total: 0,
   totalQuantity: 0,
 };
@@ -139,7 +139,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
     );
     const discount = 0; // Could be calculated based on promo codes, etc.
     const shippingCost = products.reduce(
-      (sum, product) => sum + product.quantity * product.product.deliveryCost,
+      (sum, product) => sum + product.product.deliveryCost,
       0
     );
     // totalQuantity * product.product.deliveryCost;
@@ -189,7 +189,7 @@ export function CheckoutProvider({ children }: { children: ReactNode }) {
 
   const updateQuantity = (productId: string, quantity: number) => {
     setProducts((prevProducts) =>
-      prevProducts.map((p) => (p.id === productId ? { ...p, quantity } : p))
+      prevProducts.map((p) => (p.product.id === productId ? { ...p, quantity } : p))
     );
   };
 

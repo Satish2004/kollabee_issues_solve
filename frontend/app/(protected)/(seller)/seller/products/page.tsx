@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useEffect } from 'react';
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   Box, 
   List, 
@@ -21,6 +22,8 @@ import { Product } from '@/types/api';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { format } from 'date-fns';
+import { profileApi } from '@/lib/api/profile';
+import { cn } from '@/lib/utils';
 
 interface ProductStats {
   categories: number;
@@ -39,6 +42,7 @@ const ProductsPage: React.FC = () => {
   const [categories, setCategories] = useState<any[]>([]);
   const [sortField, setSortField] = useState<string>('createdAt');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [profileCompletion, setProfileCompletion] = useState<number[]>([]);
 
   const [stats, setStats] = useState<ProductStats>({
     categories: 0,
@@ -49,6 +53,7 @@ const ProductsPage: React.FC = () => {
 
   useEffect(() => {
     loadCategories();
+    loadProfileCompletion();
   }, []);
 
   useEffect(() => {
@@ -73,6 +78,11 @@ const ProductsPage: React.FC = () => {
   const loadCategories = async () => {
     const response:any = await categoryApi.getAll();
     setCategories(response.data);
+  }
+
+  const loadProfileCompletion = async () => {
+    const response:any = await profileApi.getProfileCompletion();
+    setProfileCompletion(response);
   }
 
   const loadProducts = async () => {
@@ -112,6 +122,18 @@ const ProductsPage: React.FC = () => {
       toast.error('Failed to delete product');
     }
   };
+
+  const findMissingSteps = (completedSteps: number[]): number[] => {
+    const completedSet = new Set(completedSteps);
+    return Array.from({ length: 11 }, (_, i) => i + 1)
+      .filter(step => !completedSet.has(step));
+  };
+
+  const isAddProductDisabled = () => {
+    return profileCompletion.length !== 11;
+  }
+
+  const remainingSteps = findMissingSteps(profileCompletion); 
 
   const sortOptions = [
     { label: 'Date', value: 'createdAt' },
@@ -176,13 +198,35 @@ const ProductsPage: React.FC = () => {
                 Draft Products
               </button>
             </div>
-            <Link 
-              href="/seller/products/add-product"
-              className="flex items-center space-x-2 px-4 py-2 rounded-[6px] gradient-border bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-            >
-              <Plus className="w-4 h-4 text-pink-500" strokeWidth={3} />
-              <span className='gradient-text font-semibold'>Add Product</span>
-            </Link>
+            
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="relative">
+                  <Link
+                    href={isAddProductDisabled() ? "#" : "/seller/products/add-product"}
+                    className={cn(
+                      "flex items-center space-x-2 px-4 py-2 rounded-[6px] gradient-border bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]",
+                      isAddProductDisabled() && "opacity-50 cursor-not-allowed"
+                    )}
+                    onClick={(e) => isAddProductDisabled() && e.preventDefault()}
+                  >
+                    <Plus className="w-4 h-4 text-pink-500" strokeWidth={3} />
+                    <span className='gradient-text font-semibold'>Add Product</span>
+                  </Link>
+                </div>
+              </TooltipTrigger>
+              {isAddProductDisabled() && (
+                <TooltipContent side="top" className="-ml-10 button-bg text-white p-3">
+                  <p className="font-medium  text-sm mb-2">Complete the remaining steps in Seller Profile</p>
+                  <p className="text-xs">
+                    {remainingSteps.length > 0 
+                      ? `Remaining steps are: ${remainingSteps.join(", ")}`
+                      : "All steps completed!"}
+                  </p>
+                </TooltipContent>
+              )}
+            </Tooltip>
           </div>
 
           {/* Search and Filter */}

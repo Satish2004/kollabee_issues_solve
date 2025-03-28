@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Script from "next/script";
 import { UserProvider } from "@/components/user-provider";
 import { AuthProvider } from "@/contexts/auth-context";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 
 const geistSans = Geist({
@@ -25,9 +26,11 @@ export default function ProtectedLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
+        <TooltipProvider>
       <div className="flex">
         <div className="flex-1">{children}</div>
         <Toaster position="top-center" richColors />
       </div>
+        </TooltipProvider>
   );
 }

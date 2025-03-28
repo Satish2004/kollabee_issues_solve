@@ -28,12 +28,13 @@ const KollaBeeProfile = () => {
   const [activeStep, setActiveStep] = useState(0)
   const [profileData, setProfileData] = useState<any>({})
   const [isLoading, setIsLoading] = useState(true)
+  const [stepsToBeCompleted, setStepsToBeCompleted] = useState<number[]>([])
   const [isSaving, setIsSaving] = useState(false)
   const [sectionLoading, setSectionLoading] = useState<string | null>(null)
   const [certificateModalOpen, setCertificateModalOpen] = useState(false)
   const [newCertificate, setNewCertificate] = useState({
     name: "",
-    file: null,
+    image: null,
     issuerName: "",
     expiryDate: null,
   })
@@ -45,8 +46,15 @@ const KollaBeeProfile = () => {
   const { steps, sections } = useProfileSections()
 
   // Get form state management
-  const { formStates, originalFormStates, loadSectionData, handleFormChange, hasFormChanges, handleSectionUpdate } =
-    useProfileFormState({
+  const {
+    formStates,
+    originalFormStates,
+    loadSectionData,
+    handleFormChange,
+    hasFormChanges,
+    handleSectionUpdate,
+    hasData,
+  } = useProfileFormState({
       steps,
       setIsSaving,
       setSectionLoading,
@@ -77,11 +85,22 @@ useEffect(() => {
     }
   }, [activeStep, steps])
 
+  useEffect(() => {
+    loadProfileCompletion()
+  }, [activeStep])
+
+  const loadProfileCompletion = async () => {
+    const response:any = await profileApi.getProfileCompletion();
+
+  const allSteps = Array.from({ length: 11 }, (_, i) => i + 1);
+  const nonCompletedSteps = allSteps.filter(step => !response.includes(step));
+  setStepsToBeCompleted(nonCompletedSteps);
+  }
 
 
   // Handle certificate upload
   const handleCertificateUpload = async () => {
-    if (!newCertificate.name || !newCertificate.file || !newCertificate.issuerName) {
+    if (!newCertificate.name || !newCertificate.image || !newCertificate.issuerName) {
       toast.error("Please provide all required certificate information")
       return
     }
@@ -90,7 +109,7 @@ useEffect(() => {
     try {
       const formData = new FormData()
       formData.append("title", newCertificate.name)
-      formData.append("image", newCertificate.file) // Field name must match backend
+      formData.append("image", newCertificate.image) // Field name must match backend
       formData.append("issuer", newCertificate.issuerName)
 
       if (newCertificate.expiryDate) {
@@ -108,7 +127,7 @@ useEffect(() => {
       })
 
       setCertificateModalOpen(false)
-      setNewCertificate({ title: "", file: null, issuer: "", expiryDate: null })
+      setNewCertificate({ name: "", image: null, issuerName: "", expiryDate: null })
       toast.success("Certificate uploaded successfully")
     } catch (error) {
       console.error("Error uploading certificate:", error)
@@ -317,6 +336,60 @@ useEffect(() => {
     }
   }, [activeStep])
 
+  const getWarningSteps = () => {
+    const warningSteps: string[] = []
+
+    steps.forEach((step, index) => {
+      // Skip steps that haven't been visited yet
+      if (index >= activeStep) return
+
+      const stepId = step.id
+
+      // Case 1: Step has unsaved changes
+      if (hasFormChanges(stepId)) {
+        warningSteps.push(stepId)
+        return
+      }
+    })
+
+    return warningSteps
+  }
+
+  // Helper function to check if data is effectively empty
+  const isEmptyData = (data: any): boolean => {
+    // If it's an object with a 'certificates' array, check if the array is empty
+    if (data.certificates && Array.isArray(data.certificates)) {
+      return data.certificates.length === 0
+    }
+
+    // If it's an object with a 'selectedCategories' array, check if the array is empty
+    if (data.selectedCategories && Array.isArray(data.selectedCategories)) {
+      return data.selectedCategories.length === 0
+    }
+
+    // For other types of data, check based on their specific structure
+    switch (typeof data) {
+      case "object":
+        if (data === null) return true
+        if (Array.isArray(data)) return data.length === 0
+
+        // For objects, check if all values are empty
+        return Object.values(data).every(
+          (value) =>
+            value === null ||
+            value === "" ||
+            (Array.isArray(value) && value.length === 0) ||
+            (typeof value === "object" && isEmptyData(value)),
+        )
+
+      case "string":
+        return data.trim() === ""
+
+      default:
+        return false
+    }
+  }
+
   return (
     <div className="flex flex-col">
       {/* Main content */}
@@ -332,6 +405,8 @@ useEffect(() => {
               setActiveStep={setActiveStep}
               stepperContainerRef={stepperContainerRef}
               activeStepRef={activeStepRef}
+              warningSteps={getWarningSteps()}
+              stepsToBeCompleted={stepsToBeCompleted}
             />
 
             {/* Content and Chart in grid layout */}
@@ -349,7 +424,7 @@ useEffect(() => {
                       variant="outline"
                       onClick={handlePrevious}
                       disabled={activeStep === 0 || isSaving}
-                      className="flex items-center"
+                      className="flex items-center button-bg text-white"
                     >
                       <ChevronLeft className="w-4 h-4 mr-2" />
                       Previous
@@ -359,7 +434,7 @@ useEffect(() => {
                       <Button
                         onClick={() => handleSectionUpdate(steps[activeStep].id)}
                         disabled={isSaving}
-                        className="flex items-center"
+                        className="flex items-center gradient-border gradient-text font-semibold"
                       >
                         {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Save Changes
@@ -369,7 +444,7 @@ useEffect(() => {
                     <Button
                       onClick={handleNext}
                       disabled={activeStep === steps.length - 1 || isSaving}
-                      className="flex items-center"
+                      className="flex items-center button-bg text-white"
                     >
                       Next
                       <ChevronRight className="w-4 h-4 ml-2" />

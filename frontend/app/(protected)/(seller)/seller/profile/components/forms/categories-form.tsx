@@ -204,15 +204,16 @@ const CategoriesForm = ({ formState, onChange, onSave, hasChanges, isSaving }: C
                 <div className="p-4 border-t border-gray-200 bg-gray-50">
                   <div className="space-y-6">
                     {/* Subcategory Dropdown */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">Select Subcategories</label>
+                    <div className="space-x-2 flex flex-row">
+                      <div className="flex flex-col space-y-2">
+                      <label className="text-sm font-medium">Select Subcategories:</label>
                       <Popover>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
                             aria-expanded={subcategoryDropdownOpen[category.id]}
-                            className={cn("w-full justify-between", !isSelected && "opacity-50 cursor-not-allowed")}
+                            className={cn("max-w-80 justify-between", !isSelected && "opacity-50 cursor-not-allowed")}
                             disabled={!isSelected}
                           >
                             <span className="truncate">
@@ -223,10 +224,9 @@ const CategoriesForm = ({ formState, onChange, onSave, hasChanges, isSaving }: C
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-full p-0">
+                        <PopoverContent className="w-full p-0 bg-white">
                           <Command>
                             <div className="flex items-center border-b px-3">
-                              <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
                               <CommandInput placeholder="Search subcategories..." className="h-9 flex-1" />
                             </div>
                             <CommandEmpty>No subcategory found.</CommandEmpty>
@@ -254,16 +254,17 @@ const CategoriesForm = ({ formState, onChange, onSave, hasChanges, isSaving }: C
                           </Command>
                         </PopoverContent>
                       </Popover>
+                      </div>
 
                       {/* Selected Subcategories Badges */}
                       {selectedSubcategories.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-3">
+                        <div className="flex flex-wrap gap-2 mt-7 pl-8">
                           {selectedSubcategories.map((subcategoryId: string) => {
                             const subcategory = category.subcategories.find((s) => s.id === subcategoryId)
                             if (!subcategory) return null
 
                             return (
-                              <Badge key={subcategoryId} variant="secondary" className="pl-2 pr-1 py-1.5">
+                              <Badge key={subcategoryId} variant="secondary" className="pl-2 pr-1 h-8 bg-zinc-700 hover:bg-red-400 text-white hover:text-white cursor-pointer">
                                 <div className="flex items-center">
                                   <span>{subcategory.name}</span>
                                   <Button

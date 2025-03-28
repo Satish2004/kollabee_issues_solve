@@ -13,9 +13,9 @@ const TargetAudienceForm = ({ formState, onChange, onSave, hasChanges, isSaving 
   const audiences = [
     { id: "RETAILERS", label: "Retailers" },
     { id: "WHOLESALERS", label: "Wholesalers" },
-    { id: "DISTRIBUTORS", label: "Distributors" },
-    { id: "DIRECT-CONSUMERS", label: "Direct to Consumers" },
-    { id: "MANUFACTURERS", label: "Other Manufacturers" },
+    { id: "DISTRIBUTOR", label: "Distributors" },
+    { id: "CONSUMERS", label: "Direct to Consumers" },
+    { id: "OTHER", label: "Other Manufacturers" },
     { id: "STARTUPS", label: "Startups and Small Businesses" },
   ]
 

@@ -84,10 +84,12 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
     if (savedAddresses.length === 0 && !hasFetchedAddresses) {
       fetchAddresses().then(() => {
         setHasFetchedAddresses(true)
-        if (savedAddresses.length === 0) {
-          setShowNewAddressForm(true)
-        }
-      })
+        console.log(savedAddresses.length)
+        // if (savedAddresses.length === 0) {
+        //   setShowNewAddressForm(true)
+        // }
+      }) 
+      //TODO: WE HAVE TO MAKE SURE WHEN NO ADDRESS IS THERE, THE ADD NEW ADDRESS SHALL AUTO OPEN
     }
   }, [savedAddresses, hasFetchedAddresses, fetchAddresses])
 

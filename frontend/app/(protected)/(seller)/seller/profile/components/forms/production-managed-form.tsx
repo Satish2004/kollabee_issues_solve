@@ -24,7 +24,7 @@ const ProductionManagedForm = ({ formState, onChange, onSave, hasChanges, isSavi
           <Label htmlFor="in-house">In-House Production</Label>
         </div>
         <div className="flex items-center space-x-2">
-          <RadioGroupItem value="OUSOURCED" id="outsourced" />
+          <RadioGroupItem value="OUTSOURCED" id="outsourced" />
           <Label htmlFor="outsourced">Outsourced Production</Label>
         </div>
         <div className="flex items-center space-x-2">
