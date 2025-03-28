@@ -14,11 +14,17 @@ interface PasswordFormProps {
   setShowConfirmPassword: (show: boolean) => void;
 }
 
-export const PasswordForm = ({ formData, setFormData, onSave, showPassword, showNewPassword, showConfirmPassword, setShowPassword, setShowNewPassword, setShowConfirmPassword }: PasswordFormProps) => {
+export const PasswordForm = ({
+  formData,
+  setFormData,
+  onSave,
+  showPassword,
+  showNewPassword,
+  showConfirmPassword,
+  setShowPassword,
+  setShowNewPassword,
+  setShowConfirmPassword,
+}: PasswordFormProps) => {
   // Copy your existing password form JSX here
-  return (
-    <div className="p-6">
-      {/* Your existing password form content */}
-    </div>
-  );
-}; 
+  return <div className="p-6">{/* Your existing password form content */}</div>;
+};

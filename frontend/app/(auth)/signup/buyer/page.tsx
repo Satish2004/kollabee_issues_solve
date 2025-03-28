@@ -281,7 +281,7 @@ export default function SignupBuyerPage() {
               <div className="flex justify-center">
                 <Image
                   onClick={() => router.push("/")}
-                  src="/kollabee.jpg"
+                  src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway"
                   alt="KollaBee Logo"
                   width={160}
                   height={42}

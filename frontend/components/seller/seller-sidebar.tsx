@@ -29,7 +29,6 @@ import { HiChatBubbleLeftRight } from "react-icons/hi2";
 import { PiChatCenteredDotsFill } from "react-icons/pi";
 import { IoStorefront } from "react-icons/io5";
 
-
 type SidebarProps = {
   className?: string;
 };
@@ -49,16 +48,16 @@ export function SellerSidebar({ className }: SidebarProps) {
     };
 
     handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleLogout = async () => {
     try {
       await authApi.logout(); // Add logout endpoint to authApi if not exists
-      router.push('/login');
+      router.push("/login");
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error("Logout failed:", error);
     }
   };
 
@@ -75,7 +74,7 @@ export function SellerSidebar({ className }: SidebarProps) {
           label: "Your Products",
           icon: IoStorefront,
           href: "/seller/products",
-          className: "tour-products"
+          className: "tour-products",
         },
         // {
         //   label: "Add Product",
@@ -86,13 +85,13 @@ export function SellerSidebar({ className }: SidebarProps) {
           label: "Messages",
           icon: HiChatBubbleLeftRight,
           href: "/seller/chat",
-          className: "tour-chat"
+          className: "tour-chat",
         },
         {
           label: "Requests",
           icon: PiChatCenteredDotsFill,
           href: "/seller/request",
-          className: "tour-requests"
+          className: "tour-requests",
         },
         // {
         //   label: "Orders",
@@ -146,12 +145,14 @@ export function SellerSidebar({ className }: SidebarProps) {
         <div className="flex items-center justify-between ">
           <div className="flex items-center justify-center py-2">
             <Image
-              src="/kollabee.jpg"
+              src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway"
               alt="KollaBee"
               width={isCollapsed ? 40 : 150}
               height={40}
-              className={`rounded-full cursor-pointer ${isCollapsed ? 'hidden' : ''}`}
-              onClick={()=>router.push("/seller")}
+              className={`rounded-full cursor-pointer ${
+                isCollapsed ? "hidden" : ""
+              }`}
+              onClick={() => router.push("/seller")}
             />
           </div>
           <Button
@@ -169,7 +170,9 @@ export function SellerSidebar({ className }: SidebarProps) {
           </Button>
         </div>
 
-        <div className={`flex flex-1 flex-col gap-6 ${isCollapsed ? 'mt-10' : ''}`}>
+        <div
+          className={`flex flex-1 flex-col gap-6 ${isCollapsed ? "mt-10" : ""}`}
+        >
           {routes.map((group) => (
             <div key={group.label} className="flex flex-col gap-2">
               {!isCollapsed && (

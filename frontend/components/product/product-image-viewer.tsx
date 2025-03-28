@@ -11,7 +11,8 @@ interface ProductImageViewerProps {
 
 export function ProductImageViewer({ images }: ProductImageViewerProps) {
   // Use a fallback image when images array is empty or undefined
-  const fallbackImage = "/kollabee.jpg";
+  const fallbackImage =
+    "https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway";
   const validImages = images && images.length > 0 ? images : [fallbackImage];
   const [activeIndex, setActiveIndex] = useState(0);
 
