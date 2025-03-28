@@ -1,11 +1,15 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
+import { Resend } from "resend";
 
 enum ProductStatus {
   DRAFT = "DRAFT",
   ACTIVE = "ACTIVE",
   ARCHIVED = "ARCHIVED",
 }
+
+const admin = ["pandeyyysuraj@gmail.com", "saibunty1@gmail.com"];
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Create Product
 export const createProduct = async (req: any, res: Response) => {
@@ -54,14 +58,60 @@ export const createProduct = async (req: any, res: Response) => {
         sellerId: req.user.sellerId,
         pickupAddressId: addressId,
         categoryId,
-        isDraft: true, //coz all poducts will be draft until approved by admin
+        isDraft: true, //coz all products will be draft until approved by admin
         attributes: attributes, // Store attributes directly as JSON
       },
       include: {
-        seller: true,
+        seller: {
+          include: {
+            user: true, // Correctly include the user relation
+          },
+        },
         pickupAddress: true,
       },
     });
+
+    // Send the approval request email to all admins
+    await Promise.all(
+      admin.map(async (adminEmail) => {
+        const approvalLink = `${process.env.FRONTEND_URL}/approve/${
+          product.id
+        }?email=${encodeURIComponent(adminEmail)}`;
+        await resend.emails.send({
+          from: "hello@tejasgk.com",
+          to: adminEmail,
+          subject: "New Product Approval Request",
+          html: `
+            <p>A new product has been created and requires your approval.</p>
+            <p><strong>Product Name:</strong> ${product.name}</p>
+            <p><strong>Description:</strong> ${product.description}</p>
+            <p><strong>Price:</strong> $${product.price}</p>
+            <p><strong>Discount:</strong> ${product.discount}%</p>
+            <p><strong>Delivery Cost:</strong> $${product.deliveryCost}</p>
+            <p><strong>Wholesale Price:</strong> $${product.wholesalePrice}</p>
+            <p><strong>Minimum Order Quantity:</strong> ${
+              product.minOrderQuantity
+            }</p>
+            <p><strong>Available Quantity:</strong> ${
+              product.availableQuantity
+            }</p>
+            <p><strong>Category ID:</strong> ${product.categoryId}</p>
+            <p><strong>Pickup Address ID:</strong> ${
+              product.pickupAddressId || "N/A"
+            }</p>
+            <p><strong>Attributes:</strong> ${JSON.stringify(
+              product.attributes,
+              null,
+              2
+            )}</p>
+            <p><strong>Seller:</strong> ${product.seller.user.name} (${
+            product.seller.user.email
+          })</p>
+            <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
+          `,
+        });
+      })
+    );
 
     res.status(201).json({ data: product });
   } catch (error) {
@@ -86,9 +136,10 @@ export const getProducts = async (req: any, res: Response) => {
       limit = 10,
     } = req.query;
 
-
     const filters: any = {
-      ...(req.user?.seller?.id && { sellerId: req.user.seller.id }),
+      ...(req.user?.seller?.id
+        ? { sellerId: req.user.seller.id }
+        : { isDraft: false }),
     };
 
     if (search) {
@@ -115,8 +166,6 @@ export const getProducts = async (req: any, res: Response) => {
         ...(maxPrice && { lte: Number(maxPrice) }),
       };
     }
-
-    console.log("filteres :", filters);
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
@@ -366,40 +415,35 @@ export const buyProduct = async (req: any, res: Response) => {
   }
 };
 
-// export const getProductById = async (req: any, res: Response) => {
-//   try {
-//     const { productId } = req.params;
-//     const product = await prisma.product.findUnique({
-//       where: { id: productId },
-//       include: {
-//         seller: {
-//           include: {
-//             user: true,
-//           },
-//         },
-//       },
-//     });
+export const approveOrRejectProduct = async (req: any, res: Response) => {
+  try {
+    const { productId } = req.params;
+    const { action } = req.body; // "approve" or "reject"
 
-//     if (!product) {
-//       return res.status(404).json({ error: "Product not found" });
-//     }
+    const product = await prisma.product.findUnique({
+      where: { id: productId },
+    });
 
-//     // Get more products by same seller
-//     const productsBySeller = await prisma.product.findMany({
-//       where: {
-//         sellerId: product.sellerId,
-//         id: { not: productId },
-//       },
-//       include: {
-//         seller: true,
-//       },
-//       take: 4,
-//     });
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
 
-//     res.json({ product, relatedProducts: productsBySeller });
-//   } catch (error) {
-//     res.status(500).json({ error: "Failed to fetch product" });
-//   }
-// };
+    if (action === "approve") {
+      await prisma.product.update({
+        where: { id: productId },
+        data: { isDraft: false },
+      });
+      return res.json({ message: "Product approved successfully" });
+    } else if (action === "reject") {
+      await prisma.product.delete({ where: { id: productId } });
+      return res.json({ message: "Product rejected and deleted successfully" });
+    } else {
+      return res.status(400).json({ error: "Invalid action" });
+    }
+  } catch (error) {
+    console.error("Error approving/rejecting product:", error);
+    res.status(500).json({ error: "Failed to process the request" });
+  }
+};
 
 // Add other product-related controllers
