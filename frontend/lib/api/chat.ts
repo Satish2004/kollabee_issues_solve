@@ -2,12 +2,35 @@ import { api } from "../axios"
 
 export const chatApi = {
   // Conversations
-  getConversations: async (type?: "buyer" | "seller") => {
-    return api.get(`/conversations${type ? `?type=${type}` : ""}`)
+  getConversations: async (type?: "BUYER" | "SELLER", status?: "PENDING" | "ACCEPTED" | "DECLINED") => {
+    let url = "/conversations"
+    const params = new URLSearchParams()
+
+    if (type) params.append("type", type)
+    if (status) params.append("status", status)
+
+    if (params.toString()) {
+      url += `?${params.toString()}`
+    }
+
+    return api.get(url)
   },
 
-  createConversation: async (data: { participantId: string; participantType: "buyer" | "seller"; initialMessage: string; attachments: any }) => {
+  createConversation: async (data: {
+    participantId: string
+    participantType: "BUYER" | "SELLER"
+    initialMessage?: string
+    attachments?: string[]
+  }) => {
     return api.post("/conversations", data)
+  },
+
+  acceptConversation: async (conversationId: string) => {
+    return api.put(`/conversations/${conversationId}/accept`)
+  },
+
+  declineConversation: async (conversationId: string) => {
+    return api.put(`/conversations/${conversationId}/decline`)
   },
 
   // Messages
@@ -20,7 +43,7 @@ export const chatApi = {
     return api.get("/users/me")
   },
 
-  getUsers: async (role?: "buyer" | "seller") => {
+  getUsers: async (role?: "BUYER" | "SELLER") => {
     return api.get(`/users${role ? `?role=${role}` : ""}`)
   },
 

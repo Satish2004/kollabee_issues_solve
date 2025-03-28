@@ -78,7 +78,7 @@ export default function ContactSupplierForm({
       // Create conversation with initial message
       const response = await chatApi.createConversation({
         participantId: supplierId,
-        participantType: "seller",
+        participantType: "SELLER",
         initialMessage: message,
         attachments: uploadedFiles,
       })
@@ -108,7 +108,7 @@ export default function ContactSupplierForm({
   }
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md bg-white">
       <CardHeader>
         <CardTitle>Contact {supplierName}</CardTitle>
       </CardHeader>
