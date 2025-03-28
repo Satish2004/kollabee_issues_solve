@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -8,16 +9,18 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../../components/ui/card";
-import { Label } from "../../components/ui/label";
-import { Input } from "../../components/ui/input";
-import { Button } from "../../components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert";
-import { Info, CheckCircle2, XCircle } from "lucide-react";
-import { cn } from "../../lib/utils";
-import { authApi } from "../../lib/api/auth";
+} from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ArrowLeft, Info, CheckCircle2, XCircle } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { authApi } from "@/lib/api/auth";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
 
 export function NewPasswordForm() {
   const router = useRouter();
@@ -119,110 +122,144 @@ export function NewPasswordForm() {
   };
 
   return (
-    <Card className="w-full max-w-[600px]">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-xl font-medium text-center">
-          Create New Password
-        </CardTitle>
-        <CardDescription className="text-center text-[15px] font-medium">
-          Enter a new password for your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {alert.show && (
-          <Alert
-            className={cn(
-              "mb-6 border-2",
-              alert.type === "error"
-                ? "border-red-500 bg-red-50 dark:bg-red-900/20"
-                : "border-green-500 bg-green-50 dark:bg-green-900/20"
-            )}
-          >
-            <Info className="h-5 w-5" />
-            <AlertTitle className="font-medium">{alert.message1}</AlertTitle>
-            <AlertDescription>{alert.message2}</AlertDescription>
-          </Alert>
-        )}
+    <div className="flex flex-col items-center w-full max-w-lg mx-auto font-futura font-normal">
+      <div className="mb-8">
+        <div className="flex justify-center">
+          <Image
+            onClick={() => router.push("/")}
+            src="/kollabee.jpg"
+            alt="KollaBee Logo"
+            width={160}
+            height={42}
+            className="mx-auto"
+          />
+        </div>
+      </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <Label htmlFor="password">New Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px]"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-            <div className="space-y-1 text-sm">
-              <div className="flex items-center gap-2">
-                {hasMinLength ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span>At least 12 characters</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {hasNumber ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span>At least one number</span>
-              </div>
-              <div className="flex items-center gap-2">
-                {hasCapital ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                ) : (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
-                <span>At least one capital letter</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-              className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px]"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <div className="flex items-center gap-2 text-sm">
-              {passwordsMatch ? (
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-500" />
+      <Card className="w-full">
+        <CardHeader className="space-y-1 text-center">
+          <CardTitle className="text-2xl font-normal">
+            Create New Password
+          </CardTitle>
+          <CardDescription className="text-center text-[15px] font-normal">
+            Enter a new password for your account
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {alert.show && (
+            <Alert
+              className={cn(
+                "mb-6 border-2",
+                alert.type === "error"
+                  ? "border-red-500 bg-red-50 dark:bg-red-900/20"
+                  : "border-green-500 bg-green-50 dark:bg-green-900/20"
               )}
-              <span>Passwords match</span>
+            >
+              <Info className="h-5 w-5" />
+              <AlertTitle>{alert.message1}</AlertTitle>
+              <AlertDescription>{alert.message2}</AlertDescription>
+            </Alert>
+          )}
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-sm font-normal">
+                New Password*
+              </Label>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                required
+                placeholder="Enter your new password"
+                className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <div className="space-y-1 text-sm">
+                <div className="flex items-center gap-2">
+                  {hasMinLength ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-500" />
+                  )}
+                  <span>At least 12 characters</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {hasNumber ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-500" />
+                  )}
+                  <span>At least one number</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  {hasCapital ? (
+                    <CheckCircle2 className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <XCircle className="h-4 w-4 text-red-500" />
+                  )}
+                  <span>At least one capital letter</span>
+                </div>
+              </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword" className="text-sm font-normal">
+                Confirm Password*
+              </Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                placeholder="Confirm your new password"
+                className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <div className="flex items-center gap-2 text-sm">
+                {passwordsMatch ? (
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                ) : (
+                  <XCircle className="h-4 w-4 text-red-500" />
+                )}
+                <span>Passwords match</span>
+              </div>
+            </div>
+
+            <div className="space-y-4 mt-6">
+              <Button
+                type="submit"
+                className="rounded-[6px] w-full text-white font-normal px-8 py-2 button-bg"
+                disabled={isLoading || !isPasswordValid || !token}
+              >
+                {isLoading ? "Resetting..." : "Reset Password"}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+        <CardFooter className="flex flex-col items-center border-t pt-6 mt-4">
+          <div className="text-sm text-gray-600">
+            Remember your password?{" "}
+            <Link
+              href="/login"
+              className="ml-1 text-pink-600 hover:underline font-normal"
+            >
+              Log in
+            </Link>
           </div>
 
           <Button
-            type="submit"
-            className="w-full bg-gradient-to-r from-[#950a73] via-[#e36d5d] to-[#f1b56a] text-white hover:opacity-90 rounded-[6px] font-semibold"
-            disabled={isLoading || !isPasswordValid || !token}
+            variant="ghost"
+            className="mt-4 text-gray-600 font-normal gradient-text"
+            onClick={() => router.push("/")}
           >
-            {isLoading ? "Resetting..." : "Reset Password"}
+            <ArrowLeft className=" h-4 w-4 text-rose-500" />
+            Back
           </Button>
-        </form>
-      </CardContent>
-      <CardFooter>
-        <Button
-          variant="ghost"
-          className="w-full"
-          onClick={() => router.push("/login")}
-        >
-          Back to Login
-        </Button>
-      </CardFooter>
-    </Card>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }

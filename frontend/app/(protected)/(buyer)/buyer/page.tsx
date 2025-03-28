@@ -176,7 +176,6 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {
               allProducts && allProducts.map((product, index) => {
-                console.log("index", product)
                 return (
                 <ProductCard
                 key={index + 1}
@@ -220,7 +219,6 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {
               allProducts && allProducts.map((product, index) => {
-                console.log("index", product)
                 return (
                 <ProductCard
                 key={index + 1}

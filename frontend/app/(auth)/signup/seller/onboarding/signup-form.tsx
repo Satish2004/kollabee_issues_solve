@@ -17,7 +17,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
 interface SignupFormProps {
   formData: {
@@ -49,7 +49,7 @@ const companyRoles = [
   "Other",
 ];
 
-const countries = [
+export const countries = [
   { code: "+93", name: "Afghanistan", flag: "🇦🇫" },
   { code: "+355", name: "Albania", flag: "🇦🇱" },
   { code: "+213", name: "Algeria", flag: "🇩🇿" },
@@ -286,16 +286,16 @@ export function SignupForm({
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const { key } = event;
-  
+
       if (/^[a-zA-Z0-9]$/.test(key)) {
         setSearch((prev) => prev + key);
       } else if (key === "Backspace") {
         setSearch((prev) => prev.slice(0, -1));
       }
     };
-  
+
     if (isSelecting) window.addEventListener("keydown", handleKeyDown);
-  
+
     return () => {
       if (isSelecting) window.removeEventListener("keydown", handleKeyDown);
     };
@@ -408,9 +408,9 @@ export function SignupForm({
   }, [showCountryDropdown]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-futura font-normal">
       <div className="text-start space-y-2">
-        <h1 className="text-2xl font-bold">Create Your Account</h1>
+        <h1 className="text-2xl  font-futura">Create Your Account</h1>
         <p className="text-muted-foreground">
           Fill in your details to create your account and get started with
           Kollabee.
@@ -420,7 +420,8 @@ export function SignupForm({
       <div className="grid grid-cols-2 gap-8">
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>
+            <Label className="font-futura font-normal">
+              {" "}
               First Name<span className="text-destructive">*</span>
             </Label>
             <Input
@@ -430,7 +431,7 @@ export function SignupForm({
                 setFormData({ ...formData, firstName: e.target.value });
                 setErrors({ ...errors, firstName: undefined });
               }}
-              className={`bg-[#fcfcfc] border ${
+              className={`bg-[#fcfcfc] font-futura font-normal border ${
                 errors.firstName ? "border-red-500" : "border-[#e5e5e5]"
               } rounded-[6px] placeholder:text-[#bababb]`}
               tabIndex={1}
@@ -441,7 +442,7 @@ export function SignupForm({
           </div>
 
           <div className="space-y-2">
-            <Label>
+            <Label className="font-futura font-normal">
               Password<span className="text-destructive">*</span>
             </Label>
             <Input
@@ -452,7 +453,7 @@ export function SignupForm({
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
+              className="bg-[#fcfcfc] border font-futura font-normal border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
               tabIndex={3}
             />
             {errors.password && (
@@ -465,7 +466,7 @@ export function SignupForm({
                 }`}
               >
                 <Circle
-                  className={`w-1.5 h-1.5 ${
+                  className={`w-1.5 h-1.5 font-futura font-normal ${
                     isPasswordValid.hasMinLength
                       ? "fill-green-500"
                       : "fill-current"
@@ -505,15 +506,21 @@ export function SignupForm({
           </div>
 
           <div className="space-y-2 ">
-            <Label htmlFor="email" className="flex items-center gap-2">
+            <Label
+              htmlFor="email"
+              className="flex font-normal items-center gap-2"
+            >
               Business Email<span className="text-destructive">*</span>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
                   </TooltipTrigger>
                   <TooltipContent className="bg-gray-200 max-w-sm">
-                    <p>Enter your business email address. This email will be used to send you OTP for verification.</p>
+                    <p>
+                      Enter your business email address. This email will be used
+                      to send you OTP for verification.
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -554,7 +561,7 @@ export function SignupForm({
             </div>
           </div>
           <div className="space-y-2">
-            <Label>
+            <Label className="font-futura font-normal">
               Describe your Role within the Company
               <span className="text-destructive">*</span>
             </Label>
@@ -583,7 +590,7 @@ export function SignupForm({
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label>
+            <Label className="font-futura font-normal">
               Last Name<span className="text-destructive">*</span>
             </Label>
             <Input
@@ -604,7 +611,7 @@ export function SignupForm({
           </div>
           <div className="space-y-14">
             <div className="space-y-2 relative">
-              <Label>
+              <Label className="font-futura font-normal">
                 Confirm Password<span className="text-destructive">*</span>
               </Label>
               <Input
@@ -629,6 +636,7 @@ export function SignupForm({
                 </div>
               )}
             </div>
+
             <div className="flex items-center gap-2">
               <Select
                 value={formData.countryCode}
