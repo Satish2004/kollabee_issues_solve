@@ -18,6 +18,8 @@ export async function middleware(request: NextRequest) {
   // Get the pathname
   const path = request.nextUrl.pathname;
 
+  console.log("middleware path", path);
+
   // public paths that don't require authentication
   const isPublicPath = [
     "/",
@@ -33,12 +35,18 @@ export async function middleware(request: NextRequest) {
 
   // Define seller-only paths
   const isSellerPath = path.startsWith("/seller");
+  const isTemporary = path.startsWith("/approve");
 
   // Define buyer-only paths
   const isBuyerPath = path.startsWith("/buyer");
 
   // Get token from cookies (more secure than localStorage)
   const token = request.cookies.get("token")?.value;
+
+  if (isTemporary) {
+    // If the path is temporary, allow access without token
+    return NextResponse.next();
+  }
 
   // If no token and trying to access protected route, redirect to login
   if (!token && !isPublicPath) {
