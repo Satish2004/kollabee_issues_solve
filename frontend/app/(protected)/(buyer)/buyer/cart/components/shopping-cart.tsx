@@ -47,6 +47,20 @@ export function ShoppingCart({ onNext }: ShoppingCartProps) {
     )
   }
 
+  if (products.length === 0) {
+    return (
+      <div className="w-full">
+        <div className="md:col-span-2 bg-white p-6">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-center">
+              <p className="mt-4 text-gray-600">You have no products in your cart :(</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="grid md:grid-cols-3 gap-6">
       <div className="md:col-span-2 bg-white px-6 ">

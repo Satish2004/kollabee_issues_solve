@@ -75,7 +75,6 @@ body {
   border-radius: 5px;
   background: linear-gradient(to right, #d928b6, #e4745c, #f2bd6d);
   -webkit-mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
-  mask: linear-gradient(white, white) content-box, linear-gradient(white, white);
   -webkit-mask-composite: destination-out;
-  mask-composite: exclude;
+  pointer-events: none; /* This ensures the border does not block interaction */
 }
