@@ -14,6 +14,7 @@ function OrderConfirmation() {
  useEffect(() => {
     const fetchOrderDetails = async () => {
       const orderDetails = await ordersApi.getOrderDetails(orderId)
+      console.log(orderDetails)
       setOrderedProducts(orderDetails.items)
     }
    
@@ -47,7 +48,6 @@ function OrderConfirmation() {
           <h2 className="text-2xl font-bold">Your Order</h2>
           <span className="text-gray-600">({orderedProducts.length})</span>
         </div>
-        <div className="text-sm text-gray-600 mb-6">Minimum Order Quantity Is: {orderedProducts.length && orderedProducts.map((p:any) => p.product.minOrderQuantity).reduce((a, b) => Math.min(a, b))}</div>
         <div className="grid grid-cols-6 text-sm text-gray-500 pb-2 border-b">
           <div className="col-span-4">Product</div>
           <div className="col-span-1 text-center">Quantity</div>
@@ -55,7 +55,7 @@ function OrderConfirmation() {
         </div>
 
         <div className="divide-y">
-          {products.map((product : any) => (
+          {orderedProducts.map((product : any) => (
             <CartItem
               key={product.id}
               name={product.product.name}
