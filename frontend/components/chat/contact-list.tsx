@@ -191,7 +191,7 @@ export default function ContactList({
                   <div className="ml-3 flex-1">
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{conversation.participantName}</span>
-                      <Badge variant="outline" className="flex items-center text-xs">
+                      <Badge variant="outline" className="flex items-center text-xs text-amber-600 bg-amber-100">
                         <Clock className="h-3 w-3 mr-1" />
                         Pending
                       </Badge>
@@ -205,14 +205,14 @@ export default function ContactList({
                   </div>
                 </div>
 
-                <div className="flex justify-end mt-2 space-x-2">
+                {/* <div className="flex justify-end mt-2 space-x-2">
                   <Button size="sm" variant="outline" onClick={(e) => handleDeclineRequest(conversation.id, e)}>
                     Decline
                   </Button>
                   <Button size="sm" onClick={(e) => handleAcceptRequest(conversation.id, e)}>
                     Accept
                   </Button>
-                </div>
+                </div> */}
               </div>
             ))}
           </div>

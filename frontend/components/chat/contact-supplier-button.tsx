@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import ContactSupplierForm from "./contact-supplier-form";
 import { useRouter } from "next/navigation";
+import ContactSupplierForm from "./contact-supplier-form";
 
 interface ContactSupplierButtonProps {
   supplierId: string;

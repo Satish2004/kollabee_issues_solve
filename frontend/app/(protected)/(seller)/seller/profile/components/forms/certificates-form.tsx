@@ -38,6 +38,13 @@ const CertificatesForm = ({ formState, onAddCertificate, onRemoveCertificate, is
   console.log(formState)
 
   return (
+    <>
+          <div className="w-full flex justify-end">
+        <Button onClick={onAddCertificate} disabled={isSaving} className="bg-zinc-900 text-white">
+          <Plus className="w-4 h-4 mr-2" />
+          Add Certificate
+        </Button>
+      </div>
     <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-6">
       {/* Existing Certificates */}
       {formState.certificates.map((certificate) => (
@@ -86,10 +93,10 @@ const CertificatesForm = ({ formState, onAddCertificate, onRemoveCertificate, is
             </div>
             <div className="flex items-center justify-between">
               <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="h-8">
+                {/* <Button variant="outline" size="sm" className="h-8">
                   <Upload className="w-4 h-4 mr-2" />
                   Change
-                </Button>
+                </Button> */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -121,13 +128,9 @@ const CertificatesForm = ({ formState, onAddCertificate, onRemoveCertificate, is
       ))}
 
       {/* Add Certificate Button */}
-      <div className="col-span-full mt-4">
-        <Button onClick={onAddCertificate} disabled={isSaving} className="button-bg text-white">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Certificate
-        </Button>
-      </div>
+
     </div>
+    </>
   )
 }
 

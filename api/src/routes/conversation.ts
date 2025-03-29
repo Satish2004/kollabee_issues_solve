@@ -6,8 +6,8 @@ const router = express.Router()
 
 router.get("/", authMiddleware, conversationController.getConversations)
 router.post("/", authMiddleware ,conversationController.createConversation)
-router.put("/:conversationId/accept", conversationController.acceptConversation)
-router.put("/:conversationId/decline", conversationController.declineConversation)
+router.put("/:conversationId/accept", authMiddleware, conversationController.acceptConversation)
+router.put("/:conversationId/decline", authMiddleware, conversationController.declineConversation)
 
 export default router
 

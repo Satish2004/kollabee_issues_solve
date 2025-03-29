@@ -34,7 +34,7 @@ export default function ChatModule() {
 
     
     useEffect(() => {
-        const socket = io("http://localhost:2000", {
+        const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:2000", {
         withCredentials: true,
         })
     
@@ -93,11 +93,11 @@ export default function ChatModule() {
         })
 
         // Listen for conversation status updates
-        socket.on("conversation_updated", ({ conversationId, status }) => {
+        socket.on("conversation_updated", ({ conversationId, status, updatedBy }) => {
         setConversations((prev) => prev.map((conv) => (conv.id === conversationId ? { ...conv, status } : conv)))
   
         // Show toast for accepted conversation
-        if (status === "accepted") {
+        if (status === "ACCEPTED") {
           const conversation = conversations.find((c) => c.id === conversationId)
           if (conversation) {
             toast({
@@ -106,6 +106,26 @@ export default function ChatModule() {
             })
           }
         }
+
+        if (status === "declined") {
+            const conversation = conversations.find((c) => c.id === conversationId)
+            if (conversation) {
+              toast({
+                title: "Conversation Declined",
+                description: `${conversation.participantName} declined your message request`,
+                variant: "destructive",
+              })
+    
+              // Remove the declined conversation from the list
+              setConversations((prev) => prev.filter((c) => c.id !== conversationId))
+    
+              // If this was the active conversation, clear it
+              if (activeConversation === conversationId) {
+                setActiveConversation(null)
+                setMessages([])
+              }
+            }
+          }
       })
     
         return () => {
@@ -113,7 +133,7 @@ export default function ChatModule() {
             socketRef.current.disconnect()
         }
         }
-    }, [activeConversation, toast, user, conversations])
+    }, [activeConversation, toast, user])
     
     // Fetch conversations from API
     const fetchConversations = async () => {
@@ -255,10 +275,10 @@ export default function ChatModule() {
             console.log(conversations)
             setFilteredConversations([])
         }
-    }, [activeTab])
+    }, [activeTab, user])
     
     return (
-        <div className="rounded-lg shadow-sm overflow-hidden">
+        <div className="flex flex-col rounded-lg shadow-sm overflow-hidden h-[570px]">
         <div className="flex rounded-xl px-6 py-4 bg-white mb-6 ">
             <div className="flex space-x-8">
             <button
@@ -280,7 +300,7 @@ export default function ChatModule() {
             </div>
         </div>
     
-        <div className="flex h-[430px] space-x-6">
+        <div className="flex-1 flex  space-x-6">
             <ContactList
             conversations={filteredConversations}
             activeConversationId={activeConversation}

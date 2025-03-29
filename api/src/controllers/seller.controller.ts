@@ -1077,7 +1077,7 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
         issuerName: certificate.issuerName,
         issueDate: certificate.issueDate,
         createdAt: certificate.createdAt,
-        approved: certificate.approved ? "approved" : "pending",
+        approved: false,
       });
   } catch (error) {
     console.error("Upload certificate error:", error);

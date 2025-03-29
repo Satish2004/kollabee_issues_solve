@@ -26,6 +26,6 @@
     "skipLibCheck": true,
     "jsx": "preserve"
   },
-  "include": ["app/**/*", ".next/types/**/*.ts"],
+  "include": ["app/**/*", ".next/types/**/*.ts", "components/chat/types", "components/chat/chat-module.tsx", "components/chat/chat-window.tsx", "components/chat/contact-list.tsx", "components/chat/contact-supplier-button.tsx", "components/chat/contact-supplier-form.tsx"],
   "exclude": ["node_modules", ".next"]
 }

@@ -146,7 +146,7 @@ export default function ChatWindow({
   // Render empty state if no conversation is selected
   if (!activeConversationId) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-gray-50">
+      <div className="flex-1 flex flex-col items-center justify-center p-6 bg-white">
         <div className="text-center">
           <h3 className="text-lg font-medium text-gray-900 mb-2">No Conversation Selected</h3>
           <p className="text-gray-500 mb-6">Select a conversation from the list to start chatting</p>
@@ -167,7 +167,7 @@ export default function ChatWindow({
 
   if (conversation?.status === "PENDING" && conversation?.initiatedBy !== currentUser?.id) {
     return (
-      <div className="flex-1 flex flex-col h-full">
+      <div className="flex-1 flex flex-col h-full bg-white">
         {/* Conversation Header */}
         <div className="p-4 border-b flex justify-between items-center">
           <div className="flex items-center">
@@ -199,19 +199,23 @@ export default function ChatWindow({
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="flex flex-col items-center justify-center h-full">
-            <Alert className="max-w-md">
+            <Alert className="max-w-md bg-gray-100">
               <Clock className="h-4 w-4 mr-2" />
               <AlertDescription>
                 <div className="text-center">
-                  <p className="font-medium mb-2">Message Request</p>
+                  <p className="font-medium mb-2 font-semibold">Message Request</p>
                   <p className="text-sm mb-4">
                     {conversation?.participantName} wants to start a conversation with you.
                   </p>
+                  <div className="w-full px-4 py-2 rounded-md mb-4 flex space-x-2">
+                  <p className="text-left">Message:</p>
+                  <p className="text-left">{conversation?.lastMessage}</p>
+                  </div>
                   <div className="flex justify-center space-x-2">
-                    <Button variant="outline" onClick={handleDeclineRequest}>
+                    <Button type="button" onClick={handleDeclineRequest} className="button-bg text-white font-semibold">
                       Decline
                     </Button>
-                    <Button onClick={handleAcceptRequest}>Accept</Button>
+                    <Button onClick={handleAcceptRequest} className="gradient-border gradient-text font-semibold">Accept</Button>
                   </div>
                 </div>
               </AlertDescription>
@@ -443,7 +447,7 @@ export default function ChatWindow({
           </Popover>
 
 
-          <Button type="submit" className="border-none shadow-none text-white bg-[#ea3d4f] ">
+          <Button type="submit" className="border-none shadow-none text-white bg-[#ea3d4f] hover:bg-[#ea3d4f]/90"> 
             Send
             <SendHorizonal className="h-5 w-5" />
           </Button>

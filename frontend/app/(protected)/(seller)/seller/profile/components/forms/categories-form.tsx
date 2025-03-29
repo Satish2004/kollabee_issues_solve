@@ -155,13 +155,13 @@ const CategoriesForm = ({ formState, onChange, onSave, hasChanges, isSaving }: C
           return (
             <div
               key={category.id}
-              className={cn("border rounded-md overflow-hidden", isSelected ? "border-green-500" : "border-gray-200")}
+              className={cn("border rounded-md overflow-hidden", isSelected ? "border-gray-500" : "border-gray-200")}
             >
               {/* Accordion Header */}
               <div
                 className={cn(
                   "flex items-center justify-between p-4 cursor-pointer",
-                  isSelected ? "bg-green-50" : "bg-white",
+                  isSelected ? "bg-gray-50" : "bg-white",
                 )}
                 onClick={() => toggleCategory(category.id)}
               >
@@ -174,7 +174,8 @@ const CategoriesForm = ({ formState, onChange, onSave, hasChanges, isSaving }: C
                       // Prevent accordion toggle when clicking checkbox
                       event?.stopPropagation()
                     }}
-                    className={cn("h-5 w-5", isSelected ? "bg-green-500 text-white border-green-500" : "")}
+                    className={cn("h-5 w-5 data-[state=checked]:bg-green-800 data-[state=checked]:text-white")}
+
                   />
                   <Label
                     htmlFor={`category-${category.id}`}
@@ -264,7 +265,7 @@ const CategoriesForm = ({ formState, onChange, onSave, hasChanges, isSaving }: C
                             if (!subcategory) return null
 
                             return (
-                              <Badge key={subcategoryId} variant="secondary" className="pl-2 pr-1 h-8 bg-zinc-700 hover:bg-red-400 text-white hover:text-white cursor-pointer">
+                              <Badge key={subcategoryId} variant="secondary" className="pl-2 pr-1 h-8 bg-zinc-700 hover:bg-red-900 text-white hover:text-white cursor-pointer">
                                 <div className="flex items-center">
                                   <span>{subcategory.name}</span>
                                   <Button

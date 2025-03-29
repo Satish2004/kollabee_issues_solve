@@ -65,10 +65,12 @@ export const conversationController = {
             id: conversation.id,
             participantId: otherParticipant?.userId || "",
             participantName: otherParticipant?.user.name || "Unknown User",
-            participantType: otherParticipant?.user.role || "buyer",
+            participantType: otherParticipant?.user.role || "BUYER",
             participantAvatar: otherParticipant?.user.imageUrl || undefined,
-            lastMessage: conversation.messages[0]?.content || undefined,
-            lastMessageTime: conversation.messages[0]?.createdAt.toISOString() || undefined,
+            lastMessage:
+              conversation.messages[0]?.content ||
+              (conversation.status === "PENDING" ? "New message request" : "No messages yet"),
+            lastMessageTime: conversation.messages[0]?.createdAt.toISOString(),
             unreadCount,
             isOnline: otherParticipant?.isOnline || false,
             status: conversation.status,
