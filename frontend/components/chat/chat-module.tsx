@@ -278,7 +278,7 @@ export default function ChatModule() {
     }, [activeTab, user])
     
     return (
-        <div className="flex flex-col rounded-lg shadow-sm overflow-hidden h-[570px]">
+        <div className="flex flex-col rounded-lg shadow-sm overflow-hidden min-h-[560px]">
         <div className="flex rounded-xl px-6 py-4 bg-white mb-6 ">
             <div className="flex space-x-8">
             <button

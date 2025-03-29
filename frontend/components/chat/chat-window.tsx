@@ -227,7 +227,7 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white">
+    <div className="flex-1 flex flex-col  bg-white">
       {/* Conversation Header */}
       <div className="p-4 border-b flex justify-between items-center">
         <div className="flex items-center">

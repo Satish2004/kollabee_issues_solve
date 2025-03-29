@@ -138,7 +138,7 @@ export default function ContactList({
   }
 
   return (
-    <div className="w-80 rounded-xl h-full flex flex-col bg-white">
+    <div className="w-80 rounded-xl h-100vh flex flex-col bg-white">
       <div className="px-6 py-4 flex items-center space-x-2">
         <h1 className="font-semibold text-lg">Messages</h1>
         <span className="rounded-full bg-gray-100 text-xs font-semibold px-2">{conversations.length}</span>

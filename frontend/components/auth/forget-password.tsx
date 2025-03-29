@@ -137,12 +137,15 @@ export function ForgotPasswordForm() {
               </div>
 
               <div className="flex justify-between">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-gray-600 hover:underline"
-                >
-                  Forgot password?
-                </Link>
+                <div className="text-sm text-gray-600">
+                  Remember your password?{" "}
+                  <Link
+                    href="/login"
+                    className="ml-1 text-pink-600 hover:underline font-normal"
+                  >
+                    Log in
+                  </Link>
+                </div>
                 <div className="text-sm text-gray-600 ">
                   Don't have an account?
                   <Link
