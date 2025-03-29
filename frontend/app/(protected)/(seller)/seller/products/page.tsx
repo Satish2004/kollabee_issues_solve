@@ -24,6 +24,7 @@ import Link from 'next/link';
 import { format } from 'date-fns';
 import { profileApi } from '@/lib/api/profile';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface ProductStats {
   categories: number;
@@ -217,13 +218,20 @@ const ProductsPage: React.FC = () => {
                 </div>
               </TooltipTrigger>
               {isAddProductDisabled() && (
-                <TooltipContent side="top" className="-ml-10 button-bg text-white p-3">
+                <TooltipContent side="top" className=" -ml-28 bg-zinc-900 text-white p-3">
                   <p className="font-medium  text-sm mb-2">Complete the remaining steps in Seller Profile</p>
                   <p className="text-xs">
                     {remainingSteps.length > 0 
-                      ? `Remaining steps are: ${remainingSteps.join(", ")}`
+                      ? `Remaining ${remainingSteps.length > 1 ? "steps" : "step"} to be completed: ${remainingSteps.join(", ")}`
                       : "All steps completed!"}
                   </p>
+                    <div className='w-full flex justify-end mt-4'>
+                    <Link href="/seller/profile">
+                      <Button className='bg-zinc-200 hover:bg-zinc-300 text-zinc-950'>
+                        Complete Profile
+                      </Button>
+                  </Link>
+                    </div>
                 </TooltipContent>
               )}
             </Tooltip>

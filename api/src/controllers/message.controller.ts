@@ -1,30 +1,36 @@
 import type { Request, Response } from "express"
-import prisma from '../db';
+import { PrismaClient } from "@prisma/client"
+
+const prisma = new PrismaClient()
 
 export const messageController = {
   // Get messages for a conversation
   getMessages: async (req: any, res: Response) => {
     try {
       const { conversationId } = req.query
-      const { userId } = req.user;
+      const { userId } = req.user
 
       if (!conversationId) {
         return res.status(400).json({ error: "Conversation ID is required" })
       }
 
       // Check if user is a participant in this conversation
-      const isParticipant = await prisma.conversationParticipant.findFirst({
+      const conversation = await prisma.conversation.findFirst({
         where: {
-          conversationId: conversationId as string,
-          userId: userId,
+          id: conversationId as string,
+          participants: {
+            some: {
+              userId: userId,
+            },
+          },
         },
       })
 
-      if (!isParticipant) {
+      if (!conversation) {
         return res.status(403).json({ error: "Not authorized to view this conversation" })
       }
 
-      // Fetch messages
+      // Fetch messages - allow viewing messages for pending conversations
       const messages = await prisma.message.findMany({
         where: {
           conversationId: conversationId as string,
@@ -51,19 +57,21 @@ export const messageController = {
         status: message.isRead ? "read" : "delivered",
       }))
 
-      // Mark messages as read if they were sent to the current user
-      await prisma.message.updateMany({
-        where: {
-          conversationId: conversationId as string,
-          senderId: {
-            not: userId,
+
+      if (conversation.status === "ACCEPTED") {
+        await prisma.message.updateMany({
+          where: {
+            conversationId: conversationId as string,
+            senderId: {
+              not: userId,
+            },
+            isRead: false,
           },
-          isRead: false,
-        },
-        data: {
-          isRead: true,
-        },
-      })
+          data: {
+            isRead: true,
+          },
+        })
+      }
 
       res.status(200).json({ messages: formattedMessages })
     } catch (error) {

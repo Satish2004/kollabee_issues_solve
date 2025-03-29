@@ -36,7 +36,8 @@ const KollaBeeProfile = () => {
     image: null,
     issuerName: "",
     expiryDate: null,
-  });
+    approved: false
+  })
 
   const stepperContainerRef = useRef<HTMLDivElement>(null);
   const activeStepRef = useRef<HTMLDivElement>(null);
@@ -447,50 +448,56 @@ const KollaBeeProfile = () => {
               {/* Content */}
               <div className="md:col-span-2">
                 <div className="border rounded-md p-4">
-                  <div className="p-4">
-                    <h3 className="font-semibold">
-                      {sections[steps[activeStep].id]?.title}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {sections[steps[activeStep].id]?.description}
-                    </p>
+                  <div className="p-4 flex items-center justify-between">
+                    <div>
+                    <h3 className="font-semibold">{sections[steps[activeStep].id]?.title}</h3>
+                    <p className="text-sm text-gray-500">{sections[steps[activeStep].id]?.description}</p>
+                    </div>
+                    
                   </div>
                   <div className="px-4 pb-4">{renderStepContent()}</div>
-                  <div className="p-4 border-t flex justify-between">
+                  <div className={`p-4 border-t flex justify-between items-center`}>
+
+                <div className="flex-1 flex justify-start">
+                  {activeStep > 0 && (
                     <Button
-                      variant="outline"
+                      type="button"
                       onClick={handlePrevious}
                       disabled={activeStep === 0 || isSaving}
-                      className="flex items-center button-bg text-white"
+                      className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
                     >
                       <ChevronLeft className="w-4 h-4 mr-2" />
                       Previous
                     </Button>
+                  )}
+                </div>
 
-                    {hasFormChanges(steps[activeStep].id) && (
-                      <Button
-                        onClick={() =>
-                          handleSectionUpdate(steps[activeStep].id)
-                        }
-                        disabled={isSaving}
-                        className="flex items-center gradient-border gradient-text font-semibold"
-                      >
-                        {isSaving && (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        )}
-                        Save Changes
-                      </Button>
-                    )}
-
+                <div className="flex-1 flex justify-center">
+                  {hasFormChanges(steps[activeStep].id) && (
                     <Button
+                      onClick={() => handleSectionUpdate(steps[activeStep].id)}
+                      disabled={isSaving}
+                      className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
+                    >
+                      Save Changes
+                    </Button>
+                  )}
+                </div>
+
+                <div className="flex-1 flex justify-end">
+                  {activeStep < steps.length - 1 && (
+                    <Button
+                      type="button"
                       onClick={handleNext}
                       disabled={activeStep === steps.length - 1 || isSaving}
-                      className="flex items-center button-bg text-white"
+                      className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
                     >
                       Next
                       <ChevronRight className="w-4 h-4 ml-2" />
                     </Button>
-                  </div>
+                  )}
+                </div>
+              </div>
                 </div>
               </div>
             </div>

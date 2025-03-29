@@ -266,9 +266,9 @@ const Dashboard = () => {
           </div>
 
           {/* Right Sidebar */}
-          <div className="w-[35%] space-y-6">
+          <div className="w-[35%] space-y-6 min-h-screen">
             {/* Profile Strength */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            {/* <div className="bg-white rounded-xl p-6 shadow-sm">
               <h3 className="font-semibold mb-4">Your Profile Strength</h3>
               <div className="relative w-32 h-32 mx-auto">
                 <svg className="w-full h-full" viewBox="0 0 36 36">
@@ -306,7 +306,7 @@ const Dashboard = () => {
               <button className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] mt-4 w-full" onClick={() => router.push('/seller/profile/seller')}>
                 Take Action
               </button>
-            </div>
+            </div> */}
 
             {/* Notifications */}
             <div className="bg-white rounded-xl p-6 shadow-sm">

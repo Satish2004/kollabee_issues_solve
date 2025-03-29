@@ -46,7 +46,7 @@ export default function CheckoutStepper() {
   return (
     <div className="mx-auto px-4 bg-gray-100">
       <div className="mb-4 bg-white px-10 rounded-xl pt-5 pb-8">
-        <div className="flex items-center justify-start">
+        <div className="flex items-center justify-center">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center">
               <div

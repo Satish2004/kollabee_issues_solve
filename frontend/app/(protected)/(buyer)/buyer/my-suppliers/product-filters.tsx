@@ -114,18 +114,6 @@ export default function ProductFilters({ filters, onFilterChange, onApply, onCle
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
-              id="response-time"
-              checked={initializedFilters.supplierFeatures.responseTime}
-              onCheckedChange={(checked) =>
-                handleCheckboxChange("supplierFeatures", "responseTime", checked as boolean)
-              }
-            />
-            <Label htmlFor="response-time" className="text-sm font-normal">
-              ≤1h response time
-            </Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
               id="above-rating"
               checked={initializedFilters.supplierFeatures.rating}
               onCheckedChange={(checked) => handleCheckboxChange("supplierFeatures", "rating", checked as boolean)}

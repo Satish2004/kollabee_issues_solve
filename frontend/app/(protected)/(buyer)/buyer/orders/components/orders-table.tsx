@@ -89,19 +89,19 @@ const columns: ColumnDef<Order>[] = [
       const order = row.original;
       return (
         <div className="flex items-center gap-2 justify-end">
-          {order.status === "in_progress" && (
+          {/* {order.status === "in_progress" && (
             <Link href={`/buyer/orders/${row.original.id}`}>
               <Button className="bg-red-500 text-white hover:bg-red-600">
                 Track Order
               </Button>
             </Link>
-          )}
-          <Button
-            variant="outline"
-            className="text-red-500 border-red-500 hover:bg-red-50"
-          >
-            View Details
-          </Button>
+          )} */}
+
+          <Link href={`/buyer/orders/${row.original.id}`}>
+              <Button className="border border-red-500 text-red-500 hover:border-red-600 hover:bg-red-100 font-semibold">
+              View Details
+              </Button>
+            </Link>
         </div>
       );
     },

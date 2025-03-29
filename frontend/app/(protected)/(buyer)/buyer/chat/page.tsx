@@ -1,6 +1,7 @@
 "use client"
 
-import ChatModule from "./chat-module"
+import ChatModule from "@/components/chat/chat-module"
+
 
 export default function ChatPage() {
   return (

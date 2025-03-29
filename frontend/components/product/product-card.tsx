@@ -1,4 +1,4 @@
-import { Heart } from "lucide-react";
+import { Heart, ShoppingCartIcon } from "lucide-react";
 import Image from "next/image";
 import React, { useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,8 @@ import { wishlistApi } from "@/lib/api/wishlist";
 import { chatApi } from "@/lib/api/chat";
 import { useRouter } from "next/navigation";
 import { useCheckout } from "@/contexts/checkout-context";
-import ContactSupplierButton from "@/app/(protected)/(buyer)/buyer/chat/contact-supplier-button";
+import { BsCartDashFill } from "react-icons/bs";
+import ContactSupplierButton from "../chat/contact-supplier-button";
 
 interface ProductCardProps {
   product: any;
@@ -132,15 +133,18 @@ export default function ProductCard({
 
         <div className="space-y-2">
           <Button
+           type="button"
             onClick={handleCart}
-            className="w-full py-6 px-4 rounded-md text-white font-semibold bg-gradient-to-r from-[#950b72] via-[#e0655d] to-[#f2bd6d]"
+            className={`w-full py-6 px-4 rounded-md text-white font-semibold ${isInCart(product.id) ? "bg-zinc-700 hover:bg-zinc-600" : "button-bg"}`}
           >
             {isLoading
               ? "Adding..."
               : isInCart(product.id)
-              ? "Remove from Cart"
+              ? <div className="flex items-center space-x-2"><span>Remove From Cart</span><BsCartDashFill className="" /></div>
               : "Add to Cart"}
           </Button>
+
+          
           {/* <Button
             onClick={handleContactSupplier}
             className="w-full py-6 px-4 rounded-lg gradient-border"
