@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useEffect, useState } from "react"
+import React, { use, useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 import { Heart } from "lucide-react"
@@ -8,6 +8,12 @@ import { Heart } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { productsApi } from "@/lib/api/products"
+import { Product } from "@/types/api"
+import ProductCard from "@/components/product/product-card"
+import { wishlistApi } from "@/lib/api/wishlist"
+import { cartApi } from "@/lib/api/cart"
+import { useCheckout } from "@/contexts/checkout-context"
 
 const categories = [
   { id: "all", label: "All" },
@@ -22,7 +28,7 @@ const tags = [
   { id: "hot-selling", label: "Hot Selling" },
 ]
 
-const products = [
+const BoostedProducts = [
   {
     id: 1,
     name: "Gregor Metal Chair (Black)",
@@ -52,13 +58,16 @@ const products = [
 export default function Page() {
   const router = useRouter()
   const searchParams = useSearchParams()
-
+  const [marketplaceProducts, setMarketplaceProducts] = useState<any[]>([])
+  const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
   const [category, setCategory] = useState("all")
-  const [tag, setTag] = useState("most-popular")
+  const [tag, setTag] = useState("all")
+  const {products, fetchProducts, setProducts } = useCheckout()
 
   useEffect(() => {
     const categoryParam = searchParams.get("category") || "all"
-    const tagParam = searchParams.get("tag") || "most-popular"
+    const tagParam = searchParams.get("tag") || "all"
     setCategory(categoryParam)
     setTag(tagParam)
   }, [searchParams])
@@ -73,6 +82,66 @@ export default function Page() {
     [router, searchParams],
   )
 
+  useEffect(() => {
+    const query = {}
+    const fetchProducts = async () => {
+      setLoading(true)
+      try {
+        if (category !== "all") query["category"] = category
+        if (tag !== "all") query["tag"] = tag
+  
+        const response = await productsApi.getProducts(query)
+        console.log(response.data)
+        setMarketplaceProducts(response.data)
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  },  [updateURL])
+
+  useEffect(() => {
+        const getWishlistProducts = async () => {
+          try {
+            const response = await wishlistApi.getWishlist()
+            setWishlistProducts(response.items)
+          } catch (error) {
+            console.error('Failed to fetch products:', error)
+          }
+        }
+        getWishlistProducts()
+        fetchProducts()
+      },[])
+
+      const isInCart = ( productId: string) => {
+        return products.findIndex((p:any) => p.product.id === productId) > -1
+      }
+  
+      const isInWishlist = ( productId: string) => {
+        return wishlistProducts.findIndex((p:any) => p.product.id === productId) > -1
+      }
+    
+      const removeFromCart = (productId: string) => {
+        const item = products.find((p:any) => p.product.id === productId)
+        const itemId = item?.id
+        cartApi.removeFromCart(itemId)
+        setProducts(products.filter((p:any) => p.id !== itemId))
+      }
+      
+      const removeFromWishlist = (productId: string) => {
+        try {
+          const item = wishlistProducts.find((p:any) => p.product.id === productId)
+          const itemId = item?.id
+          wishlistApi.removeFromWishlist(itemId)
+          setWishlistProducts(wishlistProducts.filter((p:any) => p.id !== itemId))
+        } catch {
+          console.error('Failed to remove product from wishlist')
+        }
+      }
+
   return (
     <main className="min-h-screen">
       <div className="relative bg-gradient-to-tr from-[#f4eadc] via-[#f1c2ca] to-[#f4eadc] pb-12">
@@ -86,7 +155,7 @@ export default function Page() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {products.map((product) => (
+            {BoostedProducts.map((product) => (
               <div key={product.id} className="relative bg-white rounded-lg p-4 shadow-sm">
                 <div className="aspect-square relative mb-3 bg-stone-300 rounded-md">
                   <Image
@@ -143,9 +212,30 @@ export default function Page() {
         </div>
       </div>
 
-      <div className=" mt-8 p-6 bg-white rounded-xl min-h-[400px] flex items-center justify-center text-muted-foreground">
-          Product grid will be displayed here based on selected filters: Category: {category}, Tag: {tag}
-        </div>
+      <div>
+        {loading && <div className="mt-8 p-6 bg-white rounded-xl min-h-[400px] flex items-center justify-center text-muted-foreground">
+          Loading...
+        </div>}
+        {!loading && marketplaceProducts.length === 0 && <div className="mt-8 p-6 bg-white rounded-xl min-h-[400px] flex items-center justify-center text-muted-foreground">
+          No products found
+        </div>}
+        {!loading && marketplaceProducts.length > 0 && 
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 bg-white mt-8 p-6 rounded-xl">
+            {marketplaceProducts.map((product, index) => (
+              <ProductCard
+                key={index + 1}
+                product={product}
+                isInCart={isInCart}
+                isInWishlist={isInWishlist}
+                removeFromCart={removeFromCart}
+                removeFromWishlist={removeFromWishlist}
+                setWishlistProducts={setWishlistProducts}
+                wishlistProducts={wishlistProducts}
+              />
+            ))}
+          </div>
+        }
+      </div>
     </main>
   )
 }
