@@ -59,7 +59,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       attributes: {},
       images: [],
       isDraft: true,
-      thumbnail: null,
+      thumbnail: [], // Changed from null to empty array
     }
   );
   const [imageLoading, setImageLoading] = useState(false);
@@ -82,7 +82,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [activeSection, setActiveSection] = useState<string>("upload");
   const [activeNumber, setActiveNumber] = useState<number>(1);
   const thumbnailRef = useRef<HTMLInputElement>(null);
-  const [thumbnail, setThumbnail] = useState<any>(null);
+  const [thumbnail, setThumbnail] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -122,7 +122,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const industryAttributesRef = useRef(industryAttributes);
   const otherAttributesRef = useRef(otherAttributes);
   const customAttributesRef = useRef(customAttributes);
-  const thumbnailRef2 = useRef(thumbnail);
+  const thumbnailRef2 = useRef<any[]>([]);
   const documentsRef2 = useRef(documents);
   const coverImageRef = useRef(coverImage);
   const modeRef = useRef(mode);
@@ -318,7 +318,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setCoverImage(initialData.images[0]);
       }
       if (initialData.thumbnail) {
-        setThumbnail(initialData.thumbnail);
+        // Handle both array and string cases for backward compatibility
+        const thumbnailArray = Array.isArray(initialData.thumbnail)
+          ? initialData.thumbnail
+          : initialData.thumbnail
+          ? [initialData.thumbnail]
+          : [];
+        setThumbnail(thumbnailArray);
       }
       if (initialData.documents) {
         setDocuments(initialData.documents);
@@ -407,22 +413,30 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const handleThumbnailUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        setThumbnailLoading(true);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setThumbnailLoading(true);
+
+      // Process each file
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         const response: any = await productsApi.uploadImage(file);
+
+        // Add the new thumbnail URL to the existing array
+        setThumbnail((prev) => [...prev, response?.url]);
         setFormData((prev: any) => ({
           ...prev,
-          thumbnail: response?.url,
+          thumbnail: [...(prev.thumbnail || []), response?.url],
         }));
-        setThumbnail(response?.url);
-        toast.success("Thumbnail uploaded successfully");
-      } catch (error) {
-        toast.error("Failed to upload thumbnail");
-      } finally {
-        setThumbnailLoading(false);
       }
+
+      toast.success("Thumbnails uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload thumbnails");
+    } finally {
+      setThumbnailLoading(false);
     }
   };
 
@@ -485,7 +499,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         response = await productsApi.create(productData);
         // Clear localStorage draft after successful creation
         localStorage.removeItem("productDraft");
-        console.log("Draft Removed")
+        console.log("Draft Removed");
         setFormData({
           name: "",
           description: "",
@@ -497,7 +511,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           attributes: {},
           images: [],
           isDraft: true,
-          thumbnail: null,
+          thumbnail: [],
         });
         setCoverImage(null);
       }
@@ -521,7 +535,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       upload: uploadRef,
       "general-info": generalInfoRef,
       "product-details": productDetailsRef,
-      "documents": documentsRef,
+      documents: documentsRef,
     };
 
     refs[sectionId]?.current?.scrollIntoView({
@@ -530,7 +544,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
     });
 
     setActiveSection(sectionId);
-    setActiveNumber(sectionId === "upload" ? 1 : sectionId === "general-info" ? 2 : sectionId === "product-details" ? 3 : 4);
+    setActiveNumber(
+      sectionId === "upload"
+        ? 1
+        : sectionId === "general-info"
+        ? 2
+        : sectionId === "product-details"
+        ? 3
+        : 4
+    );
   };
 
   const handleScroll = () => {
@@ -540,32 +562,40 @@ const ProductForm: React.FC<ProductFormProps> = ({
       { id: "product-details", ref: productDetailsRef },
       { id: "documents", ref: documentsRef },
     ];
-  
+
     for (const section of sections) {
       const element = section.ref.current;
       if (element) {
         const rect = element.getBoundingClientRect();
         const isVisible = rect.top <= 100 && rect.bottom >= 100;
-  
+
         if (isVisible) {
           setActiveSection(section.id);
           break;
         }
       }
     }
-  
+
     // Special handling for the documents section at the end of the page
     const documentsElement = documentsRef.current;
     if (documentsElement) {
       const rect = documentsElement.getBoundingClientRect();
       const isAtEndOfPage = rect.bottom <= window.innerHeight + 100;
-  
+
       if (isAtEndOfPage) {
         setActiveSection("documents");
       }
     }
 
-    setActiveNumber(activeSection === "upload" ? 1 : activeSection === "general-info" ? 2 : activeSection === "product-details" ? 3 : 4);
+    setActiveNumber(
+      activeSection === "upload"
+        ? 1
+        : activeSection === "general-info"
+        ? 2
+        : activeSection === "product-details"
+        ? 3
+        : 4
+    );
   };
 
   // Functions to handle attribute updates
@@ -711,70 +741,131 @@ const ProductForm: React.FC<ProductFormProps> = ({
           {/* Navigation Section */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="space-y-2">
-              <button onClick={() => scrollToSection("upload")} className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 1 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 1 ? "text-white" : ""}`}>01</span>
-              </div>
-              <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "upload"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
-                }`}
+              <button
+                onClick={() => scrollToSection("upload")}
+                className="flex items-center space-x-1 w-full"
               >
-                Upload Art Cover
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 1 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 1 ? "text-white" : ""
+                    }`}
+                  >
+                    01
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "upload"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Upload Art Cover
+                </div>
               </button>
-              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 1 ? "bg-green-500" : " bg-neutral-200 "}`}></div>
-              
-
-              <button onClick={() => scrollToSection("general-info")}  className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 2 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 2 ? "text-white" : ""}`}>02</span>
-              </div>
               <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "general-info"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
+                className={`h-8 w-0.5 rounded-full ml-4 ${
+                  activeNumber > 1 ? "bg-green-500" : " bg-neutral-200 "
                 }`}
+              ></div>
+
+              <button
+                onClick={() => scrollToSection("general-info")}
+                className="flex items-center space-x-1 w-full"
               >
-                General Information
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 2 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 2 ? "text-white" : ""
+                    }`}
+                  >
+                    02
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "general-info"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  General Information
+                </div>
               </button>
-              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 2 ? "bg-green-500" : " bg-neutral-200 "}`}></div>
-
-
-              <button  onClick={() => scrollToSection("product-details")}  className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 3 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 3 ? "text-white" : ""}`}>03</span>
-              </div>
               <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "product-details"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
+                className={`h-8 w-0.5 rounded-full ml-4 ${
+                  activeNumber > 2 ? "bg-green-500" : " bg-neutral-200 "
                 }`}
+              ></div>
+
+              <button
+                onClick={() => scrollToSection("product-details")}
+                className="flex items-center space-x-1 w-full"
               >
-                Product Details
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 3 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 3 ? "text-white" : ""
+                    }`}
+                  >
+                    03
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "product-details"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Product Details
+                </div>
               </button>
-              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 3 ? "bg-green-500" : " bg-neutral-200 "}`}></div>
-
-
-              <button  onClick={() => scrollToSection("documents")}  className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 4 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 4 ? "text-white" : ""}`}>04</span>
-              </div>
               <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "documents"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
+                className={`h-8 w-0.5 rounded-full ml-4 ${
+                  activeNumber > 3 ? "bg-green-500" : " bg-neutral-200 "
                 }`}
+              ></div>
+
+              <button
+                onClick={() => scrollToSection("documents")}
+                className="flex items-center space-x-1 w-full"
               >
-                Documents
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 4 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 4 ? "text-white" : ""
+                    }`}
+                  >
+                    04
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "documents"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Documents
+                </div>
               </button>
             </div>
           </div>
@@ -822,6 +913,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <p className="text-gray-600 mb-2 text-sm">
                       Drag and drop your image here
                     </p>
+                    <p className="text-gray-600 mb-2 text-sm">
+                      Recommended image size: 400 x 300 px for optimal display
+                    </p>
+
                     <input
                       type="file"
                       accept="image/*"
@@ -862,11 +957,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </section>
 
             {/* Product Details Section */}
-            <section
-              id="general-info"
-              ref={generalInfoRef}
-              className="mb-8"
-            >
+            <section id="general-info" ref={generalInfoRef} className="mb-8">
               <h2 className="text-lg font-semibold mb-4">Product Details</h2>
 
               <div className="mb-6">
@@ -876,37 +967,20 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <div className="w-12 h-12 text-gray-400 mx-auto mb-4">
                       <Loader2 className="w-12 h-12 animate-spin" />
                     </div>
-                  ) : thumbnail ? (
-                    <div className="relative">
-                      <img
-                        src={thumbnail || "/placeholder.svg"}
-                        alt="Thumbnail"
-                        className="w-32 h-32 object-cover mx-auto mb-4"
-                      />
-                      <button
-                        type="button"
-                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                        onClick={() => {
-                          setThumbnail(null);
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            thumbnail: null,
-                          }));
-                        }}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
                   ) : (
                     <>
                       <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600 mb-2">
-                        Upload a thumbnail for your product
+                        Upload thumbnails for your product
+                      </p>
+                      <p className="text-gray-600 mb-2">
+                        Recommended image size: 400 x 300 px for optimal display
                       </p>
                       <input
                         id="thumbnail-upload"
                         type="file"
                         accept="image/*"
+                        multiple
                         ref={thumbnailRef}
                         className="hidden"
                         onChange={handleThumbnailUpload}
@@ -918,6 +992,38 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         Browse Files
                       </label>
                     </>
+                  )}
+
+                  {thumbnail.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {thumbnail.map((doc: string, index: number) => (
+                        <div
+                          key={index}
+                          className="relative border rounded-md p-2"
+                        >
+                          <img
+                            src={doc || "/placeholder.svg"}
+                            alt={`Thumbnail ${index + 1}`}
+                            className="w-32 h-32 object-cover mx-auto"
+                          />
+                          <button
+                            type="button"
+                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                            onClick={() => {
+                              const newThumbnails = [...thumbnail];
+                              newThumbnails.splice(index, 1);
+                              setThumbnail(newThumbnails);
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                thumbnail: newThumbnails,
+                              }));
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
@@ -1044,7 +1150,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </section>
 
             {/* Product Attributes Section */}
-            <section id="product-details" ref={productDetailsRef} className="mb-8">
+            <section
+              id="product-details"
+              ref={productDetailsRef}
+              className="mb-8"
+            >
               <h2 className="text-lg font-semibold mb-4">Key attributes</h2>
 
               {/* Industry-specific attributes */}
@@ -1312,6 +1422,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-2">
                       Drag and drop your documents here
+                    </p>
+                    <p className="text-gray-600 mb-2">
+                      Recommended image size: 400 x 300 px for optimal display
                     </p>
                     <input
                       id="documents-upload"

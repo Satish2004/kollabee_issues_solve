@@ -1,84 +1,84 @@
 // Enums from schema
 export enum StockStatus {
-  IN_STOCK = 'IN_STOCK',
-  OUT_OF_STOCK = 'OUT_OF_STOCK',
-  LOW_STOCK = 'LOW_STOCK'
+  IN_STOCK = "IN_STOCK",
+  OUT_OF_STOCK = "OUT_OF_STOCK",
+  LOW_STOCK = "LOW_STOCK",
 }
 
 export enum BankType {
-  SAVINGS = 'SAVINGS',
-  CURRENT = 'CURRENT'
+  SAVINGS = "SAVINGS",
+  CURRENT = "CURRENT",
 }
 
 export enum Role {
-  BUYER = 'BUYER',
-  SELLER = 'SELLER',
-  ADMIN = 'ADMIN'
+  BUYER = "BUYER",
+  SELLER = "SELLER",
+  ADMIN = "ADMIN",
 }
 
 export enum CategoryEnum {
-  FASHION_APPAREL_ACCESSORIES = 'FASHION_APPAREL_ACCESSORIES',
-  BEAUTY_COSMETICS = 'BEAUTY_COSMETICS',
-  HOME_CLEANING_ESSENTIALS = 'HOME_CLEANING_ESSENTIALS',
-  HERBAL_NATURAL_PRODUCTS = 'HERBAL_NATURAL_PRODUCTS',
-  FOOD_BEVERAGES = 'FOOD_BEVERAGES',
-  HEALTH_WELLNESS = 'HEALTH_WELLNESS',
-  OTHER = 'OTHER'
+  FASHION_APPAREL_ACCESSORIES = "FASHION_APPAREL_ACCESSORIES",
+  BEAUTY_COSMETICS = "BEAUTY_COSMETICS",
+  HOME_CLEANING_ESSENTIALS = "HOME_CLEANING_ESSENTIALS",
+  HERBAL_NATURAL_PRODUCTS = "HERBAL_NATURAL_PRODUCTS",
+  FOOD_BEVERAGES = "FOOD_BEVERAGES",
+  HEALTH_WELLNESS = "HEALTH_WELLNESS",
+  OTHER = "OTHER",
 }
 
 export enum OrderStatus {
-  PENDING = 'PENDING',
-  PROCESSING = 'PROCESSING',
-  PACKED = 'PACKED',
-  SHIPPED = 'SHIPPED',
-  IN_TRANSIT = 'IN_TRANSIT',
-  OUT_FOR_DELIVERY = 'OUT_FOR_DELIVERY',
-  DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED',
-  RETURNED = 'RETURNED'
+  PENDING = "PENDING",
+  PROCESSING = "PROCESSING",
+  PACKED = "PACKED",
+  SHIPPED = "SHIPPED",
+  IN_TRANSIT = "IN_TRANSIT",
+  OUT_FOR_DELIVERY = "OUT_FOR_DELIVERY",
+  DELIVERED = "DELIVERED",
+  CANCELLED = "CANCELLED",
+  RETURNED = "RETURNED",
 }
 
 export enum AddressTypeEnum {
-  BILLING = 'BILLING',
-  SHIPPING = 'SHIPPING'
+  BILLING = "BILLING",
+  SHIPPING = "SHIPPING",
 }
 
 export enum AdvertisementStatus {
-  PENDING = 'PENDING',
-  ACTIVE = 'ACTIVE',
-  PAUSED = 'PAUSED',
-  COMPLETED = 'COMPLETED',
-  REJECTED = 'REJECTED'
+  PENDING = "PENDING",
+  ACTIVE = "ACTIVE",
+  PAUSED = "PAUSED",
+  COMPLETED = "COMPLETED",
+  REJECTED = "REJECTED",
 }
 
 // Additional enums
 export enum SubscriptionStatus {
-  ACTIVE = 'ACTIVE',
-  INACTIVE = 'INACTIVE',
-  CANCELLED = 'CANCELLED'
+  ACTIVE = "ACTIVE",
+  INACTIVE = "INACTIVE",
+  CANCELLED = "CANCELLED",
 }
 
 export enum SubscriptionTier {
-  FREE = 'FREE',
-  PRO = 'PRO',
-  PREMIUM = 'PREMIUM'
+  FREE = "FREE",
+  PRO = "PRO",
+  PREMIUM = "PREMIUM",
 }
 
 export enum InquiryStatus {
-  PENDING = 'PENDING',
-  RESPONDED = 'RESPONDED',
-  CLOSED = 'CLOSED'
+  PENDING = "PENDING",
+  RESPONDED = "RESPONDED",
+  CLOSED = "CLOSED",
 }
 
 export enum RequestStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
+  PENDING = "PENDING",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
 export enum RequestType {
-  PRODUCT = 'PRODUCT',
-  SERVICE = 'SERVICE'
+  PRODUCT = "PRODUCT",
+  SERVICE = "SERVICE",
 }
 
 // API Response Types
@@ -95,7 +95,7 @@ export interface PaginatedResponse<T> {
     pages: number;
     currentPage: number;
     limit: number;
-  }
+  };
 }
 
 // Main Entity Types
@@ -151,6 +151,7 @@ export interface Product {
   categoryId?: string;
   createdAt: string;
   updatedAt: string;
+  thumbnail: string[];
   categories: {
     id: string;
     name: string;
@@ -245,8 +246,8 @@ export interface Review {
     user: {
       name: string;
       imageUrl?: string;
-    }
-  }
+    };
+  };
 }
 
 export interface Advertisement {
@@ -531,12 +532,12 @@ export interface Request {
 
 // Also add BusinessType enum
 export enum BusinessType {
-  MANUFACTURER = 'MANUFACTURER',
-  DISTRIBUTOR = 'DISTRIBUTOR',
-  SERVICE_PROVIDER = 'SERVICE_PROVIDER',
-  PACKAGING_SUPPLIER = 'PACKAGING_SUPPLIER',
-  CO_PACKER = 'CO_PACKER',
-  OTHER = 'OTHER'
+  MANUFACTURER = "MANUFACTURER",
+  DISTRIBUTOR = "DISTRIBUTOR",
+  SERVICE_PROVIDER = "SERVICE_PROVIDER",
+  PACKAGING_SUPPLIER = "PACKAGING_SUPPLIER",
+  CO_PACKER = "CO_PACKER",
+  OTHER = "OTHER",
 }
 
 // Add this interface with the other interfaces
@@ -567,7 +568,6 @@ export interface StatCard {
   value: string;
   change?: string;
   changeText?: string;
-  trend?: 'up' | 'down';
+  trend?: "up" | "down";
   percentage?: string;
-} 
-
+}
