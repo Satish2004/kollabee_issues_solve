@@ -31,7 +31,7 @@ interface SignupData {
 const authUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export const authApi = {
-  login: async (data: { email: string; password: string }) => {
+  login: async (data: { email: string; password: string; role: string }) => {
     const response: any = await api.post(`${authUrl}/auth/login`, data);
     // Set token after successful login
     // set cookies as well

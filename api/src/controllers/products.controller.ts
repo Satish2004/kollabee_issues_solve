@@ -22,6 +22,7 @@ export const createProduct = async (req: any, res: Response) => {
       name,
       price,
       discount,
+      documents,
       deliveryCost,
       wholesalePrice,
       minOrderQuantity,
@@ -29,6 +30,7 @@ export const createProduct = async (req: any, res: Response) => {
       description,
       categoryId,
       images,
+      thumbnail,
       pickupAddress,
       isDraft,
       attributes = {},
@@ -60,6 +62,8 @@ export const createProduct = async (req: any, res: Response) => {
         categoryId,
         isDraft: true, //coz all products will be draft until approved by admin
         attributes: attributes, // Store attributes directly as JSON
+        thumbnail: thumbnail,
+        documents: documents,
       },
       include: {
         seller: {
@@ -236,6 +240,10 @@ export const updateProduct = async (req: any, res: Response) => {
       images,
       categoryId,
       attributes = {},
+      thumbnail,
+      documents,
+      discount,
+      deliveryCost,
     } = req.body;
 
     // Update product with attributes as JSON
@@ -251,6 +259,10 @@ export const updateProduct = async (req: any, res: Response) => {
         images,
         categoryId,
         attributes: attributes, // Update attributes directly as JSON
+        thumbnail,
+        documents,
+        discount: parseFloat(discount),
+        deliveryCost: parseFloat(deliveryCost),
       },
       include: {
         seller: true,

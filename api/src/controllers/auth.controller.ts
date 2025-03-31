@@ -29,6 +29,7 @@ const signupSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
   password: z.string().min(1, "Password is required"),
+  role: z.enum(["BUYER", "SELLER", "ADMIN"]),
 });
 
 const supabase = createClient(
@@ -182,6 +183,16 @@ export const login = async (req: Request, res: Response) => {
     );
     if (!validPassword) {
       return res.status(401).json({ error: "Invalid password" });
+    }
+
+    if (validatedData.role == "SELLER" && !user.seller) {
+      return res.status(401).json({
+        error: "User is not a seller",
+      });
+    } else if (validatedData.role == "BUYER" && !user.buyer) {
+      return res.status(401).json({
+        error: "User is not a buyer",
+      });
     }
 
     // Update last login

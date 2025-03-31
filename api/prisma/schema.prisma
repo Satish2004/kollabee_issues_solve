@@ -403,6 +403,7 @@ model Product {
   fabricType             String?
   fabricWeight           String?
   fitType                String?
+  documents               String[]
   discount               Float?
   deliveryCost           Float?
   certificateIssueDate   DateTime?
@@ -422,6 +423,7 @@ model Product {
   reviews                Review[]
   wishlistItems          WishlistItem[]
   interestedBuyers       Buyer[]            @relation("BuyerToProduct")
+  thumbnail              String[]
 
   @@index([sellerId])
   @@index([categoryId])

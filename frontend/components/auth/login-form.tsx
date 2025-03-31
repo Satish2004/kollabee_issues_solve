@@ -28,7 +28,13 @@ interface LoginError {
   details?: string;
 }
 
-export function LoginForm({ message }: { message?: string }) {
+export function LoginForm({
+  message,
+  role,
+}: {
+  message?: string;
+  role?: string;
+}) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [alert, setAlert] = useState<{
@@ -53,7 +59,7 @@ export function LoginForm({ message }: { message?: string }) {
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
-      const response = await authApi.login({ email, password });
+      const response = await authApi.login({ email, password, role: role });
       const user = await response.user;
 
       toast.success("Signed in successfully");

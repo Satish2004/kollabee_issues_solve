@@ -11,7 +11,7 @@ export default function BuyerLoginPage() {
       }}
     >
       <div className="bg-white w-full h-full flex flex-col items-center justify-center">
-        <LoginForm message={"Login as Supplier"} />
+        <LoginForm message={"Login as Supplier"} role="SELLER" />
       </div>
     </div>
   );
