@@ -111,7 +111,7 @@ export default function BuyerLayoutHeader() {
       href: "/seller/notifications",
     },
     {
-      label: "Cross-Supplier",
+      label: "Projects",
       icon: "custom",
       href: "/buyer/cross-supplier",
     },

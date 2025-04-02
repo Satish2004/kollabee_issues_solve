@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -15,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ArrowLeft, Info } from "lucide-react";
+import { Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authApi } from "@/lib/api/auth";
 import { toast } from "sonner";
@@ -83,6 +82,14 @@ export function LoginForm({
     }
   };
 
+  const handleRoleSwitch = () => {
+    if (role === "BUYER") {
+      router.push("/login/seller");
+    } else {
+      router.push("/login/buyer");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto font-futura">
       <div className="mb-8">
@@ -93,7 +100,7 @@ export function LoginForm({
             alt="KollaBee Logo"
             width={160}
             height={42}
-            className="mx-auto"
+            className="mx-auto cursor-pointer"
           />
         </div>
       </div>
@@ -160,21 +167,31 @@ export function LoginForm({
                 {isLoading ? "Logging in..." : "Log in"}
               </Button>
 
-              <div className="flex justify-between">
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-gray-600 hover:underline"
-                >
-                  Forgot password?
-                </Link>
-                <div className="text-sm text-gray-600 ">
-                  Don't have an account?
+              <div className="flex flex-col space-y-2">
+                <div className="flex justify-between">
                   <Link
-                    href="/signup"
-                    className="ml-1 text-pink-600 hover:underline"
+                    href="/forgot-password"
+                    className="text-sm text-gray-600 hover:underline"
                   >
-                    Sign up
+                    Forgot password?
                   </Link>
+
+                  <div className="text-sm text-gray-600 ">
+                    Don't have an account?
+                    <Link
+                      href="/signup"
+                      className="ml-1 text-pink-600 hover:underline"
+                    >
+                      Sign up
+                    </Link>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRoleSwitch}
+                    className="text-sm text-pink-600 hover:underline"
+                  >
+                    {role === "BUYER" ? "Login as Supplier" : "Login as Buyer"}
+                  </button>
                 </div>
               </div>
             </div>

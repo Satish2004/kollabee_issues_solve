@@ -103,7 +103,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
           // className: "tour-chat"
         },
         {
-          label: "Cross-Supplier",
+          label: "Projects",
           icon: "custom",
           href: "/buyer/cross-supplier",
           // className: "tour-requests"
