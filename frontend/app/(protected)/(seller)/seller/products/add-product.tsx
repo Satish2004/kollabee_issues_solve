@@ -117,6 +117,19 @@ const ProductForm: React.FC<ProductFormProps> = ({
   );
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  // Add a new state for form errors at the top of the component, after other state declarations
+  const [errors, setErrors] = useState<{
+    name?: string;
+    price?: string;
+    discount?: string;
+    deliveryCost?: string;
+    minOrderQuantity?: string;
+    availableQuantity?: string;
+  }>({});
+
+  // Add a new state to track if form has been submitted
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
   // Use refs to avoid dependency issues in useEffect
   const formDataRef = useRef(formData);
   const industryAttributesRef = useRef(industryAttributes);
@@ -249,7 +262,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               customAttributes: customAttributesRef.current,
               lastSaved: now.toISOString(),
             };
-            localStorage.setItem("productDraft", JSON.stringify(draftData));
+            localStorage.removeItem("productDraft");
           })
           .catch((error) => {
             console.error("Error auto-saving product:", error);
@@ -463,11 +476,60 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
+  // Add a validation function before the handleSubmit function
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    // Validate required fields
+    if (!formData.name?.trim()) {
+      newErrors.name = "Product name is required";
+    }
+
+    if (!formData.price) {
+      newErrors.price = "Price is required";
+    }
+
+    if (
+      formData.discount &&
+      (isNaN(Number(formData.discount)) ||
+        Number(formData.discount) < 0 ||
+        Number(formData.discount) > 100)
+    ) {
+      newErrors.discount = "Discount must be between 0 and 100";
+    }
+
+    if (!formData.deliveryCost) {
+      newErrors.deliveryCost = "Delivery cost is required";
+    }
+
+    if (!formData.minOrderQuantity) {
+      newErrors.minOrderQuantity = "Minimum order quantity is required";
+    }
+
+    if (!formData.availableQuantity) {
+      newErrors.availableQuantity = "Available quantity is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Modify the handleSubmit function to include validation
   const handleSubmit = async (e: React.FormEvent, isDraft = true) => {
     e.preventDefault();
+    setFormSubmitted(true);
+
+    // Validate form before submission
+    const isValid = validateForm();
+    if (!isValid) {
+      toast.error("Please fill the required fields before saving");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // Rest of the existing handleSubmit code...
       // Combine all attributes into a single object
       const allAttributes = [
         ...industryAttributes,
@@ -483,13 +545,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       const productData = {
         ...formData,
-        // isDraft: saveStatus === "unsaved" ? true : false,  // TODO: This is supposed to be removed as the drafts are products which are not confirmed by admin
         attributes: attributesObject,
         thumbnail: thumbnail,
         documents: documents,
       };
-
-      // console.log("Product data:", productData);
 
       let response: any;
       if (mode === "edit") {
@@ -497,7 +556,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         localStorage.removeItem("productDraft");
       } else {
         response = await productsApi.create(productData);
-        // Clear localStorage draft after successful creation
         localStorage.removeItem("productDraft");
         console.log("Draft Removed");
         setFormData({
@@ -526,6 +584,49 @@ const ProductForm: React.FC<ProductFormProps> = ({
       toast.error("Failed to save product");
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  // Add a function to handle real-time validation as user types
+  const handleInputChange = (field: string, value: any) => {
+    setFormData({
+      ...formData,
+      [field]: value,
+    });
+
+    // Only validate in real-time if the form has been submitted once
+    if (formSubmitted) {
+      // Clear the specific error if the field is now valid
+      if (field === "name" && value.trim()) {
+        setErrors((prev) => ({ ...prev, name: undefined }));
+      }
+
+      if (field === "price" && value) {
+        setErrors((prev) => ({ ...prev, price: undefined }));
+      }
+
+      if (field === "discount") {
+        if (!value || (Number(value) >= 0 && Number(value) <= 100)) {
+          setErrors((prev) => ({ ...prev, discount: undefined }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            discount: "Discount must be between 0 and 100",
+          }));
+        }
+      }
+
+      if (field === "deliveryCost" && value) {
+        setErrors((prev) => ({ ...prev, deliveryCost: undefined }));
+      }
+
+      if (field === "minOrderQuantity" && value) {
+        setErrors((prev) => ({ ...prev, minOrderQuantity: undefined }));
+      }
+
+      if (field === "availableQuantity" && value) {
+        setErrors((prev) => ({ ...prev, availableQuantity: undefined }));
+      }
     }
   };
 
@@ -1031,120 +1132,152 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <h3 className="text-md font-medium mb-4">Price Details</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-600 w-[50%]">Name</div>
-                  <input
-                    type="text"
-                    placeholder="Enter product name"
-                    className="w-full p-2 border rounded-md bg-[#fcfcfc]"
-                    value={formData.name || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        name: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="text-sm text-gray-600 w-[50%]">
+                    Name <span className="text-red-500">*</span>
+                  </div>
+                  <div className="w-full">
+                    <input
+                      type="text"
+                      placeholder="Enter product name"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.name ? "border-red-500" : ""
+                      }`}
+                      value={formData.name || ""}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Add product price
+                    Add product price <span className="text-red-500">*</span>
                   </div>
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                      ₹
+                      $
                     </span>
                     <input
                       type="text"
                       placeholder="122.00"
-                      className="w-full p-2 pl-8 border rounded-md bg-[#fcfcfc]"
+                      className={`w-full p-2 pl-8 border rounded-md bg-[#fcfcfc] ${
+                        errors.price ? "border-red-500" : ""
+                      }`}
                       value={formData.price || ""}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          price: e.target.value,
-                        })
+                        handleInputChange("price", e.target.value)
                       }
                     />
+                    {errors.price && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.price}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-1/3 text-sm text-gray-600">Discount</div>
+                  <div className="w-1/3 text-sm text-gray-600">
+                    Discount <span className="text-red-500">*</span>
+                  </div>
                   <div className="flex-1 relative">
                     <input
                       type="text"
                       placeholder="Enter discount"
-                      className="w-full p-2 border rounded-md bg-[#fcfcfc]"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.discount ? "border-red-500" : ""
+                      }`}
                       value={formData.discount || ""}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          discount: e.target.value,
-                        })
+                        handleInputChange("discount", e.target.value)
                       }
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
                       %
                     </span>
+                    {errors.discount && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.discount}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Delivery cost
+                    Delivery cost <span className="text-red-500">*</span>
                   </div>
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                      ₹
+                      $
                     </span>
                     <input
                       type="text"
                       placeholder="Enter delivery cost"
-                      className="w-full p-2 pl-8 border rounded-md bg-[#fcfcfc]"
+                      className={`w-full p-2 pl-8 border rounded-md bg-[#fcfcfc] ${
+                        errors.deliveryCost ? "border-red-500" : ""
+                      }`}
                       value={formData.deliveryCost || ""}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          deliveryCost: e.target.value,
-                        })
+                        handleInputChange("deliveryCost", e.target.value)
                       }
                     />
+                    {errors.deliveryCost && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.deliveryCost}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Minimum order
+                    Minimum order <span className="text-red-500">*</span>
                   </div>
-                  <input
-                    type="number"
-                    placeholder="Enter minimum order quantity"
-                    className="flex-1 p-2 border rounded-md bg-[#fcfcfc]"
-                    value={formData.minOrderQuantity || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        minOrderQuantity: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      placeholder="Enter minimum order quantity"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.minOrderQuantity ? "border-red-500" : ""
+                      }`}
+                      value={formData.minOrderQuantity || ""}
+                      onChange={(e) =>
+                        handleInputChange("minOrderQuantity", e.target.value)
+                      }
+                    />
+                    {errors.minOrderQuantity && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.minOrderQuantity}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Available quantity
+                    Available quantity <span className="text-red-500">*</span>
                   </div>
-                  <input
-                    type="number"
-                    placeholder="Enter available quantity"
-                    className="flex-1 p-2 border rounded-md bg-[#fcfcfc]"
-                    value={formData.availableQuantity || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        availableQuantity: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      placeholder="Enter available quantity"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.availableQuantity ? "border-red-500" : ""
+                      }`}
+                      value={formData.availableQuantity || ""}
+                      onChange={(e) =>
+                        handleInputChange("availableQuantity", e.target.value)
+                      }
+                    />
+                    {errors.availableQuantity && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.availableQuantity}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </section>
