@@ -82,3 +82,5 @@ body {
   -webkit-mask-composite: destination-out;
   pointer-events: none; /* This ensures the border does not block interaction */
 }
+
+

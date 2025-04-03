@@ -54,11 +54,13 @@ const Field: React.FC<FieldProps> = ({ label, value }) => {
 interface ConfirmationScreenProps {
   onBack: () => void;
   onSubmit: () => void;
+  loading: boolean;
 }
 
 export default function ConfirmationScreen({
   onBack,
   onSubmit,
+  loading,
 }: ConfirmationScreenProps) {
   const { formData } = useFormContext();
 
@@ -195,8 +197,9 @@ export default function ConfirmationScreen({
         <Button
           className="bg-[#FF0066] hover:bg-[#E5005C] text-white px-8"
           onClick={onSubmit}
+          disabled={loading}
         >
-          Submit
+          {loading ? "Submitting..." : "Submit"}
         </Button>
       </div>
     </div>

@@ -38,6 +38,7 @@ const CreateProjects = ({
 }) => {
   const [currentStage, setCurrentStage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showSuppliers, setShowSuppliers] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -196,8 +197,8 @@ const CreateProjects = ({
 
   const handleSubmit = async () => {
     console.log("Submitting form data:", formData);
-    false;
     setIsLoading(true);
+    setIsSubmitting(true);
 
     try {
       if (initialData) {
@@ -224,8 +225,14 @@ const CreateProjects = ({
       console.error("Failed to create project:", error);
     } finally {
       setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
+
+  if (isSubmitting) return <LoadingScreen />;
+  if (isSuccess) {
+    return <SuccessScreen onViewSuppliers={handleViewSuppliers} />;
+  }
 
   return (
     <ErrorBoundary
@@ -258,13 +265,13 @@ const CreateProjects = ({
                 </div>
               )}
 
-            {isLoading && <LoadingScreen />}
-            {isSuccess && (
-              <SuccessScreen onViewSuppliers={handleViewSuppliers} />
-            )}
             {/* {showSuppliers && <SuppliersList />} */}
             {showConfirmation && (
-              <ConfirmationScreen onBack={handlePrev} onSubmit={handleSubmit} />
+              <ConfirmationScreen
+                onBack={handlePrev}
+                onSubmit={handleSubmit}
+                loading={isSubmitting}
+              />
             )}
 
             {!isLoading &&
