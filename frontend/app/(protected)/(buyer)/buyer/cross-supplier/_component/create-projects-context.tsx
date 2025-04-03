@@ -31,7 +31,7 @@ export interface FormData {
   budget: number;
   pricingCurrency: string;
   milestones: {
-    id: number;
+    id: number|string;
     name: string;
     description: string;
     paymentPercentage: string;

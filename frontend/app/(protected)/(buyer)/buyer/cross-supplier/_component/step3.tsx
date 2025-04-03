@@ -27,6 +27,10 @@ const Step3 = ({ handleNext }: { handleNext: () => void }) => {
 
   const { projectTimeline, budget, pricingCurrency, milestones } = formData;
 
+  useEffect(() => {
+    console.log("FOrm data : ", formData);
+  }, [formData]);
+
   const handleAddMilestone = () => {
     const newId =
       milestones.length > 0 ? Math.max(...milestones.map((m) => m.id)) + 1 : 1;
