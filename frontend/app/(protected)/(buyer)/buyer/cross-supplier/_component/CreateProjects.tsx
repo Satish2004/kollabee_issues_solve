@@ -41,6 +41,7 @@ const CreateProjects = ({
   const [isSuccess, setIsSuccess] = useState(false);
   const [showSuppliers, setShowSuppliers] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [errors, setErrors] = useState<Record<string, any>>({});
   const { formData } = useFormContext();
 
   useCallback(() => {
@@ -68,8 +69,82 @@ const CreateProjects = ({
     },
   ];
 
+  const validateStep = (step: number): boolean => {
+    const newErrors: Record<string, any> = {};
+
+    if (step === 1) {
+      if (!formData.category) newErrors.category = "Category is required.";
+      if (!formData.businessName)
+        newErrors.businessName = "Business Name is required.";
+      if (!formData.productType)
+        newErrors.productType = "Product Type is required.";
+    } else if (step === 2) {
+      if (!formData.formulationType)
+        newErrors.formulationType = "Formulation Type is required.";
+      if (!formData.targetBenefit)
+        newErrors.targetBenefit = "Target Benefit is required.";
+      if (!formData.texturePreferences)
+        newErrors.texturePreferences = "Texture Preferences are required.";
+      if (!formData.colorPreferences)
+        newErrors.colorPreferences = "Color Preferences are required.";
+      if (!formData.fragrancePreferences)
+        newErrors.fragrancePreferences = "Fragrance Preferences are required.";
+      if (!formData.packagingType)
+        newErrors.packagingType = "Packaging Type is required.";
+      if (!formData.materialPreferences)
+        newErrors.materialPreferences = "Material Preferences are required.";
+      if (!formData.bottleSize)
+        newErrors.bottleSize = "Bottle Size is required.";
+      if (!formData.labelingNeeded)
+        newErrors.labelingNeeded = "Labeling Needed is required.";
+      if (!formData.minimumOrderQuantity)
+        newErrors.minimumOrderQuantity = "Minimum Order Quantity is required.";
+      if (!formData.certificationsRequired)
+        newErrors.certificationsRequired =
+          "Certifications Required is required.";
+      if (!formData.sampleRequirements)
+        newErrors.sampleRequirements = "Sample Requirements are required.";
+    } else if (step === 3) {
+      if (!formData.projectTimeline)
+        newErrors.projectTimeline = "Project Timeline is required.";
+      if (!formData.budget) newErrors.budget = "Budget is required.";
+      if (!formData.pricingCurrency)
+        newErrors.pricingCurrency = "Pricing Currency is required.";
+
+      if (formData.milestones.length > 0) {
+        newErrors.milestones = formData.milestones.map((milestone) => {
+          const milestoneErrors: Record<string, string> = {};
+          if (!milestone.name)
+            milestoneErrors.name = "Milestone Name is required.";
+          if (!milestone.description)
+            milestoneErrors.description = "Milestone Description is required.";
+          if (!milestone.paymentPercentage)
+            milestoneErrors.paymentPercentage =
+              "Milestone Payment Percentage is required.";
+          if (!milestone.dueDate)
+            milestoneErrors.dueDate = "Milestone Due Date is required.";
+          return milestoneErrors;
+        });
+
+        console.log("test ");
+
+        if (
+          newErrors.milestones.length === 1 &&
+          Object.keys(newErrors.milestones[0]).length === 0
+        ) {
+          console.log("hey bro ");
+          delete newErrors.milestones;
+        }
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handlePrev = () => {
-    if (currentStage === 1) {
+    setErrors({});
+    if (currentStage === 0) {
       setOpen(false);
       return;
     }
@@ -96,19 +171,22 @@ const CreateProjects = ({
   };
 
   const handleNext = () => {
-    if (currentStage === 3) {
-      setCurrentStage(4);
-      setShowConfirmation(true);
-      return;
-    }
+    if (validateStep(currentStage)) {
+      setErrors({});
+      if (currentStage === 3) {
+        setCurrentStage(4);
+        setShowConfirmation(true);
+        return;
+      }
 
-    if (showConfirmation) {
-      setShowConfirmation(false);
-      setIsLoading(true);
-      return;
-    }
+      if (showConfirmation) {
+        setShowConfirmation(false);
+        setIsLoading(true);
+        return;
+      }
 
-    setCurrentStage((curr) => curr + 1);
+      setCurrentStage((curr) => curr + 1);
+    }
   };
 
   const handleViewSuppliers = () => {
@@ -194,9 +272,27 @@ const CreateProjects = ({
               !showSuppliers &&
               !showConfirmation && (
                 <>
-                  {currentStage === 1 && <Step1 handleNext={handleNext} />}
-                  {currentStage === 2 && <Step2 handleNext={handleNext} />}
-                  {currentStage === 3 && <Step3 handleNext={handleNext} />}
+                  {currentStage === 1 && (
+                    <Step1
+                      handleNext={handleNext}
+                      errors={errors}
+                      setErrors={setErrors}
+                    />
+                  )}
+                  {currentStage === 2 && (
+                    <Step2
+                      handleNext={handleNext}
+                      errors={errors}
+                      setErrors={setErrors}
+                    />
+                  )}
+                  {currentStage === 3 && (
+                    <Step3
+                      handleNext={handleNext}
+                      errors={errors}
+                      setErrors={setErrors}
+                    />
+                  )}
                 </>
               )}
           </div>
