@@ -6,34 +6,21 @@ import {
   Search,
   Eye,
   MessageSquare,
-  SlidersHorizontal,
   ArrowDownUp,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import CreateProjects from "./_component/CreateProjects";
-import { FilterButton } from "./_component/filter-button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { IoFilterOutline } from "react-icons/io5";
 import { HiArrowsUpDown } from "react-icons/hi2";
-
-interface Project {
-  id: number;
-  type: string;
-  supplier: number;
-  timeline: string;
-  process: string;
-  health: string;
-  paymentMilestone: string;
-  shipping: string;
-  status: {
-    label: string;
-    color: string;
-  };
-  action: string;
-}
+import { FormProvider } from "./_component/create-projects-context";
+import projectApi from "@/lib/api/project";
+import type { Project } from "@/types/api";
+import { useRouter } from "next/navigation";
 
 const ProjectsPage = () => {
+  const router = useRouter();
   const [formActive, setFormActive] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,167 +34,57 @@ const ProjectsPage = () => {
     { id: "end-to-end", label: "End to End Development" },
   ];
 
-  const statusOptions = [
-    { id: "awaiting-approval", label: "Awaiting Approval" },
-    { id: "approved", label: "Approved" },
-    { id: "rejected", label: "Rejected" },
-    { id: "in-progress", label: "In Progress" },
-    { id: "completed", label: "Completed" },
+  // Update to match the actual data structure
+  const categoryOptions = [
+    { id: "Apparel & Fashion", label: "Apparel & Fashion" },
+    // Add other categories as needed
   ];
 
-  // Simulate loading projects from an API
+  const formulationOptions = [
+    { id: "cream", label: "Cream" },
+    // Add other formulation types as needed
+  ];
+
+  const fetchData = async () => {
+    try {
+      const data = await projectApi.getProjects();
+      console.log("Projects data:", data);
+
+      // Format the data to include status if needed
+      const formattedData = data.map((project: Project) => ({
+        ...project,
+        status: {
+          label: "Pending", // Default status since it's not in your data
+          color: "text-yellow-500",
+        },
+      }));
+
+      return formattedData;
+    } catch (error) {
+      console.error("Error fetching projects:", error);
+      return [];
+    }
+  };
+
   useEffect(() => {
     // Simulate API call
-    setTimeout(() => {
-      // const demoProjects: Project[] = [
-      //   {
-      //     id: 1,
-      //     type: "Custom Manufacturing",
-      //     supplier: 1,
-      //     timeline: "27th Sept 2025",
-      //     process: "-",
-      //     health: "-",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Awaiting Approval", color: "text-amber-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 2,
-      //     type: "Custom Manufacturing",
-      //     supplier: 1,
-      //     timeline: "27th Sept 2025",
-      //     process: "-",
-      //     health: "-",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Rejected", color: "text-red-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 3,
-      //     type: "Custom Manufacturing",
-      //     supplier: 1,
-      //     timeline: "27th Sept 2025",
-      //     process: "-",
-      //     health: "-",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Approved", color: "text-green-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 4,
-      //     type: "Custom Manufacturing",
-      //     supplier: 1,
-      //     timeline: "27th Sept 2025",
-      //     process: "-",
-      //     health: "-",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Pending Form", color: "text-amber-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 5,
-      //     type: "Custom Manufacturing",
-      //     supplier: 1,
-      //     timeline: "27th Sept 2025",
-      //     process: "-",
-      //     health: "-",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Under Review", color: "text-amber-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 6,
-      //     type: "Custom Manufacturing",
-      //     supplier: 1,
-      //     timeline: "27th Sept 2025",
-      //     process: "-",
-      //     health: "On Track",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "In Progress", color: "text-blue-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 7,
-      //     type: "End to End Product Development",
-      //     supplier: 3,
-      //     timeline: "27th Sept 2025",
-      //     process: "8",
-      //     health: "Delayed",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Pending Approval", color: "text-amber-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 8,
-      //     type: "Packaging Only",
-      //     supplier: 2,
-      //     timeline: "27th Sept 2025",
-      //     process: "2",
-      //     health: "Critical",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "In Progress", color: "text-blue-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 9,
-      //     type: "End to End Product Development",
-      //     supplier: 3,
-      //     timeline: "27th Sept 2025",
-      //     process: "3",
-      //     health: "On Track",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "In Progress", color: "text-blue-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 10,
-      //     type: "End to End Product Development",
-      //     supplier: 3,
-      //     timeline: "27th Sept 2025",
-      //     process: "3",
-      //     health: "Good",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Pending Feedback", color: "text-amber-500" },
-      //     action: "",
-      //   },
-      //   {
-      //     id: 11,
-      //     type: "End to End Product Development",
-      //     supplier: 3,
-      //     timeline: "27th Sept 2025",
-      //     process: "3",
-      //     health: "Good",
-      //     paymentMilestone: "-",
-      //     shipping: "-",
-      //     status: { label: "Completed", color: "text-green-500" },
-      //     action: "",
-      //   },
-      // ];
-
-      const demoProjects: Project[] = [];
-
-      setProjects(demoProjects);
+    const fetchProjects = async () => {
+      const data: any[] = await fetchData();
+      console.log("Fetched projects:", data);
+      setProjects(data);
       setLoading(false);
-    }, 1500);
+    };
+
+    fetchProjects();
   }, []);
 
   // Filter projects based on search query and active filters
   const filteredProjects = projects.filter((project) => {
     // Search filter
     const matchesSearch =
-      project.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.timeline.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.status.label.toLowerCase().includes(searchQuery.toLowerCase());
+      project.businessName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.productType?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // If no active filters, just use search
     if (activeFilters.length === 0) {
@@ -216,32 +93,23 @@ const ProjectsPage = () => {
 
     // Check if project matches any active filter
     const matchesFilter = activeFilters.some((filter) => {
+      // Check if the selectedServices array includes the filter
       if (
-        filter === "custom-manufacturing" &&
-        project.type === "Custom Manufacturing"
-      )
+        project.selectedServices &&
+        project.selectedServices.includes(filter)
+      ) {
         return true;
-      if (filter === "packaging-only" && project.type === "Packaging Only")
-        return true;
-      if (
-        filter === "end-to-end" &&
-        project.type === "End to End Product Development"
-      )
-        return true;
+      }
 
-      if (
-        filter === "awaiting-approval" &&
-        project.status.label === "Awaiting Approval"
-      )
+      // Check category
+      if (filter === project.category) {
         return true;
-      if (filter === "approved" && project.status.label === "Approved")
+      }
+
+      // Check formulation type
+      if (filter === project.formulationType) {
         return true;
-      if (filter === "rejected" && project.status.label === "Rejected")
-        return true;
-      if (filter === "in-progress" && project.status.label === "In Progress")
-        return true;
-      if (filter === "completed" && project.status.label === "Completed")
-        return true;
+      }
 
       return false;
     });
@@ -250,7 +118,11 @@ const ProjectsPage = () => {
   });
 
   if (formActive) {
-    return <CreateProjects setOpen={setFormActive} />;
+    return (
+      <FormProvider>
+        <CreateProjects setOpen={setFormActive} />
+      </FormProvider>
+    );
   }
 
   const getHealthBadge = (health: string) => {
@@ -289,7 +161,7 @@ const ProjectsPage = () => {
           <Button
             variant="outline"
             className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
-            onClick={() => setFormActive(true)}
+            onClick={() => router.push("/buyer/projects/new")}
           >
             <PlusIcon size={20} className="text-white mr-2" />
             Create Project
@@ -317,7 +189,7 @@ const ProjectsPage = () => {
       <div className="w-full h-[100px] flex justify-end items-center rounded-xl mb-8 bg-white border p-5">
         <Button
           className="gradient-border text-gradient"
-          onClick={() => setFormActive(true)}
+          onClick={() => router.push("/buyer/projects/new")}
         >
           <PlusIcon className="mr-2 h-4 w-4 text-rose-500" />
           Create Project
@@ -337,7 +209,7 @@ const ProjectsPage = () => {
             <div className="flex items-center bg-white rounded-md gap-2">
               <div className="relative">
                 <Input
-                  placeholder="Search"
+                  placeholder="Search with bussiness name"
                   className="h-8 w-60 rounded-md border border-gray-300 pl-8 text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -354,13 +226,13 @@ const ProjectsPage = () => {
                 <tr className="text-left text-xs text-gray-500 border-b">
                   <th className="py-2 px-4 font-medium">
                     <div className="flex items-center">
-                      Project Type
+                      Services
                       <ArrowDownUp className="ml-1 h-3 w-3" />
                     </div>
                   </th>
                   <th className="py-2 px-4 font-medium">
                     <div className="flex items-center">
-                      Supplier
+                      Business Name
                       <ArrowDownUp className="ml-1 h-3 w-3" />
                     </div>
                   </th>
@@ -370,10 +242,10 @@ const ProjectsPage = () => {
                       <ArrowDownUp className="ml-1 h-3 w-3" />
                     </div>
                   </th>
-                  <th className="py-2 px-4 font-medium">Process</th>
+                  <th className="py-2 px-4 font-medium">Formulation</th>
                   <th className="py-2 px-4 font-medium">Health</th>
-                  <th className="py-2 px-4 font-medium">Payment Milestone</th>
-                  <th className="py-2 px-4 font-medium">Shipping</th>
+                  <th className="py-2 px-4 font-medium">Budget</th>
+                  <th className="py-2 px-4 font-medium">Min Order Qty</th>
                   <th className="py-2 px-4 font-medium">
                     <div className="flex items-center">
                       Status
@@ -386,32 +258,44 @@ const ProjectsPage = () => {
               <tbody>
                 {filteredProjects.map((project) => (
                   <tr key={project.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4 text-sm">{project.type}</td>
                     <td className="py-3 px-4 text-sm">
-                      <p className="bg-gray-200 w-4 rounded-lg">
-                        {project.supplier}
+                      {project.selectedServices?.join(", ")}
+                    </td>
+                    <td className="py-3 px-4 text-sm">
+                      <p className="bg-gray-200 w-fit px-2 rounded-lg">
+                        {project.businessName || "N/A"}
                       </p>
                     </td>
                     <td className="py-3 px-4 text-sm">
                       <div className="flex items-center bg-gray-200 w-auto rounded-lg p-1">
                         <span className="mr-2">📅</span>
-                        {project.timeline}
+                        {project.projectTimeline
+                          ? new Date(
+                              project.projectTimeline[0]
+                            ).toLocaleDateString()
+                          : "N/A"}
                       </div>
                     </td>
-                    <td className="py-3 px-4 text-sm">{project.process}</td>
                     <td className="py-3 px-4 text-sm">
-                      {getHealthBadge(project.health)}
+                      {project.formulationType || "N/A"}
                     </td>
                     <td className="py-3 px-4 text-sm">
-                      {project.paymentMilestone}
+                      <Badge className="bg-gray-500 hover:bg-gray-600">
+                        N/A
+                      </Badge>
                     </td>
-                    <td className="py-3 px-4 text-sm">{project.shipping}</td>
                     <td className="py-3 px-4 text-sm">
-                      <span
-                        className={`flex items-center ${project.status.color}`}
-                      >
-                        • {project.status.label}
-                      </span>
+                      {project.budget
+                        ? `$${project.budget} ${
+                            project.pricingCurrency?.toUpperCase() || "USD"
+                          }`
+                        : "N/A"}
+                    </td>
+                    <td className="py-3 px-4 text-sm">
+                      {project.minimumOrderQuantity || "N/A"}
+                    </td>
+                    <td className="py-3 px-4 text-sm">
+                      <span className="flex items-center">• Pending</span>
                     </td>
                     <td className="py-3 px-4 text-sm">
                       <div className="flex items-center gap-2">

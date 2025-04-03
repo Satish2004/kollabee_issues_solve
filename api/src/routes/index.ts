@@ -17,6 +17,7 @@ import categoryRoutes from "./category";
 import requestRoutes from "./request";
 import conversationRoutes from "./conversation";
 import messagesRoutes from "./messages";
+import projectRoutes from "./project";
 export const setupRoutes = (app: Application) => {
   // API Routes
   app.use("/api/auth", authRoutes);
@@ -37,6 +38,7 @@ export const setupRoutes = (app: Application) => {
   app.use("/api/requests", requestRoutes);
   app.use("/api/conversations", conversationRoutes);
   app.use("/api/messages", messagesRoutes);
+  app.use("/api/projects", projectRoutes);
 
   // Health check route
   app.get("/health", (req, res) => {

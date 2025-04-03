@@ -105,7 +105,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
         {
           label: "Projects",
           icon: "custom",
-          href: "/buyer/cross-supplier",
+          href: "/buyer/projects",
           // className: "tour-requests"
         },
         {

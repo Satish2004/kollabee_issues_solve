@@ -571,3 +571,41 @@ export interface StatCard {
   trend?: "up" | "down";
   percentage?: string;
 }
+
+export interface Project {
+  id: string;
+  // Step 0
+  selectedServices: string[];
+
+  // Step 1
+  category: string;
+  businessName: string;
+  productType: string;
+
+  // Step 2
+  formulationType: string;
+  targetBenefit: string;
+  texturePreferences: string;
+  colorPreferences: string;
+  fragrancePreferences: string;
+  packagingType: string;
+  materialPreferences: string;
+  bottleSize: string;
+  labelingNeeded: string;
+  minimumOrderQuantity: string;
+  certificationsRequired: string;
+  sampleRequirements: string;
+
+  // Step 3
+  projectTimeline: Date | undefined;
+  budget: number;
+  pricingCurrency: string;
+  milestones: {
+    id: number | string;
+    name: string;
+    description: string;
+    paymentPercentage: string | number;
+    dueDate: Date | undefined;
+  }[];
+  ownerId: string;
+}
