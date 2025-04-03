@@ -113,7 +113,7 @@ export default function BuyerLayoutHeader() {
     {
       label: "Projects",
       icon: "custom",
-      href: "/buyer/cross-supplier",
+      href: "/buyer/projects",
     },
   ];
 

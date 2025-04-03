@@ -17,8 +17,10 @@ import { HiArrowsUpDown } from "react-icons/hi2";
 import { FormProvider } from "./_component/create-projects-context";
 import projectApi from "@/lib/api/project";
 import type { Project } from "@/types/api";
+import { useRouter } from "next/navigation";
 
 const ProjectsPage = () => {
+  const router = useRouter();
   const [formActive, setFormActive] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -159,7 +161,7 @@ const ProjectsPage = () => {
           <Button
             variant="outline"
             className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
-            onClick={() => setFormActive(true)}
+            onClick={() => router.push("/buyer/projects/new")}
           >
             <PlusIcon size={20} className="text-white mr-2" />
             Create Project
@@ -187,7 +189,7 @@ const ProjectsPage = () => {
       <div className="w-full h-[100px] flex justify-end items-center rounded-xl mb-8 bg-white border p-5">
         <Button
           className="gradient-border text-gradient"
-          onClick={() => setFormActive(true)}
+          onClick={() => router.push("/buyer/projects/new")}
         >
           <PlusIcon className="mr-2 h-4 w-4 text-rose-500" />
           Create Project

@@ -33,7 +33,7 @@ const CreateProjects = ({
   setOpen,
   initialData,
 }: {
-  setOpen: Dispatch<SetStateAction<boolean>>;
+  setOpen?: Dispatch<SetStateAction<boolean>>;
   initialData?: Project;
 }) => {
   const [currentStage, setCurrentStage] = useState(0);
