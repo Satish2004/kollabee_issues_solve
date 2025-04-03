@@ -55,7 +55,7 @@ export const isAuthenticated = async (
     }
 
     // Attach full user object to request
-    req.user = user;
+    req.user = decoded;
     next();
   } catch (error) {
     console.error("Authentication error:", error);

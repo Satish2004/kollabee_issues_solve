@@ -1,6 +1,12 @@
 "use client";
 
-import { type Dispatch, type SetStateAction, useState, useEffect } from "react";
+import {
+  type Dispatch,
+  type SetStateAction,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ArrowLeft } from "lucide-react";
 import { ProgressStepper } from "@/components/onboarding/progress-stepper";
@@ -12,7 +18,9 @@ import LoadingScreen from "./loading-screen";
 import SuccessScreen from "./success-screen";
 // import SuppliersList from "./suppliers-list";
 import ConfirmationScreen from "./confirmation-screen";
-import { FormProvider } from "./create-projects-context";
+import { FormProvider, useFormContext } from "./create-projects-context";
+import { Project } from "../../../../../../types/api";
+import projectApi from "@/lib/api/project";
 
 interface Step {
   number: string;
@@ -23,14 +31,21 @@ interface Step {
 
 const CreateProjects = ({
   setOpen,
+  initialData,
 }: {
   setOpen: Dispatch<SetStateAction<boolean>>;
+  initialData?: Project;
 }) => {
   const [currentStage, setCurrentStage] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showSuppliers, setShowSuppliers] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const { formData } = useFormContext();
+
+  useCallback(() => {
+    console.log("Form data updated:", formData);
+  }, [formData]);
 
   const allSteps = [
     {
@@ -101,86 +116,93 @@ const CreateProjects = ({
     setShowSuppliers(true);
   };
 
-  const handleSubmit = () => {
-    setShowConfirmation(false);
+  const handleSubmit = async () => {
+    console.log("Submitting form data:", formData);
+    false;
     setIsLoading(true);
+
+    try {
+      if (initialData) {
+        try {
+          const response = await projectApi.updateProject(
+            initialData?.id,
+            formData
+          );
+          console.log("Project updated successfully:", response.data);
+        } catch (error) {
+          console.error("Failed to update project:", error);
+        }
+      } else {
+        try {
+          const response = await projectApi.createProject(formData);
+          console.log("Project created successfully:", response.data);
+        } catch (error) {
+          console.error("Failed to create project:", error);
+        }
+      }
+
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Failed to create project:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  // Effect to handle the loading to success transition
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-
-    if (isLoading) {
-      timer = setTimeout(() => {
-        setIsLoading(false);
-        setIsSuccess(true);
-      }, 3000); // Show loading screen for 3 seconds
-    }
-
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [isLoading]);
-
   return (
-    <FormProvider>
-      <ErrorBoundary
-        FallbackComponent={() => (
-          <div>
-            <div> An error occurred: </div>
-            <div onClick={() => window.location.reload()}>Try Again</div>
+    <ErrorBoundary
+      FallbackComponent={() => (
+        <div>
+          <div> An error occurred: </div>
+          <div onClick={() => window.location.reload()}>Try Again</div>
+        </div>
+      )}
+    >
+      {currentStage === 0 ? (
+        <Step0 handleNext={handleNext} />
+      ) : (
+        <div className="h-full w-full flex flex-col gap-4">
+          <div
+            className="flex h-20 gap-1 text-[#EA3D4F] items-center px-6 rounded-md bg-white hover:cursor-pointer"
+            onClick={handlePrev}
+          >
+            <ArrowLeft className="" />
+            {"Back "}
           </div>
-        )}
-      >
-        {currentStage === 0 ? (
-          <Step0 handleNext={handleNext} />
-        ) : (
-          <div className="h-full w-full flex flex-col gap-4">
-            <div
-              className="flex h-20 gap-1 text-[#EA3D4F] items-center px-6 rounded-md bg-white hover:cursor-pointer"
-              onClick={handlePrev}
-            >
-              <ArrowLeft className="" />
-              {"Back "}
-            </div>
 
-            <div className="bg-white w-full h-auto rounded-xl border flex flex-col p-8 gap-4">
-              {!isLoading &&
-                !isSuccess &&
-                !showSuppliers &&
-                !showConfirmation && (
-                  <div className="flex justify-center">
-                    <ProgressStepper steps={allSteps} />
-                  </div>
-                )}
-
-              {isLoading && <LoadingScreen />}
-              {isSuccess && (
-                <SuccessScreen onViewSuppliers={handleViewSuppliers} />
-              )}
-              {/* {showSuppliers && <SuppliersList />} */}
-              {showConfirmation && (
-                <ConfirmationScreen
-                  onBack={handlePrev}
-                  onSubmit={handleSubmit}
-                />
+          <div className="bg-white w-full h-auto rounded-xl border flex flex-col p-8 gap-4">
+            {!isLoading &&
+              !isSuccess &&
+              !showSuppliers &&
+              !showConfirmation && (
+                <div className="flex justify-center">
+                  <ProgressStepper steps={allSteps} />
+                </div>
               )}
 
-              {!isLoading &&
-                !isSuccess &&
-                !showSuppliers &&
-                !showConfirmation && (
-                  <>
-                    {currentStage === 1 && <Step1 handleNext={handleNext} />}
-                    {currentStage === 2 && <Step2 handleNext={handleNext} />}
-                    {currentStage === 3 && <Step3 handleNext={handleNext} />}
-                  </>
-                )}
-            </div>
+            {isLoading && <LoadingScreen />}
+            {isSuccess && (
+              <SuccessScreen onViewSuppliers={handleViewSuppliers} />
+            )}
+            {/* {showSuppliers && <SuppliersList />} */}
+            {showConfirmation && (
+              <ConfirmationScreen onBack={handlePrev} onSubmit={handleSubmit} />
+            )}
+
+            {!isLoading &&
+              !isSuccess &&
+              !showSuppliers &&
+              !showConfirmation && (
+                <>
+                  {currentStage === 1 && <Step1 handleNext={handleNext} />}
+                  {currentStage === 2 && <Step2 handleNext={handleNext} />}
+                  {currentStage === 3 && <Step3 handleNext={handleNext} />}
+                </>
+              )}
           </div>
-        )}
-      </ErrorBoundary>
-    </FormProvider>
+        </div>
+      )}
+    </ErrorBoundary>
   );
 };
 

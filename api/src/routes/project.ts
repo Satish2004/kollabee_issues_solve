@@ -16,10 +16,10 @@ import {
 const router = express.Router();
 router.use(authMiddleware);
 
-router.post("/", isBuyer, createProject);
-router.get("/", isBuyer, getProjects);
+router.post("/", isAuthenticated, createProject);
+router.get("/", isAuthenticated, getProjects);
 router.get("/:id", isBuyer, getProjectById);
-router.put("/:id", isBuyer, updateProject);
-router.delete("/:id", isBuyer, deleteProject);
+router.put("/:id", isAuthenticated, updateProject);
+router.delete("/:id", isAuthenticated, deleteProject);
 
 export default router;

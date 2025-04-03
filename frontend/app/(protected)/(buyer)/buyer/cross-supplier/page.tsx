@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { IoFilterOutline } from "react-icons/io5";
 import { HiArrowsUpDown } from "react-icons/hi2";
+import { FormProvider } from "./_component/create-projects-context";
 
 interface Project {
   id: number;
@@ -250,7 +251,11 @@ const ProjectsPage = () => {
   });
 
   if (formActive) {
-    return <CreateProjects setOpen={setFormActive} />;
+    return (
+      <FormProvider>
+        <CreateProjects setOpen={setFormActive} />
+      </FormProvider>
+    );
   }
 
   const getHealthBadge = (health: string) => {
