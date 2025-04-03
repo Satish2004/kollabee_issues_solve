@@ -5,6 +5,7 @@ import {
   getProjectById,
   updateProject,
   deleteProject,
+  suggestedSellers,
 } from "../controllers/project.controller";
 import {
   authMiddleware,
@@ -18,6 +19,8 @@ router.use(authMiddleware);
 
 router.post("/", isAuthenticated, createProject);
 router.get("/", isAuthenticated, getProjects);
+router.get("/seller/:id", isAuthenticated, suggestedSellers);
+
 router.get("/:id", isBuyer, getProjectById);
 router.put("/:id", isAuthenticated, updateProject);
 router.delete("/:id", isAuthenticated, deleteProject);
