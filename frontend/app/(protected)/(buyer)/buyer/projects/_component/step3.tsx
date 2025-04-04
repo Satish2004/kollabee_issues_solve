@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Minus, Trash } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -12,15 +14,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { useFormContext } from "./create-projects-context";
 import "react-datepicker/dist/react-datepicker.css";
-import { EnhancedCalendar } from "@/components/ui/calender";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const Step3 = ({
   handleNext,
@@ -37,7 +33,13 @@ const Step3 = ({
 }) => {
   const { formData, updateFormData, updateNestedFormData } = useFormContext();
 
-  const { projectTimeline, budget, pricingCurrency, milestones } = formData;
+  const {
+    projectTimelineFrom,
+    projectTimelineTo,
+    budget,
+    pricingCurrency,
+    milestones,
+  } = formData;
 
   useEffect(() => {
     console.log("Errors data:", errors);
@@ -156,36 +158,74 @@ const Step3 = ({
           <Label htmlFor="project-timeline" className="text-sm">
             Project Timeline<span className="text-red-500">*</span>
           </Label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className="w-full justify-start text-left font-normal h-10"
-                id="project-timeline"
-              >
-                {projectTimeline ? (
-                  format(projectTimeline, "dd/MM/yyyy")
-                ) : (
-                  <span className="text-muted-foreground">DD/MM/YYYY</span>
-                )}
-                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <input
-                type="date"
-                className="border rounded p-2"
-                onChange={(e) => {
-                  const value = e.target.value.split("T");
-                  updateFormData("projectTimeline", value);
-                  setErrors((prev) => ({ ...prev, projectTimeline: "" }));
-                }}
-              />
-            </PopoverContent>
-          </Popover>
-          {errors.projectTimeline && (
-            <p className="text-red-500 text-sm">{errors.projectTimeline}</p>
-          )}
+
+          <div className="flex items-start space-x-4">
+            <div className="flex flex-col w-full">
+              <Label htmlFor="project-timeline-from" className="text-sm mb-1.5">
+                From<span className="text-red-500">*</span>
+              </Label>
+
+              <div className="flex items-center relative">
+                <input
+                  type="date"
+                  id="project-timeline-from"
+                  className="w-full border rounded p-2 h-10 focus:ring-1 focus:ring-gray-300 focus:border-gray-300"
+                  value={
+                    projectTimelineFrom
+                      ? format(projectTimelineFrom, "yyyy-MM-dd")
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value
+                      ? new Date(e.target.value)
+                      : null;
+                    updateFormData("projectTimelineFrom", value);
+                    setErrors((prev) => ({ ...prev, projectTimelineFrom: "" }));
+                  }}
+                />
+                <CalendarIcon className="absolute right-3 h-4 w-4 opacity-50 pointer-events-none" />
+              </div>
+
+              {errors.projectTimelineFrom && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.projectTimelineFrom}
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col w-full">
+              <Label htmlFor="project-timeline-to" className="text-sm mb-1.5">
+                To<span className="text-red-500">*</span>
+              </Label>
+
+              <div className="flex items-center relative">
+                <input
+                  type="date"
+                  id="project-timeline-to"
+                  className="w-full border rounded p-2 h-10 focus:ring-1 focus:ring-gray-300 focus:border-gray-300"
+                  value={
+                    projectTimelineTo
+                      ? format(projectTimelineTo, "yyyy-MM-dd")
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value
+                      ? new Date(e.target.value)
+                      : null;
+                    updateFormData("projectTimelineTo", value);
+                    setErrors((prev) => ({ ...prev, projectTimelineTo: "" }));
+                  }}
+                />
+                <CalendarIcon className="absolute right-3 h-4 w-4 opacity-50 pointer-events-none" />
+              </div>
+
+              {errors.projectTimelineTo && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.projectTimelineTo}
+                </p>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Pricing and Budget */}
@@ -360,42 +400,30 @@ const Step3 = ({
 
             {/* Due Date */}
             <div className="space-y-1">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-left font-normal h-10"
-                  >
-                    {milestone.dueDate ? (
-                      format(milestone.dueDate, "dd/MM/yyyy")
-                    ) : (
-                      <span className="text-muted-foreground">DD/MM/YYYY</span>
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <input
-                    type="date"
-                    className="border rounded p-2"
-                    value={
-                      milestone.dueDate
-                        ? format(milestone.dueDate, "yyyy-MM-dd")
-                        : ""
-                    }
-                    onChange={(e) => {
-                      const value = e.target.value.split("T");
-                      updateNestedFormData(
-                        "milestones",
-                        "dueDate",
-                        value,
-                        milestone.id
-                      );
-                      validateMilestoneField(index, "dueDate", value);
-                    }}
-                  />
-                </PopoverContent>
-              </Popover>
+              <div className="flex items-center">
+                <input
+                  type="date"
+                  className="w-full border rounded p-2 h-10"
+                  value={
+                    milestone.dueDate
+                      ? format(milestone.dueDate, "yyyy-MM-dd")
+                      : ""
+                  }
+                  onChange={(e) => {
+                    const value = e.target.value
+                      ? new Date(e.target.value)
+                      : null;
+                    updateNestedFormData(
+                      "milestones",
+                      "dueDate",
+                      value,
+                      milestone.id
+                    );
+                    validateMilestoneField(index, "dueDate", value);
+                  }}
+                />
+                <CalendarIcon className="ml-2 h-4 w-4 opacity-50" />
+              </div>
               {Array.isArray(errors.milestones) &&
                 errors.milestones[index]?.dueDate && (
                   <p className="text-red-500 text-sm">

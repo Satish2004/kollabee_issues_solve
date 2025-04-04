@@ -312,15 +312,39 @@ const ProjectTimeline = ({ timeline }: { timeline?: string[] }) => {
     <div className="p-4 border-b">
       <h3 className="text-lg font-semibold mb-3">Project Timeline</h3>
       <div className="flex flex-wrap gap-3">
-        {timeline.map((date, index) => (
-          <div key={index} className="bg-gray-100 px-3 py-1 rounded-md text-sm">
-            {new Date(date).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
+        {timeline.length === 2 ? (
+          <div className="flex items-center gap-2">
+            <div className="bg-gray-100 px-3 py-1 rounded-md text-sm">
+              From:{" "}
+              {new Date(timeline[0]).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </div>
+            <div className="bg-gray-100 px-3 py-1 rounded-md text-sm">
+              To:{" "}
+              {new Date(timeline[1]).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </div>
           </div>
-        ))}
+        ) : (
+          timeline.map((date, index) => (
+            <div
+              key={index}
+              className="bg-gray-100 px-3 py-1 rounded-md text-sm"
+            >
+              {new Date(date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

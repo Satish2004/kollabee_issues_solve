@@ -9,9 +9,12 @@ export const createProject = async (req: any, res: Response) => {
   try {
     const { milestones, ...projectData } = req.body;
     console.log("req.user ", req.user);
-    let { projectTimeline } = projectData;
-    if (projectTimeline) {
-      projectTimeline = projectTimeline.map((date: any) => new Date(date));
+    let projectTimeline = [];
+    let { projectTimelineFrom, projectTimelineTo, ...newProjectData } =
+      projectData;
+    if (projectTimelineFrom && projectTimelineTo) {
+      projectTimeline.push(new Date(projectTimelineFrom));
+      projectTimeline.push(new Date(projectTimelineTo));
     }
 
     const newMileStones = milestones.map((milestone: any) => ({
@@ -25,7 +28,7 @@ export const createProject = async (req: any, res: Response) => {
 
     const project = await prisma.project.create({
       data: {
-        ...projectData,
+        ...newProjectData,
         projectTimeline: projectTimeline,
         milestones: {
           create: newMileStones || [], // Handle empty milestones gracefully

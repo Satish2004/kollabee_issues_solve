@@ -32,7 +32,8 @@ const initialFormData: Project = {
   sampleRequirements: "no",
 
   // Step 3
-  projectTimeline: undefined,
+  projectTimelineFrom: undefined,
+  projectTimelineTo: undefined,
   budget: 0,
   pricingCurrency: "",
   milestones: [

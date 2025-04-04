@@ -597,7 +597,9 @@ export interface Project {
   sampleRequirements: string;
 
   // Step 3
-  projectTimeline: Date | undefined;
+  projectTimelineFrom: Date | undefined;
+  projectTimelineTo: Date | undefined;
+
   budget: number;
   pricingCurrency: string;
   milestones: {
