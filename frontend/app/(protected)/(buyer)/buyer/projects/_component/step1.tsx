@@ -15,11 +15,31 @@ import { useFormContext } from "./create-projects-context";
 const category = [
   {
     id: 1,
-    name: "Apparel & Fashion",
+    name: "FASHION_APPAREL_ACCESSORIES",
   },
   {
     id: 2,
-    name: "Automobiles & Motorcycles",
+    name: "BEAUTY_COSMETICS",
+  },
+  {
+    id: 3,
+    name: "FOOD_BEVERAGE",
+  },
+  {
+    id: 4,
+    name: "HEALTH_WELLNESS",
+  },
+  {
+    id: 5,
+    name: "HOME_CLEANING_ESSENTIALS",
+  },
+  {
+    id: 6,
+    name: "HERBAL_NATURAL_PRODUCTS",
+  },
+  {
+    id: 8,
+    name: "OTHER",
   },
 ];
 
@@ -102,7 +122,7 @@ const Step1: React.FC<
               value={productType}
               onValueChange={(value) => handleChange("productType", value)}
             >
-              <SelectTrigger className="w-full h-10 rounded-l-md bg-white border border-gray-300 px-3">
+              <SelectTrigger className="w-full h-10 rounded-l-md z-100 bg-white border border-gray-300 px-3">
                 <SelectValue placeholder="Select Product Type" />
                 <SelectContent>
                   {category.map((item) => (

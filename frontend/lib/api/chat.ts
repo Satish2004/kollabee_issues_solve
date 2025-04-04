@@ -1,4 +1,10 @@
 import { api } from "../axios"
+import { removeToken } from "../utils/token";
+import Cookies from "js-cookie";
+
+
+const authUrl = process.env.NEXT_PUBLIC_API_URL;
+
 
 export const chatApi = {
   // Conversations
@@ -40,7 +46,15 @@ export const chatApi = {
 
   // Users
   getCurrentUser: async () => {
-    return api.get("/users/me")
+    try {
+      return await api.get(`${authUrl}/auth/me`);
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        removeToken();
+        Cookies.remove("token");
+      }
+      throw error;
+    }
   },
 
   getUsers: async (role?: "BUYER" | "SELLER") => {

@@ -85,7 +85,7 @@ model ConversationParticipant {
   isOnline       Boolean      @default(false)
   lastSeen       DateTime     @default(now())
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  updatedAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -283,11 +283,11 @@ model Seller {
   qualityControl     String?
   rd                 String?
   roleInCompany      String?
-  subCategories         Json?
+  subCategories      Json?
   productionServices String[]
-  productionManagementType  productionManaged?
+  productionManagementType productionManaged?
   manufacturingLocations String[]
-  targetAudience      audience[]
+  targetAudience     audience[]
   teamSize           String?
   annualRevenue      String?
   minimumOrderQuantity String?
@@ -308,6 +308,10 @@ model Seller {
   favoritedBy        Buyer[]         @relation("BuyerToSeller")
   certifications     Certification[] @relation("CertificationToSeller")
   trustBadges        TrustBadge[]    @relation("SellerToTrustBadge")
+  projects           Project[]       @relation("ProjectToSeller") // Added relationship
+  savedByProjects    Project[]       @relation("SavedSeller")
+  projectReq         projectReq[]
+
 
   @@index([userId])
 }
@@ -332,7 +336,9 @@ model Buyer {
   products               Product[]       @relation("BuyerToProduct")
   favoriteSuppliers      Seller[]        @relation("BuyerToSeller")
   interestedCategories   Category[]      @relation("InterestedCategories")
-  projects               Project[]      
+  projects               Project[]  
+  projectReq             projectReq[]
+    
 }
 
 model Certification {
@@ -613,10 +619,29 @@ model Project {
   milestones             Milestone[]
   ownerId                String
   owner                  Buyer     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sellers                Seller[] @relation("ProjectToSeller") // Added relationship
+  savedSeller            Seller[] @relation("SavedSeller")
+  requestedSeller        projectReq[]
 
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
 }
+
+
+model projectReq {
+  id             String        @id @default(uuid())
+  buyerId        String
+  sellerId       String
+  projectId      String
+  status         RequestStatus @default(PENDING)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  project        Project         @relation(fields: [projectId], references: [id])
+
+  buyer          Buyer         @relation(fields: [buyerId], references: [id])
+  seller         Seller        @relation(fields: [sellerId], references: [id])
+}
+
 
 model Milestone {
   id          String   @id @default(uuid())
@@ -627,7 +652,7 @@ model Milestone {
   projectId   String
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
 }
 
 enum StockStatus {
