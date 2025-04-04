@@ -143,7 +143,7 @@ export function SupplierFilters() {
                     <SelectTrigger id="min-price">
                       <SelectValue placeholder="Min Price" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className=" bg-white">
                       <SelectItem value="0">$0</SelectItem>
                       <SelectItem value="100">$100</SelectItem>
                       <SelectItem value="200">$200</SelectItem>
@@ -166,7 +166,7 @@ export function SupplierFilters() {
                     <SelectTrigger id="max-price">
                       <SelectValue placeholder="Max Price" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className=" bg-white">
                       <SelectItem value="500">$500</SelectItem>
                       <SelectItem value="750">$750</SelectItem>
                       <SelectItem value="1000">$1000</SelectItem>
@@ -195,7 +195,7 @@ export function SupplierFilters() {
                     <SelectTrigger id="min-rating">
                       <SelectValue placeholder="Min Rating" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className=" bg-white">
                       {ratingOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label} ★
@@ -218,7 +218,7 @@ export function SupplierFilters() {
                     <SelectTrigger id="max-rating">
                       <SelectValue placeholder="Max Rating" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className=" bg-white">
                       {ratingOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label} ★
@@ -246,7 +246,7 @@ export function SupplierFilters() {
                     <SelectTrigger id="min-age">
                       <SelectValue placeholder="Min Age" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className=" bg-white">
                       <SelectItem value="0">0 years</SelectItem>
                       <SelectItem value="1">1 year</SelectItem>
                       <SelectItem value="3">3 years</SelectItem>
@@ -269,7 +269,7 @@ export function SupplierFilters() {
                     <SelectTrigger id="max-age">
                       <SelectValue placeholder="Max Age" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className=" bg-white">
                       <SelectItem value="10">10 years</SelectItem>
                       <SelectItem value="20">20 years</SelectItem>
                       <SelectItem value="30">30 years</SelectItem>
@@ -290,7 +290,7 @@ export function SupplierFilters() {
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select country" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className=" bg-white">
                   <SelectItem value="all">All Countries</SelectItem>
                   {countries.map((country) => (
                     <SelectItem key={country} value={country}>
