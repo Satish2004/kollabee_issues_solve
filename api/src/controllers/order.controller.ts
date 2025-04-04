@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
+import { RequestStatus } from "@prisma/client";
 
 interface TrackingUpdate {
   status: any;
@@ -231,6 +232,7 @@ export const getOrderDetails = async (req: any, res: Response) => {
     });
 
     if (!order) {
+      console.log("here is going ?");
       return res.status(404).json({ error: "Order not found" });
     }
 
@@ -435,5 +437,103 @@ export const declineOrder = async (req: any, res: Response) => {
     res.json(updatedOrder);
   } catch (error) {
     res.status(500).json({ error: "Failed to decline order" });
+  }
+};
+
+export async function approveOrRejectProject(req: any, res: Response) {
+  try {
+    const { requestId, status } = req.body;
+    const sellerId = req.user.sellerId;
+
+    if (!sellerId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const request = await prisma.projectReq.findUnique({
+      where: { id: requestId },
+    });
+
+    if (!request) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    if (request.sellerId !== sellerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    const update: {
+      status?: RequestStatus;
+      approvedAt?: Date;
+      rejectedAt?: Date;
+    } = {};
+
+    if (status === "APPROVED") {
+      update.status = "APPROVED" as RequestStatus;
+      update.approvedAt = new Date();
+    }
+    if (status === "REJECTED") {
+      update.status = "REJECTED" as RequestStatus;
+      update.rejectedAt = new Date();
+    }
+
+    await prisma.projectReq.update({
+      where: { id: requestId },
+      data: update,
+    });
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.log("error :", error);
+  }
+}
+
+export const GetSellerRequest = async (req: any, res: Response) => {
+  try {
+    console.log("testing ");
+    const sellerId = req.user.sellerId;
+    if (!sellerId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    const requests = await prisma.projectReq.findMany({
+      where: {
+        sellerId: sellerId,
+      },
+      include: {
+        project: {
+          include: {
+            milestones: true,
+          },
+        },
+        buyer: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                phoneNumber: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    // format projects
+
+    const formattedRequests = requests.map((request) => ({
+      id: request.id,
+      projectId: request.projectId,
+      projectName: request.project.businessName,
+      buyerId: request.buyerId,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+    }));
+
+    console.log("formattedRequests", formattedRequests);
+
+    return res.status(200).json(requests);
+  } catch (error) {
+    console.log("error :", error);
   }
 };

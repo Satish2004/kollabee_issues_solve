@@ -39,4 +39,14 @@ export const ordersApi = {
   declineOrder: async (id: string) => {
     return api.put(`/orders/${id}/decline`);
   },
+
+  getManufactoringRequest: async () => {
+    return api.get("/orders/manufacturing-requests");
+  },
+  approveOrRejectProject: async (data: {
+    requestId: string;
+    status: "APPROVED" | "REJECTED";
+  }) => {
+    return api.post("/orders/approve", data);
+  },
 };
