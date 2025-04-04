@@ -634,13 +634,15 @@ model projectReq {
   sellerId       String
   projectId      String
   status         RequestStatus @default(PENDING)
+  approvedAt     DateTime?
+  rejectedAt     DateTime? 
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   project        Project         @relation(fields: [projectId], references: [id])
-
   buyer          Buyer         @relation(fields: [buyerId], references: [id])
   seller         Seller        @relation(fields: [sellerId], references: [id])
 }
+
 
 
 model Milestone {
