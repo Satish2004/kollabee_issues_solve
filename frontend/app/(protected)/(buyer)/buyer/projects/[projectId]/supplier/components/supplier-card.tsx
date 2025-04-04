@@ -17,10 +17,14 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
     requestedSuppliers,
     toggleSaveSupplier,
     sendRequest,
+    savingSuppliers,
   } = useSuppliers();
 
   // Check if this supplier is saved
   const isSaved = savedSuppliers.includes(supplier.id);
+
+  // Check if this supplier is currently being saved/unsaved
+  const isSaving = savingSuppliers[supplier.id];
 
   return (
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden transition-all hover:shadow-md">
@@ -33,17 +37,24 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
 
-        {/* Save button */}
+        {/* Save button with loading state */}
         <button
           onClick={() => toggleSaveSupplier(supplier.id)}
-          className="absolute bottom-2 right-2 bg-white/90 hover:bg-white rounded-full p-1.5 shadow-md transition-opacity duration-200 opacity-70 group-hover:opacity-100"
+          disabled={isSaving}
+          className={`absolute bottom-2 right-2 bg-white/90 hover:bg-white rounded-full p-1.5 shadow-md transition-opacity duration-200 opacity-70 group-hover:opacity-100 ${
+            isSaving ? "cursor-wait" : ""
+          }`}
           aria-label={isSaved ? "Unsave supplier" : "Save supplier"}
         >
-          <Bookmark
-            className={`h-4 w-4 ${
-              isSaved ? "text-[#e00261] fill-[#e00261]" : "text-gray-700"
-            }`}
-          />
+          {isSaving ? (
+            <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-[#e00261]" />
+          ) : (
+            <Bookmark
+              className={`h-4 w-4 ${
+                isSaved ? "text-[#e00261] fill-[#e00261]" : "text-gray-700"
+              }`}
+            />
+          )}
         </button>
       </div>
 

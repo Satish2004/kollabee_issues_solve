@@ -37,6 +37,7 @@ interface SupplierContextType {
   savedSuppliers: string[];
   requestedSuppliers: string[];
   countries: string[];
+  savingSuppliers: Record<string, boolean>;
 
   // Tab state
   activeTab: string;
@@ -74,6 +75,7 @@ interface SupplierContextType {
   handleSearchChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleFilterChange: (type: string, value: any) => void;
   buildCurrentFilters: () => SellerFilters;
+  savingSuppliers: Record<string, boolean>;
 }
 
 const SupplierContext = createContext<SupplierContextType | undefined>(
@@ -118,6 +120,11 @@ export function SupplierProvider({
   // Refs for debouncing
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const filterTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Add a new state for tracking suppliers that are currently being saved/unsaved
+  const [savingSuppliers, setSavingSuppliers] = useState<
+    Record<string, boolean>
+  >({});
 
   // Memoize the buildCurrentFilters function to prevent unnecessary re-renders
   const buildCurrentFilters = useCallback((): SellerFilters => {
@@ -423,16 +430,34 @@ export function SupplierProvider({
     [buildCurrentFilters]
   );
 
+  // Replace the toggleSaveSupplier function with this optimistic version
   const toggleSaveSupplier = async (id: string) => {
     try {
-      if (savedSuppliers.includes(id)) {
+      // Check if this supplier is already being processed
+      if (savingSuppliers[id]) return;
+
+      // Mark this supplier as being processed
+      setSavingSuppliers((prev) => ({ ...prev, [id]: true }));
+
+      // Determine if we're saving or unsaving
+      const isSaved = savedSuppliers.includes(id);
+
+      // Optimistically update the UI
+      if (isSaved) {
+        // Optimistically remove from saved
+        setSavedSuppliers((prev) => prev.filter((sid) => sid !== id));
+      } else {
+        // Optimistically add to saved
+        setSavedSuppliers((prev) => [...prev, id]);
+      }
+
+      // Make the API call
+      if (isSaved) {
         // Remove from saved
         await projectApi.removeSavedSeller({
           sellerId: id,
           projectId: projectId,
         });
-
-        setSavedSuppliers((prev) => prev.filter((sid) => sid !== id));
 
         toast({
           title: "Removed from saved",
@@ -446,8 +471,6 @@ export function SupplierProvider({
           projectId: projectId,
         });
 
-        setSavedSuppliers((prev) => [...prev, id]);
-
         toast({
           title: "Saved successfully",
           description: "Supplier has been added to your saved list",
@@ -456,10 +479,28 @@ export function SupplierProvider({
       }
     } catch (error) {
       console.error("Error toggling save status:", error);
+
+      // Revert the optimistic update on error
+      const isSaved = !savedSuppliers.includes(id);
+      if (isSaved) {
+        // Revert removal
+        setSavedSuppliers((prev) => [...prev, id]);
+      } else {
+        // Revert addition
+        setSavedSuppliers((prev) => prev.filter((sid) => sid !== id));
+      }
+
       toast({
         title: "Error",
         description: "Failed to update saved status",
         variant: "destructive",
+      });
+    } finally {
+      // Clear the processing state
+      setSavingSuppliers((prev) => {
+        const newState = { ...prev };
+        delete newState[id];
+        return newState;
       });
     }
   };
@@ -555,6 +596,7 @@ export function SupplierProvider({
     [buildCurrentFilters]
   );
 
+  // Add savingSuppliers to the context value
   const value = {
     // Data
     suppliers,
@@ -563,6 +605,7 @@ export function SupplierProvider({
     savedSuppliers,
     requestedSuppliers,
     countries,
+    savingSuppliers,
 
     // Tab state
     activeTab,
