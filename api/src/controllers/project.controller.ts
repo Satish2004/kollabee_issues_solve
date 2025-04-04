@@ -500,6 +500,47 @@ export const getSavedSellers = async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to fetch saved sellers" });
   }
 };
+
+export const getHiredSellers = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const { user } = req;
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check if the project exists
+    const existingProject = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        sellers: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Check if the user is the owner of the project
+    if (existingProject.ownerId !== user.buyerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    console.log("existingProject.sellers", existingProject.sellers);
+
+    res.status(200).json(existingProject.sellers);
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ error: "Failed to fetch hired sellers" });
+  }
+};
+
 export const removeSavedSeller = async (req: any, res: Response) => {
   try {
     const { sellerId, projectId } = req.body;

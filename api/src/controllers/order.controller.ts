@@ -476,10 +476,61 @@ export async function approveOrRejectProject(req: any, res: Response) {
       update.rejectedAt = new Date();
     }
 
-    await prisma.projectReq.update({
-      where: { id: requestId },
-      data: update,
-    });
+    await prisma.$transaction(
+      async (tx) => {
+        // 1. Update projectReq
+        const updatedRequest = await tx.projectReq.update({
+          where: { id: requestId },
+          data: update,
+          include: { project: true },
+        });
+
+        const projectId = updatedRequest.projectId;
+
+        // 2. Fetch the project with current sellers
+        const project = await tx.project.findUnique({
+          where: { id: projectId },
+          include: { sellers: true },
+        });
+
+        if (!project) {
+          throw new Error("Project not found");
+        }
+
+        const alreadyConnected = project.sellers.some((s) => s.id === sellerId);
+
+        if (status === "APPROVED") {
+          if (!alreadyConnected) {
+            // Connect seller if not already connected
+            await tx.project.update({
+              where: { id: projectId },
+              data: {
+                sellers: {
+                  connect: { id: sellerId },
+                },
+              },
+            });
+          }
+        }
+
+        if (status === "REJECTED") {
+          if (alreadyConnected) {
+            // Disconnect seller if already connected
+            await tx.project.update({
+              where: { id: projectId },
+              data: {
+                sellers: {
+                  disconnect: { id: sellerId },
+                },
+              },
+            });
+          }
+        }
+      },
+      { timeout: 10000 }
+    );
+
+    // after it send the email
 
     return res.status(200).json({ success: true });
   } catch (error) {

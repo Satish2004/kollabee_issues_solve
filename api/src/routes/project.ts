@@ -10,6 +10,7 @@ import {
   getSavedSellers,
   removeSavedSeller,
   sendRequest,
+  getHiredSellers,
 } from "../controllers/project.controller";
 import { authMiddleware, isAuthenticated, isBuyer } from "../middleware/auth";
 import { PrismaClient } from "@prisma/client";
@@ -70,5 +71,7 @@ router.get(
     }
   }
 );
+
+router.get("/hired/:id", isAuthenticated, getHiredSellers);
 
 export default router;
