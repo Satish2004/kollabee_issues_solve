@@ -32,7 +32,9 @@ export function SupplierGrid() {
             ? " matched to your project"
             : activeTab === "saved"
             ? " you've saved"
-            : " you've sent requests to"}
+            : activeTab === "requested"
+            ? " you've sent requests to"
+            : "You have hired"}
         </p>
       </div>
 

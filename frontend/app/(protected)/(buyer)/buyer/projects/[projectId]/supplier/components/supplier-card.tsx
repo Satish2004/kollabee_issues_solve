@@ -17,6 +17,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
     requestedSuppliers,
     toggleSaveSupplier,
     sendRequest,
+    hiredSuppliers,
     savingSuppliers,
   } = useSuppliers();
 
@@ -125,7 +126,12 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
             onClick={() => sendRequest(supplier)}
             disabled={requestedSuppliers.includes(supplier.id)}
           >
-            {requestedSuppliers.includes(supplier.id) ? (
+            {hiredSuppliers.includes(supplier.id) ? (
+              <div className="flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Hired
+              </div>
+            ) : requestedSuppliers.includes(supplier.id) ? (
               <div className="flex items-center justify-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Request Sent

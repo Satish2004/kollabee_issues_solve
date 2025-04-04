@@ -10,6 +10,7 @@ export function SupplierTabs() {
     savedSuppliers,
     requestedSuppliers,
     loading,
+    hiredSuppliers,
   } = useSuppliers();
 
   return (
@@ -27,7 +28,9 @@ export function SupplierTabs() {
         <TabsTrigger value="requested">
           Sent Requests ({loading ? "..." : requestedSuppliers.length})
         </TabsTrigger>
-        <TabsTrigger value="hired">Hired ({loading ? "..." : 0})</TabsTrigger>
+        <TabsTrigger value="hired">
+          Hired ({loading ? "..." : hiredSuppliers.length})
+        </TabsTrigger>
       </TabsList>
     </Tabs>
   );

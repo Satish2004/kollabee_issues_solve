@@ -37,7 +37,7 @@ interface SupplierContextType {
   savedSuppliers: string[];
   requestedSuppliers: string[];
   countries: string[];
-  savingSuppliers: Record<string, boolean>;
+  hiredSuppliers: string[];
 
   // Tab state
   activeTab: string;
@@ -97,6 +97,8 @@ export function SupplierProvider({
   const [loading, setLoading] = useState(true);
   const [savedSuppliers, setSavedSuppliers] = useState<string[]>([]);
   const [requestedSuppliers, setRequestedSuppliers] = useState<string[]>([]);
+  const [hiredSuppliers, setHiredSuppliers] = useState<string[]>([]);
+
   const [countries, setCountries] = useState<string[]>([]);
 
   // Tab state
@@ -153,6 +155,7 @@ export function SupplierProvider({
         // First fetch saved sellers to ensure they're available before other operations
         await fetchSavedSellers();
         await fetchRequestedSellers();
+        await fetchHiredSellers();
         // Then fetch suggested sellers which will use the saved sellers data
         await fetchSuggestedSellers();
       } catch (error) {
@@ -300,6 +303,17 @@ export function SupplierProvider({
     }
   };
 
+  const fetchHiredSellers = async () => {
+    try {
+      // This endpoint would need to be implemented in your API
+      const response = await projectApi.getHiredSellers(projectId);
+      setHiredSuppliers(response.map((seller) => seller.id));
+    } catch (error) {
+      console.error("Error fetching requested sellers:", error);
+      setHiredSuppliers([]);
+    }
+  };
+
   const applyFilters = () => {
     let filtered = [...suppliers];
 
@@ -308,6 +322,8 @@ export function SupplierProvider({
       filtered = filtered.filter((s) => savedSuppliers.includes(s.id));
     } else if (activeTab === "requested") {
       filtered = filtered.filter((s) => requestedSuppliers.includes(s.id));
+    } else if (activeTab === "hired") {
+      filtered = filtered.filter((s) => hiredSuppliers.includes(s.id));
     }
 
     // Apply search filter
@@ -633,6 +649,7 @@ export function SupplierProvider({
     sortOption,
     setSortOption,
     activeFiltersCount,
+    hiredSuppliers,
 
     // Actions
     fetchSuggestedSellers,

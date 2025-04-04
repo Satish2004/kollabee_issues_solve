@@ -151,6 +151,15 @@ const projectApi = {
       throw error;
     }
   },
+  getHiredSellers: async (id: string) => {
+    try {
+      const response = await api.get(`/projects/hired/${id}`);
+      return response;
+    } catch (error) {
+      console.error("Error fetching hired sellers:", error);
+      throw error;
+    }
+  },
 };
 
 export default projectApi;
