@@ -160,7 +160,7 @@ const ProjectsPage = () => {
         <div className="flex items-center justify-center mt-4">
           <Button
             variant="outline"
-            className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
+            className="bg-gradient-to-r from-[#9e1171] to-[#f0b168]  text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
             onClick={() => router.push("/buyer/projects/new")}
           >
             <PlusIcon size={20} className="text-white mr-2" />
@@ -188,7 +188,7 @@ const ProjectsPage = () => {
     <>
       <div className="w-full h-[100px] flex justify-end items-center rounded-xl mb-8 bg-white border p-5">
         <Button
-          className="gradient-border text-gradient"
+          className="gradient-border gradient-text"
           onClick={() => router.push("/buyer/projects/new")}
         >
           <PlusIcon className="mr-2 h-4 w-4 text-rose-500" />
@@ -303,6 +303,11 @@ const ProjectsPage = () => {
                           variant="ghost"
                           size="sm"
                           className="h-8 w-8 p-0"
+                          onClick={() => {
+                            router.push(
+                              `/buyer/projects/${project.id}/supplier`
+                            );
+                          }}
                         >
                           <Eye className="h-4 w-4" />
                         </Button>

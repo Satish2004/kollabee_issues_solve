@@ -1,5 +1,7 @@
-import { api } from '../axios';
-import { User } from '@/types/api';
+import { api } from "../axios";
+import { User } from "@/types/api";
+import { removeToken } from "../utils/token";
+import Cookies from "js-cookie";
 
 export interface ProfileUpdateData {
   name?: string;
@@ -29,152 +31,161 @@ export interface BankDetailsData {
   upiId?: string;
   zipCode: string;
 }
+const authUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export const profileApi = {
   getCurrentUser: async () => {
-    return api.get<User>('/auth/me');
+    try {
+      return await api.get(`${authUrl}/auth/me`);
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        removeToken();
+        Cookies.remove("token");
+      }
+      throw error;
+    }
   },
 
   updateProfile: async (data: ProfileUpdateData) => {
-    return api.patch<User>('/users/profile', data);
+    return api.patch<User>("/users/profile", data);
   },
 
   updatePassword: async (data: PasswordUpdateData) => {
-      return api.post('/auth/update-password', data);
+    return api.post("/auth/update-password", data);
   },
 
   updateBankDetails: async (data: BankDetailsData) => {
-      return api.post('/payment/bank-details', data);
+    return api.post("/payment/bank-details", data);
   },
 
   uploadImage: async (file: File) => {
     const formData = new FormData();
-    formData.append('image', file);
-    return api.post<{ imageUrl: string }>('/upload/profile-image', formData, {
+    formData.append("image", file);
+    return api.post<{ imageUrl: string }>("/upload/profile-image", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
   },
 
   getBankDetails: async () => {
-    return api.get('/payment/bank-details');
+    return api.get("/payment/bank-details");
   },
 
   // Get seller profile details
   getSellerProfile: async () => {
-    return api.get('/seller/profile');
+    return api.get("/seller/profile");
   },
 
   // Update seller profile categories
   updateCategories: async (data: any) => {
-    return api.put('/seller/profile/categories', data);
+    return api.put("/seller/profile/categories", data);
   },
 
   //Get Categories
   getCategories: async () => {
-    return api.get('/seller/profile/categories');
+    return api.get("/seller/profile/categories");
   },
 
   // Update production services
   updateProductionServices: async (data: any) => {
-    return api.put('/seller/profile/production-services', data);
+    return api.put("/seller/profile/production-services", data);
   },
 
   //Get Production Services
   getProductionServices: async () => {
-    return api.get('/seller/profile/production-services');
+    return api.get("/seller/profile/production-services");
   },
 
   // Update production management
   updateProductionManagement: async (data: any) => {
-    return api.put('/seller/profile/production-management', data);
+    return api.put("/seller/profile/production-management", data);
   },
 
   //Get Production Management
   getProductionManagement: async () => {
-    return api.get('/seller/profile/production-management');
+    return api.get("/seller/profile/production-management");
   },
 
   // Update manufacturing locations
   updateManufacturingLocations: async (data: any) => {
-    return api.put('/seller/profile/manufacturing-locations', data);
+    return api.put("/seller/profile/manufacturing-locations", data);
   },
 
   // Get manufacturing locations
   getManufacturingLocations: async () => {
-    return api.get('/seller/profile/manufacturing-locations');
+    return api.get("/seller/profile/manufacturing-locations");
   },
 
   // Update business capabilities
   updateBusinessCapabilities: async (data: any) => {
-    return api.put('/seller/profile/capabilities', data);
+    return api.put("/seller/profile/capabilities", data);
   },
 
   // Get business capabilities
   getBusinessCapabilities: async () => {
-    return api.get('/seller/profile/capabilities');
+    return api.get("/seller/profile/capabilities");
   },
 
   // Update target audience
   updateTargetAudience: async (data: any) => {
-    return api.put('/seller/profile/target-audience', data);
+    return api.put("/seller/profile/target-audience", data);
   },
 
   // Get target audience
   getTargetAudience: async () => {
-    return api.get('/seller/profile/target-audience');
+    return api.get("/seller/profile/target-audience");
   },
 
   // Update team size
   updateTeamSize: async (data: any) => {
-    return api.put('/seller/profile/team-size', data);
+    return api.put("/seller/profile/team-size", data);
   },
 
   // Get team size
   getTeamSize: async () => {
-    return api.get('/seller/profile/team-size');
+    return api.get("/seller/profile/team-size");
   },
 
   // Update annual revenue
   updateAnnualRevenue: async (data: any) => {
-    return api.put('/seller/profile/annual-revenue', data);
+    return api.put("/seller/profile/annual-revenue", data);
   },
 
   // Get annual revenue
   getAnnualRevenue: async () => {
-    return api.get('/seller/profile/annual-revenue');
+    return api.get("/seller/profile/annual-revenue");
   },
 
   // Update minimum order quantity
   updateMinimumOrder: async (data: any) => {
-    return api.put('/seller/profile/minimum-order', data);
+    return api.put("/seller/profile/minimum-order", data);
   },
 
   // Get minimum order quantity
   getMinimumOrder: async () => {
-    return api.get('/seller/profile/minimum-order');
+    return api.get("/seller/profile/minimum-order");
   },
 
   // Update comments and notes
   updateCommentsNotes: async (data: any) => {
-    return api.put('/seller/profile/comments', data);
+    return api.put("/seller/profile/comments", data);
   },
 
   // Get comments and notes
   getCommentsNotes: async () => {
-    return api.get('/seller/profile/comments');
+    return api.get("/seller/profile/comments");
   },
 
   //Upload Certificate
-  uploadCertificate: async (formData: FormData) => { // Accept full FormData
-    return api.post('/seller/profile/certificates', formData, {
+  uploadCertificate: async (formData: FormData) => {
+    // Accept full FormData
+    return api.post("/seller/profile/certificates", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
-    })
+    });
   },
-  
 
   // Update certificates
   // updateCertificates: async (file: File) => {
@@ -189,7 +200,7 @@ export const profileApi = {
 
   // Get certificates
   getCertificates: async () => {
-    return api.get('/seller/profile/certificates');
+    return api.get("/seller/profile/certificates");
   },
 
   deleteCertificate: async (certificateId: string) => {
@@ -197,6 +208,6 @@ export const profileApi = {
   },
 
   getProfileCompletion: async () => {
-    return api.get('/seller/profile/completion');
+    return api.get("/seller/profile/completion");
   },
-}; 
+};

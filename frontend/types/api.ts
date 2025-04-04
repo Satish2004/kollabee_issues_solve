@@ -597,7 +597,9 @@ export interface Project {
   sampleRequirements: string;
 
   // Step 3
-  projectTimeline: Date | undefined;
+  projectTimelineFrom: Date | undefined;
+  projectTimelineTo: Date | undefined;
+
   budget: number;
   pricingCurrency: string;
   milestones: {
@@ -608,4 +610,123 @@ export interface Project {
     dueDate: Date | undefined;
   }[];
   ownerId: string;
+}
+
+export interface OrderItem {
+  id: string;
+  quantity: number;
+  price: number;
+  isAccepted: boolean;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    images: string[];
+    categoryId: string;
+    attributes: Record<string, string>;
+  };
+  seller: {
+    id: string;
+    businessName: string;
+    businessAddress: string;
+    user: {
+      name: string;
+      imageUrl: string | null;
+    };
+  };
+}
+
+export interface ShippingAddress {
+  fullName: string;
+  address: string;
+  country: string;
+  state: string;
+}
+
+export interface Order {
+  id: string;
+  status: string;
+  totalAmount: number;
+  createdAt: string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress | null;
+  isAccepted: boolean;
+  buyer?: {
+    id: string;
+    userId: string;
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+      companyName: string;
+      country: string | null;
+      imageUrl: string | null;
+      phoneNumber: string;
+    };
+  };
+}
+
+export interface Milestone {
+  id: string;
+  name: string;
+  description: string;
+  paymentPercentage: number;
+  dueDate: string;
+  projectId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ManufacturingRequest {
+  id: string;
+  buyerId: string;
+  sellerId: string;
+  projectId: string;
+  status: string;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  project: {
+    id: string;
+    selectedServices: string[];
+    category: string;
+    businessName: string;
+    productType: string;
+    formulationType?: string;
+    targetBenefit?: string;
+    texturePreferences?: string;
+    colorPreferences?: string;
+    fragrancePreferences?: string;
+    packagingType?: string;
+    materialPreferences?: string;
+    bottleSize?: string;
+    labelingNeeded?: string;
+    minimumOrderQuantity?: string;
+    certificationsRequired?: string;
+    sampleRequirements?: string;
+    projectTimeline: string[];
+    budget: number;
+    pricingCurrency: string;
+    ownerId: string;
+    createdAt: string;
+    updatedAt: string;
+    milestones: Milestone[];
+  };
+  buyer: {
+    id: string;
+    userId: string;
+    location: string | null;
+    maxMOQ: number | null;
+    minMOQ: number | null;
+    preferences: any | null;
+    user: {
+      name: string;
+      email: string;
+      phoneNumber: string;
+      imageUrl?: string | null;
+    };
+  };
 }

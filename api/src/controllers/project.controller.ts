@@ -1,21 +1,26 @@
-import { PrismaClient, CategoryEnum, Seller } from "@prisma/client";
-import { Response, Request } from "express";
+import { PrismaClient, type CategoryEnum, type Seller } from "@prisma/client";
+import type { Response, Request } from "express";
+const { Resend } = require("resend");
 
 const prisma = new PrismaClient();
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const createProject = async (req: any, res: Response) => {
   try {
     const { milestones, ...projectData } = req.body;
     console.log("req.user ", req.user);
-    let { projectTimeline } = projectData;
-    if (projectTimeline) {
-      projectTimeline = projectTimeline.map((date: any) => new Date(date));
+    let projectTimeline = [];
+    let { projectTimelineFrom, projectTimelineTo, ...newProjectData } =
+      projectData;
+    if (projectTimelineFrom && projectTimelineTo) {
+      projectTimeline.push(new Date(projectTimelineFrom));
+      projectTimeline.push(new Date(projectTimelineTo));
     }
 
     const newMileStones = milestones.map((milestone: any) => ({
       name: milestone.name,
       description: milestone.description,
-      paymentPercentage: parseFloat(milestone.paymentPercentage),
+      paymentPercentage: Number.parseFloat(milestone.paymentPercentage),
       dueDate: milestone.dueDate[0] ? new Date(milestone.dueDate[0]) : null,
     }));
 
@@ -23,7 +28,7 @@ export const createProject = async (req: any, res: Response) => {
 
     const project = await prisma.project.create({
       data: {
-        ...projectData,
+        ...newProjectData,
         projectTimeline: projectTimeline,
         milestones: {
           create: newMileStones || [], // Handle empty milestones gracefully
@@ -55,6 +60,21 @@ export const getProjectById = async (req: any, res: Response) => {
     const { id } = req.params;
     const project = await prisma.project.findUnique({
       where: { id },
+      include: {
+        milestones: true,
+        owner: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                imageUrl: true,
+                country: true,
+              },
+            },
+          },
+        },
+      },
     });
     if (!project) {
       return res.status(404).json({ error: "Project not found" });
@@ -120,6 +140,20 @@ export const deleteProject = async (req: any, res: Response) => {
 export const suggestedSellers = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
+    const {
+      search,
+      minRating,
+      maxRating,
+      country,
+      supplierTypes,
+      sortBy,
+      sortOrder,
+      minAge,
+      maxAge,
+      priceRange,
+    } = req.query;
+
+    console.log("Query params:", req.query);
 
     // Fetch the project details by ID
     const project = await prisma.project.findUnique({
@@ -131,22 +165,131 @@ export const suggestedSellers = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Project not found" });
     }
 
-    // Fetch sellers that match the project's requirements
-    const sellers = await prisma.seller.findMany({
-      where: {
-        businessCategories: {
-          has: getCategoryFromProjectCategory(project.category),
-        },
-        country: project.owner?.location || undefined,
+    // Build the where clause for filtering
+    const where: any = {
+      businessCategories: {
+        has: getCategoryFromProjectCategory(project.category),
       },
+    };
+
+    // Add country filter if provided, otherwise use project owner's location
+    if (country && country !== "all") {
+      where.country = country;
+    } else if (project.owner?.location) {
+      where.country = project.owner.location;
+    }
+
+    // Add rating filter
+    if (minRating) {
+      where.rating = {
+        ...where.rating,
+        gte: Number.parseFloat(minRating as string),
+      };
+    }
+
+    if (maxRating) {
+      where.rating = {
+        ...where.rating,
+        lte: Number.parseFloat(maxRating as string),
+      };
+    }
+
+    // Add supplier type filter
+    if (supplierTypes) {
+      const types = (supplierTypes as string).split(",");
+      where.businessTypes = {
+        hasSome: types,
+      };
+    }
+
+    // Add age filter (yearEstablished)
+    const currentYear = new Date().getFullYear();
+    if (minAge) {
+      where.yearEstablished = {
+        ...where.yearEstablished,
+        lte: currentYear - Number.parseInt(minAge as string),
+      };
+    }
+
+    if (maxAge) {
+      where.yearEstablished = {
+        ...where.yearEstablished,
+        gte: currentYear - Number.parseInt(maxAge as string),
+      };
+    }
+
+    console.log("Where clause:", where);
+
+    // Build the orderBy clause for sorting
+    const orderBy: any = {};
+    if (sortBy) {
+      const order = sortOrder === "desc" ? "desc" : "asc";
+
+      switch (sortBy) {
+        case "rating":
+          orderBy.rating = order;
+          break;
+        case "age":
+          orderBy.yearEstablished = order === "asc" ? "desc" : "asc"; // Reverse for age
+          break;
+        case "name":
+          orderBy.businessName = order;
+          break;
+        default:
+          orderBy.rating = "desc"; // Default sort
+      }
+    } else {
+      orderBy.rating = "desc"; // Default sort
+    }
+
+    console.log("Order by:", orderBy);
+
+    // Fetch sellers that match the criteria
+    const sellers = await prisma.seller.findMany({
+      where,
+      orderBy,
       include: {
         products: true,
         user: true,
       },
     });
 
+    console.log(`Found ${sellers.length} sellers before filtering`);
+
+    // Apply search filter (done after DB query for flexibility)
+    let filteredSellers = sellers;
+    if (search) {
+      const searchTerm = (search as string).toLowerCase();
+      filteredSellers = sellers.filter(
+        (seller) =>
+          seller.businessName?.toLowerCase().includes(searchTerm) ||
+          seller.user?.name?.toLowerCase().includes(searchTerm) ||
+          seller.businessAddress?.toLowerCase().includes(searchTerm) ||
+          seller.products?.some(
+            (p) =>
+              p.name.toLowerCase().includes(searchTerm) ||
+              p.description.toLowerCase().includes(searchTerm)
+          )
+      );
+    }
+
+    // Apply price range filter if provided
+    if (priceRange) {
+      const [min, max] = (priceRange as string).split("-").map(Number);
+      filteredSellers = filteredSellers.filter((seller) => {
+        // Check if any product's price falls within the range
+        return seller.products?.some(
+          (p) =>
+            (p.price >= min && p.price <= max) ||
+            (p.wholesalePrice >= min && p.wholesalePrice <= max)
+        );
+      });
+    }
+
+    console.log(`Found ${filteredSellers.length} sellers after filtering`);
+
     // Map sellers to the required format
-    const sellerList = sellers.map((seller) => ({
+    const sellerList = filteredSellers.map((seller) => ({
       id: seller.id,
       name: seller.businessName || seller.user?.name || "Unknown Seller",
       logo:
@@ -154,22 +297,20 @@ export const suggestedSellers = async (req: Request, res: Response) => {
         "https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png",
       rating: seller.rating || 0,
       reviews: seller.products?.length || 0,
-      description:
-        seller.products?.[0]?.description || "No description available",
-      productType: seller.products?.[0]?.name || "No product type available",
-      priceRange: `$${seller.products?.[0]?.price || 0} - ${
-        seller.products?.[0]?.wholesalePrice || 0
-      }`,
+      description: getSellerDescription(seller, project),
+      productType: getProductTypeDescription(seller, project),
+      priceRange: getPriceRange(),
       minOrder: `Min. order: ${seller.minimumOrderQuantity || "N/A"}`,
       location: seller.businessAddress || "Unknown",
       age:
         new Date().getFullYear() -
         (seller.yearEstablished || new Date().getFullYear()),
-      country: seller.user?.country || "Unknown",
+      country: seller.country || seller.user?.country || "Unknown",
       verified: true,
-      tags: seller.businessCategories || [],
+      tags: getRelevantTags(seller, project),
     }));
 
+    console.log(`Returning ${sellerList.length} formatted sellers`);
     res.status(200).json(sellerList);
   } catch (error) {
     console.error("Error fetching suggested sellers:", error);
@@ -254,3 +395,265 @@ function getRelevantTags(seller: Seller, project: any): string[] {
 
   return selectedTags;
 }
+
+export const saveSeller = async (req: any, res: Response) => {
+  try {
+    const { sellerId, projectId } = req.body;
+
+    const { user } = req;
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check if the seller already exists
+    const existingSeller = await prisma.seller.findUnique({
+      where: { id: sellerId },
+    });
+
+    if (!existingSeller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    // Check if the project exists
+
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Check if the user is the owner of the project
+
+    if (existingProject.ownerId !== user.buyerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+    // Check if the seller is already saved for the project
+
+    const existingSavedSeller = await prisma.project.findFirst({
+      where: {
+        savedSeller: {
+          some: {
+            id: sellerId,
+          },
+        },
+      },
+    });
+
+    if (existingSavedSeller) {
+      return res.status(400).json({ error: "Seller already saved" });
+    }
+
+    // Save the seller to the project
+
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        savedSeller: {
+          connect: { id: sellerId },
+        },
+      },
+    });
+    res.status(200).json({ message: "Seller saved successfully" });
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ error: "Failed to save seller" });
+  }
+};
+
+export const getSavedSellers = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const { user } = req;
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check if the project exists
+    const existingProject = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        savedSeller: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Check if the user is the owner of the project
+    if (existingProject.ownerId !== user.buyerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    res.status(200).json(existingProject.savedSeller);
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ error: "Failed to fetch saved sellers" });
+  }
+};
+
+export const getHiredSellers = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const { user } = req;
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check if the project exists
+    const existingProject = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        sellers: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Check if the user is the owner of the project
+    if (existingProject.ownerId !== user.buyerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    console.log("existingProject.sellers", existingProject.sellers);
+
+    res.status(200).json(existingProject.sellers);
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ error: "Failed to fetch hired sellers" });
+  }
+};
+
+export const removeSavedSeller = async (req: any, res: Response) => {
+  try {
+    const { sellerId, projectId } = req.body;
+
+    // Check if the project exists
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Check if the user is the owner of the project
+    if (existingProject.ownerId !== req.user.buyerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Remove the saved seller from the project
+    await prisma.project.update({
+      where: { id: projectId },
+      data: {
+        savedSeller: {
+          disconnect: { id: sellerId },
+        },
+      },
+    });
+
+    res.status(200).json({ message: "Seller removed successfully" });
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ error: "Failed to remove saved seller" });
+  }
+};
+
+// send request to seller
+
+export const sendRequest = async (req: any, res: Response) => {
+  try {
+    const { sellerId, projectId } = req.body;
+
+    const { user } = req;
+
+    if (!user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Check if the project exists
+    const existingProject = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!existingProject) {
+      return res.status(404).json({ error: "Project not found" });
+    }
+
+    // Check if the user is the owner of the project
+    if (existingProject.ownerId !== user.buyerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // create a request in db
+
+    // do everything in a transaction
+
+    const [request, seller] = await prisma.$transaction(async (tx) => {
+      const request = await tx.projectReq.create({
+        data: {
+          projectId,
+          sellerId,
+          buyerId: user.buyerId,
+        },
+      });
+
+      const seller = await tx.seller.findUnique({
+        where: { id: sellerId },
+        include: {
+          user: true,
+        },
+      });
+
+      if (!seller) {
+        throw new Error("Seller not found");
+      }
+
+      await tx.notification.create({
+        data: {
+          userId: seller.userId,
+          message: `You have a new project request from ${user.name}. Please check your dashboard for more details.`,
+          type: "project-request",
+        },
+      });
+
+      return [request, seller];
+    });
+
+    setImmediate(async () => {
+      try {
+        await resend.email.send({
+          from: "hello@tejasgk.com",
+          to: seller.user.email,
+          subject: "New Project Request",
+          html: `<p>You have a new project request from ${user.name}. Please check your dashboard for more details.</p>`,
+        });
+      } catch (emailError) {
+        console.error("Failed to send email:", emailError);
+        // Optional: log to monitoring service
+      }
+    });
+
+    return res.status(200).json({ success: true, request });
+  } catch (error) {
+    console.log("error", error);
+    res.status(500).json({ error: "Failed to send request" });
+  }
+};

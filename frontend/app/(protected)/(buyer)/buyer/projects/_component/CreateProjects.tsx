@@ -21,6 +21,8 @@ import ConfirmationScreen from "./confirmation-screen";
 import { FormProvider, useFormContext } from "./create-projects-context";
 import { Project } from "../../../../../../types/api";
 import projectApi from "@/lib/api/project";
+import { useRouter } from "next/navigation";
+import { toast } from "@/hooks/use-toast";
 
 interface Step {
   number: string;
@@ -44,6 +46,8 @@ const CreateProjects = ({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [errors, setErrors] = useState<Record<string, any>>({});
   const { formData } = useFormContext();
+  const [id, setId] = useState("");
+  const router = useRouter();
 
   useCallback(() => {
     console.log("Form data updated:", formData);
@@ -106,8 +110,10 @@ const CreateProjects = ({
       if (!formData.sampleRequirements)
         newErrors.sampleRequirements = "Sample Requirements are required.";
     } else if (step === 3) {
-      if (!formData.projectTimeline)
-        newErrors.projectTimeline = "Project Timeline is required.";
+      if (!formData.projectTimelineFrom)
+        newErrors.projectTimelineFrom = "Project Timeline is required.";
+      if (!formData.projectTimelineTo)
+        newErrors.projectTimelineTo = "Project Timeline is required.";
       if (!formData.budget) newErrors.budget = "Budget is required.";
       if (!formData.pricingCurrency)
         newErrors.pricingCurrency = "Pricing Currency is required.";
@@ -191,8 +197,7 @@ const CreateProjects = ({
   };
 
   const handleViewSuppliers = () => {
-    setIsSuccess(false);
-    setShowSuppliers(true);
+    router.push(`/buyer/projects/${id}/supplier`);
   };
 
   const handleSubmit = async () => {
@@ -207,20 +212,36 @@ const CreateProjects = ({
             initialData?.id,
             formData
           );
-          console.log("Project updated successfully:", response.data);
+          if (response.status < 200 || response.status >= 300) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          } else {
+            setId(response?.id);
+            setIsSuccess(true);
+          }
+          console.log("Project updated successfully:", response);
         } catch (error) {
           console.error("Failed to update project:", error);
         }
       } else {
         try {
           const response = await projectApi.createProject(formData);
-          console.log("Project created successfully:", response.data);
+          if (response.status < 200 || response.status >= 300) {
+            toast({
+              title: "Error",
+              description: "Failed to create project.",
+              variant: "destructive",
+            });
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          } else {
+            console.log("Project created successfully:", response);
+
+            setId(response?.id);
+            setIsSuccess(true);
+          }
         } catch (error) {
           console.error("Failed to create project:", error);
         }
       }
-
-      setIsSuccess(true);
     } catch (error) {
       console.error("Failed to create project:", error);
     } finally {

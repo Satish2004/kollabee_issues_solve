@@ -39,7 +39,7 @@ export const authApi = {
     if (response.token) {
       setToken(response.token);
       localStorage.setItem("token", response.token);
-      Cookies.set("token", response.token);
+      Cookies.set("token", response.token, { expires: 7 }); // Token expires in 7 days
     }
     return response;
   },
@@ -49,7 +49,7 @@ export const authApi = {
     if (response?.token) {
       setToken(response?.token);
       localStorage.setItem("token", response?.token);
-      Cookies.set("token", response?.token);
+      Cookies.set("token", response?.token, { expires: 7 }); // Token expires in 7 days
     }
     return response;
   },
@@ -63,7 +63,15 @@ export const authApi = {
   },
 
   getCurrentUser: async () => {
-    return api.get(`${authUrl}/auth/me`);
+    try {
+      return await api.get(`${authUrl}/auth/me`);
+    } catch (error: any) {
+      if (error.response?.status === 401) {
+        removeToken();
+        Cookies.remove("token");
+      }
+      throw error;
+    }
   },
 
   forgotPassword: async (email: string) => {

@@ -126,6 +126,14 @@ export default function BuyerLayoutHeader() {
     };
   }
 
+   if (!currentRoute && pathname.startsWith("/buyer/projects/")) {
+     currentRoute = {
+       label: "Projects",
+       icon: "custom",
+       href: "/buyer/projects",
+     };
+   }
+
   const handleLogout = async () => {
     try {
       await authApi.logout();
