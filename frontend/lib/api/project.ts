@@ -1,5 +1,6 @@
 import { Project } from "../../types/api";
 import { api } from "../axios";
+import { suggestedSellers } from "../../../api/src/controllers/project.controller";
 
 const projectApi = {
   createProject: async (data: Project) => {
@@ -16,6 +17,9 @@ const projectApi = {
   },
   deleteProject: async (id: string) => {
     return api.delete(`/projects/${id}`);
+  },
+  suggestedSellers: async (id: string) => {
+    return api.get(`/projects/seller/${id}`);
   },
 };
 

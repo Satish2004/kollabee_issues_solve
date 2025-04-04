@@ -8,6 +8,8 @@ import {
   Star,
   Info,
   ChevronDown,
+  Save,
+  Bookmark,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 interface Supplier {
   id: number;
@@ -65,7 +68,7 @@ const SuppliersPage = () => {
         {
           id: 1,
           name: "Shandong Great Steel Co. Ltd",
-          logo: "/placeholder.svg?height=120&width=120",
+          logo: "https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png",
           rating: 5.0,
           reviews: 11,
           description:
@@ -83,7 +86,7 @@ const SuppliersPage = () => {
         {
           id: 2,
           name: "Guangzhou Textile Co. Ltd",
-          logo: "/placeholder.svg?height=120&width=120",
+          logo: "https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png",
           rating: 4.8,
           reviews: 24,
           description:
@@ -100,7 +103,7 @@ const SuppliersPage = () => {
         {
           id: 3,
           name: "Shenzhen Packaging Solutions",
-          logo: "/placeholder.svg?height=120&width=120",
+          logo: "https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png",
           rating: 4.7,
           reviews: 18,
           description: "Custom eco-friendly packaging boxes and materials",
@@ -116,7 +119,7 @@ const SuppliersPage = () => {
         {
           id: 4,
           name: "Mumbai Labelling Industries",
-          logo: "/placeholder.svg?height=120&width=120",
+          logo: "https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png",
           rating: 4.5,
           reviews: 9,
           description: "Premium quality custom labels and tags for apparel",
@@ -132,7 +135,7 @@ const SuppliersPage = () => {
         {
           id: 5,
           name: "Seoul Cosmetics Manufacturing",
-          logo: "/placeholder.svg?height=120&width=120",
+          logo: "https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png",
           rating: 4.9,
           reviews: 32,
           description: "Full-service cosmetics manufacturing and formulation",
@@ -148,7 +151,7 @@ const SuppliersPage = () => {
         {
           id: 6,
           name: "Bangkok Packaging Experts",
-          logo: "/placeholder.svg?height=120&width=120",
+          logo: "https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png",
           rating: 4.6,
           reviews: 15,
           description: "Innovative packaging solutions for food and beverages",
@@ -472,14 +475,24 @@ const SuppliersPage = () => {
               key={supplier.id}
               className="bg-white rounded-lg shadow-sm border overflow-hidden"
             >
-              <div className="relative p-4 flex justify-center items-center bg-blue-900 h-40">
-                <img
-                  src={supplier.logo || "/placeholder.svg"}
-                  alt={supplier.name}
-                  className="h-24 w-24 object-contain"
+              <div className="relative flex justify-center items-center bg-blue-900 h-40 group">
+                <Image
+                  src="https://res.cloudinary.com/dyumydxmc/image/upload/v1743683115/Untitled_design_8_lnlkcc.png"
+                  alt="Supplier logo"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 33vw"
                 />
-                <button className="absolute top-2 right-2 bg-white rounded-full p-1">
-                  <Info className="h-4 w-4 text-gray-500" />
+
+                {/* Save button */}
+                <button
+                  onClick={() => {
+                    console.log("saved");
+                  }}
+                  className="absolute bottom-2 right-2 bg-white/90 hover:bg-white rounded-full p-1.5 shadow-md transition-opacity duration-200 opacity-70 group-hover:opacity-100"
+                  aria-label="Save image"
+                >
+                  <Bookmark className="h-4 w-4 text-gray-700" />
                 </button>
               </div>
 

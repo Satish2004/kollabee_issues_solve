@@ -21,6 +21,7 @@ import ConfirmationScreen from "./confirmation-screen";
 import { FormProvider, useFormContext } from "./create-projects-context";
 import { Project } from "../../../../../../types/api";
 import projectApi from "@/lib/api/project";
+import { useRouter } from "next/navigation";
 
 interface Step {
   number: string;
@@ -44,6 +45,8 @@ const CreateProjects = ({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [errors, setErrors] = useState<Record<string, any>>({});
   const { formData } = useFormContext();
+  const [id, setId] = useState("");
+  const router = useRouter();
 
   useCallback(() => {
     console.log("Form data updated:", formData);
@@ -191,8 +194,7 @@ const CreateProjects = ({
   };
 
   const handleViewSuppliers = () => {
-    setIsSuccess(false);
-    setShowSuppliers(true);
+    router.push(`/buyer/projects/${id}/supplier`);
   };
 
   const handleSubmit = async () => {
@@ -207,13 +209,19 @@ const CreateProjects = ({
             initialData?.id,
             formData
           );
-          console.log("Project updated successfully:", response.data);
+          if (response.status < 200 || response.status >= 300) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          } else {
+            setId(response?.id);
+          }
+          console.log("Project updated successfully:", response);
         } catch (error) {
           console.error("Failed to update project:", error);
         }
       } else {
         try {
           const response = await projectApi.createProject(formData);
+          setId(response.data.id);
           console.log("Project created successfully:", response.data);
         } catch (error) {
           console.error("Failed to create project:", error);
