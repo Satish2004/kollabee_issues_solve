@@ -1087,8 +1087,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         onChange={handleThumbnailUpload}
                       />
                       <label
-                        htmlFor="thumbnail-upload"
-                        className="text-[#898989] border border-[#898989] text-sm px-4 py-1 rounded-[14px] font-semibold cursor-pointer"
+                        htmlFor="documents-upload"
+                        className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-6 py-2 transition-all duration-200"
                       >
                         Browse Files
                       </label>

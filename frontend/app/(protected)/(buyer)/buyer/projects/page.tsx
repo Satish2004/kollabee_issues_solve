@@ -7,6 +7,7 @@ import {
   Eye,
   MessageSquare,
   ArrowDownUp,
+  Wallet,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import CreateProjects from "./_component/CreateProjects";
@@ -268,7 +269,8 @@ const ProjectsPage = () => {
                     </td>
                     <td className="py-3 px-4 text-sm">
                       <div className="flex items-center bg-gray-200 w-auto rounded-lg p-1">
-                        <span className="mr-2">📅</span>
+                        <Wallet className="mr-2 text-[#78787a]" />
+
                         {project.projectTimeline
                           ? new Date(
                               project.projectTimeline[0]
