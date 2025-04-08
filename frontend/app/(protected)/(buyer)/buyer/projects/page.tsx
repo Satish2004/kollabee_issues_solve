@@ -13,12 +13,15 @@ import { useState, useEffect } from "react";
 import CreateProjects from "./_component/CreateProjects";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { IoFilterOutline } from "react-icons/io5";
+import { IoFilterOutline, IoGitCompareSharp } from "react-icons/io5";
 import { HiArrowsUpDown } from "react-icons/hi2";
 import { FormProvider } from "./_component/create-projects-context";
 import projectApi from "@/lib/api/project";
 import type { Project } from "@/types/api";
 import { useRouter } from "next/navigation";
+import { TbCash } from "react-icons/tb";
+import { LiaShippingFastSolid } from "react-icons/lia";
+import LoadingScreen from "./_component/loading-screen-wc";
 
 const ProjectsPage = () => {
   const router = useRouter();
@@ -174,14 +177,7 @@ const ProjectsPage = () => {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="w-full h-full rounded-xl bg-white border flex flex-col items-center justify-center p-8">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-t-[#9e1171] border-r-[#f0b168] border-b-[#9e1171] border-l-[#f0b168] rounded-full animate-spin"></div>
-          <p className="text-gray-500">Loading your projects...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   // Projects dashboard
@@ -210,8 +206,8 @@ const ProjectsPage = () => {
             <div className="flex items-center bg-white rounded-md gap-2">
               <div className="relative">
                 <Input
-                  placeholder="Search with bussiness name"
-                  className="h-8 w-60 rounded-md border border-gray-300 pl-8 text-sm"
+                  placeholder="Search "
+                  className="h-8 w-48 rounded-md border border-gray-300 pl-8 text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -226,32 +222,23 @@ const ProjectsPage = () => {
               <thead>
                 <tr className="text-left text-xs text-gray-500 border-b">
                   <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">
-                      Services
-                      <ArrowDownUp className="ml-1 h-3 w-3" />
-                    </div>
+                    <div className="flex items-center">Project Type</div>
                   </th>
                   <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">
-                      Business Name
-                      <ArrowDownUp className="ml-1 h-3 w-3" />
-                    </div>
+                    <div className="flex items-center">Supplier</div>
                   </th>
                   <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">
-                      Timeline
-                      <ArrowDownUp className="ml-1 h-3 w-3" />
-                    </div>
+                    <div className="flex items-center">Business Name</div>
                   </th>
-                  <th className="py-2 px-4 font-medium">Formulation</th>
+                  <th className="py-2 px-4 font-medium">
+                    <div className="flex items-center">Timeline</div>
+                  </th>
                   <th className="py-2 px-4 font-medium">Health</th>
+                  <th className="py-2 px-4 font-medium">Payment Milestones</th>
+                  <th className="py-2 px-4 font-medium">Shipping</th>
                   <th className="py-2 px-4 font-medium">Budget</th>
-                  <th className="py-2 px-4 font-medium">Min Order Qty</th>
                   <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">
-                      Status
-                      <ArrowDownUp className="ml-1 h-3 w-3" />
-                    </div>
+                    <div className="flex items-center">Status</div>
                   </th>
                   <th className="py-2 px-4 font-medium">Action</th>
                 </tr>
@@ -262,13 +249,21 @@ const ProjectsPage = () => {
                     <td className="py-3 px-4 text-sm">
                       {project.selectedServices?.join(", ")}
                     </td>
+
                     <td className="py-3 px-4 text-sm">
-                      <p className="bg-gray-200 w-fit px-2 rounded-lg">
+                      <p className="bg-gray-200 w-fit px-2 rounded-md">
+                        {project.requestedSeller.length}
+                      </p>
+                    </td>
+
+                    <td className="py-3 px-4 text-sm">
+                      <p className="bg-gray-200 w-fit px-2 rounded-md">
                         {project.businessName || "N/A"}
                       </p>
                     </td>
+
                     <td className="py-3 px-4 text-sm">
-                      <div className="flex items-center bg-gray-200 w-auto rounded-lg p-1">
+                      <div className="flex items-center bg-gray-200 px-2 w-fit rounded-md">
                         <Wallet className="mr-2 text-[#78787a]" />
 
                         {project.projectTimeline
@@ -278,13 +273,43 @@ const ProjectsPage = () => {
                           : "N/A"}
                       </div>
                     </td>
+
                     <td className="py-3 px-4 text-sm">
-                      {project.formulationType || "N/A"}
+                      <div className="flex items-center flex-col">-</div>
                     </td>
                     <td className="py-3 px-4 text-sm">
-                      <Badge className="bg-gray-500 hover:bg-gray-600">
-                        N/A
-                      </Badge>
+                      {project.milestones?.length > 0 ? (
+                        <div className="flex flex-col items-center  ">
+                          <div className="flex w-fit bg-gray-200  px-2 items-center  rounded-md">
+                            <TbCash className="mr-1 text-[#78787a]" />
+                            View
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center ">-</div>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-sm">
+                      {project.milestones?.length > 0 ? (
+                        <div className="flex flex-col items-center  ">
+                          <div
+                            className="flex w-fit items-center px-2 cursor-pointer bg-gray-200 gap-2 rounded-md"
+                            onClick={() => {
+                              router.push(
+                                `/buyer/projects/${project.id}/shipping-details`
+                              );
+                            }}
+                          >
+                            <LiaShippingFastSolid
+                              className="text-[#78787a]"
+                              height={96}
+                            />
+                            Not Started
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center ">-</div>
+                      )}
                     </td>
                     <td className="py-3 px-4 text-sm">
                       {project.budget
@@ -293,12 +318,18 @@ const ProjectsPage = () => {
                           }`
                         : "N/A"}
                     </td>
+
                     <td className="py-3 px-4 text-sm">
-                      {project.minimumOrderQuantity || "N/A"}
+                      <span className="flex items-center gap-2">
+                        <span className="relative w-4 h-4">
+                          {/* Outer circle */}
+                          <span className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-yellow-500 -translate-x-1/2 -translate-y-1/2"></span>{" "}
+                          {/* Inner dot */}
+                        </span>
+                        Pending
+                      </span>
                     </td>
-                    <td className="py-3 px-4 text-sm">
-                      <span className="flex items-center">• Pending</span>
-                    </td>
+
                     <td className="py-3 px-4 text-sm">
                       <div className="flex items-center gap-2">
                         <Button
