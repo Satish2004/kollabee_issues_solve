@@ -561,8 +561,7 @@ export const GetSellerRequest = async (req: any, res: Response) => {
             user: {
               select: {
                 name: true,
-                email: true,
-                phoneNumber: true,
+                country: true,
               },
             },
           },

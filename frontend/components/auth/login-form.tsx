@@ -98,7 +98,7 @@ export function LoginForm({
             onClick={() => router.push("/")}
             src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway"
             alt="KollaBee Logo"
-            width={160}
+            width={240}
             height={42}
             className="mx-auto cursor-pointer"
           />

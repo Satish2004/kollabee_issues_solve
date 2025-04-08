@@ -400,14 +400,7 @@ const BuyerContactInfo = ({
         <div className="text-sm text-gray-500">Name</div>
         <div className="font-medium">{buyer?.user?.name || "N/A"}</div>
       </div>
-      <div>
-        <div className="text-sm text-gray-500">Email</div>
-        <div className="font-medium">{buyer?.user?.email || "N/A"}</div>
-      </div>
-      <div>
-        <div className="text-sm text-gray-500">Phone</div>
-        <div className="font-medium">{buyer?.user?.phoneNumber || "N/A"}</div>
-      </div>
+
       <div>
         <div className="text-sm text-gray-500">Location</div>
         <div className="font-medium">{buyer?.location || "N/A"}</div>

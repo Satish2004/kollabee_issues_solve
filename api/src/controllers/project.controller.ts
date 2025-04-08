@@ -47,7 +47,16 @@ export const createProject = async (req: any, res: Response) => {
 
 export const getProjects = async (req: any, res: Response) => {
   try {
-    const projects = await prisma.project.findMany();
+    const projects = await prisma.project.findMany({
+      include: {
+        requestedSeller: {
+          where: {
+            status: "APPROVED",
+          },
+        },
+        milestones: true,
+      },
+    });
     res.status(200).json(projects);
   } catch (error) {
     console.error("Error fetching projects:", error);

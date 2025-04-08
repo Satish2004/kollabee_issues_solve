@@ -95,7 +95,7 @@ const KollaBeeRequests = () => {
             <TabsList className="grid w-full max-w-md grid-cols-2">
               <TabsTrigger value="received" className="flex items-center gap-2">
                 <CheckCheck className="w-4 h-4" />
-                Received Requests
+                Product Requests
               </TabsTrigger>
               <TabsTrigger
                 value="manufacturing"
