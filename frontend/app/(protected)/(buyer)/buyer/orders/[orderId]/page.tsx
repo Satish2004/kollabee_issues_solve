@@ -1,162 +1,183 @@
-"use client"
-import React from "react"
-import { ArrowLeft, Box, CheckCircle2, MapPin, ShieldCheck, Truck, User2 } from "lucide-react"
-import Link from "next/link"
+"use client";
 
-// Dummy data to simulate backend response
-const orderData = {
-  orderNumber: "96459761",
-  products: 4,
-  orderDate: "17 Jan, 2021 at 7:32 PM",
-  expectedDate: "23 Jan, 2021",
-  amount: 1199.0,
-  status: "packaging",
-  timeline: [
-    {
-      id: 1,
-      title: "Your order has been delivered. Thank you for shopping at Clicon!",
-      date: "23 Jan, 2021 at 7:32 PM",
-      icon: CheckCircle2,
-    },
-    {
-      id: 2,
-      title: "Our delivery man (John Wick) Has picked-up your order for delivery.",
-      date: "23 Jan, 2021 at 2:00 PM",
-      icon: User2,
-    },
-    {
-      id: 3,
-      title: "Your order has reached at last mile hub.",
-      date: "22 Jan, 2021 at 8:00 AM",
-      icon: MapPin,
-    },
-    {
-      id: 4,
-      title: "Your order on the way to (last mile) hub.",
-      date: "21, 2021 at 5:32 AM",
-      icon: Truck,
-    },
-    {
-      id: 5,
-      title: "Your order is successfully verified.",
-      date: "20 Jan, 2021 at 7:32 PM",
-      icon: ShieldCheck,
-    },
-    {
-      id: 6,
-      title: "Your order has been confirmed.",
-      date: "19 Jan, 2021 at 2:61 PM",
-      icon: Box,
-    },
-  ],
-}
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import React from "react";
+import OrderStatusTracker from "../components/order-status-tracker";
+import OrderActivity from "../components/order-activity";
+import type { Order } from "@/types/api";
+import ProductDetailCarousel from "../components/product-detail-carousel";
+import { ordersApi } from "@/lib/api/orders";
 
-const steps = [
-  { id: 1, title: "Order Placed", icon: Box },
-  { id: 2, title: "Packaging", icon: Box },
-  { id: 3, title: "On The Road", icon: Truck },
-  { id: 4, title: "Delivered", icon: CheckCircle2 },
-]
+export default function OrderTrackingPage({
+  params: paramsPromise,
+}: {
+  params: Promise<{ orderId: string }>;
+}) {
+  const params = React.use(paramsPromise);
+  const { orderId } = params;
+  const [order, setOrder] = useState<Order | null>(null);
 
-const getStepStatus = (stepIndex: number, currentStep: string) => {
-  const currentStepIndex = steps.findIndex((step) => step.title.toLowerCase() === currentStep.toLowerCase())
-  if (stepIndex < currentStepIndex) return "completed"
-  if (stepIndex === currentStepIndex) return "current"
-  return "upcoming"
-}
+  useEffect(() => {
+    // In a real implementation, you would fetch the order data from an API
+    // For now, we'll use the data provided in the component props
+    const fetchOrderData = async () => {
+      try {
+        // For demo purposes, we're using the data directly
+        // In production, you would use: await ordersApi.getOrderDetails(orderId);
 
-export default function OrderTracking() {
+        const orderData = await ordersApi.getOrderDetails(orderId);
+
+        setOrder(orderData as Order);
+      } catch (error) {
+        console.error("Failed to fetch order data:", error);
+      }
+    };
+
+    fetchOrderData();
+  }, [orderId]);
+
   return (
-    <div className="mx-auto bg-white min-h-screen">
-      <div className="p-4">
-        {/* Header */}
-        <div className="flex items-center mb-6">
-          <Link href="#" className="text-gray-600 hover:text-gray-900">
-            <ArrowLeft className="w-6 h-6" />
-          </Link>
-          <h1 className="ml-2 text-lg font-medium">Track Order</h1>
-        </div>
+    <div className="w-full rounded-xl bg-white mx-auto min-h-screen">
+      <div className="bg-white p-4 mb-4 h-16 gap-4 flex rounded-xl items-center">
+        <Link href="/buyer/orders" className="mr-4">
+          <ArrowLeft className="h-5 w-5" />
+        </Link>
+        <h1 className="text-sm font-medium">Order Details</h1>
+      </div>
 
-        {/* Order Summary */}
-        <div className="bg-gray-200 rounded-lg p-4 mb-6">
-          <div className="flex justify-between items-start mb-2">
-            <h2 className="text-lg font-medium">#{orderData.orderNumber}</h2>
-            <span className="text-xl font-medium">${orderData.amount.toFixed(2)}</span>
-          </div>
-          <p className="text-sm text-gray-600">
-            {orderData.products} Products • Order Placed in {orderData.orderDate}
-          </p>
-        </div>
-
-        {/* Expected Date */}
-        <p className="text-sm text-gray-600 mb-6">Order expected arrival {orderData.expectedDate}</p>
-
-        {/* Stepper */}
-        <div className="mb-8">
-          <div className="relative flex justify-between">
-            {steps.map((step, index) => {
-              const status = getStepStatus(index, orderData.status)
-              return (
-                <div key={step.id} className="flex flex-col items-center relative z-10">
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      status === "completed"
-                        ? "bg-red-500 text-white"
-                        : status === "current"
-                          ? "bg-red-500 text-white"
-                          : "bg-gray-200"
-                    }`}
-                  >
-                    <step.icon className="w-4 h-4" />
-                  </div>
-                  <p
-                    className={`mt-2 text-sm ${status === "upcoming" ? "text-gray-400" : "text-gray-900 font-medium"}`}
-                  >
-                    {step.title}
+      {order ? (
+        <div className="px-4 md:px-10">
+          {/* Order Summary */}
+          <div className="bg-gray-100 p-4 rounded-lg mb-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-lg font-bold text-gray-800">
+                  Order #{order.id.substring(0, 8)}
+                </h2>
+                <p className="text-xs text-gray-600 mt-1">
+                  {order.items.length}{" "}
+                  {order.items.length === 1 ? "Product" : "Products"} • Order
+                  Placed on {new Date(order.createdAt).toLocaleDateString()}
+                </p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Status: <span className="font-medium">{order.status}</span>
+                </p>
+                {order.stripePaymentIntentId && (
+                  <p className="text-xs text-gray-600 mt-1">
+                    Payment ID: {order.stripePaymentIntentId}
                   </p>
-                </div>
-              )
-            })}
-            {/* Progress Line */}
-            <div className="absolute top-4 left-10 h-[2px] w-[94%] -translate-y-1/2 z-0">
-              <div className="h-full bg-gray-200">
-                <div
-                  className="h-full bg-red-500 transition-all duration-500"
-                  style={{
-                    width:
-                      orderData.status === "packaging"
-                        ? "35%"
-                        : orderData.status === "on the road"
-                          ? "65%"
-                          : orderData.status === "delivered"
-                            ? "100%"
-                            : "0%",
-                  }}
-                />
+                )}
+              </div>
+              <div className="text-lg font-bold">
+                ${order.totalAmount.toFixed(2)}
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Order Activity */}
-        <div>
-          <h2 className="text-lg font-bold mb-4">Order Activity</h2>
-          <div className="space-y-4">
-            {orderData.timeline.map((item) => (
-              <div key={item.id} className="flex items-start gap-3">
-                <div className="mt-1">
-                  <item.icon className="w-5 h-5 text-gray-400" />
+          {/* Ordered Products with Carousel */}
+          <div className="bg-white p-4 rounded-md border mb-6">
+            <h2 className="text-base font-bold mb-4">
+              Ordered Products ({order.items.length.toString().padStart(2, "0")}
+              )
+            </h2>
+
+            {/* Product Items with Toggle Details */}
+            <div className="space-y-2">
+              {order.items.map((item) => (
+                <ProductDetailCarousel key={item.id} item={item} />
+              ))}
+            </div>
+          </div>
+
+          {/* Order Summary */}
+          <div className="bg-white p-4 rounded-md border mb-6">
+            <h2 className="text-base font-bold mb-4">Order Summary</h2>
+
+            <div className="space-y-2">
+              <div className="flex justify-between text-sm">
+                <span>Subtotal:</span>
+                <span>${order.totalAmount.toFixed(2)}</span>
+              </div>
+
+              {order.items.some((item) => item.product.deliveryCost > 0) && (
+                <div className="flex justify-between text-sm">
+                  <span>Delivery:</span>
+                  <span>
+                    $
+                    {order.items
+                      .reduce(
+                        (sum, item) => sum + (item.product.deliveryCost || 0),
+                        0
+                      )
+                      .toFixed(2)}
+                  </span>
                 </div>
-                <div>
-                  <p className="text-sm text-gray-900">{item.title}</p>
-                  <p className="text-sm text-gray-500">{item.date}</p>
+              )}
+
+              <div className="flex justify-between text-sm font-bold pt-2 border-t">
+                <span>Total:</span>
+                <span>${order.totalAmount.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Seller Information */}
+          <div className="bg-white p-4 rounded-md border mb-6">
+            <h2 className="text-base font-bold mb-4">Seller Information</h2>
+
+            {order.items.map((item) => (
+              <div key={item.id} className="mb-4 last:mb-0">
+                <div className="flex items-center mb-2">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
+                    {item.seller.user.imageUrl ? (
+                      <img
+                        src={item.seller.user.imageUrl || "/placeholder.svg"}
+                        alt={item.seller.businessName}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-xs">
+                        {item.seller.businessName.charAt(0)}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">
+                      {item.seller.businessName}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {item.seller.user.email}
+                    </p>
+                  </div>
                 </div>
+
+                {item.seller.businessAddress && (
+                  <p className="text-xs text-gray-600 ml-10">
+                    Address: {item.seller.businessAddress}
+                  </p>
+                )}
+
+                {item.seller.user.phoneNumber && (
+                  <p className="text-xs text-gray-600 ml-10">
+                    Phone: {item.seller.user.phoneNumber}
+                  </p>
+                )}
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    </div>
-  )
-}
+          {/* Order Status Tracker */}
+          <OrderStatusTracker />
 
+          {/* Order Activity */}
+          <OrderActivity />
+        </div>
+      ) : (
+        <div className="flex justify-center items-center h-64">
+          <p>Loading order details...</p>
+        </div>
+      )}
+    </div>
+  );
+}
