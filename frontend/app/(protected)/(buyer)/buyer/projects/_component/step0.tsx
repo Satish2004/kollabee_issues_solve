@@ -117,7 +117,7 @@ const Step0 = ({ handleNext }: { handleNext: () => void }) => {
       </div>
 
       <button
-        className="w-48 flex items-center gap-2 justify-center py-2 text-[#e00261] font-semibold border-2 border-[#e00261] rounded-lg transition-colors"
+        className="w-48 flex items-center gap-2 h-14 justify-center py-2  font-semibold border-2  rounded-lg gradient-border gradient-text"
         onClick={handleNextStep}
       >
         <span>Next</span>
