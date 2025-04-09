@@ -138,6 +138,8 @@ Returns a list of product IDs recommended for the given buyer.
    - Excludes products the buyer already interacted with
    - Returns the top-k highest scoring products
 
+![Recommandation system](../recommandation_system/assets/flowchart.png)
+
 ## Data Sources
 
 The system aggregates interactions from:

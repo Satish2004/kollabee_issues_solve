@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from recommend import Recommender
-from supabase_client import fetch_interactions
+from database_fetch import fetch_interactions
 import pandas as pd
 from fastapi.middleware.cors import CORSMiddleware
 import threading
