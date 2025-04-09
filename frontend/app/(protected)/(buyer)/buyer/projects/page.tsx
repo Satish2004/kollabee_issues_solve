@@ -1,19 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import {
-  PlusIcon,
-  Search,
-  Eye,
-  MessageSquare,
-  ArrowDownUp,
-  Wallet,
-} from "lucide-react";
+import { PlusIcon, Search, Eye, MessageSquare, Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
 import CreateProjects from "./_component/CreateProjects";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { IoFilterOutline, IoGitCompareSharp } from "react-icons/io5";
+import { IoFilterOutline } from "react-icons/io5";
 import { HiArrowsUpDown } from "react-icons/hi2";
 import { FormProvider } from "./_component/create-projects-context";
 import projectApi from "@/lib/api/project";
@@ -21,7 +14,7 @@ import type { Project } from "@/types/api";
 import { useRouter } from "next/navigation";
 import { TbCash } from "react-icons/tb";
 import { LiaShippingFastSolid } from "react-icons/lia";
-import LoadingScreen from "./_component/loading-screen-wc";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProjectsPage = () => {
   const router = useRouter();
@@ -175,12 +168,7 @@ const ProjectsPage = () => {
     );
   }
 
-  // Loading state
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
-  // Projects dashboard
+  // Projects dashboard with skeleton loading for table data only
   return (
     <>
       <div className="w-full h-[100px] flex justify-end items-center rounded-xl mb-8 bg-white border p-5">
@@ -193,7 +181,7 @@ const ProjectsPage = () => {
         </Button>
       </div>
 
-      <div className="w-full h-full bg-white rounded-xl   border flex flex-col p-4 gap-3">
+      <div className="w-full h-full bg-white rounded-xl border flex flex-col p-4 gap-3">
         {/* Projects section */}
         <h2 className="text-base font-medium mr-4">Projects Overview</h2>
 
@@ -244,117 +232,163 @@ const ProjectsPage = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredProjects.map((project) => (
-                  <tr key={project.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4 text-sm">
-                      {project.selectedServices?.join(", ")}
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <p className="bg-gray-200 w-fit px-2 rounded-md">
-                        {project.requestedSeller.length}
-                      </p>
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <p className="bg-gray-200 w-fit px-2 rounded-md">
-                        {project.businessName || "N/A"}
-                      </p>
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <div className="flex items-center bg-gray-200 px-2 w-fit rounded-md">
-                        <Wallet className="mr-2 text-[#78787a]" />
-
-                        {project.projectTimeline
-                          ? new Date(
-                              project.projectTimeline[0]
-                            ).toLocaleDateString()
-                          : "N/A"}
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <div className="flex items-center flex-col">-</div>
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      {project.milestones?.length > 0 ? (
-                        <div className="flex flex-col items-center  ">
-                          <div className="flex w-fit bg-gray-200  px-2 items-center  rounded-md">
-                            <TbCash className="mr-1 text-[#78787a]" />
-                            View
+                {loading
+                  ? // Skeleton loading rows
+                    Array.from({ length: 5 }).map((_, index) => (
+                      <tr key={`skeleton-${index}`} className="border-b">
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-40" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-16 rounded-md" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-24 rounded-md" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-32 rounded-md" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-4" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-16 rounded-md" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-24 rounded-md" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <Skeleton className="h-6 w-20" />
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-4 w-4 rounded-full" />
+                            <Skeleton className="h-6 w-16" />
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center ">-</div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      {project.milestones?.length > 0 ? (
-                        <div className="flex flex-col items-center  ">
-                          <div
-                            className="flex w-fit items-center px-2 cursor-pointer bg-gray-200 gap-2 rounded-md"
-                            onClick={() => {
-                              router.push(
-                                `/buyer/projects/${project.id}/shipping-details`
-                              );
-                            }}
-                          >
-                            <LiaShippingFastSolid
-                              className="text-[#78787a]"
-                              height={96}
-                            />
-                            Not Started
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-8 w-8 rounded-md" />
+                            <Skeleton className="h-8 w-8 rounded-md" />
                           </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center ">-</div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      {project.budget
-                        ? `$${project.budget} ${
-                            project.pricingCurrency?.toUpperCase() || "USD"
-                          }`
-                        : "N/A"}
-                    </td>
+                        </td>
+                      </tr>
+                    ))
+                  : // Actual data rows
+                    filteredProjects.map((project) => (
+                      <tr
+                        key={project.id}
+                        className="border-b hover:bg-gray-50"
+                      >
+                        <td className="py-3 px-4 text-sm">
+                          {project.selectedServices?.join(", ")}
+                        </td>
 
-                    <td className="py-3 px-4 text-sm">
-                      <span className="flex items-center gap-2">
-                        <span className="relative w-4 h-4">
-                          {/* Outer circle */}
-                          <span className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-yellow-500 -translate-x-1/2 -translate-y-1/2"></span>{" "}
-                          {/* Inner dot */}
-                        </span>
-                        Pending
-                      </span>
-                    </td>
+                        <td className="py-3 px-4 text-sm">
+                          <p className="bg-gray-200 w-fit px-2 rounded-md">
+                            {project.requestedSeller.length}
+                          </p>
+                        </td>
 
-                    <td className="py-3 px-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => {
-                            router.push(
-                              `/buyer/projects/${project.id}/supplier`
-                            );
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                        <td className="py-3 px-4 text-sm">
+                          <p className="bg-gray-200 w-fit px-2 rounded-md">
+                            {project.businessName || "N/A"}
+                          </p>
+                        </td>
+
+                        <td className="py-3 px-4 text-sm">
+                          <div className="flex items-center bg-gray-200 px-2 w-fit rounded-md">
+                            <Wallet className="mr-2 text-[#78787a]" />
+
+                            {project.projectTimeline
+                              ? new Date(
+                                  project.projectTimeline[0]
+                                ).toLocaleDateString()
+                              : "N/A"}
+                          </div>
+                        </td>
+
+                        <td className="py-3 px-4 text-sm">
+                          <div className="flex items-center flex-col">-</div>
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          {project.milestones?.length > 0 ? (
+                            <div className="flex flex-col items-center  ">
+                              <div className="flex w-fit bg-gray-200  px-2 items-center  rounded-md">
+                                <TbCash className="mr-1 text-[#78787a]" />
+                                View
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center ">-</div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          {project.milestones?.length > 0 ? (
+                            <div className="flex flex-col items-center  ">
+                              <div
+                                className="flex w-fit items-center px-2 cursor-pointer bg-gray-200 gap-2 rounded-md"
+                                onClick={() => {
+                                  router.push(
+                                    `/buyer/projects/${project.id}/shipping-details`
+                                  );
+                                }}
+                              >
+                                <LiaShippingFastSolid
+                                  className="text-[#78787a]"
+                                  height={96}
+                                />
+                                Not Started
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center ">-</div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm">
+                          {project.budget
+                            ? `$${project.budget} ${
+                                project.pricingCurrency?.toUpperCase() || "USD"
+                              }`
+                            : "N/A"}
+                        </td>
+
+                        <td className="py-3 px-4 text-sm">
+                          <span className="flex items-center gap-2">
+                            <span className="relative w-4 h-4">
+                              {/* Outer circle */}
+                              <span className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-yellow-500 -translate-x-1/2 -translate-y-1/2"></span>{" "}
+                              {/* Inner dot */}
+                            </span>
+                            Pending
+                          </span>
+                        </td>
+
+                        <td className="py-3 px-4 text-sm">
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => {
+                                router.push(
+                                  `/buyer/projects/${project.id}/supplier`
+                                );
+                              }}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                            >
+                              <MessageSquare className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
               </tbody>
             </table>
           </div>
