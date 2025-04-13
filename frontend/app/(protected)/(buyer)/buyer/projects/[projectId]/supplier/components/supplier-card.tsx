@@ -60,7 +60,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
       </div>
 
       <div className="p-4">
-        <div className="flex items-center mb-1">
+        {/* <div className="flex items-center mb-1">
           <div className="flex items-center text-amber-500">
             <Star className="h-4 w-4 fill-current" />
             <span className="ml-1 text-sm font-medium">
@@ -70,7 +70,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
           <span className="text-xs text-gray-500 ml-1">
             ({supplier.reviews} reviews)
           </span>
-        </div>
+        </div> */}
 
         <p className="text-sm text-gray-600 mb-2 line-clamp-2">
           {supplier.description}
@@ -108,7 +108,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
           )}
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex justify-end">
           {supplier.verified && (
             <Badge
               variant="outline"
