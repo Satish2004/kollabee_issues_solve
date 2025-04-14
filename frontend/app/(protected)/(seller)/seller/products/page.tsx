@@ -1,30 +1,32 @@
-"use client"
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { 
-  Box, 
-  List, 
-  Plus, 
-  Search, 
-  Eye, 
-  Edit2, 
+import type React from "react";
+import { useState, useEffect } from "react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Box,
+  List,
+  Plus,
+  Search,
+  Eye,
+  Edit2,
   Trash,
   ChevronLeft,
   ChevronRight,
-  ShoppingCart,
-  Circle,
-  ArrowDownUp
-} from 'lucide-react';
-import { productsApi } from '@/lib/api/products';
-import {categoryApi} from '@/lib/api/category';
-import { Product } from '@/types/api';
-import { toast } from 'sonner';
-import Link from 'next/link';
-import { format } from 'date-fns';
-import { profileApi } from '@/lib/api/profile';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+  ArrowDownUp,
+} from "lucide-react";
+import { productsApi } from "@/lib/api/products";
+import { categoryApi } from "@/lib/api/category";
+import type { Product } from "@/types/api";
+import { toast } from "sonner";
+import Link from "next/link";
+import { profileApi } from "@/lib/api/profile";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface ProductStats {
   categories: number;
@@ -34,22 +36,22 @@ interface ProductStats {
 }
 
 const ProductsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'active' | 'draft'>('active');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<"active" | "draft">("active");
+  const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState<any[]>([]);
-  const [sortField, setSortField] = useState<string>('createdAt');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortField, setSortField] = useState<string>("createdAt");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [profileCompletion, setProfileCompletion] = useState<number[]>([]);
 
   const [stats, setStats] = useState<ProductStats>({
     categories: 0,
     totalProducts: 0,
     topSelling: 0,
-    lowStocks: 0
+    lowStocks: 0,
   });
 
   useEffect(() => {
@@ -62,40 +64,50 @@ const ProductsPage: React.FC = () => {
   }, [activeTab, searchQuery, currentPage, sortField, sortOrder]);
 
   useEffect(() => {
-    const newStats = {...stats};
-    if(categories.length > 0){
+    const newStats = { ...stats };
+    if (categories.length > 0) {
       newStats.categories = categories.length;
+    } else {
+      newStats.categories = 7;
     }
-    if(products.length > 0){
-      newStats.totalProducts = products.length;
-    }
-    if(products.length > 0){
-      const lowStocks = products.filter((product) => product.availableQuantity < 10);
+    if (products.length > 0) {
+      const lowStocks = products.filter(
+        (product) => product.availableQuantity < 15
+      );
       newStats.lowStocks = lowStocks.length;
     }
+    if (products.length > 0) {
+      newStats.totalProducts = products.length;
+    }
+    if (products.length > 0) {
+      const topSelling = products.filter(
+        (product) => product.availableQuantity > 0
+      );
+      newStats.topSelling = topSelling.length;
+    }
     setStats(newStats);
-  },[categories,products])
+  }, [categories, products]);
 
   const loadCategories = async () => {
-    const response:any = await categoryApi.getAll();
+    const response: any = await categoryApi.getAll();
     setCategories(response.data);
-  }
+  };
 
   const loadProfileCompletion = async () => {
-    const response:any = await profileApi.getProfileCompletion();
+    const response: any = await profileApi.getProfileCompletion();
     setProfileCompletion(response);
-  }
+  };
 
   const loadProducts = async () => {
     try {
       setIsLoading(true);
-      const response:any = await productsApi.getProducts({
+      const response: any = await productsApi.getProducts({
         search: searchQuery,
         page: currentPage,
         limit: 10,
-        status: activeTab === 'active' ? "ACTIVE" : "DRAFT",
+        status: activeTab === "active" ? "ACTIVE" : "DRAFT",
         sortBy: sortField,
-        sortOrder: sortOrder
+        sortOrder: sortOrder,
       });
 
       setProducts(response.data);
@@ -104,75 +116,77 @@ const ProductsPage: React.FC = () => {
         setTotalPages(response?.totalPages);
       }
     } catch (error) {
-      console.error('Failed to load products:', error);
-      toast.error('Failed to load products');
+      console.error("Failed to load products:", error);
+      toast.error("Failed to load products");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleDelete = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm("Are you sure you want to delete this product?")) return;
 
     try {
       await productsApi.deleteProduct(productId);
-      toast.success('Product deleted successfully');
+      toast.success("Product deleted successfully");
       loadProducts(); // Reload the list
     } catch (error) {
-      console.error('Failed to delete product:', error);
-      toast.error('Failed to delete product');
+      console.error("Failed to delete product:", error);
+      toast.error("Failed to delete product");
     }
   };
 
   const findMissingSteps = (completedSteps: number[]): number[] => {
     const completedSet = new Set(completedSteps);
-    return Array.from({ length: 11 }, (_, i) => i + 1)
-      .filter(step => !completedSet.has(step));
+    return Array.from({ length: 11 }, (_, i) => i + 1).filter(
+      (step) => !completedSet.has(step)
+    );
   };
 
   const isAddProductDisabled = () => {
     return profileCompletion.length !== 11;
-  }
+  };
 
-  const remainingSteps = findMissingSteps(profileCompletion); 
+  const remainingSteps = findMissingSteps(profileCompletion);
 
   const sortOptions = [
-    { label: 'Date', value: 'createdAt' },
-    { label: 'Name', value: 'name' },
-    { label: 'Price', value: 'price' },
-    { label: 'Stock', value: 'availableQuantity' }
+    { label: "Date", value: "createdAt" },
+    { label: "Name", value: "name" },
+    { label: "Price", value: "price" },
+    { label: "Stock", value: "availableQuantity" },
   ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-    
 
       {/* Main Content */}
       <div className="p-6">
         {/* Stats */}
-    {    activeTab === 'active' && <div className="grid grid-cols-4 gap-4 mb-6">
-          <StatCard
-            title="CATEGORIES"
-            value={stats.categories}
-            icon={<Box className="w-5 h-5 text-red-500" />}
-          />
-          <StatCard
-            title="TOTAL PRODUCTS"
-            value={stats.totalProducts}
-            icon={<List className="w-5 h-5 text-red-500" />}
-          />
-          <StatCard
-            title="TOP SELLING"
-            value={stats.topSelling}
-            icon={<Box className="w-5 h-5 text-red-500" />}
-          />
-          <StatCard
-            title="LOW STOCKS"
-            value={stats.lowStocks}
-            icon={<Box className="w-5 h-5 text-red-500" />}
-          />
-        </div>}
+        {activeTab === "active" && (
+          <div className="grid grid-cols-4 gap-4 mb-6">
+            <StatCard
+              title="CATEGORIES"
+              value={stats.categories}
+              icon={<Box className="w-5 h-5 text-red-500" />}
+            />
+            <StatCard
+              title="TOTAL PRODUCTS"
+              value={stats.totalProducts}
+              icon={<List className="w-5 h-5 text-red-500" />}
+            />
+            <StatCard
+              title="TOP SELLING"
+              value={stats.topSelling}
+              icon={<Box className="w-5 h-5 text-red-500" />}
+            />
+            <StatCard
+              title="LOW STOCKS"
+              value={stats.lowStocks}
+              icon={<Box className="w-5 h-5 text-red-500" />}
+            />
+          </div>
+        )}
 
         {/* Product List */}
         <div className="bg-white rounded-lg shadow">
@@ -180,58 +194,72 @@ const ProductsPage: React.FC = () => {
             <div className="flex space-x-4">
               <button
                 className={`px-4 py-2 ${
-                  activeTab === 'active'
-                    ? 'text-red-500 border-b-2 border-red-500'
-                    : 'text-gray-500'
+                  activeTab === "active"
+                    ? "text-red-500 border-b-2 border-red-500"
+                    : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab('active')}
+                onClick={() => setActiveTab("active")}
               >
                 Active Products
               </button>
               <button
                 className={`px-4 py-2 ${
-                  activeTab === 'draft'
-                    ? 'text-red-500 border-b-2 border-red-500'
-                    : 'text-gray-500'
+                  activeTab === "draft"
+                    ? "text-red-500 border-b-2 border-red-500"
+                    : "text-gray-500"
                 }`}
-                onClick={() => setActiveTab('draft')}
+                onClick={() => setActiveTab("draft")}
               >
                 Draft Products
               </button>
             </div>
-            
 
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="relative">
                   <Link
-                    href={isAddProductDisabled() ? "#" : "/seller/products/add-product"}
+                    href={
+                      isAddProductDisabled()
+                        ? "#"
+                        : "/seller/products/add-product"
+                    }
                     className={cn(
                       "flex items-center space-x-2 px-4 py-2 rounded-[6px] gradient-border bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]",
                       isAddProductDisabled() && "opacity-50 cursor-not-allowed"
                     )}
-                    onClick={(e) => isAddProductDisabled() && e.preventDefault()}
+                    onClick={(e) =>
+                      isAddProductDisabled() && e.preventDefault()
+                    }
                   >
                     <Plus className="w-4 h-4 text-pink-500" strokeWidth={3} />
-                    <span className='gradient-text font-semibold'>Add Product</span>
+                    <span className="gradient-text font-semibold">
+                      Add Product
+                    </span>
                   </Link>
                 </div>
               </TooltipTrigger>
               {isAddProductDisabled() && (
-                <TooltipContent side="top" className=" -ml-28 bg-zinc-900 text-white p-3">
-                  <p className="font-medium  text-sm mb-2">Complete the remaining steps in Seller Profile</p>
+                <TooltipContent
+                  side="top"
+                  className=" -ml-28 bg-zinc-900 text-white p-3"
+                >
+                  <p className="font-medium  text-sm mb-2">
+                    Complete the remaining steps in Seller Profile
+                  </p>
                   <p className="text-xs">
-                    {remainingSteps.length > 0 
-                      ? `Remaining ${remainingSteps.length > 1 ? "steps" : "step"} to be completed: ${remainingSteps.join(", ")}`
+                    {remainingSteps.length > 0
+                      ? `Remaining ${
+                          remainingSteps.length > 1 ? "steps" : "step"
+                        } to be completed: ${remainingSteps.join(", ")}`
                       : "All steps completed!"}
                   </p>
-                    <div className='w-full flex justify-end mt-4'>
+                  <div className="w-full flex justify-end mt-4">
                     <Link href="/seller/profile">
-                      <Button className='bg-zinc-200 hover:bg-zinc-300 text-zinc-950'>
+                      <Button className="bg-zinc-200 hover:bg-zinc-300 text-zinc-950">
                         Complete Profile
                       </Button>
-                  </Link>
-                    </div>
+                    </Link>
+                  </div>
                 </TooltipContent>
               )}
             </Tooltip>
@@ -239,27 +267,33 @@ const ProductsPage: React.FC = () => {
 
           {/* Search and Filter */}
           <div className="px-4 py-2 flex justify-between items-center bg-[#f8f9fb]">
-            <div className='flex items-center space-x-4'>
+            <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <select 
+                <select
                   className="border rounded-xl px-2 py-1 text-sm"
                   value={sortField}
                   onChange={(e) => setSortField(e.target.value)}
                 >
-                  {sortOptions.map(option => (
+                  {sortOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
                   ))}
                 </select>
-                <button 
-                  onClick={() => setSortOrder(order => order === 'asc' ? 'desc' : 'asc')}
+                <button
+                  onClick={() =>
+                    setSortOrder((order) => (order === "asc" ? "desc" : "asc"))
+                  }
                   className="flex items-center space-x-1 text-sm"
                 >
-                  <ArrowDownUp className={`w-4 h-4 cursor-pointer ${
-                    sortOrder === 'desc' ? 'rotate-180' : ''
-                  }`}/>
-                  <span>{sortOrder === 'asc' ? 'Ascending' : 'Descending'}</span>
+                  <ArrowDownUp
+                    className={`w-4 h-4 cursor-pointer ${
+                      sortOrder === "desc" ? "rotate-180" : ""
+                    }`}
+                  />
+                  <span>
+                    {sortOrder === "asc" ? "Ascending" : "Descending"}
+                  </span>
                 </button>
               </div>
             </div>
@@ -286,59 +320,92 @@ const ProductsPage: React.FC = () => {
               <table className="w-full">
                 <thead>
                   <tr className="">
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Products</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Price</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Stock</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Created</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Status</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">Actions</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                      Products
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                      Price
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                      Stock
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                      Created
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                      Status
+                    </th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.length > 0 ? products.map((product) => (
-                    <tr key={product.id} className="border-t text-sm">
-                      <td className="px-4 py-2">
-                        <div className="flex items-center space-x-3">
-                       
-                          <span>{product.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-2">${product.price}</td>
-                      <td className="px-4 py-2">{product.availableQuantity}</td>
-                      <td className="px-4 py-2">
-                        {new Date(product.createdAt).toLocaleDateString()}
-                      </td>
-                      <td className="px-4 py-2 text-xs">
-
-                          {product.availableQuantity>0 ? 
-                          <div className='flex items-center space-x-2'>
-                          <div className='w-2 h-2 bg-green-600 rounded-full'/>
-                          <span className='text-green-600'>In Stock</span>
+                  {products.length > 0 ? (
+                    products.map((product) => (
+                      <tr key={product.id} className="border-t text-sm">
+                        <td className="px-4 py-2">
+                          <div className="flex items-center space-x-3">
+                            <span>{product.name}</span>
                           </div>
-                          : product.availableQuantity<10 ? 
-                          <div className='flex items-center space-x-2'>
-                          <div className='w-2 h-2 bg-yellow-600 rounded-full'/>
-                          <span className='text-yellow-600'>Low Stock</span>
-                          </div> : <div className='flex items-center space-x-2'>
-                          <div className='w-2 h-2 bg-red-600 rounded-full'/>
-                          <span className='text-red-600'>Out of Stock</span>
-                          </div>}
-                      </td>
-                      <td className="px-4 py-2 w-1/6">
-                        <div className="flex space-x-2 w-full gap-3">
-                          <Link href={`/seller/products/${product.id}`}>
-                            <Eye className="w-4 h-4" />
-                          </Link>
-                          <Link href={`/seller/products/${product.id}/edit`}>
-                            <Edit2 className="w-4 h-4" />
-                          </Link>
-                          <button onClick={() => handleDelete(product.id)}>
-                            <Trash className="w-4 h-4 text-yellow-600" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  )) : <div className='p-8 text-center flex items-center justify-center'>No products found</div>}
+                        </td>
+                        <td className="px-4 py-2">${product.price}</td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={
+                              product.availableQuantity < 15
+                                ? "bg-red-100 text-red-600 px-2 py-1 rounded"
+                                : ""
+                            }
+                          >
+                            {product.availableQuantity}
+                          </span>
+                        </td>
+                        <td className="px-4 py-2">
+                          {new Date(product.createdAt).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-2 text-xs">
+                          {product.availableQuantity > 0 ? (
+                            product.availableQuantity < 15 ? (
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-yellow-600 rounded-full" />
+                                <span className="text-yellow-600">
+                                  Low Stock
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-green-600 rounded-full" />
+                                <span className="text-green-600">In Stock</span>
+                              </div>
+                            )
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-2 h-2 bg-red-600 rounded-full" />
+                              <span className="text-red-600">Out of Stock</span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-2 w-1/6">
+                          <div className="flex space-x-2 w-full gap-3">
+                            <Link href={`/seller/products/${product.id}`}>
+                              <Eye className="w-4 h-4" />
+                            </Link>
+                            <Link href={`/seller/products/${product.id}/edit`}>
+                              <Edit2 className="w-4 h-4" />
+                            </Link>
+                            <button onClick={() => handleDelete(product.id)}>
+                              <Trash className="w-4 h-4 text-yellow-600" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center flex items-center justify-center">
+                      No products found
+                    </div>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -346,9 +413,9 @@ const ProductsPage: React.FC = () => {
 
           {/* Pagination */}
           <div className="flex items-center justify-center space-x-2 p-4">
-            <button 
+            <button
               className="p-1 rounded hover:bg-gray-100"
-              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1}
             >
               <ChevronLeft className="w-5 h-5" />
@@ -358,15 +425,17 @@ const ProductsPage: React.FC = () => {
                 key={page}
                 onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 rounded ${
-                  page === currentPage ? 'bg-red-500 text-white' : 'hover:bg-gray-100'
+                  page === currentPage
+                    ? "bg-red-500 text-white"
+                    : "hover:bg-gray-100"
                 }`}
               >
                 {page}
               </button>
             ))}
-            <button 
+            <button
               className="p-1 rounded hover:bg-gray-100"
-              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
             >
               <ChevronRight className="w-5 h-5" />
@@ -394,4 +463,4 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => (
   </div>
 );
 
-export default ProductsPage; 
+export default ProductsPage;
