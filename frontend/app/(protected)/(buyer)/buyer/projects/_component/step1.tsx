@@ -43,6 +43,13 @@ const category = [
   },
 ];
 
+const formatText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
 interface Step1Props {
   handleNext: () => void;
 }
@@ -85,7 +92,7 @@ const Step1: React.FC<
                 <SelectContent className="z-1000 bg-white">
                   {category.map((item) => (
                     <SelectItem key={item.id} value={item.name}>
-                      {item.name}
+                      {formatText(item.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -127,7 +134,7 @@ const Step1: React.FC<
                 <SelectContent>
                   {category.map((item) => (
                     <SelectItem key={item.id} value={item.name}>
-                      {item.name}
+                      {formatText(item.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>

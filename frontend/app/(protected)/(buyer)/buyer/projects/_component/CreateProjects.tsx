@@ -114,6 +114,16 @@ const CreateProjects = ({
         newErrors.projectTimelineFrom = "Project Timeline is required.";
       if (!formData.projectTimelineTo)
         newErrors.projectTimelineTo = "Project Timeline is required.";
+      if (
+        formData.projectTimelineFrom &&
+        formData.projectTimelineTo &&
+        new Date(formData.projectTimelineTo) <
+          new Date(formData.projectTimelineFrom)
+      ) {
+        newErrors.projectTimelineTo =
+          "it can not be befor the start of the timeline.";
+      }
+
       if (!formData.budget) newErrors.budget = "Budget is required.";
       if (!formData.pricingCurrency)
         newErrors.pricingCurrency = "Pricing Currency is required.";
@@ -130,6 +140,13 @@ const CreateProjects = ({
               "Milestone Payment Percentage is required.";
           if (!milestone.dueDate)
             milestoneErrors.dueDate = "Milestone Due Date is required.";
+          else if (
+            formData.projectTimelineFrom &&
+            new Date(milestone.dueDate) < new Date(formData.projectTimelineFrom)
+          ) {
+            milestoneErrors.dueDate =
+              "Milestone Due Date cannot be earlier than Project Timeline From.";
+          }
           return milestoneErrors;
         });
 
