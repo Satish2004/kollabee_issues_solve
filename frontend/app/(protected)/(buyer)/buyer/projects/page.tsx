@@ -285,19 +285,19 @@ const ProjectsPage = () => {
                         </td>
 
                         <td className="py-3 px-4 text-sm">
-                          <p className="bg-gray-200 w-fit px-2 rounded-md">
+                          <p className="bg-[#F4F4F4] w-fit px-2 rounded-md">
                             {project.requestedSeller.length}
                           </p>
                         </td>
 
                         <td className="py-3 px-4 text-sm">
-                          <p className="bg-gray-200 w-fit px-2 rounded-md">
+                          <p className="bg-[#F4F4F4] w-fit px-2 rounded-md">
                             {project.businessName || "N/A"}
                           </p>
                         </td>
 
                         <td className="py-3 px-4 text-sm">
-                          <div className="flex items-center bg-gray-200 px-2 w-fit rounded-md">
+                          <div className="flex items-center bg-[#F4F4F4] px-2 w-fit rounded-md">
                             <Wallet className="mr-2 text-[#78787a]" />
 
                             {project.projectTimeline
@@ -314,7 +314,7 @@ const ProjectsPage = () => {
                         <td className="py-3 px-4 text-sm">
                           {project.milestones?.length > 0 ? (
                             <div className="flex flex-col items-center  ">
-                              <div className="flex w-fit bg-gray-200  px-2 items-center  rounded-md">
+                              <div className="flex w-fit bg-[#F4F4F4]  px-2 items-center  rounded-md">
                                 <TbCash className="mr-1 text-[#78787a]" />
                                 View
                               </div>
@@ -327,7 +327,7 @@ const ProjectsPage = () => {
                           {project.milestones?.length > 0 ? (
                             <div className="flex flex-col items-center  ">
                               <div
-                                className="flex w-fit items-center px-2 cursor-pointer bg-gray-200 gap-2 rounded-md"
+                                className="flex w-fit items-center px-2 cursor-pointer bg-[#F4F4F4] gap-2 rounded-md"
                                 onClick={() => {
                                   router.push(
                                     `/buyer/projects/${project.id}/shipping-details`

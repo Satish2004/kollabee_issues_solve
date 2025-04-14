@@ -2,7 +2,15 @@
 
 import type React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Upload, X, Loader2, Plus, ChevronLeft, Check } from "lucide-react";
+import {
+  Upload,
+  X,
+  Loader2,
+  Plus,
+  ChevronLeft,
+  Check,
+  FileText,
+} from "lucide-react";
 import { toast } from "sonner";
 import { productsApi } from "@/lib/api/products";
 import { categoryApi } from "@/lib/api/category";
@@ -467,7 +475,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
           documents: newDocuments,
         }));
         setDocuments(newDocuments);
-        toast.success("Document uploaded successfully");
+        toast.success(
+          `${
+            file.type.includes("pdf") ? "PDF" : "Document"
+          } uploaded successfully`
+        );
       } catch (error) {
         toast.error("Failed to upload document");
       } finally {
@@ -1562,6 +1574,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <input
                       id="documents-upload"
                       type="file"
+                      accept="image/*,.pdf"
                       ref={fileInputRef}
                       className="hidden"
                       onChange={handleDocumentUpload}
@@ -1579,22 +1592,49 @@ const ProductForm: React.FC<ProductFormProps> = ({
               {/* Display uploaded documents */}
               {documents.length > 0 && (
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {documents.map((doc: string, index: number) => (
-                    <div key={index} className="relative border rounded-md p-2">
-                      <img
-                        src={doc || "/placeholder.svg"}
-                        alt={`Document ${index + 1}`}
-                        className="w-full h-32 object-cover"
-                      />
-                      <button
-                        type="button"
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
-                        onClick={() => removeDocument(index)}
+                  {documents.map((doc: string, index: number) => {
+                    // Check if the document is a PDF by looking at the file extension
+                    const isPdf = doc.toLowerCase().endsWith(".pdf");
+
+                    return (
+                      <div
+                        key={index}
+                        className="relative border rounded-md p-2"
                       >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        {isPdf ? (
+                          <div className="w-full h-32 flex items-center justify-center bg-gray-100">
+                            <div className="flex flex-col items-center justify-center">
+                              <FileText className="w-10 h-10 text-red-500 mb-2" />
+                              <span className="text-sm font-medium">
+                                PDF Document
+                              </span>
+                              <a
+                                href={doc}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-500 mt-1 hover:underline"
+                              >
+                                View PDF
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={doc || "/placeholder.svg"}
+                            alt={`Document ${index + 1}`}
+                            className="w-full h-32 object-cover"
+                          />
+                        )}
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                          onClick={() => removeDocument(index)}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>
