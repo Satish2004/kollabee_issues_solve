@@ -15,21 +15,58 @@ import { useFormContext } from "./create-projects-context";
 const category = [
   {
     id: 1,
-    name: "Apparel & Fashion",
+    name: "FASHION_APPAREL_ACCESSORIES",
   },
   {
     id: 2,
-    name: "Automobiles & Motorcycles",
+    name: "BEAUTY_COSMETICS",
+  },
+  {
+    id: 3,
+    name: "FOOD_BEVERAGE",
+  },
+  {
+    id: 4,
+    name: "HEALTH_WELLNESS",
+  },
+  {
+    id: 5,
+    name: "HOME_CLEANING_ESSENTIALS",
+  },
+  {
+    id: 6,
+    name: "HERBAL_NATURAL_PRODUCTS",
+  },
+  {
+    id: 8,
+    name: "OTHER",
   },
 ];
+
+const formatText = (text: string): string => {
+  return text
+    .toLowerCase()
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
 
 interface Step1Props {
   handleNext: () => void;
 }
 
-const Step1: React.FC<Step1Props> = ({ handleNext }) => {
+const Step1: React.FC<
+  Step1Props & {
+    errors: Record<string, string>;
+    setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  }
+> = ({ handleNext, errors, setErrors }) => {
   const { formData, updateFormData } = useFormContext();
   const { category: selectedCategory, businessName, productType } = formData;
+
+  const handleChange = (field: string, value: string) => {
+    updateFormData(field, value);
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
 
   return (
     <div>
@@ -48,19 +85,22 @@ const Step1: React.FC<Step1Props> = ({ handleNext }) => {
             </label>
             <Select
               value={selectedCategory}
-              onValueChange={(value) => updateFormData("category", value)}
+              onValueChange={(value) => handleChange("category", value)}
             >
               <SelectTrigger className="w-full h-10 rounded-l-md bg-white border border-gray-300 px-3">
                 <SelectValue placeholder="Select Category" />
                 <SelectContent className="z-1000 bg-white">
                   {category.map((item) => (
                     <SelectItem key={item.id} value={item.name}>
-                      {item.name}
+                      {formatText(item.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </SelectTrigger>
             </Select>
+            {errors.category && (
+              <p className="text-red-500 text-sm">{errors.category}</p>
+            )}
           </div>
           <div>
             <label htmlFor="businessName" className="text-[#78787A] text-sm">
@@ -73,8 +113,11 @@ const Step1: React.FC<Step1Props> = ({ handleNext }) => {
               className="border border-[#D2D2D2] rounded-md p-2 w-full"
               placeholder="Type here..."
               value={businessName}
-              onChange={(e) => updateFormData("businessName", e.target.value)}
+              onChange={(e) => handleChange("businessName", e.target.value)}
             />
+            {errors.businessName && (
+              <p className="text-red-500 text-sm">{errors.businessName}</p>
+            )}
           </div>
 
           <div>
@@ -84,19 +127,22 @@ const Step1: React.FC<Step1Props> = ({ handleNext }) => {
             </label>
             <Select
               value={productType}
-              onValueChange={(value) => updateFormData("productType", value)}
+              onValueChange={(value) => handleChange("productType", value)}
             >
-              <SelectTrigger className="w-full h-10 rounded-l-md bg-white border border-gray-300 px-3">
+              <SelectTrigger className="w-full h-10 rounded-l-md z-100 bg-white border border-gray-300 px-3">
                 <SelectValue placeholder="Select Product Type" />
                 <SelectContent>
                   {category.map((item) => (
                     <SelectItem key={item.id} value={item.name}>
-                      {item.name}
+                      {formatText(item.name)}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </SelectTrigger>
             </Select>
+            {errors.productType && (
+              <p className="text-red-500 text-sm">{errors.productType}</p>
+            )}
           </div>
         </div>
       </div>

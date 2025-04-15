@@ -342,7 +342,7 @@ const featureBoxes = [
       bgColor: "bg-blue-100",
       title: "Chat Requests",
       description: "Your chat requests from the suppliers and admins",
-      link: "#",
+      link: "/buyer/chat",
     },
     {
       icon: "📱",
@@ -358,9 +358,9 @@ const featureBoxes = [
       bgColor: "bg-yellow-100",
       title: "Chat Requests",
       description: "Your chat requests from the suppliers and admins",
-      link: "#",
+      link: "/buyer/chat",
     },
-  ]
+  ];
 
 const products = Array(3).fill({
   image: "/placeholder.svg?height=300&width=400",

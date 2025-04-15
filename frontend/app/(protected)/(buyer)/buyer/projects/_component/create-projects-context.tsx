@@ -1,46 +1,14 @@
 "use client";
 
+import { Project } from "@/types/api";
 import { createContext, useContext, useState, type ReactNode } from "react";
+import axios from "axios"; // Import axios for API calls
+import projectApi from "@/lib/api/project";
 
 // Define all the form data types
-export interface FormData {
-  // Step 0
-  selectedServices: string[];
-
-  // Step 1
-  category: string;
-  businessName: string;
-  productType: string;
-
-  // Step 2
-  formulationType: string;
-  targetBenefit: string;
-  texturePreferences: string;
-  colorPreferences: string;
-  fragrancePreferences: string;
-  packagingType: string;
-  materialPreferences: string;
-  bottleSize: string;
-  labelingNeeded: string;
-  minimumOrderQuantity: string;
-  certificationsRequired: string;
-  sampleRequirements: string;
-
-  // Step 3
-  projectTimeline: Date | undefined;
-  budget: number;
-  pricingCurrency: string;
-  milestones: {
-    id: number;
-    name: string;
-    description: string;
-    paymentPercentage: string;
-    dueDate: Date | undefined;
-  }[];
-}
 
 // Create initial state with default values
-const initialFormData: FormData = {
+const initialFormData: Project = {
   // Step 0
   selectedServices: ["custom-manufacturing"],
 
@@ -64,7 +32,8 @@ const initialFormData: FormData = {
   sampleRequirements: "no",
 
   // Step 3
-  projectTimeline: undefined,
+  projectTimelineFrom: undefined,
+  projectTimelineTo: undefined,
   budget: 0,
   pricingCurrency: "",
   milestones: [
@@ -75,35 +44,30 @@ const initialFormData: FormData = {
       paymentPercentage: "",
       dueDate: undefined,
     },
-    {
-      id: 2,
-      name: "",
-      description: "",
-      paymentPercentage: "",
-      dueDate: undefined,
-    },
   ],
 };
 
 // Create context with type safety
 interface FormContextType {
-  formData: FormData;
-  updateFormData: (field: keyof FormData, value: any) => void;
+  formData: Project;
+  updateFormData: (field: keyof Project, value: any) => void;
   updateNestedFormData: (
-    section: keyof FormData,
+    section: keyof Project,
     field: string,
     value: any,
     id?: number
   ) => void;
+  createProject: () => Promise<void>;
+  updateProject: (id: string) => Promise<void>;
 }
 
 const FormContext = createContext<FormContextType | undefined>(undefined);
 
 // Provider component
 export function FormProvider({ children }: { children: ReactNode }) {
-  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [formData, setFormData] = useState<Project>(initialFormData);
 
-  const updateFormData = (field: keyof FormData, value: any) => {
+  const updateFormData = (field: keyof Project, value: any) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -112,7 +76,7 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
   // For updating nested objects like milestones
   const updateNestedFormData = (
-    section: keyof FormData,
+    section: keyof Project,
     field: string,
     value: any,
     id?: number
@@ -136,9 +100,33 @@ export function FormProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const createProject = async () => {
+    try {
+      const response = await projectApi.createProject(formData);
+      console.log("Project created successfully:", response.data);
+    } catch (error) {
+      console.error("Failed to create project:", error);
+    }
+  };
+
+  const updateProject = async (id: string) => {
+    try {
+      const response = await projectApi.updateProject(id, formData);
+      console.log("Project updated successfully:", response.data);
+    } catch (error) {
+      console.error("Failed to update project:", error);
+    }
+  };
+
   return (
     <FormContext.Provider
-      value={{ formData, updateFormData, updateNestedFormData }}
+      value={{
+        formData,
+        updateFormData,
+        updateNestedFormData,
+        createProject,
+        updateProject,
+      }}
     >
       {children}
     </FormContext.Provider>

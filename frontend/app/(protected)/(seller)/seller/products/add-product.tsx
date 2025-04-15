@@ -2,7 +2,15 @@
 
 import type React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Upload, X, Loader2, Plus, ChevronLeft, Check } from "lucide-react";
+import {
+  Upload,
+  X,
+  Loader2,
+  Plus,
+  ChevronLeft,
+  Check,
+  FileText,
+} from "lucide-react";
 import { toast } from "sonner";
 import { productsApi } from "@/lib/api/products";
 import { categoryApi } from "@/lib/api/category";
@@ -59,7 +67,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
       attributes: {},
       images: [],
       isDraft: true,
-      thumbnail: null,
+      thumbnail: [], // Changed from null to empty array
     }
   );
   const [imageLoading, setImageLoading] = useState(false);
@@ -82,7 +90,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [activeSection, setActiveSection] = useState<string>("upload");
   const [activeNumber, setActiveNumber] = useState<number>(1);
   const thumbnailRef = useRef<HTMLInputElement>(null);
-  const [thumbnail, setThumbnail] = useState<any>(null);
+  const [thumbnail, setThumbnail] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -117,12 +125,25 @@ const ProductForm: React.FC<ProductFormProps> = ({
   );
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
+  // Add a new state for form errors at the top of the component, after other state declarations
+  const [errors, setErrors] = useState<{
+    name?: string;
+    price?: string;
+    discount?: string;
+    deliveryCost?: string;
+    minOrderQuantity?: string;
+    availableQuantity?: string;
+  }>({});
+
+  // Add a new state to track if form has been submitted
+  const [formSubmitted, setFormSubmitted] = useState(false);
+
   // Use refs to avoid dependency issues in useEffect
   const formDataRef = useRef(formData);
   const industryAttributesRef = useRef(industryAttributes);
   const otherAttributesRef = useRef(otherAttributes);
   const customAttributesRef = useRef(customAttributes);
-  const thumbnailRef2 = useRef(thumbnail);
+  const thumbnailRef2 = useRef<any[]>([]);
   const documentsRef2 = useRef(documents);
   const coverImageRef = useRef(coverImage);
   const modeRef = useRef(mode);
@@ -249,7 +270,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               customAttributes: customAttributesRef.current,
               lastSaved: now.toISOString(),
             };
-            localStorage.setItem("productDraft", JSON.stringify(draftData));
+            localStorage.removeItem("productDraft");
           })
           .catch((error) => {
             console.error("Error auto-saving product:", error);
@@ -318,7 +339,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setCoverImage(initialData.images[0]);
       }
       if (initialData.thumbnail) {
-        setThumbnail(initialData.thumbnail);
+        // Handle both array and string cases for backward compatibility
+        const thumbnailArray = Array.isArray(initialData.thumbnail)
+          ? initialData.thumbnail
+          : initialData.thumbnail
+          ? [initialData.thumbnail]
+          : [];
+        setThumbnail(thumbnailArray);
       }
       if (initialData.documents) {
         setDocuments(initialData.documents);
@@ -407,22 +434,30 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const handleThumbnailUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      try {
-        setThumbnailLoading(true);
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    try {
+      setThumbnailLoading(true);
+
+      // Process each file
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         const response: any = await productsApi.uploadImage(file);
+
+        // Add the new thumbnail URL to the existing array
+        setThumbnail((prev) => [...prev, response?.url]);
         setFormData((prev: any) => ({
           ...prev,
-          thumbnail: response?.url,
+          thumbnail: [...(prev.thumbnail || []), response?.url],
         }));
-        setThumbnail(response?.url);
-        toast.success("Thumbnail uploaded successfully");
-      } catch (error) {
-        toast.error("Failed to upload thumbnail");
-      } finally {
-        setThumbnailLoading(false);
       }
+
+      toast.success("Thumbnails uploaded successfully");
+    } catch (error) {
+      toast.error("Failed to upload thumbnails");
+    } finally {
+      setThumbnailLoading(false);
     }
   };
 
@@ -440,7 +475,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
           documents: newDocuments,
         }));
         setDocuments(newDocuments);
-        toast.success("Document uploaded successfully");
+        toast.success(
+          `${
+            file.type.includes("pdf") ? "PDF" : "Document"
+          } uploaded successfully`
+        );
       } catch (error) {
         toast.error("Failed to upload document");
       } finally {
@@ -449,11 +488,60 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
+  // Add a validation function before the handleSubmit function
+  const validateForm = () => {
+    const newErrors: any = {};
+
+    // Validate required fields
+    if (!formData.name?.trim()) {
+      newErrors.name = "Product name is required";
+    }
+
+    if (!formData.price) {
+      newErrors.price = "Price is required";
+    }
+
+    if (
+      formData.discount &&
+      (isNaN(Number(formData.discount)) ||
+        Number(formData.discount) < 0 ||
+        Number(formData.discount) > 100)
+    ) {
+      newErrors.discount = "Discount must be between 0 and 100";
+    }
+
+    if (!formData.deliveryCost) {
+      newErrors.deliveryCost = "Delivery cost is required";
+    }
+
+    if (!formData.minOrderQuantity) {
+      newErrors.minOrderQuantity = "Minimum order quantity is required";
+    }
+
+    if (!formData.availableQuantity) {
+      newErrors.availableQuantity = "Available quantity is required";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Modify the handleSubmit function to include validation
   const handleSubmit = async (e: React.FormEvent, isDraft = true) => {
     e.preventDefault();
+    setFormSubmitted(true);
+
+    // Validate form before submission
+    const isValid = validateForm();
+    if (!isValid) {
+      toast.error("Please fill the required fields before saving");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // Rest of the existing handleSubmit code...
       // Combine all attributes into a single object
       const allAttributes = [
         ...industryAttributes,
@@ -469,13 +557,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
       const productData = {
         ...formData,
-        // isDraft: saveStatus === "unsaved" ? true : false,  // TODO: This is supposed to be removed as the drafts are products which are not confirmed by admin
         attributes: attributesObject,
         thumbnail: thumbnail,
         documents: documents,
       };
-
-      // console.log("Product data:", productData);
 
       let response: any;
       if (mode === "edit") {
@@ -483,9 +568,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
         localStorage.removeItem("productDraft");
       } else {
         response = await productsApi.create(productData);
-        // Clear localStorage draft after successful creation
         localStorage.removeItem("productDraft");
-        console.log("Draft Removed")
+        console.log("Draft Removed");
         setFormData({
           name: "",
           description: "",
@@ -497,7 +581,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           attributes: {},
           images: [],
           isDraft: true,
-          thumbnail: null,
+          thumbnail: [],
         });
         setCoverImage(null);
       }
@@ -515,13 +599,56 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   };
 
+  // Add a function to handle real-time validation as user types
+  const handleInputChange = (field: string, value: any) => {
+    setFormData({
+      ...formData,
+      [field]: value,
+    });
+
+    // Only validate in real-time if the form has been submitted once
+    if (formSubmitted) {
+      // Clear the specific error if the field is now valid
+      if (field === "name" && value.trim()) {
+        setErrors((prev) => ({ ...prev, name: undefined }));
+      }
+
+      if (field === "price" && value) {
+        setErrors((prev) => ({ ...prev, price: undefined }));
+      }
+
+      if (field === "discount") {
+        if (!value || (Number(value) >= 0 && Number(value) <= 100)) {
+          setErrors((prev) => ({ ...prev, discount: undefined }));
+        } else {
+          setErrors((prev) => ({
+            ...prev,
+            discount: "Discount must be between 0 and 100",
+          }));
+        }
+      }
+
+      if (field === "deliveryCost" && value) {
+        setErrors((prev) => ({ ...prev, deliveryCost: undefined }));
+      }
+
+      if (field === "minOrderQuantity" && value) {
+        setErrors((prev) => ({ ...prev, minOrderQuantity: undefined }));
+      }
+
+      if (field === "availableQuantity" && value) {
+        setErrors((prev) => ({ ...prev, availableQuantity: undefined }));
+      }
+    }
+  };
+
   // Handle scroll to section
   const scrollToSection = (sectionId: string) => {
     const refs: any = {
       upload: uploadRef,
       "general-info": generalInfoRef,
       "product-details": productDetailsRef,
-      "documents": documentsRef,
+      documents: documentsRef,
     };
 
     refs[sectionId]?.current?.scrollIntoView({
@@ -530,7 +657,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
     });
 
     setActiveSection(sectionId);
-    setActiveNumber(sectionId === "upload" ? 1 : sectionId === "general-info" ? 2 : sectionId === "product-details" ? 3 : 4);
+    setActiveNumber(
+      sectionId === "upload"
+        ? 1
+        : sectionId === "general-info"
+        ? 2
+        : sectionId === "product-details"
+        ? 3
+        : 4
+    );
   };
 
   const handleScroll = () => {
@@ -540,32 +675,40 @@ const ProductForm: React.FC<ProductFormProps> = ({
       { id: "product-details", ref: productDetailsRef },
       { id: "documents", ref: documentsRef },
     ];
-  
+
     for (const section of sections) {
       const element = section.ref.current;
       if (element) {
         const rect = element.getBoundingClientRect();
         const isVisible = rect.top <= 100 && rect.bottom >= 100;
-  
+
         if (isVisible) {
           setActiveSection(section.id);
           break;
         }
       }
     }
-  
+
     // Special handling for the documents section at the end of the page
     const documentsElement = documentsRef.current;
     if (documentsElement) {
       const rect = documentsElement.getBoundingClientRect();
       const isAtEndOfPage = rect.bottom <= window.innerHeight + 100;
-  
+
       if (isAtEndOfPage) {
         setActiveSection("documents");
       }
     }
 
-    setActiveNumber(activeSection === "upload" ? 1 : activeSection === "general-info" ? 2 : activeSection === "product-details" ? 3 : 4);
+    setActiveNumber(
+      activeSection === "upload"
+        ? 1
+        : activeSection === "general-info"
+        ? 2
+        : activeSection === "product-details"
+        ? 3
+        : 4
+    );
   };
 
   // Functions to handle attribute updates
@@ -711,70 +854,131 @@ const ProductForm: React.FC<ProductFormProps> = ({
           {/* Navigation Section */}
           <div className="bg-white rounded-lg shadow p-4">
             <div className="space-y-2">
-              <button onClick={() => scrollToSection("upload")} className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 1 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 1 ? "text-white" : ""}`}>01</span>
-              </div>
-              <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "upload"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
-                }`}
+              <button
+                onClick={() => scrollToSection("upload")}
+                className="flex items-center space-x-1 w-full"
               >
-                Upload Art Cover
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 1 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 1 ? "text-white" : ""
+                    }`}
+                  >
+                    01
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "upload"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Upload Art Cover
+                </div>
               </button>
-              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 1 ? "bg-green-500" : " bg-neutral-200 "}`}></div>
-              
-
-              <button onClick={() => scrollToSection("general-info")}  className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 2 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 2 ? "text-white" : ""}`}>02</span>
-              </div>
               <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "general-info"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
+                className={`h-8 w-0.5 rounded-full ml-4 ${
+                  activeNumber > 1 ? "bg-green-500" : " bg-neutral-200 "
                 }`}
+              ></div>
+
+              <button
+                onClick={() => scrollToSection("general-info")}
+                className="flex items-center space-x-1 w-full"
               >
-                General Information
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 2 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 2 ? "text-white" : ""
+                    }`}
+                  >
+                    02
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "general-info"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  General Information
+                </div>
               </button>
-              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 2 ? "bg-green-500" : " bg-neutral-200 "}`}></div>
-
-
-              <button  onClick={() => scrollToSection("product-details")}  className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 3 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 3 ? "text-white" : ""}`}>03</span>
-              </div>
               <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "product-details"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
+                className={`h-8 w-0.5 rounded-full ml-4 ${
+                  activeNumber > 2 ? "bg-green-500" : " bg-neutral-200 "
                 }`}
+              ></div>
+
+              <button
+                onClick={() => scrollToSection("product-details")}
+                className="flex items-center space-x-1 w-full"
               >
-                Product Details
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 3 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 3 ? "text-white" : ""
+                    }`}
+                  >
+                    03
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "product-details"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Product Details
+                </div>
               </button>
-              <div className={`h-8 w-0.5 rounded-full ml-4 ${activeNumber > 3 ? "bg-green-500" : " bg-neutral-200 "}`}></div>
-
-
-              <button  onClick={() => scrollToSection("documents")}  className="flex items-center space-x-1 w-full">
-              <div className={`w-10 aspect-square ${activeNumber >= 4 ? "bg-green-500" : "bg-neutral-200"} rounded-full flex items-center justify-center`}>
-                <span className={`font-semibold text-sm ${activeNumber >= 4 ? "text-white" : ""}`}>04</span>
-              </div>
               <div
-                className={`w-full text-left p-2 rounded ${
-                  activeSection === "documents"
-                  ? "bg-green-50 text-green-600"
-                    : "hover:bg-gray-50"
+                className={`h-8 w-0.5 rounded-full ml-4 ${
+                  activeNumber > 3 ? "bg-green-500" : " bg-neutral-200 "
                 }`}
+              ></div>
+
+              <button
+                onClick={() => scrollToSection("documents")}
+                className="flex items-center space-x-1 w-full"
               >
-                Documents
-              </div>
+                <div
+                  className={`w-10 aspect-square ${
+                    activeNumber >= 4 ? "bg-green-500" : "bg-neutral-200"
+                  } rounded-full flex items-center justify-center`}
+                >
+                  <span
+                    className={`font-semibold text-sm ${
+                      activeNumber >= 4 ? "text-white" : ""
+                    }`}
+                  >
+                    04
+                  </span>
+                </div>
+                <div
+                  className={`w-full text-left p-2 rounded ${
+                    activeSection === "documents"
+                      ? "bg-green-50 text-green-600"
+                      : "hover:bg-gray-50"
+                  }`}
+                >
+                  Documents
+                </div>
               </button>
             </div>
           </div>
@@ -822,6 +1026,10 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <p className="text-gray-600 mb-2 text-sm">
                       Drag and drop your image here
                     </p>
+                    <p className="text-gray-600 mb-2 text-sm">
+                      Recommended image size: 400 x 300 px for optimal display
+                    </p>
+
                     <input
                       type="file"
                       accept="image/*"
@@ -862,11 +1070,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
             </section>
 
             {/* Product Details Section */}
-            <section
-              id="general-info"
-              ref={generalInfoRef}
-              className="mb-8"
-            >
+            <section id="general-info" ref={generalInfoRef} className="mb-8">
               <h2 className="text-lg font-semibold mb-4">Product Details</h2>
 
               <div className="mb-6">
@@ -876,48 +1080,63 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <div className="w-12 h-12 text-gray-400 mx-auto mb-4">
                       <Loader2 className="w-12 h-12 animate-spin" />
                     </div>
-                  ) : thumbnail ? (
-                    <div className="relative">
-                      <img
-                        src={thumbnail || "/placeholder.svg"}
-                        alt="Thumbnail"
-                        className="w-32 h-32 object-cover mx-auto mb-4"
-                      />
-                      <button
-                        type="button"
-                        className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                        onClick={() => {
-                          setThumbnail(null);
-                          setFormData((prev: any) => ({
-                            ...prev,
-                            thumbnail: null,
-                          }));
-                        }}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
                   ) : (
                     <>
                       <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600 mb-2">
-                        Upload a thumbnail for your product
+                        Upload thumbnails for your product
+                      </p>
+                      <p className="text-gray-600 mb-2">
+                        Recommended image size: 400 x 300 px for optimal display
                       </p>
                       <input
                         id="thumbnail-upload"
                         type="file"
                         accept="image/*"
+                        multiple
                         ref={thumbnailRef}
                         className="hidden"
                         onChange={handleThumbnailUpload}
                       />
                       <label
-                        htmlFor="thumbnail-upload"
-                        className="text-[#898989] border border-[#898989] text-sm px-4 py-1 rounded-[14px] font-semibold cursor-pointer"
+                        htmlFor="documents-upload"
+                        className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-6 py-2 transition-all duration-200"
                       >
                         Browse Files
                       </label>
                     </>
+                  )}
+
+                  {thumbnail.length > 0 && (
+                    <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {thumbnail.map((doc: string, index: number) => (
+                        <div
+                          key={index}
+                          className="relative border rounded-md p-2"
+                        >
+                          <img
+                            src={doc || "/placeholder.svg"}
+                            alt={`Thumbnail ${index + 1}`}
+                            className="w-32 h-32 object-cover mx-auto"
+                          />
+                          <button
+                            type="button"
+                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+                            onClick={() => {
+                              const newThumbnails = [...thumbnail];
+                              newThumbnails.splice(index, 1);
+                              setThumbnail(newThumbnails);
+                              setFormData((prev: any) => ({
+                                ...prev,
+                                thumbnail: newThumbnails,
+                              }));
+                            }}
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
@@ -925,126 +1144,162 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <h3 className="text-md font-medium mb-4">Price Details</h3>
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  <div className="text-sm text-gray-600 w-[50%]">Name</div>
-                  <input
-                    type="text"
-                    placeholder="Enter product name"
-                    className="w-full p-2 border rounded-md bg-[#fcfcfc]"
-                    value={formData.name || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        name: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="text-sm text-gray-600 w-[50%]">
+                    Name <span className="text-red-500">*</span>
+                  </div>
+                  <div className="w-full">
+                    <input
+                      type="text"
+                      placeholder="Enter product name"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.name ? "border-red-500" : ""
+                      }`}
+                      value={formData.name || ""}
+                      onChange={(e) =>
+                        handleInputChange("name", e.target.value)
+                      }
+                    />
+                    {errors.name && (
+                      <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Add product price
+                    Add product price <span className="text-red-500">*</span>
                   </div>
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                      ₹
+                      $
                     </span>
                     <input
                       type="text"
                       placeholder="122.00"
-                      className="w-full p-2 pl-8 border rounded-md bg-[#fcfcfc]"
+                      className={`w-full p-2 pl-8 border rounded-md bg-[#fcfcfc] ${
+                        errors.price ? "border-red-500" : ""
+                      }`}
                       value={formData.price || ""}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          price: e.target.value,
-                        })
+                        handleInputChange("price", e.target.value)
                       }
                     />
+                    {errors.price && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.price}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
-                  <div className="w-1/3 text-sm text-gray-600">Discount</div>
+                  <div className="w-1/3 text-sm text-gray-600">
+                    Discount <span className="text-red-500">*</span>
+                  </div>
                   <div className="flex-1 relative">
                     <input
                       type="text"
                       placeholder="Enter discount"
-                      className="w-full p-2 border rounded-md bg-[#fcfcfc]"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.discount ? "border-red-500" : ""
+                      }`}
                       value={formData.discount || ""}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          discount: e.target.value,
-                        })
+                        handleInputChange("discount", e.target.value)
                       }
                     />
                     <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500">
                       %
                     </span>
+                    {errors.discount && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.discount}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Delivery cost
+                    Delivery cost <span className="text-red-500">*</span>
                   </div>
                   <div className="flex-1 relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                      ₹
+                      $
                     </span>
                     <input
                       type="text"
                       placeholder="Enter delivery cost"
-                      className="w-full p-2 pl-8 border rounded-md bg-[#fcfcfc]"
+                      className={`w-full p-2 pl-8 border rounded-md bg-[#fcfcfc] ${
+                        errors.deliveryCost ? "border-red-500" : ""
+                      }`}
                       value={formData.deliveryCost || ""}
                       onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          deliveryCost: e.target.value,
-                        })
+                        handleInputChange("deliveryCost", e.target.value)
                       }
                     />
+                    {errors.deliveryCost && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.deliveryCost}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Minimum order
+                    Minimum order <span className="text-red-500">*</span>
                   </div>
-                  <input
-                    type="number"
-                    placeholder="Enter minimum order quantity"
-                    className="flex-1 p-2 border rounded-md bg-[#fcfcfc]"
-                    value={formData.minOrderQuantity || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        minOrderQuantity: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      placeholder="Enter minimum order quantity"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.minOrderQuantity ? "border-red-500" : ""
+                      }`}
+                      value={formData.minOrderQuantity || ""}
+                      onChange={(e) =>
+                        handleInputChange("minOrderQuantity", e.target.value)
+                      }
+                    />
+                    {errors.minOrderQuantity && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.minOrderQuantity}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="w-1/3 text-sm text-gray-600">
-                    Available quantity
+                    Available quantity <span className="text-red-500">*</span>
                   </div>
-                  <input
-                    type="number"
-                    placeholder="Enter available quantity"
-                    className="flex-1 p-2 border rounded-md bg-[#fcfcfc]"
-                    value={formData.availableQuantity || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        availableQuantity: e.target.value,
-                      })
-                    }
-                  />
+                  <div className="flex-1">
+                    <input
+                      type="number"
+                      placeholder="Enter available quantity"
+                      className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
+                        errors.availableQuantity ? "border-red-500" : ""
+                      }`}
+                      value={formData.availableQuantity || ""}
+                      onChange={(e) =>
+                        handleInputChange("availableQuantity", e.target.value)
+                      }
+                    />
+                    {errors.availableQuantity && (
+                      <p className="text-red-500 text-xs mt-1">
+                        {errors.availableQuantity}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
             </section>
 
             {/* Product Attributes Section */}
-            <section id="product-details" ref={productDetailsRef} className="mb-8">
+            <section
+              id="product-details"
+              ref={productDetailsRef}
+              className="mb-8"
+            >
               <h2 className="text-lg font-semibold mb-4">Key attributes</h2>
 
               {/* Industry-specific attributes */}
@@ -1313,9 +1568,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <p className="text-gray-600 mb-2">
                       Drag and drop your documents here
                     </p>
+                    <p className="text-gray-600 mb-2">
+                      Recommended image size: 400 x 300 px for optimal display
+                    </p>
                     <input
                       id="documents-upload"
                       type="file"
+                      accept="image/*,.pdf"
                       ref={fileInputRef}
                       className="hidden"
                       onChange={handleDocumentUpload}
@@ -1333,22 +1592,49 @@ const ProductForm: React.FC<ProductFormProps> = ({
               {/* Display uploaded documents */}
               {documents.length > 0 && (
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {documents.map((doc: string, index: number) => (
-                    <div key={index} className="relative border rounded-md p-2">
-                      <img
-                        src={doc || "/placeholder.svg"}
-                        alt={`Document ${index + 1}`}
-                        className="w-full h-32 object-cover"
-                      />
-                      <button
-                        type="button"
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
-                        onClick={() => removeDocument(index)}
+                  {documents.map((doc: string, index: number) => {
+                    // Check if the document is a PDF by looking at the file extension
+                    const isPdf = doc.toLowerCase().endsWith(".pdf");
+
+                    return (
+                      <div
+                        key={index}
+                        className="relative border rounded-md p-2"
                       >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
+                        {isPdf ? (
+                          <div className="w-full h-32 flex items-center justify-center bg-gray-100">
+                            <div className="flex flex-col items-center justify-center">
+                              <FileText className="w-10 h-10 text-red-500 mb-2" />
+                              <span className="text-sm font-medium">
+                                PDF Document
+                              </span>
+                              <a
+                                href={doc}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-500 mt-1 hover:underline"
+                              >
+                                View PDF
+                              </a>
+                            </div>
+                          </div>
+                        ) : (
+                          <img
+                            src={doc || "/placeholder.svg"}
+                            alt={`Document ${index + 1}`}
+                            className="w-full h-32 object-cover"
+                          />
+                        )}
+                        <button
+                          type="button"
+                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                          onClick={() => removeDocument(index)}
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </section>

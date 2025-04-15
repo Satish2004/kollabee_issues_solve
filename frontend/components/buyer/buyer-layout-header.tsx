@@ -111,9 +111,9 @@ export default function BuyerLayoutHeader() {
       href: "/seller/notifications",
     },
     {
-      label: "Cross-Supplier",
+      label: "Projects",
       icon: "custom",
-      href: "/buyer/cross-supplier",
+      href: "/buyer/projects",
     },
   ];
 
@@ -125,6 +125,14 @@ export default function BuyerLayoutHeader() {
       href: "/seller/update-product",
     };
   }
+
+   if (!currentRoute && pathname.startsWith("/buyer/projects/")) {
+     currentRoute = {
+       label: "Projects",
+       icon: "custom",
+       href: "/buyer/projects",
+     };
+   }
 
   const handleLogout = async () => {
     try {

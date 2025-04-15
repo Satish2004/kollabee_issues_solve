@@ -14,7 +14,15 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useFormContext } from "./create-projects-context";
 
-export default function Step2({ handleNext }: { handleNext: () => void }) {
+export default function Step2({
+  handleNext,
+  errors,
+  setErrors,
+}: {
+  handleNext: () => void;
+  errors: Record<string, string>;
+  setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+}) {
   const { formData, updateFormData } = useFormContext();
   const [sections, setSections] = useState({
     formulation: true,
@@ -31,7 +39,13 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
     }));
   };
 
-
+  const validateField = (field: string, value: string) => {
+    if (!value) {
+      setErrors((prev) => ({ ...prev, [field]: "This field is required." }));
+    } else {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
 
   return (
     <div className="w-full max-w-3xl mx-auto p-4 bg-white">
@@ -65,9 +79,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
               </Label>
               <Select
                 value={formData.formulationType}
-                onValueChange={(value) =>
-                  updateFormData("formulationType", value)
-                }
+                onValueChange={(value) => {
+                  updateFormData("formulationType", value);
+                  validateField("formulationType", value);
+                }}
               >
                 <SelectTrigger id="formulation-type">
                   <SelectValue placeholder="Choose" />
@@ -79,6 +94,9 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                   <SelectItem value="oil">Oil</SelectItem>
                 </SelectContent>
               </Select>
+              {errors?.formulationType && (
+                <p className="text-red-500 text-sm">{errors.formulationType}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="target-benefit" className="text-sm">
@@ -86,9 +104,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
               </Label>
               <Select
                 value={formData.targetBenefit}
-                onValueChange={(value) =>
-                  updateFormData("targetBenefit", value)
-                }
+                onValueChange={(value) => {
+                  updateFormData("targetBenefit", value);
+                  validateField("targetBenefit", value);
+                }}
               >
                 <SelectTrigger id="target-benefit">
                   <SelectValue placeholder="Choose" />
@@ -100,6 +119,9 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                   <SelectItem value="soothing">Soothing</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.targetBenefit && (
+                <p className="text-red-500 text-sm">{errors.targetBenefit}</p>
+              )}
             </div>
           </div>
         )}
@@ -128,9 +150,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                 </Label>
                 <Select
                   value={formData.texturePreferences}
-                  onValueChange={(value) =>
-                    updateFormData("texturePreferences", value)
-                  }
+                  onValueChange={(value) => {
+                    updateFormData("texturePreferences", value);
+                    validateField("texturePreferences", value);
+                  }}
                 >
                   <SelectTrigger id="texture-preferences">
                     <SelectValue placeholder="Choose" />
@@ -142,6 +165,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                     <SelectItem value="whipped">Whipped</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.texturePreferences && (
+                  <p className="text-red-500 text-sm">
+                    {errors.texturePreferences}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="color-preferences" className="text-sm">
@@ -149,9 +177,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                 </Label>
                 <Select
                   value={formData.colorPreferences}
-                  onValueChange={(value) =>
-                    updateFormData("colorPreferences", value)
-                  }
+                  onValueChange={(value) => {
+                    updateFormData("colorPreferences", value);
+                    validateField("colorPreferences", value);
+                  }}
                 >
                   <SelectTrigger id="color-preferences">
                     <SelectValue placeholder="Choose" />
@@ -163,6 +192,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                     <SelectItem value="natural">Natural</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.colorPreferences && (
+                  <p className="text-red-500 text-sm">
+                    {errors.colorPreferences}
+                  </p>
+                )}
               </div>
             </div>
             <div className="space-y-2">
@@ -171,9 +205,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
               </Label>
               <Select
                 value={formData.fragrancePreferences}
-                onValueChange={(value) =>
-                  updateFormData("fragrancePreferences", value)
-                }
+                onValueChange={(value) => {
+                  updateFormData("fragrancePreferences", value);
+                  validateField("fragrancePreferences", value);
+                }}
               >
                 <SelectTrigger id="fragrance-preferences">
                   <SelectValue placeholder="Choose" />
@@ -185,6 +220,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                   <SelectItem value="herbal">Herbal</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.fragrancePreferences && (
+                <p className="text-red-500 text-sm">
+                  {errors.fragrancePreferences}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -213,9 +253,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                 </Label>
                 <Select
                   value={formData.packagingType}
-                  onValueChange={(value) =>
-                    updateFormData("packagingType", value)
-                  }
+                  onValueChange={(value) => {
+                    updateFormData("packagingType", value);
+                    validateField("packagingType", value);
+                  }}
                 >
                   <SelectTrigger id="packaging-type">
                     <SelectValue placeholder="Choose" />
@@ -227,6 +268,9 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                     <SelectItem value="airless-pump">Airless Pump</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.packagingType && (
+                  <p className="text-red-500 text-sm">{errors.packagingType}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="material-preferences" className="text-sm">
@@ -234,9 +278,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                 </Label>
                 <Select
                   value={formData.materialPreferences}
-                  onValueChange={(value) =>
-                    updateFormData("materialPreferences", value)
-                  }
+                  onValueChange={(value) => {
+                    updateFormData("materialPreferences", value);
+                    validateField("materialPreferences", value);
+                  }}
                 >
                   <SelectTrigger id="material-preferences">
                     <SelectValue placeholder="Choose" />
@@ -248,6 +293,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                     <SelectItem value="aluminum">Aluminum</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.materialPreferences && (
+                  <p className="text-red-500 text-sm">
+                    {errors.materialPreferences}
+                  </p>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -257,7 +307,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                 </Label>
                 <Select
                   value={formData.bottleSize}
-                  onValueChange={(value) => updateFormData("bottleSize", value)}
+                  onValueChange={(value) => {
+                    updateFormData("bottleSize", value);
+                    validateField("bottleSize", value);
+                  }}
                 >
                   <SelectTrigger id="bottle-size">
                     <SelectValue placeholder="Choose" />
@@ -269,14 +322,18 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                     <SelectItem value="200ml">200ml</SelectItem>
                   </SelectContent>
                 </Select>
+                {errors.bottleSize && (
+                  <p className="text-red-500 text-sm">{errors.bottleSize}</p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label className="text-sm">Labeling and Printing Needs*</Label>
                 <RadioGroup
                   value={formData.labelingNeeded}
-                  onValueChange={(value) =>
-                    updateFormData("labelingNeeded", value)
-                  }
+                  onValueChange={(value) => {
+                    updateFormData("labelingNeeded", value);
+                    validateField("labelingNeeded", value);
+                  }}
                   className="flex space-x-4 pt-1"
                 >
                   <div className="flex items-center space-x-2">
@@ -292,6 +349,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                     </Label>
                   </div>
                 </RadioGroup>
+                {errors.labelingNeeded && (
+                  <p className="text-red-500 text-sm">
+                    {errors.labelingNeeded}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -322,9 +384,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
               </Label>
               <Select
                 value={formData.minimumOrderQuantity}
-                onValueChange={(value) =>
-                  updateFormData("minimumOrderQuantity", value)
-                }
+                onValueChange={(value) => {
+                  updateFormData("minimumOrderQuantity", value);
+                  validateField("minimumOrderQuantity", value);
+                }}
               >
                 <SelectTrigger id="minimum-order">
                   <SelectValue placeholder="Choose" />
@@ -336,6 +399,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                   <SelectItem value="5000">5,000+ units</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.minimumOrderQuantity && (
+                <p className="text-red-500 text-sm">
+                  {errors.minimumOrderQuantity}
+                </p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="certifications" className="text-sm">
@@ -343,9 +411,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
               </Label>
               <Select
                 value={formData.certificationsRequired}
-                onValueChange={(value) =>
-                  updateFormData("certificationsRequired", value)
-                }
+                onValueChange={(value) => {
+                  updateFormData("certificationsRequired", value);
+                  validateField("certificationsRequired", value);
+                }}
               >
                 <SelectTrigger id="certifications">
                   <SelectValue placeholder="Choose" />
@@ -357,6 +426,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                   <SelectItem value="none">None</SelectItem>
                 </SelectContent>
               </Select>
+              {errors.certificationsRequired && (
+                <p className="text-red-500 text-sm">
+                  {errors.certificationsRequired}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -384,9 +458,10 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
               </Label>
               <RadioGroup
                 value={formData.sampleRequirements}
-                onValueChange={(value) =>
-                  updateFormData("sampleRequirements", value)
-                }
+                onValueChange={(value) => {
+                  updateFormData("sampleRequirements", value);
+                  validateField("sampleRequirements", value);
+                }}
                 className="flex space-x-4 pt-1"
               >
                 <div className="flex items-center space-x-2">
@@ -402,6 +477,11 @@ export default function Step2({ handleNext }: { handleNext: () => void }) {
                   </Label>
                 </div>
               </RadioGroup>
+              {errors.sampleRequirements && (
+                <p className="text-red-500 text-sm">
+                  {errors.sampleRequirements}
+                </p>
+              )}
             </div>
           </div>
         )}

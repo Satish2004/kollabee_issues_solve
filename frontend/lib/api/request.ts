@@ -1,5 +1,5 @@
-import { api } from '../axios';
-import { Request } from '@/types/api';
+import { api } from "../axios";
+import { Request } from "@/types/api";
 
 export interface CreateRequestData {
   productName: string;
@@ -16,16 +16,16 @@ export interface CreateRequestData {
 
 export const requestApi = {
   getAll: async (params?: {
-    status?: 'PENDING' | 'APPROVED' | 'REJECTED';
+    status?: "PENDING" | "APPROVED" | "REJECTED";
     search?: string;
     page?: number;
     limit?: number;
   }) => {
-    return api.get<Request[]>('/requests', { params });
+    return api.get<Request[]>("/requests", { params });
   },
 
   create: async (data: CreateRequestData) => {
-    return api.post<Request>('/requests', data);
+    return api.post<Request>("/requests", data);
   },
 
   getById: async (id: string) => {
@@ -40,7 +40,7 @@ export const requestApi = {
     return api.delete(`/requests/${id}`);
   },
 
-  updateStatus: async (id: string, status: 'APPROVED' | 'REJECTED') => {
+  updateStatus: async (id: string, status: "APPROVED" | "REJECTED") => {
     return api.patch<Request>(`/requests/${id}/status`, { status });
-  }
-}; 
+  },
+};

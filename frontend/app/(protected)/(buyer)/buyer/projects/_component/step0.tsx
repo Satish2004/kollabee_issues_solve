@@ -3,11 +3,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { ArrowRight } from "lucide-react";
 import { useFormContext } from "./create-projects-context";
-import { useEffect } from "react";
+import { useState } from "react";
 
 const Step0 = ({ handleNext }: { handleNext: () => void }) => {
   const { formData, updateFormData } = useFormContext();
   const { selectedServices } = formData;
+  const [error, setError] = useState("");
 
   const toggleService = (value: string) => {
     updateFormData(
@@ -16,6 +17,15 @@ const Step0 = ({ handleNext }: { handleNext: () => void }) => {
         ? selectedServices.filter((item) => item !== value)
         : [...selectedServices, value]
     );
+    setError(""); // Clear error when a service is selected or deselected
+  };
+
+  const handleNextStep = () => {
+    if (selectedServices.length === 0) {
+      setError("Please select at least one service.");
+      return;
+    }
+    handleNext();
   };
 
   return (
@@ -103,11 +113,12 @@ const Step0 = ({ handleNext }: { handleNext: () => void }) => {
             </div>
           </div>
         </div>
+        {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
       </div>
 
       <button
-        className="w-48 flex items-center gap-2 justify-center py-2 text-[#e00261] font-semibold border-2 border-[#e00261] rounded-lg transition-colors"
-        onClick={handleNext}
+        className="w-48 flex items-center gap-2 h-14 justify-center py-2  font-semibold border-2  rounded-lg gradient-border gradient-text"
+        onClick={handleNextStep}
       >
         <span>Next</span>
         <ArrowRight className="w-5 h-5 text-[#e00261]" />
