@@ -168,12 +168,6 @@ export const getMetrics = async (req: any, res: Response) => {
     ] = await Promise.all([
       // Current month total orders
       prisma.order.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
       }),
       
       // Current month total revenue
@@ -338,6 +332,24 @@ export const getMetrics = async (req: any, res: Response) => {
       }),
     ]);
 
+    console.log(seller)
+    console.log(      totalOrders,
+      totalRevenue,
+      pendingOrders,
+      totalProducts,
+      totalMessages,
+      totalRequests,
+      totalRequestsRevenue,
+      totalReturns,
+      returnedProductsWorth,
+      pendingOrdersWorth,
+      
+      // Last month metrics
+      lastMonthTotalOrders,
+      lastMonthTotalRevenue,
+      lastMonthTotalRequests,
+      lastMonthTotalRequestsRevenue,
+      lastMonthTotalReturns,)
     // Calculate differences
     const revenueDifference = (totalRevenue._sum.totalAmount || 0) - (lastMonthTotalRevenue._sum.totalAmount || 0);
     const ordersDifference = totalOrders - lastMonthTotalOrders;

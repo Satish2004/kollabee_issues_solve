@@ -12,7 +12,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ChevronRight, Minus, Plus, ShoppingCart, Store, Truck, Globe, Phone, MapPin, Star, User } from "lucide-react"
+import { ChevronRight, Minus, Plus, ShoppingCart, Store, Truck, Globe, Phone, MapPin, Star, User, ChevronDown, Play, ChevronLeft } from "lucide-react"
+import { cn } from '@/lib/utils';
+
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -20,6 +22,30 @@ export default function EditProductPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [quantity, setQuantity] = useState(10)
   const {id} = useParams();
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
+  const [selectedPrintingMethods, setSelectedPrintingMethods] = useState<string[]>(["Puff Printing"])
+  const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0)
+
+  const productImages = product?.images
+
+  const thumbnailsPerView = 6
+  const hasMoreThumbnails = productImages.length > thumbnailsPerView
+
+  const handleThumbnailScroll = () => {
+    if (thumbnailStartIndex + thumbnailsPerView >= productImages.length) {
+      setThumbnailStartIndex(0)
+    } else {
+      setThumbnailStartIndex((prev) => prev + 1)
+    }
+  }
+
+  const nextImage = () => {
+    setActiveImageIndex((prev) => (prev + 1) % productImages.length)
+  }
+
+  const prevImage = () => {
+    setActiveImageIndex((prev) => (prev - 1 + productImages.length) % productImages.length)
+  }
 
   useEffect(() => {
     if (!id) {
@@ -52,34 +78,8 @@ export default function EditProductPage() {
   }
 
 
-  const handleSubmit = async (data: any) => {
-    try {
-      if (!id) {
-        toast.error('Product ID is required');
-        router.push('/seller/products');
-        return;
-      }
-      await productsApi.updateProduct(id as string, data);
-      toast.success('Product updated successfully');
-      router.push('/seller/products');
-    } catch (error) {
-      toast.error('Failed to update product');
-    }
-  };
 
   const discountedPrice = product.price - product.price * (product.discount / 100)
-
-  const incrementQuantity = () => {
-    if (quantity < product?.availableQuantity) {
-      setQuantity(quantity + 1)
-    }
-  }
-
-  const decrementQuantity = () => {
-    if (quantity > product.minOrderQuantity) {
-      setQuantity(quantity - 1)
-    }
-  }
 
   if(!product){
     return null
@@ -89,14 +89,60 @@ export default function EditProductPage() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         {/* Product Image */}
-        <div className="relative aspect-square bg-muted rounded-xl overflow-hidden">
-          <Image
-            src={product.images[0] || "/placeholder.svg"}
-            alt={product.name}
-            fill
-            className="object-cover"
-            priority
-          />
+        <div className="flex">
+          {/* Thumbnail Vertical Carousel */}
+          <div className="hidden sm:flex flex-col mr-4 space-y-2 relative">
+            {productImages.slice(thumbnailStartIndex, thumbnailStartIndex + thumbnailsPerView).map((img, idx) => (
+              <div
+                key={idx + thumbnailStartIndex}
+                className={cn(
+                  "w-16 h-16 border rounded cursor-pointer overflow-hidden",
+                  activeImageIndex === idx + thumbnailStartIndex ? "border-primary border-2" : "border-gray-200",
+                )}
+                onClick={() => setActiveImageIndex(idx + thumbnailStartIndex)}
+              >
+                <Image
+                  src={img || "/placeholder.svg"}
+                  alt={`Product thumbnail ${idx + thumbnailStartIndex + 1}`}
+                  width={64}
+                  height={64}
+                  className="object-cover w-full h-full"
+                />
+              </div>
+            ))}
+            {hasMoreThumbnails && (
+              <button
+                className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-gray-500 hover:text-gray-700"
+                onClick={handleThumbnailScroll}
+              >
+                <ChevronDown className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Main Image Carousel */}
+          <div className="flex-1 relative border border-gray-200 rounded-md overflow-hidden">
+            <div className="relative aspect-square">
+              <Image
+                src={productImages[activeImageIndex] || "/placeholder.svg"}
+                alt={`Product image ${activeImageIndex + 1}`}
+                fill
+                className="object-cover"
+              />
+              <button
+                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                onClick={prevImage}
+              >
+                <ChevronLeft className="h-5 w-5 text-gray-800" />
+              </button>
+              <button
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                onClick={nextImage}
+              >
+                <ChevronRight className="h-5 w-5 text-gray-800" />
+              </button>
+            </div>
+          </div>
         </div>
 
         {/* Product Details */}
@@ -150,7 +196,7 @@ export default function EditProductPage() {
                 <div className="flex items-center gap-2">
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <a href={`https://${product.seller.websiteLink}`} className="text-primary hover:underline">
-                    {product.seller.websiteLink}
+                    {product?.seller.websiteLink}
                   </a>
                 </div>
                 <div className="flex items-center gap-2">
@@ -184,9 +230,9 @@ export default function EditProductPage() {
         </TabsContent>
         <TabsContent value="attributes" className="p-4 bg-white rounded-b-xl">
           <h3 className="text-lg font-medium mb-3">Product Specifications</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {Object.entries(product.attributes).map(([key, value]) => (
-              <div key={key} className="flex justify-between border-b pb-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
+            {Object.entries(product.attributes).map(([key, value], index) => (
+              <div key={key} className={`flex justify-between border-b py-2 px-4 bg-gray-100 rounded-full`}>
                 <span className="font-medium">{key}</span>
                 <span className="text-muted-foreground">{value}</span>
               </div>
