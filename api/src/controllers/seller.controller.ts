@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
 import { audience } from "@prisma/client";
-import { upload, uploadToCloudinary } from '../utils/multer';
+import { upload, uploadToCloudinary } from "../utils/multer";
 
 export const getSellerProducts = async (req: any, res: Response) => {
   try {
@@ -398,7 +398,6 @@ export const updateProduct = async (req: any, res: Response) => {
   }
 };
 
-
 export const getSellers = async (req: any, res: Response) => {
   try {
     const sellers = await prisma.seller.findMany({
@@ -466,13 +465,13 @@ export const getSeller = async (req: any, res: Response) => {
           },
         },
       },
-    });   
-    
-   if (!seller) {
+    });
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  
-     res.json(seller);
+    }
+
+    res.json(seller);
   } catch (error) {
     console.error("Get seller error:", error);
     res.status(500).json({ error: "Failed to get seller" });
@@ -485,18 +484,17 @@ export const getSellerProfileCategories = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
 
-  const categoryData = {
-    selectedCategories: seller.businessCategories,
-    subcategories: seller.subCategories,
-  };
-  
+    const categoryData = {
+      selectedCategories: seller.businessCategories,
+      subcategories: seller.subCategories,
+    };
 
-  console.log(categoryData)
+    console.log(categoryData);
 
     res.json(categoryData);
   } catch (error) {
@@ -505,61 +503,74 @@ export const getSellerProfileCategories = async (req: any, res: Response) => {
   }
 };
 
-export const updateSellerProfileCategories = async (req: any, res: Response) => {
+export const updateSellerProfileCategories = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { selectedCategories, subcategories } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
 
-  const currentCompletion = seller.profileCompletion || [];
-  const hasCategories = selectedCategories.length > 0;
-  
-  const newCompletion = hasCategories
-    ? [...new Set([...currentCompletion, 1])] 
-    : currentCompletion.filter(step => step !== 1);
+    const currentCompletion = seller.profileCompletion || [];
+    const hasCategories = selectedCategories.length > 0;
 
-     await prisma.seller.update({
+    const newCompletion = hasCategories
+      ? [...new Set([...currentCompletion, 1])]
+      : currentCompletion.filter((step) => step !== 1);
+
+    await prisma.seller.update({
       where: { userId },
       data: {
         businessCategories: selectedCategories,
         subCategories: subcategories,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
     res.json(seller);
   } catch (error) {
     console.error("Update seller profile categories error:", error);
-    res.status(500).json({ error: "Failed to update seller profile categories" });
+    res
+      .status(500)
+      .json({ error: "Failed to update seller profile categories" });
   }
 };
 
-export const getSellerProfileProductionServices = async (req: any, res: Response) => {
+export const getSellerProfileProductionServices = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
-      return res.status(404).json({ error: "Seller not found" });
-  }
 
-  const prodServices = { services: seller.productionServices };
-     res.json(prodServices);
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const prodServices = { services: seller.productionServices };
+    res.json(prodServices);
   } catch (error) {
     console.error("Get seller profile production services error:", error);
-    res.status(500).json({ error: "Failed to get seller profile production services" });
+    res
+      .status(500)
+      .json({ error: "Failed to get seller profile production services" });
   }
 };
 
-export const updateSellerProfileProductionServices = async (req: any, res: Response) => {
+export const updateSellerProfileProductionServices = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { services } = req.body;
@@ -567,131 +578,148 @@ export const updateSellerProfileProductionServices = async (req: any, res: Respo
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
 
-  const currentCompletion = seller.profileCompletion || [];
-  const hasData = services.length > 0;
-  
-  const newCompletion = hasData
-    ? [...new Set([...currentCompletion, 2])] 
-    : currentCompletion.filter(step => step !== 2);
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData = services.length > 0;
 
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 2])]
+      : currentCompletion.filter((step) => step !== 2);
 
-     await prisma.seller.update({
+    await prisma.seller.update({
       where: { userId },
       data: {
         productionServices: services,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
     res.json(seller);
   } catch (error) {
     console.error("Update seller profile production services error:", error);
-    res.status(500).json({ error: "Failed to update seller profile production services" });
+    res
+      .status(500)
+      .json({ error: "Failed to update seller profile production services" });
   }
 };
 
-export const getSellerProfileProductionManagement = async (req: any, res: Response) => {
+export const getSellerProfileProductionManagement = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
     const prodManagement = { managementType: seller.productionManagementType };
-     res.json(prodManagement);
+    res.json(prodManagement);
   } catch (error) {
     console.error("Get seller profile production management error:", error);
-    res.status(500).json({ error: "Failed to get seller profile production management" });
+    res
+      .status(500)
+      .json({ error: "Failed to get seller profile production management" });
   }
 };
 
-export const updateSellerProfileProductionManagement = async (req: any, res: Response) => {
+export const updateSellerProfileProductionManagement = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { managementType } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  
+    }
 
-  const currentCompletion = seller.profileCompletion || [];
-  const hasData = managementType.length > 0;
-  
-  const newCompletion = hasData
-    ? [...new Set([...currentCompletion, 3])] 
-    : currentCompletion.filter(step => step !== 3);
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData = managementType.length > 0;
 
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 3])]
+      : currentCompletion.filter((step) => step !== 3);
 
-     await prisma.seller.update({
+    await prisma.seller.update({
       where: { userId },
       data: {
         productionManagementType: managementType,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
     res.json(seller);
   } catch (error) {
     console.error("Update seller profile production management error:", error);
-    res.status(500).json({ error: "Failed to update seller profile production management" });
+    res
+      .status(500)
+      .json({ error: "Failed to update seller profile production management" });
   }
 };
 
-export const getSellerProfileManufacturingLocations = async (req: any, res: Response) => {
+export const getSellerProfileManufacturingLocations = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  const locations = { locations: seller.manufacturingLocations };
-  
-     res.json(locations);
+    }
+    const locations = { locations: seller.manufacturingLocations };
+
+    res.json(locations);
   } catch (error) {
     console.error("Get seller profile manufacturing locations error:", error);
-    res.status(500).json({ error: "Failed to get seller profile manufacturing locations" });
+    res
+      .status(500)
+      .json({ error: "Failed to get seller profile manufacturing locations" });
   }
 };
 
-export const updateSellerProfileManufacturingLocations = async (req: any, res: Response) => {
+export const updateSellerProfileManufacturingLocations = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { locations } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
-      return res.status(404).json({ error: "Seller not found" });
-  }
 
-  const currentCompletion = seller.profileCompletion || [];
-  const hasData = locations.length > 0;
-  
-  const newCompletion = hasData
-    ? [...new Set([...currentCompletion, 4])] 
-    : currentCompletion.filter(step => step !== 4);
-  
-     await prisma.seller.update({
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData = locations.length > 0;
+
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 4])]
+      : currentCompletion.filter((step) => step !== 4);
+
+    await prisma.seller.update({
       where: { userId },
       data: {
         manufacturingLocations: locations,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
@@ -708,43 +736,45 @@ export const getSellerProfileCapabilities = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  const capabilities = { capabilities: seller.challenges };
-     res.json(capabilities);
+    }
+    const capabilities = { capabilities: seller.challenges };
+    res.json(capabilities);
   } catch (error) {
     console.error("Get capabilities error:", error);
     res.status(500).json({ error: "Failed to get capabilities" });
   }
 };
 
-export const updateSellerProfileCapabilities = async (req: any, res: Response) => {
+export const updateSellerProfileCapabilities = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { capabilities } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
-      return res.status(404).json({ error: "Seller not found" });
-  }
 
-  
-  const currentCompletion = seller.profileCompletion || [];
-  const hasData = capabilities.length > 0;
-  
-  const newCompletion = hasData
-    ? [...new Set([...currentCompletion, 5])] 
-    : currentCompletion.filter(step => step !== 5);
-  
-     await prisma.seller.update({
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData = capabilities.length > 0;
+
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 5])]
+      : currentCompletion.filter((step) => step !== 5);
+
+    await prisma.seller.update({
       where: { userId },
       data: {
         challenges: capabilities,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
@@ -755,49 +785,55 @@ export const updateSellerProfileCapabilities = async (req: any, res: Response) =
   }
 };
 
-export const getSellerProfileTargetAudience = async (req: any, res: Response) => {
+export const getSellerProfileTargetAudience = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
     const audiences = { audiences: seller.targetAudience };
-     res.json(audiences);
+    res.json(audiences);
   } catch (error) {
     console.error("Get target audience error:", error);
     res.status(500).json({ error: "Failed to get target audience" });
   }
 };
 
-export const updateSellerProfileTargetAudience = async (req: any, res: Response) => {
+export const updateSellerProfileTargetAudience = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { audiences } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  
-  const currentCompletion = seller.profileCompletion || [];
-  const hasData = audiences !== undefined && audiences.length !== null && audiences !== '';
+    }
 
-  const newCompletion = hasData
-    ? [...new Set([...currentCompletion, 6])] 
-    : currentCompletion.filter(step => step !== 6);
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData =
+      audiences !== undefined && audiences.length !== null && audiences !== "";
 
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 6])]
+      : currentCompletion.filter((step) => step !== 6);
 
-     await prisma.seller.update({
+    await prisma.seller.update({
       where: { userId },
       data: {
         targetAudience: audiences,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
@@ -814,12 +850,12 @@ export const getSellerProfileTeamSize = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
     const size = { size: seller.teamSize };
-     res.json(size);
+    res.json(size);
   } catch (error) {
     console.error("Get team size error:", error);
     res.status(500).json({ error: "Failed to get team size" });
@@ -833,23 +869,23 @@ export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  
-  const currentCompletion = seller.profileCompletion || [];
-  const hasData = size !== undefined && size.length !== null && size !== '';
+    }
 
-  const newCompletion = hasData
-    ? [...new Set([...currentCompletion, 7])] 
-    : currentCompletion.filter(step => step !== 7);
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData = size !== undefined && size.length !== null && size !== "";
 
-     await prisma.seller.update({
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 7])]
+      : currentCompletion.filter((step) => step !== 7);
+
+    await prisma.seller.update({
       where: { userId },
       data: {
         teamSize: size,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
@@ -860,50 +896,57 @@ export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
   }
 };
 
-export const getSellerProfileAnnualRevenue = async (req: any, res: Response) => {
+export const getSellerProfileAnnualRevenue = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  
-  const revenue = { revenue: seller.annualRevenue };
-  
-     res.json(revenue);
+    }
+
+    const revenue = { revenue: seller.annualRevenue };
+
+    res.json(revenue);
   } catch (error) {
     console.error("Get annual revenue error:", error);
     res.status(500).json({ error: "Failed to get annual revenue" });
   }
 };
 
-export const updateSellerProfileAnnualRevenue = async (req: any, res: Response) => {
+export const updateSellerProfileAnnualRevenue = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { revenue } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
 
     const currentCompletion = seller.profileCompletion || [];
-    const hasData = revenue !== undefined && revenue.length !== null && revenue !== '';
+    const hasData =
+      revenue !== undefined && revenue.length !== null && revenue !== "";
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 8])] 
-      : currentCompletion.filter(step => step !== 8);
-  
-     await prisma.seller.update({
+      ? [...new Set([...currentCompletion, 8])]
+      : currentCompletion.filter((step) => step !== 8);
+
+    await prisma.seller.update({
       where: { userId },
       data: {
         annualRevenue: revenue,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
@@ -911,7 +954,7 @@ export const updateSellerProfileAnnualRevenue = async (req: any, res: Response) 
   } catch (error) {
     console.error("Update annual revenue error:", error);
     res.status(500).json({ error: "Failed to update annual revenue" });
-  } 
+  }
 };
 
 export const getSellerProfileMinimumOrder = async (req: any, res: Response) => {
@@ -920,42 +963,50 @@ export const getSellerProfileMinimumOrder = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
-  const minimumOrderQuantity = { minimumOrderQuantity: seller.minimumOrderQuantity };
-     res.json(minimumOrderQuantity);
+    }
+    const minimumOrderQuantity = {
+      minimumOrderQuantity: seller.minimumOrderQuantity,
+    };
+    res.json(minimumOrderQuantity);
   } catch (error) {
     console.error("Get minimum order error:", error);
     res.status(500).json({ error: "Failed to get minimum order" });
   }
 };
 
-export const updateSellerProfileMinimumOrder = async (req: any, res: Response) => {
+export const updateSellerProfileMinimumOrder = async (
+  req: any,
+  res: Response
+) => {
   try {
     const { userId } = req.user;
     const { minimumOrderQuantity } = req.body;
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
 
     const currentCompletion = seller.profileCompletion || [];
-    const hasData = minimumOrderQuantity !== undefined && minimumOrderQuantity.length !== null && minimumOrderQuantity !== '';
+    const hasData =
+      minimumOrderQuantity !== undefined &&
+      minimumOrderQuantity.length !== null &&
+      minimumOrderQuantity !== "";
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 9])] 
-      : currentCompletion.filter(step => step !== 9);
-  
-     await prisma.seller.update({
+      ? [...new Set([...currentCompletion, 9])]
+      : currentCompletion.filter((step) => step !== 9);
+
+    await prisma.seller.update({
       where: { userId },
       data: {
         minimumOrderQuantity: minimumOrderQuantity,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
@@ -972,15 +1023,14 @@ export const getSellerProfileComments = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
-      return res.status(404).json({ error: "Seller not found" });
-  }
 
-  
-  const notes = { notes: seller.comments };
-  
-     res.json(notes);
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const notes = { notes: seller.comments };
+
+    res.json(notes);
   } catch (error) {
     console.error("Get comments error:", error);
     res.status(500).json({ error: "Failed to get comments" });
@@ -994,24 +1044,24 @@ export const updateSellerProfileComments = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
     });
-    
-   if (!seller) {
+
+    if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
-  }
+    }
 
-  
-  const currentCompletion = seller.profileCompletion || [];
-  const hasData = notes !== undefined && notes.length !== null && notes !== '';
+    const currentCompletion = seller.profileCompletion || [];
+    const hasData =
+      notes !== undefined && notes.length !== null && notes !== "";
 
-  const newCompletion = hasData
-    ? [...new Set([...currentCompletion, 10])] 
-    : currentCompletion.filter(step => step !== 10);
-  
-     await prisma.seller.update({
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 10])]
+      : currentCompletion.filter((step) => step !== 10);
+
+    await prisma.seller.update({
       where: { userId },
       data: {
         comments: notes,
-        profileCompletion: newCompletion
+        profileCompletion: newCompletion,
       },
     });
 
@@ -1033,7 +1083,7 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
 
     const seller = await prisma.seller.findUnique({
       where: { userId },
-      select: { id: true, profileCompletion: true }
+      select: { id: true, profileCompletion: true },
     });
 
     if (!seller) {
@@ -1041,8 +1091,8 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
     }
 
     const cloudinaryResult: any = await uploadToCloudinary(
-      req.file.buffer, 
-      'seller-certificates'
+      req.file.buffer,
+      "seller-certificates"
     );
 
     const certificate = await prisma.certification.create({
@@ -1051,12 +1101,12 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
         image: cloudinaryResult.secure_url,
         issuerName: issuer,
         suppliers: {
-          connect: { id: seller.id }
-        }
+          connect: { id: seller.id },
+        },
       },
       include: {
-        suppliers: true
-      }
+        suppliers: true,
+      },
     });
 
     const currentCompletion = seller.profileCompletion || [];
@@ -1065,20 +1115,19 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
     await prisma.seller.update({
       where: { userId },
       data: {
-        profileCompletion: newCompletion
-      }
+        profileCompletion: newCompletion,
+      },
     });
 
-
     res.json({
-        id: certificate.id,
-        name: certificate.name,
-        image: certificate.image,
-        issuerName: certificate.issuerName,
-        issueDate: certificate.issueDate,
-        createdAt: certificate.createdAt,
-        approved: false,
-      });
+      id: certificate.id,
+      name: certificate.name,
+      image: certificate.image,
+      issuerName: certificate.issuerName,
+      issueDate: certificate.issueDate,
+      createdAt: certificate.createdAt,
+      approved: false,
+    });
   } catch (error) {
     console.error("Upload certificate error:", error);
     res.status(500).json({ error: "Failed to upload certificate" });
@@ -1091,17 +1140,17 @@ export const getAllProfileCertificates = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
       include: {
-        certifications: true
-      }
+        certifications: true,
+      },
     });
 
     if (!seller) {
       return res.status(404).json({ error: "Seller profile not found" });
-  }
+    }
 
-  const certificates = { certificates : seller.certifications };
-  
-  res.json(certificates);
+    const certificates = { certificates: seller.certifications };
+
+    res.json(certificates);
   } catch (error) {
     console.error("Get all profile certificates error:", error);
     res.status(500).json({ error: "Failed to get all profile certificates" });
@@ -1115,42 +1164,42 @@ export const deleteProfileCertificate = async (req: any, res: Response) => {
 
     const seller = await prisma.seller.findUnique({
       where: { userId },
-      include: { certifications: true }
+      include: { certifications: true },
     });
 
     if (!seller) {
       return res.status(404).json({ error: "Seller profile not found" });
     }
 
-    const certificateToDelete = seller.certifications.find(c => c.id === id);
+    const certificateToDelete = seller.certifications.find((c) => c.id === id);
     if (!certificateToDelete) {
       return res.status(404).json({ error: "Certificate not found" });
     }
 
     const isLastCertificate = seller.certifications.length === 1;
-    
+
     const currentCompletion = seller.profileCompletion || [];
-    const newCompletion = isLastCertificate 
-      ? currentCompletion.filter(step => step !== 11) 
+    const newCompletion = isLastCertificate
+      ? currentCompletion.filter((step) => step !== 11)
       : currentCompletion;
 
     const [_, updatedSeller] = await prisma.$transaction([
       prisma.certification.delete({ where: { id } }),
       prisma.seller.update({
         where: { userId },
-        data: { profileCompletion: newCompletion }
-      })
+        data: { profileCompletion: newCompletion },
+      }),
     ]);
 
-    const remainingCertificates = seller.certifications.filter(c => c.id !== id);
+    const remainingCertificates = seller.certifications.filter(
+      (c) => c.id !== id
+    );
     res.json({ certificates: remainingCertificates });
-
   } catch (error) {
     console.error("Delete profile certificate error:", error);
     res.status(500).json({ error: "Failed to delete profile certificate" });
   }
 };
-
 
 export const getProfileCompletion = async (req: any, res: Response) => {
   try {
@@ -1158,19 +1207,314 @@ export const getProfileCompletion = async (req: any, res: Response) => {
     const seller = await prisma.seller.findUnique({
       where: { userId },
       select: {
-        profileCompletion: true
-      }
+        profileCompletion: true,
+      },
     });
-    
-   if (!seller) {
-      return res.status(404).json({ error: "Seller not found" });
-  }
 
-  const completion = seller.profileCompletion || [];
-  
-  res.json(completion);
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const completion = seller.profileCompletion || [];
+
+    res.json(completion);
   } catch (error) {
     console.error("Get profile completion error:", error);
     res.status(500).json({ error: "Failed to get profile completion" });
+  }
+};
+
+// api for the admin
+
+export const approveOrRejectSeller = async (req: any, res: Response) => {
+  try {
+    const { sellerId, status } = req.body;
+
+    if (typeof status !== "boolean") {
+      return res.status(400).json({ error: "Invalid status value" });
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { id: sellerId },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const updatedSeller = await prisma.seller.update({
+      where: { id: sellerId },
+      data: {
+        approved: status,
+        Approved: status
+          ? {
+              create: {
+                approvedById: req.user.userId,
+                status: true,
+                approvedAt: new Date(Date.now()),
+                updatedAt: new Date(Date.now()),
+              },
+            }
+          : undefined,
+      },
+    });
+
+    res.json({
+      message: `Seller has been ${status ? "approved" : "rejected"}`,
+      seller: updatedSeller,
+    });
+  } catch (error) {
+    console.error("Approve/Reject seller error:", error);
+    res.status(500).json({ error: "Failed to update seller status" });
+  }
+};
+
+export const getAllSellers = async (req: any, res: Response) => {
+  try {
+    const { pageNo, pageSize, search, sortBy, sortOrder, filter } = req.query;
+
+    const page = parseInt(pageNo as string) || 1;
+    const size = parseInt(pageSize as string) || 10;
+    const skip = (page - 1) * size;
+    const take = size;
+    const searchTerm = search ? search.toString() : "";
+    const sortByField = sortBy ? sortBy.toString() : "createdAt";
+    const sortOrderField = sortOrder ? sortOrder.toString() : "desc";
+
+    // Parse filters from query
+    const filterFieldArray =
+      filter?.toString().split(",").filter(Boolean) || [];
+    const filterConditions = filterFieldArray.map((item: string) => {
+      const [key, value] = item.split(":");
+      switch (key) {
+        case "country":
+          return { country: { contains: value, mode: "insensitive" } };
+        case "state":
+          return { state: { contains: value, mode: "insensitive" } };
+        case "approved":
+          return { approved: value === "true" };
+        default:
+          return {};
+      }
+    });
+
+    const [sellers, totalSellersCount] = await prisma.$transaction([
+      prisma.seller.findMany({
+        where: {
+          OR: [
+            {
+              businessName: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+            {
+              websiteLink: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+          ],
+          AND: filterConditions,
+        },
+        skip,
+        take,
+        orderBy: {
+          [sortByField]: sortOrderField,
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              phoneNumber: true,
+            },
+          },
+        },
+      }),
+      prisma.seller.count({
+        where: {
+          OR: [
+            {
+              businessName: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+            {
+              websiteLink: {
+                contains: searchTerm,
+                mode: "insensitive",
+              },
+            },
+          ],
+          AND: filterConditions,
+        },
+      }),
+    ]);
+
+    res.json({
+      sellers,
+      page,
+      size,
+      total: totalSellersCount,
+      totalPages: Math.ceil(totalSellersCount / size),
+    });
+  } catch (error) {
+    console.error("Get all sellers error:", error);
+    res.status(500).json({ error: "Failed to fetch sellers" });
+  }
+};
+
+export const updateSellerStatus = async (req: any, res: Response) => {
+  try {
+    const { sellerId, status } = req.body;
+
+    if (typeof status !== "boolean") {
+      return res.status(400).json({ error: "Invalid status value" });
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { id: sellerId },
+    });
+
+    if (!seller || !seller.ApprovedId) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const [updatedSeller, updatedTable] = await prisma.$transaction([
+      prisma.seller.update({
+        where: { id: sellerId },
+        data: {
+          approved: status,
+        },
+      }),
+
+      prisma.approved.update({
+        where: {
+          id: seller.ApprovedId!,
+        },
+        data: {
+          status: status, // Example field
+          updatedAt: new Date(Date.now()),
+        },
+      }),
+    ]);
+
+    res.json({
+      message: `Seller status has been updated to ${
+        status ? "approved" : "rejected"
+      }`,
+      seller: updatedSeller,
+    });
+  } catch (error) {
+    console.error("Update seller status error:", error);
+    res.status(500).json({ error: "Failed to update seller status" });
+  }
+};
+
+export const getAllBuyers = async (req: any, res: Response) => {
+  try {
+    const { pageNo, pageSize, search, sortBy, sortOrder, filter } = req.query;
+
+    const page = parseInt(pageNo as string) || 1;
+    const size = parseInt(pageSize as string) || 10;
+    const skip = (page - 1) * size;
+    const take = size;
+    const searchTerm = search ? search.toString() : "";
+    const sortByField = sortBy ? sortBy.toString() : "createdAt";
+    const sortOrderField = sortOrder ? sortOrder.toString() : "desc";
+
+    // Parse filters from query
+    const filterFieldArray =
+      filter?.toString().split(",").filter(Boolean) || [];
+    const filterConditions = filterFieldArray.map((item: string) => {
+      const [key, value] = item.split(":");
+      switch (key) {
+        case "country":
+          return { country: { contains: value, mode: "insensitive" } };
+        case "state":
+          return { state: { contains: value, mode: "insensitive" } };
+        default:
+          return {};
+      }
+    });
+
+    const [buyers, totalBuyersCount] = await prisma.$transaction([
+      prisma.buyer.findMany({
+        where: {
+          OR: [
+            {
+              user: {
+                name: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              user: {
+                email: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
+            },
+          ],
+          AND: filterConditions,
+        },
+        skip,
+        take,
+        orderBy: {
+          [sortByField]: sortOrderField,
+        },
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+              phoneNumber: true,
+              country: true,
+              state: true,
+              address: true,
+            },
+          },
+        },
+      }),
+      prisma.buyer.count({
+        where: {
+          OR: [
+            {
+              user: {
+                name: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
+            },
+            {
+              user: {
+                email: {
+                  contains: searchTerm,
+                  mode: "insensitive",
+                },
+              },
+            },
+          ],
+          AND: filterConditions,
+        },
+      }),
+    ]);
+
+    res.json({
+      buyers,
+      page,
+      size,
+      total: totalBuyersCount,
+      totalPages: Math.ceil(totalBuyersCount / size),
+    });
+  } catch (error) {
+    console.error("Get all buyers error:", error);
+    res.status(500).json({ error: "Failed to fetch buyers" });
   }
 };
