@@ -33,4 +33,27 @@ export interface User {
     initiatedBy: string
   }
   
+  export interface BlockedCommunication {
+    id: string
+    initiatorId: string
+    targetId: string
+    reason?: string
+    blockedBy: string
+    createdAt: string
+    updatedAt: string
+    initiator: {
+      id: string
+      name: string
+      email: string
+      role: "buyer" | "seller" | "admin"
+      avatar?: string
+    }
+    target: {
+      id: string
+      name: string
+      email: string
+      role: "buyer" | "seller" | "admin"
+      avatar?: string
+    }
+  }
   

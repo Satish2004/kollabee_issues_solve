@@ -8,6 +8,7 @@ import {
   requestApproval,
 } from "../controllers/seller.controller";
 import { getAllDetails } from "../controllers/order.controller";
+import { adminController } from "../controllers/admin.controller"
 
 const router = express.Router();
 
@@ -93,4 +94,15 @@ router.get("/", async (req: any, res: Response) => {
   });
 });
 
-export default router;
+// Block communication between two users
+router.post("/block-communication", authMiddleware, adminController.blockCommunication)
+
+// Unblock communication between two users
+router.post("/unblock-communication", authMiddleware, adminController.unblockCommunication)
+
+// Get all blocked communications
+router.get("/blocked-communications", authMiddleware, adminController.getBlockedCommunications)
+
+
+export default router
+
