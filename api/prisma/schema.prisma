@@ -39,6 +39,7 @@ model User {
   subscribe        SubscriptionTransaction[]
   messages         Message[]
   conversations    ConversationParticipant[]
+  approvals        Approved[]        
 }
 
 model Address {
@@ -311,9 +312,26 @@ model Seller {
   projects           Project[]       @relation("ProjectToSeller") // Added relationship
   savedByProjects    Project[]       @relation("SavedSeller")
   projectReq         projectReq[]
-
+  approved           Boolean? @default(false)
+  ApprovedId        String?
+  Approved          Approved? 
+  approvalRequested Boolean @default(false)
+  approvalReqestAt  DateTime?
 
   @@index([userId])
+}
+
+
+model Approved {
+  id           String   @id @default(uuid())
+  approvedAt   DateTime @default(now())
+  approvedById String  @unique
+  approvedBy   User    @relation(fields: [approvedById], references: [id], onDelete: Cascade)
+  status       Boolean
+  sellerId     String   @unique
+  seller       Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Buyer {

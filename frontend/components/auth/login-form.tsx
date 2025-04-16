@@ -105,7 +105,7 @@ export function LoginForm({
         </div>
       </div>
 
-      <Card className="w-full gradient-border-auth ">
+      <Card className="w-full shadow-md hover:shadow-xl ">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-normal">
             {message ?? "Login"}

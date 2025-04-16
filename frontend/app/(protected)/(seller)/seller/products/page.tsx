@@ -1,466 +1,124 @@
 "use client";
 
-import type React from "react";
 import { useState, useEffect } from "react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import {
-  Box,
-  List,
-  Plus,
-  Search,
-  Eye,
-  Edit2,
-  Trash,
-  ChevronLeft,
-  ChevronRight,
-  ArrowDownUp,
-} from "lucide-react";
-import { productsApi } from "@/lib/api/products";
-import { categoryApi } from "@/lib/api/category";
-import type { Product } from "@/types/api";
 import { toast } from "sonner";
-import Link from "next/link";
-import { profileApi } from "@/lib/api/profile";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import ProductStats from "./components/product-stats";
+import ProductsTable from "./components/products-table";
+import ProductsHeader from "./components/products-header";
+import SearchAndFilter from "./components/search-and-filter";
+import Pagination from "./components/pagination";
+import { useProducts } from "./hooks/use-products";
+import { useCategories } from "./hooks/use-categories";
+import { useProfileCompletion } from "./hooks/use-profile-completion";
+import { LoadingSpinner } from "./components/loading-spinner";
+import { useDebounce } from "./hooks/use-debounce";
 
-interface ProductStats {
-  categories: number;
-  totalProducts: number;
-  topSelling: number;
-  lowStocks: number;
-}
-
-const ProductsPage: React.FC = () => {
+export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<"active" | "draft">("active");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [inputValue, setInputValue] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [categories, setCategories] = useState<any[]>([]);
   const [sortField, setSortField] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  const [profileCompletion, setProfileCompletion] = useState<number[]>([]);
 
-  const [stats, setStats] = useState<ProductStats>({
-    categories: 0,
-    totalProducts: 0,
-    topSelling: 0,
-    lowStocks: 0,
+  // Debounce the search query to prevent excessive API calls
+  const debouncedSearchQuery = useDebounce(inputValue, 500);
+
+  const {
+    products,
+    isLoading,
+    totalPages,
+    stats,
+    deleteProduct,
+    refetchProducts,
+  } = useProducts({
+    status: activeTab === "active" ? "active" : "DRAFT",
+    search: debouncedSearchQuery,
+    page: currentPage,
+    sortBy: sortField,
+    sortOrder,
   });
 
-  useEffect(() => {
-    loadCategories();
-    loadProfileCompletion();
-  }, []);
+  const { categories } = useCategories();
+  const { profileCompletion, remainingSteps, isProfileComplete } =
+    useProfileCompletion();
 
+  // Reset to first page when search query or tab changes
   useEffect(() => {
-    loadProducts();
-  }, [activeTab, searchQuery, currentPage, sortField, sortOrder]);
+    setCurrentPage(1);
+  }, [debouncedSearchQuery, activeTab]);
 
-  useEffect(() => {
-    const newStats = { ...stats };
-    if (categories.length > 0) {
-      newStats.categories = categories.length;
+  const handleSearchChange = (value: string) => {
+    setInputValue(value);
+    // The actual API call will be triggered after the debounce delay
+  };
+
+  const handleSortChange = (field: string) => {
+    if (field === sortField) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
-      newStats.categories = 7;
-    }
-    if (products.length > 0) {
-      const lowStocks = products.filter(
-        (product) => product.availableQuantity < 15
-      );
-      newStats.lowStocks = lowStocks.length;
-    }
-    if (products.length > 0) {
-      newStats.totalProducts = products.length;
-    }
-    if (products.length > 0) {
-      const topSelling = products.filter(
-        (product) => product.availableQuantity > 0
-      );
-      newStats.topSelling = topSelling.length;
-    }
-    setStats(newStats);
-  }, [categories, products]);
-
-  const loadCategories = async () => {
-    const response: any = await categoryApi.getAll();
-    setCategories(response.data);
-  };
-
-  const loadProfileCompletion = async () => {
-    const response: any = await profileApi.getProfileCompletion();
-    setProfileCompletion(response);
-  };
-
-  const loadProducts = async () => {
-    try {
-      setIsLoading(true);
-      const response: any = await productsApi.getProducts({
-        search: searchQuery,
-        page: currentPage,
-        limit: 10,
-        status: activeTab === "active" ? "ACTIVE" : "DRAFT",
-        sortBy: sortField,
-        sortOrder: sortOrder,
-      });
-
-      setProducts(response.data);
-      // Assuming response includes pagination info
-      if (response?.totalPages) {
-        setTotalPages(response?.totalPages);
-      }
-    } catch (error) {
-      console.error("Failed to load products:", error);
-      toast.error("Failed to load products");
-    } finally {
-      setIsLoading(false);
+      setSortField(field);
+      setSortOrder("desc"); // Default to descending when changing fields
     }
   };
 
   const handleDelete = async (productId: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
 
     try {
-      await productsApi.deleteProduct(productId);
+      await deleteProduct(productId);
       toast.success("Product deleted successfully");
-      loadProducts(); // Reload the list
     } catch (error) {
       console.error("Failed to delete product:", error);
       toast.error("Failed to delete product");
     }
   };
 
-  const findMissingSteps = (completedSteps: number[]): number[] => {
-    const completedSet = new Set(completedSteps);
-    return Array.from({ length: 11 }, (_, i) => i + 1).filter(
-      (step) => !completedSet.has(step)
-    );
-  };
-
-  const isAddProductDisabled = () => {
-    return profileCompletion.length !== 11;
-  };
-
-  const remainingSteps = findMissingSteps(profileCompletion);
-
-  const sortOptions = [
-    { label: "Date", value: "createdAt" },
-    { label: "Name", value: "name" },
-    { label: "Price", value: "price" },
-    { label: "Stock", value: "availableQuantity" },
-  ];
-
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-
-      {/* Main Content */}
       <div className="p-6">
         {/* Stats */}
-        {activeTab === "active" && (
-          <div className="grid grid-cols-4 gap-4 mb-6">
-            <StatCard
-              title="CATEGORIES"
-              value={stats.categories}
-              icon={<Box className="w-5 h-5 text-red-500" />}
-            />
-            <StatCard
-              title="TOTAL PRODUCTS"
-              value={stats.totalProducts}
-              icon={<List className="w-5 h-5 text-red-500" />}
-            />
-            <StatCard
-              title="TOP SELLING"
-              value={stats.topSelling}
-              icon={<Box className="w-5 h-5 text-red-500" />}
-            />
-            <StatCard
-              title="LOW STOCKS"
-              value={stats.lowStocks}
-              icon={<Box className="w-5 h-5 text-red-500" />}
-            />
-          </div>
-        )}
+        <ProductStats stats={stats} />
 
         {/* Product List */}
         <div className="bg-white rounded-lg shadow">
-          <div className="flex items-center justify-between p-4 border-b">
-            <div className="flex space-x-4">
-              <button
-                className={`px-4 py-2 ${
-                  activeTab === "active"
-                    ? "text-red-500 border-b-2 border-red-500"
-                    : "text-gray-500"
-                }`}
-                onClick={() => setActiveTab("active")}
-              >
-                Active Products
-              </button>
-              <button
-                className={`px-4 py-2 ${
-                  activeTab === "draft"
-                    ? "text-red-500 border-b-2 border-red-500"
-                    : "text-gray-500"
-                }`}
-                onClick={() => setActiveTab("draft")}
-              >
-                Draft Products
-              </button>
-            </div>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="relative">
-                  <Link
-                    href={
-                      isAddProductDisabled()
-                        ? "#"
-                        : "/seller/products/add-product"
-                    }
-                    className={cn(
-                      "flex items-center space-x-2 px-4 py-2 rounded-[6px] gradient-border bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]",
-                      isAddProductDisabled() && "opacity-50 cursor-not-allowed"
-                    )}
-                    onClick={(e) =>
-                      isAddProductDisabled() && e.preventDefault()
-                    }
-                  >
-                    <Plus className="w-4 h-4 text-pink-500" strokeWidth={3} />
-                    <span className="gradient-text font-semibold">
-                      Add Product
-                    </span>
-                  </Link>
-                </div>
-              </TooltipTrigger>
-              {isAddProductDisabled() && (
-                <TooltipContent
-                  side="top"
-                  className=" -ml-28 bg-zinc-900 text-white p-3"
-                >
-                  <p className="font-medium  text-sm mb-2">
-                    Complete the remaining steps in Seller Profile
-                  </p>
-                  <p className="text-xs">
-                    {remainingSteps.length > 0
-                      ? `Remaining ${
-                          remainingSteps.length > 1 ? "steps" : "step"
-                        } to be completed: ${remainingSteps.join(", ")}`
-                      : "All steps completed!"}
-                  </p>
-                  <div className="w-full flex justify-end mt-4">
-                    <Link href="/seller/profile">
-                      <Button className="bg-zinc-200 hover:bg-zinc-300 text-zinc-950">
-                        Complete Profile
-                      </Button>
-                    </Link>
-                  </div>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </div>
+          <ProductsHeader
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            isProfileComplete={isProfileComplete}
+            remainingSteps={remainingSteps}
+          />
 
           {/* Search and Filter */}
-          <div className="px-4 py-2 flex justify-between items-center bg-[#f8f9fb]">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <select
-                  className="border rounded-xl px-2 py-1 text-sm"
-                  value={sortField}
-                  onChange={(e) => setSortField(e.target.value)}
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() =>
-                    setSortOrder((order) => (order === "asc" ? "desc" : "asc"))
-                  }
-                  className="flex items-center space-x-1 text-sm"
-                >
-                  <ArrowDownUp
-                    className={`w-4 h-4 cursor-pointer ${
-                      sortOrder === "desc" ? "rotate-180" : ""
-                    }`}
-                  />
-                  <span>
-                    {sortOrder === "asc" ? "Ascending" : "Descending"}
-                  </span>
-                </button>
-              </div>
-            </div>
-            <div className="relative">
-              <Search className="w-5 h-5 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="pl-10 pr-4 py-1 border rounded-xl placeholder:text-[13px]"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1); // Reset to first page on search
-                }}
-              />
-            </div>
-          </div>
+          <SearchAndFilter
+            searchQuery={inputValue}
+            onSearchChange={handleSearchChange}
+            sortField={sortField}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+          />
 
-          {/* Table */}
+          {/* Table - Show skeleton loader or actual data */}
           {isLoading ? (
-            <div className="p-8 text-center">Loading...</div>
+            <LoadingSpinner isDraftView={activeTab === "draft"} />
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="">
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                      Products
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                      Price
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                      Stock
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                      Created
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                      Status
-                    </th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-500">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.length > 0 ? (
-                    products.map((product) => (
-                      <tr key={product.id} className="border-t text-sm">
-                        <td className="px-4 py-2">
-                          <div className="flex items-center space-x-3">
-                            <span>{product.name}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-2">${product.price}</td>
-                        <td className="px-4 py-2">
-                          <span
-                            className={
-                              product.availableQuantity < 15
-                                ? "bg-red-100 text-red-600 px-2 py-1 rounded"
-                                : ""
-                            }
-                          >
-                            {product.availableQuantity}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2">
-                          {new Date(product.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-2 text-xs">
-                          {product.availableQuantity > 0 ? (
-                            product.availableQuantity < 15 ? (
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-yellow-600 rounded-full" />
-                                <span className="text-yellow-600">
-                                  Low Stock
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center space-x-2">
-                                <div className="w-2 h-2 bg-green-600 rounded-full" />
-                                <span className="text-green-600">In Stock</span>
-                              </div>
-                            )
-                          ) : (
-                            <div className="flex items-center space-x-2">
-                              <div className="w-2 h-2 bg-red-600 rounded-full" />
-                              <span className="text-red-600">Out of Stock</span>
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-4 py-2 w-1/6">
-                          <div className="flex space-x-2 w-full gap-3">
-                            <Link href={`/seller/products/${product.id}`}>
-                              <Eye className="w-4 h-4" />
-                            </Link>
-                            <Link href={`/seller/products/${product.id}/edit`}>
-                              <Edit2 className="w-4 h-4" />
-                            </Link>
-                            <button onClick={() => handleDelete(product.id)}>
-                              <Trash className="w-4 h-4 text-yellow-600" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <div className="p-8 text-center flex items-center justify-center">
-                      No products found
-                    </div>
-                  )}
-                </tbody>
-              </table>
-            </div>
+            <ProductsTable
+              products={products}
+              onDelete={handleDelete}
+              isDraftView={activeTab === "draft"}
+            />
           )}
 
-          {/* Pagination */}
-          <div className="flex items-center justify-center space-x-2 p-4">
-            <button
-              className="p-1 rounded hover:bg-gray-100"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 rounded ${
-                  page === currentPage
-                    ? "bg-red-500 text-white"
-                    : "hover:bg-gray-100"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-            <button
-              className="p-1 rounded hover:bg-gray-100"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
-          </div>
+          {/* Pagination - Only show when not loading and we have products */}
+          {!isLoading && products.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
       </div>
     </div>
   );
-};
-
-interface StatCardProps {
-  title: string;
-  value: number;
-  icon: React.ReactNode;
 }
-
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => (
-  <div className="bg-white rounded-lg p-4 shadow">
-    <div className="flex items-center justify-between mb-2">
-      <span className="text-gray-500 text-sm">{title}</span>
-      {icon}
-    </div>
-    <div className="text-2xl font-bold">{value}</div>
-  </div>
-);
-
-export default ProductsPage;
