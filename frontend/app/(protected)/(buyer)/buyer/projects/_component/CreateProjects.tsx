@@ -146,6 +146,12 @@ const CreateProjects = ({
           ) {
             milestoneErrors.dueDate =
               "Milestone Due Date cannot be earlier than Project Timeline From.";
+          } else if (
+            formData.projectTimelineTo &&
+            new Date(milestone.dueDate) > new Date(formData.projectTimelineTo)
+          ) {
+            milestoneErrors.dueDate =
+              "Milestone Due Date cannot be later than Project Timeline To.";
           }
           return milestoneErrors;
         });

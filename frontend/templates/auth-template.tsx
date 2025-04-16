@@ -42,9 +42,9 @@ export default function AuthTemplate({
               </p>
             </div>
 
-            <div className="flex flex-col  md:flex-row gap-6 w-full font-futra items-center justify-center">
+            <div className="flex flex-col md:flex-row gap-6 w-full font-futra items-center justify-center">
               <Link href={buyerUrl} className="w-1/3">
-                <Card className=" hover:bg-accent gradient-border-auth h-full shadow-none">
+                <Card className="hover:bg-accent h-full shadow-md hover:shadow-xl transition-all duration-200">
                   <div className="flex flex-col items-center space-y-4 p-8">
                     <div className="rounded-full bg-pink-50 p-5 dark:bg-pink-900/20">
                       <ShoppingCart className="h-10 w-10 text-pink-500" />
@@ -59,7 +59,7 @@ export default function AuthTemplate({
               </Link>
 
               <Link href={sellerUrl} className="w-1/3">
-                <Card className=" hover:bg-accent shadow-none gradient-border-auth  h-full">
+                <Card className="hover:bg-accent h-full shadow-md hover:shadow-xl transition-all duration-200">
                   <div className="p-8 flex flex-col items-center space-y-4">
                     <div className="rounded-full bg-pink-50 p-5 dark:bg-pink-900/20">
                       <Users className="h-10 w-10 text-pink-500" />
