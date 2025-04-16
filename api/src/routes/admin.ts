@@ -5,6 +5,7 @@ import {
   approveOrRejectSeller,
   getAllBuyers,
   getAllSellers,
+  requestApproval,
 } from "../controllers/seller.controller";
 import { getAllDetails } from "../controllers/order.controller";
 
@@ -53,7 +54,6 @@ Test JSON for projects
   "sortOrder": "desc",
   "filter": "category:Technology"
 }
-
 
 
 

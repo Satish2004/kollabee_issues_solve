@@ -1518,3 +1518,44 @@ export const getAllBuyers = async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to fetch buyers" });
   }
 };
+
+export const requestApproval = async (req: any, res: Response) => {
+  try {
+    const sellerId = req.user.sellerId; // Assuming sellerId is sent in the request body
+    const seller = await prisma.seller.findFirst({
+      where: { id: sellerId },
+      include: {
+        Approved: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    if (seller.Approved) {
+      return res
+        .status(400)
+        .json({ message: "Already requested for approval" });
+    }
+
+    // Create a new approval request
+
+    const reqApproval = await prisma.seller.update({
+      where: {
+        id: sellerId,
+      },
+      data: {
+        approvalRequested: true,
+        approvalReqestAt: new Date(Date.now()),
+      },
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Approval request submitted successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
