@@ -17,6 +17,7 @@ import { categoryApi } from "@/lib/api/category";
 import type { Category } from "@/types/api";
 import type { ProductFormData } from "./types";
 import { useRouter } from "next/navigation";
+import PDFPreview from "../../../../../components/ui/pdf-preview";
 
 interface ProductFormProps {
   initialData?: any;
@@ -440,6 +441,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
     try {
       setThumbnailLoading(true);
 
+      console.log("hery bro ", files);
+
       // Process each file
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -793,9 +796,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
   };
 
   // Remove a document from the list
-  const removeDocument = (index: number) => {
+  const removeDocument = async (index: number) => {
     const newDocuments = [...documents];
     newDocuments.splice(index, 1);
+
+    // call api to remove
+
+    await productsApi.deleteImage(documents[index]);
     setDocuments(newDocuments);
     setFormData((prev: any) => ({
       ...prev,
@@ -1046,27 +1053,31 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  className="text-[#898989] text-sm px-6 py-2 rounded-[6px] font-semibold"
-                  onClick={() => {
-                    setCoverImage(null);
-                    setFormData((prev: any) => ({
-                      ...prev,
-                      images: [],
-                    }));
-                  }}
-                >
-                  Remove
-                </button>
-                <label
-                  htmlFor="cover-upload"
-                  className="text-[#898989] border border-[#898989] text-sm px-4 py-1 rounded-[14px] font-semibold cursor-pointer"
-                >
-                  Change
-                </label>
-              </div>
+              {coverImage && (
+                <div className="flex items-center justify-end gap-2 mt-4">
+                  <button
+                    type="button"
+                    className="text-[#898989] text-sm px-6 py-2 rounded-[6px] font-semibold"
+                    onClick={async () => {
+                      await productsApi.deleteImage(coverImage);
+                      setCoverImage(null);
+
+                      setFormData((prev: any) => ({
+                        ...prev,
+                        images: [],
+                      }));
+                    }}
+                  >
+                    Remove
+                  </button>
+                  <label
+                    htmlFor="cover-upload"
+                    className="text-[#898989] border border-[#898989] text-sm px-4 py-1 rounded-[14px] font-semibold cursor-pointer"
+                  >
+                    Change
+                  </label>
+                </div>
+              )}
             </section>
 
             {/* Product Details Section */}
@@ -1099,7 +1110,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         onChange={handleThumbnailUpload}
                       />
                       <label
-                        htmlFor="documents-upload"
+                        htmlFor="thumbnail-upload"
                         className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] px-6 py-2 transition-all duration-200"
                       >
                         Browse Files
@@ -1122,9 +1133,13 @@ const ProductForm: React.FC<ProductFormProps> = ({
                           <button
                             type="button"
                             className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                            onClick={() => {
+                            onClick={async () => {
                               const newThumbnails = [...thumbnail];
                               newThumbnails.splice(index, 1);
+                              await productsApi.deleteImage(
+                                newThumbnails[index]
+                              );
+
                               setThumbnail(newThumbnails);
                               setFormData((prev: any) => ({
                                 ...prev,
@@ -1594,14 +1609,22 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
                   {documents.map((doc: string, index: number) => {
                     // Check if the document is a PDF by looking at the file extension
-                    const isPdf = doc.toLowerCase().endsWith(".pdf");
+                    const isImage = [".png", ".jpg", ".jpeg"].some((ext) =>
+                      doc.toLowerCase().endsWith(ext)
+                    );
 
                     return (
                       <div
                         key={index}
                         className="relative border rounded-md p-2"
                       >
-                        {isPdf ? (
+                        {isImage ? (
+                          <img
+                            src={doc || "/placeholder.svg"}
+                            alt={`Document ${index + 1}`}
+                            className="w-full h-32 object-cover"
+                          />
+                        ) : (
                           <div className="w-full h-32 flex items-center justify-center bg-gray-100">
                             <div className="flex flex-col items-center justify-center">
                               <FileText className="w-10 h-10 text-red-500 mb-2" />
@@ -1618,12 +1641,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
                               </a>
                             </div>
                           </div>
-                        ) : (
-                          <img
-                            src={doc || "/placeholder.svg"}
-                            alt={`Document ${index + 1}`}
-                            className="w-full h-32 object-cover"
-                          />
                         )}
                         <button
                           type="button"

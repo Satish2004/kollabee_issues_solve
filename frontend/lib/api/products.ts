@@ -1,5 +1,5 @@
-import { api } from '../axios';
-import { Product } from '@/types/api';
+import { api } from "../axios";
+import { Product } from "@/types/api";
 
 export interface CreateProductData {
   name: string;
@@ -28,12 +28,12 @@ export const productsApi = {
     minPrice?: number;
     maxPrice?: number;
     sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    sortOrder?: "asc" | "desc";
     page?: number;
     limit?: number;
     status?: "ACTIVE" | "DRAFT";
   }) => {
-    return api.get('/products', { params });
+    return api.get("/products", { params });
   },
 
   getProductDetails: async (id: string) => {
@@ -49,7 +49,7 @@ export const productsApi = {
   // },
 
   getSearchSuggestions: async (query: string) => {
-    return api.get('/products/suggestions', { params: { query } });
+    return api.get("/products/suggestions", { params: { query } });
   },
   updateProduct: async (id: string, data: any) => {
     return api.put(`/products/${id}`, data);
@@ -61,15 +61,20 @@ export const productsApi = {
     return api.post(`/products/${id}/buy`);
   },
   create: async (data: CreateProductData) => {
-    return api.post<Product>('/products', data);
+    return api.post<Product>("/products", data);
   },
   uploadImage: async (file: File) => {
     const formData = new FormData();
-    formData.append('image', file);
-    return api.post<{ url: string }>('/upload/product-image', formData, {
+    formData.append("image", file);
+    return api.post<{ url: string }>("/upload/product-image", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
     });
-  }
-}; 
+  },
+  deleteImage: async (publicId: string) => {
+    return api.delete("/upload/delete-image", {
+      data: { cloudinaryLink: publicId },
+    });
+  },
+};
