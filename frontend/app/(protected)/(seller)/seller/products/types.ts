@@ -1,14 +1,14 @@
 // types.ts
 export interface Product {
-    id: string;
-    name: string;
-    price: number;
-    quantityAvailable: number;
-    createdDate: Date;
-    updatedAt: Date;
-    availability: 'In-Stock' | 'Low Stock' | 'Out of stock';
-    status: 'draft' | 'active' | 'archived';
-  }
+  id: string;
+  name: string;
+  price: number;
+  availableQuantity: number;
+  createdAt: Date;
+  updatedAt: Date;
+  availability: "In-Stock" | "Low Stock" | "Out of stock";
+  status: "draft" | "active" | "archived";
+}
   
   export interface ProductStats {
     categories: number;
@@ -44,7 +44,9 @@ export interface Product {
     id: string;
     name: string;
     price: number;
-    quantityAvailable: number;
-    createdDate: string;
+    availableQuantity: number;
+    createdAt: string;
     availability: ProductAvailability;
   }
+
+  
