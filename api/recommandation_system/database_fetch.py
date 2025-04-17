@@ -31,3 +31,15 @@ def fetch_interactions():
     all_data = orders + cart + wishlist
     df = pd.DataFrame(all_data, columns=["buyer_id", "product_id", "interaction"])
     return df.to_dict(orient="records")
+
+def fetch_supplier_interactions():
+    with engine.connect() as conn:
+        orders = conn.execute(text("""
+            SELECT o."buyerId", p."sellerId", 1.0 as interaction
+            FROM "OrderItem" oi
+            JOIN "Order" o ON oi."orderId" = o.id
+            JOIN "Product" p ON oi."productId" = p.id
+        """)).fetchall()
+
+    df = pd.DataFrame(orders, columns=["buyer_id", "supplier_id", "interaction"])
+    return df.to_dict(orient="records")
