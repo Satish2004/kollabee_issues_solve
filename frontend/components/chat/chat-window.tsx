@@ -15,6 +15,7 @@ import Spinner from "@/components/ui/spinner"
 import { useToast } from "@/hooks/use-toast"
 import { chatApi } from "@/lib/api/chat"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import BlockedCommunicationNotice from "./blocked-communication-notice"
 
 interface ChatWindowProps {
   messages: Message[]
@@ -23,6 +24,7 @@ interface ChatWindowProps {
   currentUser: UserType | null
   isLoading: boolean
   conversation: Conversation | undefined
+  isBlocked?: boolean
 }
 
 export default function ChatWindow({
@@ -32,6 +34,7 @@ export default function ChatWindow({
   currentUser,
   isLoading,
   conversation,
+  isBlocked = false,
 }: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState("")
   const [attachments, setAttachments] = useState<File[]>([])
@@ -131,7 +134,7 @@ export default function ChatWindow({
 
   // Check if the current user can send messages in this conversation
   const canSendMessages = () => {
-    if (!conversation || !currentUser) return false
+    if (!conversation || !currentUser || isBlocked) return false
 
     // If conversation is accepted, anyone can send messages
     if (conversation.status === "ACCEPTED") return true
@@ -164,6 +167,49 @@ export default function ChatWindow({
       </div>
     )
   }
+
+    // Render blocked communication notice
+    if (isBlocked && conversation) {
+      return (
+        <div className="flex-1 flex flex-col h-full">
+          {/* Conversation Header */}
+          <div className="p-4 border-b flex justify-between items-center">
+            <div className="flex items-center">
+              <Avatar className="mr-2">
+                {conversation?.participantAvatar ? (
+                  <AvatarImage
+                    src={conversation.participantAvatar || "/placeholder.svg"}
+                    alt={conversation?.participantName || ""}
+                  />
+                ) : (
+                  <AvatarFallback>
+                    <User className="h-6 w-6" />
+                  </AvatarFallback>
+                )}
+              </Avatar>
+              <div>
+                <h3 className="font-medium">{conversation?.participantName || "Chat"}</h3>
+                <div className="flex items-center text-xs text-gray-500">
+                  {conversation?.isOnline ? (
+                    <span className="flex items-center">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
+                      Online
+                    </span>
+                  ) : (
+                    <span>Offline</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+  
+          {/* Blocked Notice */}
+          <div className="flex-1 flex items-center justify-center">
+            <BlockedCommunicationNotice participantName={conversation.participantName} />
+          </div>
+        </div>
+      )
+    }
 
   if (conversation?.status === "PENDING" && conversation?.initiatedBy !== currentUser?.id) {
     return (
@@ -198,24 +244,137 @@ export default function ChatWindow({
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4">
-          <div className="flex flex-col items-center justify-center h-full">
-            <Alert className="max-w-md bg-gray-100">
+          {messages.length > 0 ? (
+            <>
+              {/* Group messages by date */}
+              {groupMessagesByDate(messages).map(([date, dateMessages]) => (
+                <div key={date}>
+                  <div className="text-center text-xs text-gray-500 my-2">{date}</div>
+
+                  {dateMessages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`mb-4 flex ${message.senderId === currentUser?.id ? "justify-end" : "justify-start"}`}
+                    >
+                      <div
+                        className={`max-w-xs lg:max-w-md ${message.senderId === currentUser?.id ? "order-2" : "order-1"}`}
+                      >
+                        <div className="flex items-end">
+                          {message.senderId !== currentUser?.id && (
+                            <Avatar className="w-6 h-6 rounded-full mr-2 mb-1">
+                              {conversation?.participantAvatar ? (
+                                <AvatarImage
+                                  src={conversation.participantAvatar || "/placeholder.svg"}
+                                  alt={conversation?.participantName || ""}
+                                />
+                              ) : (
+                                <AvatarFallback>
+                                  <User className="h-4 w-4" />
+                                </AvatarFallback>
+                              )}
+                            </Avatar>
+                          )}
+
+                          <div>
+                            <div
+                              className={`px-4 py-2 rounded-lg ${
+                                message.senderId === currentUser?.id
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-gray-100"
+                              }`}
+                            >
+                              {message.content && <p>{message.content}</p>}
+
+                              {message.attachments && message.attachments.length > 0 && (
+                                <div className="mt-2 space-y-2">
+                                  {message.attachments.map((url, index) => {
+                                    const fileExt = url.split(".").pop()?.toLowerCase()
+                                    const isImage = ["jpg", "jpeg", "png", "gif", "webp"].includes(fileExt || "")
+                                    const isVideo = ["mp4", "webm", "ogg"].includes(fileExt || "")
+
+                                    if (isImage) {
+                                      return (
+                                        <div key={index} className="relative rounded-lg overflow-hidden">
+                                          <img
+                                            src={url || "/placeholder.svg"}
+                                            alt="Attachment"
+                                            className="max-w-full h-auto max-h-40 rounded-lg"
+                                          />
+                                        </div>
+                                      )
+                                    } else if (isVideo) {
+                                      return (
+                                        <div key={index} className="relative rounded-lg overflow-hidden">
+                                          <video src={url} controls className="max-w-full h-auto max-h-40 rounded-lg" />
+                                        </div>
+                                      )
+                                    } else {
+                                      return (
+                                        <a
+                                          key={index}
+                                          href={url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center p-2 bg-gray-200 rounded"
+                                        >
+                                          <Paperclip className="h-4 w-4 mr-2" />
+                                          <span className="truncate">{url.split("/").pop() || "file"}</span>
+                                        </a>
+                                      )
+                                    }
+                                  })}
+                                </div>
+                              )}
+                            </div>
+
+                            <div
+                              className={`text-xs text-gray-500 mt-1 flex items-center ${
+                                message.senderId === currentUser?.id ? "justify-end" : "justify-start"
+                              }`}
+                            >
+                              {formatTime(message.createdAt)}
+                              {message.senderId === currentUser?.id && (
+                                <span className="ml-1">
+                                  {message.status === "pending"
+                                    ? "⌛"
+                                    : message.status === "sent"
+                                      ? "✓"
+                                      : message.status === "delivered"
+                                        ? "✓✓"
+                                        : "✓✓"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full">
+              <p className="text-gray-500">No messages in this request</p>
+            </div>
+          )}
+
+          {/* Message Request Action Buttons */}
+          <div className="mt-4">
+            <Alert className="max-w-md mx-auto">
               <Clock className="h-4 w-4 mr-2" />
               <AlertDescription>
                 <div className="text-center">
-                  <p className="font-medium mb-2 font-semibold">Message Request</p>
+                  <p className="font-medium mb-2">Message Request</p>
                   <p className="text-sm mb-4">
                     {conversation?.participantName} wants to start a conversation with you.
                   </p>
-                  <div className="w-full px-4 py-2 rounded-md mb-4 flex space-x-2">
-                  <p className="text-left">Message:</p>
-                  <p className="text-left">{conversation?.lastMessage}</p>
-                  </div>
                   <div className="flex justify-center space-x-2">
-                    <Button type="button" onClick={handleDeclineRequest} className="button-bg text-white font-semibold">
+                    <Button variant="outline" onClick={handleDeclineRequest}>
                       Decline
                     </Button>
-                    <Button onClick={handleAcceptRequest} className="gradient-border gradient-text font-semibold">Accept</Button>
+                    <Button onClick={handleAcceptRequest}>Accept</Button>
                   </div>
                 </div>
               </AlertDescription>

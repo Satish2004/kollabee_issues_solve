@@ -93,29 +93,39 @@ export const conversationController = {
       const { participantId, participantType, initialMessage, attachments = [] } = req.body
       const { userId } = req.user;
 
-      const userExists = await prisma.user.findUnique({
-        where: { id: userId },
-      });
+      const [currentUser, participant] = await Promise.all([
+        prisma.user.findUnique({ where: { id: userId } }),
+        prisma.user.findUnique({ where: { id: participantId } }),
+      ])
 
-      
-
-      if (!userExists) {
-        return res.status(404).json({ error: " user does not exist" });
+      if (!currentUser || !participant) {
+        return res.status(404).json({ error: "User not found" })
       }
 
-      
-  
-      const participantExists = await prisma.user.findUnique({
-        where: { id: participantId },
-      });
+      // Check if communication is blocked (for buyer-seller communications only)
+      if (
+        (currentUser.role === "BUYER" && participant.role === "SELLER") ||
+        (currentUser.role === "SELLER" && participant.role === "BUYER")
+      ) {
+        const isBlocked = await prisma.blockedCommunication.findFirst({
+          where: {
+            OR: [
+              {
+                initiatorId: userId,
+                targetId: participantId,
+              },
+              {
+                initiatorId: participantId,
+                targetId: userId,
+              },
+            ],
+          },
+        })
 
-      console.log(participantId)
-  
-      if (!participantExists) {
-        return res.status(404).json({ error: "Participant does not exist" });
+        if (isBlocked) {
+          return res.status(403).json({ error: "Communication between these users has been blocked by an admin" })
+        }
       }
-
-      console.log(participantExists)
 
       // Check if conversation already exists
       const existingConversation = await prisma.conversation.findFirst({

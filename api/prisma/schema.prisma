@@ -39,6 +39,8 @@ model User {
   subscribe        SubscriptionTransaction[]
   messages         Message[]
   conversations    ConversationParticipant[]
+  blockedAsInitiator   BlockedCommunication[]  @relation("initiator")
+  blockedAsTarget      BlockedCommunication[]  @relation("target")
   approvals        Approved[]        
 }
 
@@ -106,6 +108,19 @@ model Message {
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
 
+model BlockedCommunication {
+  id          String    @id @default(uuid())
+  initiatorId String    
+  targetId    String    
+  reason      String?
+  blockedBy   String    
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  initiator   User      @relation("initiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  target      User      @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@unique([initiatorId, targetId])
+}
 
 model Order {
   id                String           @id @default(uuid())

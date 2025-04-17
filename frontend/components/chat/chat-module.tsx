@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, use } from "react"
 import { io, type Socket } from "socket.io-client"
-import type { Message, Conversation } from "./types/chat"
+import type { Message, Conversation, BlockedCommunication } from "./types/chat"
 import ChatWindow from "./chat-window"
 import ContactList from "./contact-list"
 import { authApi } from "@/lib/api/auth"
@@ -12,12 +12,13 @@ import { useToast } from "@/hooks/use-toast"
 
 
 export default function ChatModule() {
-    const [activeTab, setActiveTab] = useState< "user" | "admin">("user")
+    const [activeTab, setActiveTab] = useState< "BUYER" | "SELLER" | "ADMIN">("BUYER")
     const [filteredConversations, setFilteredConversations] = useState<Conversation[]>([])
     const [activeConversation, setActiveConversation] = useState<string | null>(null)
     const [conversations, setConversations] = useState<Conversation[]>([])
     const [messages, setMessages] = useState<Message[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [blockedCommunications, setBlockedCommunications] = useState<BlockedCommunication[]>([])
     const socketRef = useRef<Socket | null>(null)
     const { toast } = useToast()
     const [user, setUser] = useState<any>(null);
@@ -48,6 +49,10 @@ export default function ChatModule() {
       }
     
         fetchConversations()
+
+        if (user?.role === "ADMIN") {
+            fetchBlockedCommunications()
+          }
         })
     
         socket.on("disconnect", () => {
@@ -127,6 +132,14 @@ export default function ChatModule() {
             }
           }
       })
+
+      socket.on("error", ({ message }) => {
+        toast({
+          title: "Error",
+          description: message,
+          variant: "destructive",
+        })
+      })
     
         return () => {
         if (socketRef.current) {
@@ -139,7 +152,7 @@ export default function ChatModule() {
     const fetchConversations = async () => {
         try {
         const userType = "BUYER"
-        const response = await chatApi.getConversations(userType as "BUYER" | "SELLER")
+        const response = await chatApi.getConversations(userType as "BUYER" | "SELLER" | "ADMIN")
     
         if (response) {
             setConversations(response?.conversations)
@@ -241,7 +254,7 @@ export default function ChatModule() {
     }
     
     // Create new conversation
-    const createConversation = async (participantId: string, participantType: "BUYER" | "SELLER") => {
+    const createConversation = async (participantId: string, participantType: "BUYER" | "SELLER" | "ADMIN") => {
         try {
         const response = await chatApi.createConversation({
             participantId,
@@ -266,57 +279,79 @@ export default function ChatModule() {
         }
     }
 
-    useEffect(() => { 
-        if(activeTab === "user"){
-            const participant =  user?.role === "BUYER" ? "SELLER" : "BUYER"
-            setFilteredConversations(conversations.filter((c) => c.participantType === participant))
+    const getAvailableTabs = () => {
+        if (user?.role === "ADMIN") {
+          return [
+            { value: "BUYER", label: "BUYER" },
+            { value: "SELLER", label: "SELLER" },
+          ]
+        } else if (user?.role === "buyer") {
+          return [
+            { value: "SELLER", label: "SELLER" },
+            { value: "ADMIN", label: "ADMIN" },
+          ]
+        } else {
+          // Seller
+          return [
+            { value: "BUYER", label: "BUYER" },
+            { value: "ADMIN", label: "ADMIN" },
+          ]
         }
-        else if(activeTab === "admin"){
-            console.log(conversations)
-            setFilteredConversations([])
+      }
+    
+      const availableTabs = getAvailableTabs()
+
+      const fetchBlockedCommunications = async () => {
+        try {
+          const response = await chatApi.getBlockedCommunications()
+          if (response.data.blockedCommunications) {
+            setBlockedCommunications(response.data.blockedCommunications)
+          }
+        } catch (error) {
+          console.error("Failed to fetch blocked communications:", error)
+          toast({
+            title: "Error",
+            description: "Failed to load blocked communications",
+            variant: "destructive",
+          })
         }
-    }, [activeTab, user])
+      }
     
     return (
         <div className="flex flex-col rounded-lg shadow-sm overflow-hidden min-h-[560px]">
         <div className="flex rounded-xl px-6 py-4 bg-white mb-6 ">
             <div className="flex space-x-8">
+            {availableTabs.map((tab) => (
             <button
-                className={`py-1 text-sm ${
-                activeTab === "user" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
-                }`}
-                onClick={() => setActiveTab("user")}
+              key={tab.value}
+              className={`py-1 text-sm ${
+                activeTab === tab.value ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
+              }`}
+              onClick={() => setActiveTab(tab.value as "BUYER" | "SELLER" | "ADMIN")}
             >
-                {user?.role === "BUYER" ? "Seller Messages" : "Buyer Messages"}
+              {tab.label}
             </button>
-            <button
-                className={`py-1 text-sm ${
-                activeTab === "admin" ? "border-b-2 border-primary font-medium text-primary" : "text-gray-500"
-                }`}
-                onClick={() => setActiveTab("admin")}
-            >
-                Admin Messages
-            </button>
+          ))}
             </div>
         </div>
     
         <div className="flex-1 flex  space-x-6">
-            <ContactList
-            conversations={filteredConversations}
-            activeConversationId={activeConversation}
-            onSelectConversation={handleConversationChange}
-            isLoading={isLoading}
-            currentUserId={user?.id || ""}
-            />
-    
-            <ChatWindow
-            messages={messages}
-            activeConversationId={activeConversation}
-            onSendMessage={sendMessage}
-            currentUser={user}
-            isLoading={isLoading}
-            conversation={conversations.find((c) => c.id === activeConversation)}
-            />
+        <ContactList
+          conversations={conversations.filter((c) => c.participantType === activeTab)}
+          activeConversationId={activeConversation}
+          onSelectConversation={handleConversationChange}
+          isLoading={isLoading}
+          currentUserId={user?.id || ""}
+        />
+
+        <ChatWindow
+          messages={messages}
+          activeConversationId={activeConversation}
+          onSendMessage={sendMessage}
+          currentUser={user}
+          isLoading={isLoading}
+          conversation={conversations.find((c) => c.id === activeConversation)}
+        />
         </div>
         </div>
     )

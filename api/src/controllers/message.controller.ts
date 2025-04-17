@@ -24,6 +24,13 @@ export const messageController = {
             },
           },
         },
+        include: {
+          participants: {
+            include: {
+              user: true,
+            },
+          },
+        },
       })
 
       if (!conversation) {

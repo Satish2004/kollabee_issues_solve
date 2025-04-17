@@ -59,7 +59,11 @@ export function handleSocketConnection(socket: Socket, io: Server, prisma: Prism
       const conversation = await prisma.conversation.findUnique({
         where: { id: conversationId },
         include: {
-          participants: true,
+          participants: {
+            include: {
+              user: true,
+            },
+          },
         },
       })
 
@@ -81,6 +85,42 @@ export function handleSocketConnection(socket: Socket, io: Server, prisma: Prism
         socket.emit("error", { message: "Cannot send message to a pending conversation" })
         return
       }
+
+       // Find the other participant
+       const otherParticipant = conversation.participants.find((p) => p.userId !== senderId)
+       if (!otherParticipant) {
+         socket.emit("error", { message: "Could not find other participant" })
+         return
+       }
+ 
+       // Check if communication is blocked (for buyer-seller communications only)
+       const senderUser = conversation.participants.find((p) => p.userId === senderId)?.user
+       const receiverUser = otherParticipant.user
+ 
+       if (
+         (senderUser?.role === "BUYER" && receiverUser.role === "SELLER") ||
+         (senderUser?.role === "SELLER" && receiverUser.role === "BUYER")
+       ) {
+         const isBlocked = await prisma.blockedCommunication.findFirst({
+           where: {
+             OR: [
+               {
+                 initiatorId: senderId,
+                 targetId: otherParticipant.userId,
+               },
+               {
+                 initiatorId: otherParticipant.userId,
+                 targetId: senderId,
+               },
+             ],
+           },
+         })
+ 
+         if (isBlocked) {
+           socket.emit("error", { message: "Communication between these users has been blocked by an admin" })
+           return
+         }
+       }
 
       // Create the message
       const newMessage = await prisma.message.create({
