@@ -625,10 +625,10 @@ export const getAllDetails = async (req: any, res: Response) => {
       [data, totalCount] = await prisma.$transaction([
         prisma.order.findMany({
           where: {
-            OR: [
-              { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
-              { carrier: { contains: searchTerm, mode: "insensitive" } },
-            ],
+            // OR: [
+            //   { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
+            //   { carrier: { contains: searchTerm, mode: "insensitive" } },
+            // ],
             AND: filterConditions,
           },
           skip,
@@ -657,16 +657,30 @@ export const getAllDetails = async (req: any, res: Response) => {
                 },
               },
             },
-            items: true,
+            items: {
+              include: {
+                product: true,
+                seller: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        email: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
             shippingAddress: true,
           },
         }),
         prisma.order.count({
           where: {
-            OR: [
-              { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
-              { carrier: { contains: searchTerm, mode: "insensitive" } },
-            ],
+            // OR: [
+            //   { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
+            //   { carrier: { contains: searchTerm, mode: "insensitive" } },
+            // ],
             AND: filterConditions,
           },
         }),

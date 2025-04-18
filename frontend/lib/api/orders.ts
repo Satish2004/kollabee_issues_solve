@@ -49,4 +49,15 @@ export const ordersApi = {
   }) => {
     return api.post("/orders/approve", data);
   },
+
+  // admin api
+
+  getOrdersForAdmin: async (params?: {
+    type: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    return api.get("/admin/getAllDetails", { params });
+  },
 };
