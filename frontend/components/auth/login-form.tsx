@@ -1,94 +1,95 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { authApi } from "@/lib/api/auth";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
+import { useState } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Info } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { authApi } from "@/lib/api/auth"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import Image from "next/image"
 
 interface LoginError {
-  message: string;
-  details?: string;
+  message: string
+  details?: string
 }
 
 export function LoginForm({
   message,
   role,
+  isAdmin = false,
 }: {
-  message?: string;
-  role?: string;
+  message?: string
+  role?: string
+  isAdmin?: boolean
 }) {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
   const [alert, setAlert] = useState<{
-    show: boolean;
-    type: "error";
-    message1: string;
-    message2: string;
+    show: boolean
+    type: "error"
+    message1: string
+    message2: string
   }>({
     show: false,
     type: "error",
     message1: "",
     message2: "",
-  });
+  })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setAlert({ ...alert, show: false });
+    e.preventDefault()
+    setIsLoading(true)
+    setAlert({ ...alert, show: false })
 
     try {
-      const formData = new FormData(e.currentTarget);
-      const email = formData.get("email") as string;
-      const password = formData.get("password") as string;
+      const formData = new FormData(e.currentTarget)
+      const email = formData.get("email") as string
+      const password = formData.get("password") as string
 
-      const response = await authApi.login({ email, password, role: role });
-      const user = await response.user;
+      // If isAdmin is true, pass ADMIN as the role regardless of the role prop
+      const loginRole = isAdmin ? "ADMIN" : role
 
-      toast.success("Signed in successfully");
+      const response = await authApi.login({ email, password, role: loginRole })
+      const user = await response.user
 
-      if (user.role === "BUYER") {
-        router.push("/buyer");
-      } else {
-        router.push("/seller");
+      toast.success("Signed in successfully")
+
+      if (user.role === "ADMIN") {
+        router.push("/admin")
+      } else if (user.role === "BUYER") {
+        router.push("/buyer")
+      } else if (user.role === "SELLER") {
+        router.push("/seller")
       }
     } catch (error: any) {
-      const err = error as LoginError;
+      const err = error as LoginError
       setAlert({
         show: true,
         type: "error",
         message1: "Login failed",
         message2: err.message || "Invalid credentials",
-      });
-      toast.error(error?.response?.data?.error || "Invalid credentials");
+      })
+      toast.error(error?.response?.data?.error || "Invalid credentials")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleRoleSwitch = () => {
     if (role === "BUYER") {
-      router.push("/login/seller");
+      router.push("/login/seller")
     } else {
-      router.push("/login/buyer");
+      router.push("/login/buyer")
     }
-  };
+  }
 
   return (
     <div className="flex flex-col items-center w-full max-w-lg mx-auto font-futura">
@@ -107,23 +108,17 @@ export function LoginForm({
 
       <Card className="w-full shadow-md hover:shadow-xl ">
         <CardHeader className="space-y-1 text-center">
-          <CardTitle className="text-2xl font-normal">
-            {message ?? "Login"}
-          </CardTitle>
+          <CardTitle className="text-2xl font-normal">{message ?? "Login"}</CardTitle>
           <CardDescription className="text-center text-[15px]">
-            Fill in your details to login your account and get started with
-            Kollabee.
+            {isAdmin
+              ? "Enter your admin credentials to access the dashboard."
+              : "Fill in your details to login your account and get started with Kollabee."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={handleSubmit}>
             {alert.show && (
-              <Alert
-                className={cn(
-                  "mb-6 border-2",
-                  "border-red-500 bg-red-50 dark:bg-red-900/20"
-                )}
-              >
+              <Alert className={cn("mb-6 border-2", "border-red-500 bg-red-50 dark:bg-red-900/20")}>
                 <Info className="h-5 w-5" />
                 <AlertTitle>{alert.message1}</AlertTitle>
                 <AlertDescription>{alert.message2}</AlertDescription>
@@ -169,29 +164,27 @@ export function LoginForm({
 
               <div className="flex flex-col space-y-2">
                 <div className="flex justify-between">
-                  <Link
-                    href="/forgot-password"
-                    className="text-sm text-gray-600 hover:underline"
-                  >
+                  <Link href="/forgot-password" className="text-sm text-gray-600 hover:underline">
                     Forgot password?
                   </Link>
 
-                  <div className="text-sm text-gray-600 ">
-                    Don't have an account?
-                    <Link
-                      href="/signup"
-                      className="ml-1 text-pink-600 hover:underline"
-                    >
-                      Sign up
-                    </Link>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleRoleSwitch}
-                    className="text-sm text-pink-600 hover:underline"
-                  >
-                    {role === "BUYER" ? "Login as Supplier" : "Login as Buyer"}
-                  </button>
+                  {!isAdmin && (
+                    <>
+                      <div className="text-sm text-gray-600 ">
+                        Don't have an account?
+                        <Link href="/signup" className="ml-1 text-pink-600 hover:underline">
+                          Sign up
+                        </Link>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRoleSwitch}
+                        className="text-sm text-pink-600 hover:underline"
+                      >
+                        {role === "BUYER" ? "Login as Supplier" : "Login as Buyer"}
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -199,5 +192,5 @@ export function LoginForm({
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

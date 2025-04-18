@@ -78,7 +78,7 @@ export const createProduct = async (req: any, res: Response) => {
     // Send the approval request email to all admins
     await Promise.all(
       admin.map(async (adminEmail) => {
-        const approvalLink = `${process.env.FRONTEND_URL}/approve/${
+        const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${
           product.id
         }?email=${encodeURIComponent(adminEmail)}`;
         await resend.emails.send({
@@ -288,7 +288,7 @@ export const updateProduct = async (req: any, res: Response) => {
     if (isApprovalRequired) {
       await Promise.all(
         admin.map(async (adminEmail) => {
-          const approvalLink = `${process.env.FRONTEND_URL}/approve/${
+          const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${
             updatedProduct.id
           }?email=${encodeURIComponent(adminEmail)}`;
           await resend.emails.send({

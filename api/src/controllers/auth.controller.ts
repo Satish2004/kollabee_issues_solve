@@ -208,13 +208,14 @@ export const login = async (req: Request, res: Response) => {
         role: user.role,
         ...(user.role === "SELLER"
           ? { sellerId: user.seller?.id }
+          : user.role === "ADMIN"
+          ? { adminId: user.id }
           : { buyerId: user.buyer?.id }),
       },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
 
-    // Set JWT token in cookie
     // Set JWT token in cookie
     const data = setAuthCookie(res, token);
     // Return success response
@@ -273,6 +274,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    console.log("Reset link:", resetLink);
 
     // Send email using Resend
     const emailResponse = await resend.emails.send({

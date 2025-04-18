@@ -107,7 +107,10 @@ export default function AdminLayoutHeader() {
         {currentRoute && currentRoute.icon === "Custom" ? (
           <IconRenderer2 icon={currentRoute.image} />
         ) : (
-          <currentRoute.icon className="w-5 h-5" />
+          currentRoute &&
+          typeof currentRoute.icon === "function" && (
+            <currentRoute.icon className="w-5 h-5" />
+          )
         )}
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
