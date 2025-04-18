@@ -28,7 +28,7 @@ export default function Dashboard() {
           onValueChange={setActiveTab}
           className="w-full gap-4"
         >
-          <TabsList className="h-24 px-12 bg-white rounded-lg shadow-sm w-full flex flex-row items-center justify-start">
+          <TabsList className="h-24 px-6 bg-white rounded-lg shadow-sm w-full flex flex-row items-center justify-start">
             <div className="flex flex-col items-center">
               <TabsTrigger
                 value="overview"

@@ -95,7 +95,9 @@ export function AdminSidebar({ className }: SidebarProps) {
         },
         {
           label: "Orders",
-          icon: ShoppingCart,
+          icon: "Custom",
+          image:
+            "https://s3-alpha-sig.figma.com/img/4b80/7b26/0844b5e35e4d0a4cb4ae86b9ac1d8a74?Expires=1745798400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=D6-4oqaxt72KKqcrq-dH0koOghoe2xNdbm5lxH6wkKC~xEE7efg3xPGmta7Ka1kz5om8OcyyroMvil-y-G~mstgqwV4NkLnhLyc3Lu0i5EpsG94T4AP0peydx4ndzAW6jvKJ0nl3JFw9wZVAyxzY7beh3LA2nAFpjSMigzckwEMRFXwJYJ9Xl3q4NheXa73JVUB9GOi0qL2qXEhWsJYP~1qX8150qr4RAg31KzHAnA8SzUPE75ZTsey0bEWNeQVUys8kD-e0kwEcJB3Qq3TTZPLnvn84OsbNmIZI0NvwdNiCgW7TdIdZLkf5ObRoTDSMi2y16L6-A1tRyUNNomHVbQ__",
           href: "/admin/order",
         },
         {
