@@ -1,6 +1,9 @@
 import express, { Response } from "express";
 import { authMiddleware, isAdmin } from "../middleware/auth";
-import { getAllUsers } from "../controllers/user.controller";
+import {
+  getAllUsers,
+  getUserDetailsForAdmin,
+} from "../controllers/user.controller";
 import {
   approveOrRejectSeller,
   getAllBuyers,
@@ -19,6 +22,8 @@ const router = express.Router();
 
 router.get("/top-buyer", getTopBuyers);
 router.get("/users", getAllUsers);
+router.get("/users/:id", getUserDetailsForAdmin);
+
 router.get("/sellers", getAllSellers);
 router.get("/buyer", getAllBuyers);
 

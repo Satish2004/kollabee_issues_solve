@@ -30,6 +30,10 @@ export const userApi = {
     return api.get("/admin/users", { params });
   },
 
+  getUserDetailsForAdmin: async (id: string) => {
+    return api.get(`/admin/users/${id}`);
+  },
+
   approveOrReject: async (status: boolean, id: string) => {
     return api.post(`/admin/seller/approve`, { sellerId: id, status });
   },

@@ -10,6 +10,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { useDebounce } from "@/app/(protected)/(seller)/seller/products/hooks/use-debounce";
 import { EnhancedDataTable } from "../../../../../components/data-table/enhanced-data-table";
+import { useRouter } from "next/navigation";
 
 // Define the user type based on the API response
 interface User {
@@ -91,6 +92,8 @@ const UserDashboardPage = () => {
   const [processingUsers, setProcessingUsers] = useState<{
     [key: string]: { isApproving: boolean; isRejecting: boolean };
   }>({});
+
+  const router = useRouter();
 
   // Debounce search and filters
   useDebounce(() => setDebouncedSearch(search), 500, [search]);
@@ -318,7 +321,12 @@ const UserDashboardPage = () => {
 
         return (
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" title="View Details">
+            <Button
+              variant="ghost"
+              size="icon"
+              title="View Details"
+              onClick={() => router.push(`/admin/user/${user.id}`)}
+            >
               <Eye className="h-4 w-4" />
             </Button>
 
