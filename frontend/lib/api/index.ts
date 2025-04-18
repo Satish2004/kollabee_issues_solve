@@ -14,3 +14,4 @@ export * from "./upload";
 export * from "./advertise";
 export * from "./chat";
 export * from "./project";
+export * from "./admin";
