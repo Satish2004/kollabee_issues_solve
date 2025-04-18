@@ -286,7 +286,7 @@ export default function Analytics() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="p-4">
         <DataTable
           data={topBuyers}
           columns={columns}
@@ -313,11 +313,6 @@ export default function Analytics() {
                 No top buyers found matching your criteria
               </TableCell>
             </TableRow>
-          )}
-          renderLoadingState={() => (
-            <div className="flex items-center justify-center h-full">
-              ...loading
-            </div>
           )}
         />
       </Card>

@@ -99,14 +99,14 @@ export const getAllUsers = async (req: any, res: Response) => {
     const size = parseInt(pageSize as string) || 10;
     const skip = (page - 1) * size;
     const take = size;
-    const searchTerm = search ? search.toString() : "";
-    const sortByField = sortBy ? sortBy.toString() : "createdAt";
-    const sortOrderField = sortOrder ? sortOrder.toString() : "desc";
+    const searchTerm = search ? search?.toString() : "";
+    const sortByField = sortBy ? sortBy?.toString() : "createdAt";
+    const sortOrderField = sortOrder ? sortOrder?.toString() : "desc";
 
     // Parse filters from query
-    const filterFieldArray = filter.toString().split(",").filter(Boolean);
+    const filterFieldArray = filter?.toString().split(",").filter(Boolean);
     console.log("filterFieldArray : ", filterFieldArray);
-    const filterConditions = filterFieldArray.map((item: string) => {
+    const filterConditions = filterFieldArray?.map((item: string) => {
       const [key, value] = item.split(":");
       switch (key) {
         case "role":
@@ -175,8 +175,13 @@ export const getAllUsers = async (req: any, res: Response) => {
           createdAt: true,
           updatedAt: true,
           lastLogin: true,
-          seller: true,
+          seller: {
+            include: {
+              Approved: true,
+            },
+          },
           buyer: true,
+          approvals: true,
         },
       }),
 
@@ -225,7 +230,4 @@ export const getAllUsers = async (req: any, res: Response) => {
   }
 };
 
-
 // approve a seller
-
-

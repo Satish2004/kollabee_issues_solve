@@ -270,11 +270,6 @@ export default function Orders() {
             </TableCell>
           </TableRow>
         )}
-        renderLoadingState={() => (
-          <div className="flex items-center justify-center h-full">
-            ...loading
-          </div>
-        )}
       />
 
       <OrderDetail
