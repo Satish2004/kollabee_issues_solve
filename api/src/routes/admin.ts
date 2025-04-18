@@ -103,6 +103,18 @@ router.post("/unblock-communication", authMiddleware, adminController.unblockCom
 // Get all blocked communications
 router.get("/blocked-communications", authMiddleware, adminController.getBlockedCommunications)
 
+//Dashboard related functions
+router.get("/buyer-metrics", authMiddleware, adminController.getBuyerMetrics)
+router.get("/time-period-metrics/:period", authMiddleware, adminController.getTimePeriodMetrics)
+router.get("/monthly-onboarding", authMiddleware, adminController.getMonthlyOnboarding)
+router.get("/product-performance", authMiddleware, adminController.getProductPerformance)
+router.get("/trending-products", authMiddleware, adminController.getTrendingProducts)
+router.get("/top-buyers", authMiddleware, adminController.getTopBuyers)
+router.get("/supplier-metrics", authMiddleware, adminController.getSupplierMetrics)
+router.get("/top-countries", authMiddleware, adminController.getTopCountries)
+router.get("/top-suppliers", authMiddleware, adminController.getTopSuppliers)
+
+
 
 export default router
 
