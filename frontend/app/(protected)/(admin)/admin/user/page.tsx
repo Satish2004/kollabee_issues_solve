@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { userApi } from "../../../../../lib/api/user";
-import { DataTable } from "@/components/data-table";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useDebounce } from "@/app/(protected)/(seller)/seller/products/hooks/use-debounce";
+import { EnhancedDataTable } from "../../../../../components/data-table/enhanced-data-table";
 
 // Define the user type based on the API response
 interface User {
@@ -77,6 +78,7 @@ const UserDashboardPage = () => {
     size: 10,
   });
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [sortBy, setSortBy] = useState("createdAt");
   const [sortOrder, setSortOrder] = useState("desc");
   const [filters, setFilters] = useState({
@@ -84,10 +86,15 @@ const UserDashboardPage = () => {
     country: "all",
     state: "all",
   });
+  const [debouncedFilters, setDebouncedFilters] = useState(filters);
   // Track which users are being approved/rejected
   const [processingUsers, setProcessingUsers] = useState<{
     [key: string]: { isApproving: boolean; isRejecting: boolean };
   }>({});
+
+  // Debounce search and filters
+  useDebounce(() => setDebouncedSearch(search), 500, [search]);
+  useDebounce(() => setDebouncedFilters(filters), 500, [filters]);
 
   // Function to determine user status
   const getUserStatus = (user: User) => {
@@ -133,6 +140,32 @@ const UserDashboardPage = () => {
     }
   };
 
+  const formatUserData = (users: User[]) => {
+    return users.map((user) => {
+      const status = getUserStatus(user);
+      return {
+        id: user.id,
+        name: user.name || "Unknown",
+        email: user.email,
+        role:
+          user.role === "SELLER"
+            ? "Supplier"
+            : user.role === "BUYER"
+            ? "Buyer"
+            : "Admin",
+        status: {
+          text: status.status,
+          textColor: status.textColor,
+          dotColor: status.dotColor,
+        },
+        imageUrl: user.imageUrl || null,
+        sellerId: user.seller?.id || null,
+        approvalRequested: user.seller?.approvalRequested || false,
+        approved: user.seller?.approved || false,
+      };
+    });
+  };
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -141,13 +174,13 @@ const UserDashboardPage = () => {
         pageSize: pagination.size,
         sortBy: sortBy,
         sortOrder: sortOrder,
-        search: search,
-        ...filters,
+        search: debouncedSearch,
+        ...debouncedFilters,
       };
       const response = await userApi.getUsers(params);
       const responseData = response as ApiResponse;
 
-      setData(responseData.users);
+      setData(formatUserData(responseData.users));
       setPagination({
         ...pagination,
         total: responseData.total,
@@ -215,15 +248,18 @@ const UserDashboardPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, [pagination.page, pagination.size, sortBy, sortOrder, search, filters]);
+  }, [
+    pagination.page,
+    pagination.size,
+    sortBy,
+    sortOrder,
+    debouncedSearch,
+    debouncedFilters,
+  ]);
 
   const handleSearch = (query: string) => {
     setSearch(query);
     setPagination({ ...pagination, page: 1 }); // Reset to first page on search
-  };
-
-  const handlePageChange = (page: number) => {
-    setPagination({ ...pagination, page });
   };
 
   const handleFilterChange = (newFilters: { [key: string]: string }) => {
@@ -231,57 +267,51 @@ const UserDashboardPage = () => {
     setPagination({ ...pagination, page: 1 }); // Reset to first page on filter change
   };
 
+  const handlePageChange = async (page: number) => {
+    setPagination({ ...pagination, page: page });
+  };
+
   const columns = [
     {
       header: "User Name",
-      cell: (user: User) => (
+      cell: (user: any) => (
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={user.imageUrl || ""} alt={user.name} />
+            <AvatarImage src={user.imageUrl || null} alt={user.name} />
             <AvatarFallback>
-              {user.name?.substring(0, 2).toUpperCase() || "UN"}
+              {user.name.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="font-medium">{user.name || "Unknown"}</span>
+          <span className="font-medium">{user.name}</span>
         </div>
       ),
+      accessorKey: "name",
       filterable: true,
     },
     {
       header: "Email",
       accessorKey: "email",
+      filtarable: true,
       searchable: true,
     },
     {
       header: "Role",
-      cell: (user: User) => (
-        <span>
-          {user.role === "SELLER"
-            ? "Supplier"
-            : user.role === "BUYER"
-            ? "Buyer"
-            : "Admin"}
-        </span>
-      ),
+      accessorKey: "role",
       filterable: true,
     },
     {
       header: "Status",
-      cell: (user: User) => {
-        const status = getUserStatus(user);
-        return (
-          <StatusIndicator
-            status={status.status}
-            textColor={status.textColor}
-            dotColor={status.dotColor}
-          />
-        );
-      },
-      filterable: true,
+      cell: (user: any) => (
+        <StatusIndicator
+          status={user.status.text}
+          textColor={user.status.textColor}
+          dotColor={user.status.dotColor}
+        />
+      ),
     },
     {
       header: "Action",
-      cell: (user: User) => {
+      cell: (user: any) => {
         const isProcessing = processingUsers[user.id];
         const isApproving = isProcessing?.isApproving;
         const isRejecting = isProcessing?.isRejecting;
@@ -292,20 +322,16 @@ const UserDashboardPage = () => {
               <Eye className="h-4 w-4" />
             </Button>
 
-            {user.role === "SELLER" &&
-              user.seller?.approvalRequested &&
-              !user.seller?.approved && (
+            {user.role === "Supplier" &&
+              user.approvalRequested &&
+              !user.approved && (
                 <>
                   <Button
                     variant="default"
                     size="sm"
                     className="bg-red-500 text-white hover:bg-red-600 min-w-[90px]"
                     onClick={() =>
-                      handleApproveOrReject(
-                        user.id,
-                        user.seller?.id || "",
-                        true
-                      )
+                      handleApproveOrReject(user.id, user.sellerId, true)
                     }
                     disabled={isProcessing}
                   >
@@ -316,11 +342,7 @@ const UserDashboardPage = () => {
                     size="sm"
                     className="border-red-500 text-red-500 hover:bg-red-100 min-w-[90px]"
                     onClick={() =>
-                      handleApproveOrReject(
-                        user.id,
-                        user.seller?.id || "",
-                        false
-                      )
+                      handleApproveOrReject(user.id, user.sellerId, false)
                     }
                     disabled={isProcessing}
                   >
@@ -359,9 +381,10 @@ const UserDashboardPage = () => {
   return (
     <main className="p-6 bg-gray-200 h-screen flex justify-center items-center">
       <div className="container mx-auto bg-white p-6 rounded-md shadow-lg ">
-        <DataTable
+        <EnhancedDataTable
           data={data}
           columns={columns}
+          title="Users List"
           isLoading={loading}
           pageSize={pagination.size}
           currentPage={pagination.page}
@@ -370,9 +393,6 @@ const UserDashboardPage = () => {
           onSearch={handleSearch}
           searchValue={search}
           onRefresh={fetchData}
-          filterOptions={filterOptions}
-          activeFilters={filters}
-          onFilterChange={handleFilterChange}
           searchPlaceholder="Search users by name or email..."
           enableExport={false}
           enablePagination={true}
