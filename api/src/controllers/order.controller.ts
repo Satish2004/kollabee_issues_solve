@@ -207,7 +207,7 @@ export const getOrderDetails = async (req: any, res: Response) => {
     const order = await prisma.order.findFirst({
       where: {
         id,
-        buyerId,
+        buyerId: buyerId,
       },
       include: {
         items: {
@@ -625,10 +625,10 @@ export const getAllDetails = async (req: any, res: Response) => {
       [data, totalCount] = await prisma.$transaction([
         prisma.order.findMany({
           where: {
-            OR: [
-              { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
-              { carrier: { contains: searchTerm, mode: "insensitive" } },
-            ],
+            // OR: [
+            //   { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
+            //   { carrier: { contains: searchTerm, mode: "insensitive" } },
+            // ],
             AND: filterConditions,
           },
           skip,
@@ -657,16 +657,30 @@ export const getAllDetails = async (req: any, res: Response) => {
                 },
               },
             },
-            items: true,
+            items: {
+              include: {
+                product: true,
+                seller: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        email: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
             shippingAddress: true,
           },
         }),
         prisma.order.count({
           where: {
-            OR: [
-              { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
-              { carrier: { contains: searchTerm, mode: "insensitive" } },
-            ],
+            // OR: [
+            //   { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
+            //   { carrier: { contains: searchTerm, mode: "insensitive" } },
+            // ],
             AND: filterConditions,
           },
         }),
@@ -829,3 +843,62 @@ export const getAllDetails = async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to fetch details" });
   }
 };
+
+// get all the details of a particular order for admin
+
+export const getOrderDetailsForAdmin = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        id,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+            seller: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    imageUrl: true,
+                    phoneNumber: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        shippingAddress: true,
+        buyer: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                imageUrl: true,
+                phoneNumber: true,
+                country: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      console.log("here is going ?");
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error("Get order details error:", error);
+    res.status(500).json({ error: "Failed to fetch order details" });
+  }
+};
+
+

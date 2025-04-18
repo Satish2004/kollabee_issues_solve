@@ -1,4 +1,5 @@
 import { api } from "../axios";
+import { getTopBuyers } from "../../../api/src/controllers/dashboard.controller";
 
 export const ordersApi = {
   createOrder: async (data: {
@@ -48,5 +49,31 @@ export const ordersApi = {
     status: "APPROVED" | "REJECTED";
   }) => {
     return api.post("/orders/approve", data);
+  },
+
+  // admin api
+
+  getOrdersForAdmin: async (params?: {
+    type: string;
+    status?: string;
+    page?: number;
+    limit?: number;
+  }) => {
+    return api.get("/admin/getAllDetails", { params });
+  },
+
+  getOrderDetailsForAdmin: async (id: string) => {
+    return api.get(`/admin/order/${id}`);
+  },
+
+  getTopBuyers: async (params?: {
+    pageNo?: number;
+    pageSize?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+    filter?: string;
+  }) => {
+    return api.get("/admin/top-buyer", { params });
   },
 };

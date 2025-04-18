@@ -9,8 +9,11 @@ import prisma from "./db/index";
 import { setupRoutes } from "./routes";
 import { Server } from "socket.io";
 import { handleSocketConnection } from "./sockets";
+import bcrypt from "bcryptjs";
 
 const app: Application = express();
+
+// Hash password
 
 // Basic middleware
 app.use(
@@ -21,7 +24,7 @@ app.use(
         "https://kollabee-theta.vercel.app",
         "http://localhost:3000",
         "http://localhost:3001",
-         // For local testing
+        // For local testing
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -52,36 +55,43 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something broke!" });
-});
+app.use(
+  (
+    err: Error,
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
+    console.error(err.stack);
+    res.status(500).json({ error: "Something broke!" });
+  }
+);
 
 // Setup all routes
 setupRoutes(app);
 
 // Start server
-  const port = process.env.PORT || 2000;
+const port = process.env.PORT || 2000;
 
-  // Create an HTTP server using app.listen()
-  const server = app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-  });
+// Create an HTTP server using app.listen()
+const server = app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
 
-  // Initialize Socket.IO and attach it to the server
-  const io = new Server(server, {
-    cors: {
-      origin: process.env.FRONTEND_URL || "http://localhost:3000",
-      methods: ["GET", "POST"],
-      credentials: true,
-    },
-  });
+// Initialize Socket.IO and attach it to the server
+const io = new Server(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
 
-  // Set up Socket.io connection handler
-  io.on("connection", (socket) => {
-    console.log("A client connected:", socket.id);
-    handleSocketConnection(socket, io, prisma);
-  });
+// Set up Socket.io connection handler
+io.on("connection", (socket) => {
+  console.log("A client connected:", socket.id);
+  handleSocketConnection(socket, io, prisma);
+});
 
 // Graceful shutdown
 process.on("SIGTERM", () => {

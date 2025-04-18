@@ -764,38 +764,60 @@ export const getTopProducts = async (req: any, res: Response) => {
 
 export const getTopBuyers = async (req: any, res: Response) => {
   try {
-    const { userId } = req.user;
-    const seller = await prisma.seller.findFirst({ where: { userId } });
-    if (!seller) return res.status(404).json({ error: "Seller not found" });
+    // Extract query parameters with defaults
+    const pageNo = parseInt(req.query.pageNo) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 5;
+    const search = req.query.search || "";
+    const sortBy = req.query.sortBy || "totalAmount";
+    const sortOrder = (req.query.sortOrder || "desc").toLowerCase();
+    const filter = req.query.filter || "";
 
+    // Calculate skip value for pagination
+    const skip = (pageNo - 1) * pageSize;
+
+    // Base where condition
+    const whereCondition = {
+      status: "DELIVERED",
+    };
+
+    // Get total count for pagination metadata
+    const totalCount = await prisma.order.groupBy({
+      by: ["buyerId"],
+      where: { ...whereCondition, status: "DELIVERED" as const },
+      _count: true,
+    });
+
+    // Get top buyers with pagination, sorting, and filtering
     const topBuyers = await prisma.order.groupBy({
       by: ["buyerId"],
-      where: {
-        sellerId: seller.id,
-        status: "DELIVERED",
-      },
+      where: { ...whereCondition, status: "DELIVERED" as const },
       _count: true,
       _sum: {
         totalAmount: true,
       },
       orderBy: {
         _sum: {
-          totalAmount: "desc",
+          [sortBy === "totalAmount" ? "totalAmount" : "totalAmount"]:
+            sortOrder === "asc" ? "asc" : "desc",
         },
       },
-      take: 5,
+      skip,
+      take: pageSize,
     });
 
-    // Get buyer details
+    // Get buyer details with search capability
     const buyerDetails = await Promise.all(
-      topBuyers.map(async (buyer: any) => {
+      topBuyers.map(async (buyer) => {
         const details = await prisma.buyer.findUnique({
-          where: { id: buyer.buyerId },
+          where: { id: buyer.buyerId! },
           include: {
             user: {
               select: {
                 name: true,
                 imageUrl: true,
+                email: true,
+                companyName: true,
+                country: true,
               },
             },
           },
@@ -807,9 +829,44 @@ export const getTopBuyers = async (req: any, res: Response) => {
       })
     );
 
-    res.json(buyerDetails);
+    // Filter results based on search term if provided
+    const filteredResults = search
+      ? buyerDetails.filter(
+          (buyer) =>
+            buyer.details?.user?.name
+              ?.toLowerCase()
+              .includes(search.toLowerCase()) ||
+            buyer.details?.user?.email
+              ?.toLowerCase()
+              .includes(search.toLowerCase()) ||
+            buyer.details?.user?.companyName
+              ?.toLowerCase()
+              .includes(search.toLowerCase()) ||
+            buyer.details?.user?.country
+              ?.toLowerCase()
+              .includes(search.toLowerCase())
+        )
+      : buyerDetails;
+
+    // Apply additional filtering if needed
+    let finalResults = filteredResults;
+
+    // Return paginated response with metadata
+    res.json({
+      data: finalResults,
+      pagination: {
+        total: totalCount.length,
+        pageSize,
+        currentPage: pageNo,
+        totalPages: Math.ceil(totalCount.length / pageSize),
+        hasMore: pageNo * pageSize < totalCount.length,
+      },
+    });
   } catch (error) {
     console.error("Get top buyers error:", error);
     res.status(500).json({ error: "Failed to get top buyers" });
   }
 };
+
+// Example usage:
+// GET /api/sellers/top-buyers?pageNo=1&pageSize=10&search=john&sortBy=totalAmount&sortOrder=desc&filter=US&type=country

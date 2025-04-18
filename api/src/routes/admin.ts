@@ -1,20 +1,33 @@
 import express, { Response } from "express";
 import { authMiddleware, isAdmin } from "../middleware/auth";
-import { getAllUsers } from "../controllers/user.controller";
+import {
+  getAllUsers,
+  getUserDetailsForAdmin,
+} from "../controllers/user.controller";
 import {
   approveOrRejectSeller,
   getAllBuyers,
   getAllSellers,
   requestApproval,
 } from "../controllers/seller.controller";
-import { getAllDetails } from "../controllers/order.controller";
-import { adminController } from "../controllers/admin.controller"
+import {
+  getAllDetails,
+  getOrderDetails,
+  getOrderDetailsForAdmin,
+} from "../controllers/order.controller";
+import { adminController } from "../controllers/admin.controller";
+import { getTopBuyers } from "../controllers/dashboard.controller";
 
 const router = express.Router();
 
+router.get("/top-buyer", getTopBuyers);
 router.get("/users", getAllUsers);
+router.get("/users/:id", getUserDetailsForAdmin);
+
 router.get("/sellers", getAllSellers);
-router.get("buyer", getAllBuyers);
+router.get("/buyer", getAllBuyers);
+
+router.get("/order/:id", getOrderDetailsForAdmin);
 
 /*
 
@@ -95,14 +108,33 @@ router.get("/", async (req: any, res: Response) => {
 });
 
 // Block communication between two users
-router.post("/block-communication", authMiddleware, adminController.blockCommunication)
+router.post(
+  "/block-communication",
+  authMiddleware,
+  adminController.blockCommunication
+);
 
 // Unblock communication between two users
-router.post("/unblock-communication", authMiddleware, adminController.unblockCommunication)
+router.post(
+  "/unblock-communication",
+  authMiddleware,
+  adminController.unblockCommunication
+);
 
 // Get all blocked communications
 router.get("/blocked-communications", authMiddleware, adminController.getBlockedCommunications)
 
+//Dashboard related functions
+router.get("/buyer-metrics", authMiddleware, adminController.getBuyerMetrics)
+router.get("/time-period-metrics/:period", authMiddleware, adminController.getTimePeriodMetrics)
+router.get("/monthly-onboarding", authMiddleware, adminController.getMonthlyOnboarding)
+router.get("/product-performance", authMiddleware, adminController.getProductPerformance)
+router.get("/trending-products", authMiddleware, adminController.getTrendingProducts)
+router.get("/top-buyers", authMiddleware, adminController.getTopBuyers)
+router.get("/supplier-metrics", authMiddleware, adminController.getSupplierMetrics)
+router.get("/top-countries", authMiddleware, adminController.getTopCountries)
+router.get("/top-suppliers", authMiddleware, adminController.getTopSuppliers)
 
-export default router
 
+
+export default router;

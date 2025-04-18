@@ -99,14 +99,14 @@ export const getAllUsers = async (req: any, res: Response) => {
     const size = parseInt(pageSize as string) || 10;
     const skip = (page - 1) * size;
     const take = size;
-    const searchTerm = search ? search.toString() : "";
-    const sortByField = sortBy ? sortBy.toString() : "createdAt";
-    const sortOrderField = sortOrder ? sortOrder.toString() : "desc";
+    const searchTerm = search ? search?.toString() : "";
+    const sortByField = sortBy ? sortBy?.toString() : "createdAt";
+    const sortOrderField = sortOrder ? sortOrder?.toString() : "desc";
 
     // Parse filters from query
-    const filterFieldArray = filter.toString().split(",").filter(Boolean);
+    const filterFieldArray = filter?.toString().split(",").filter(Boolean);
     console.log("filterFieldArray : ", filterFieldArray);
-    const filterConditions = filterFieldArray.map((item: string) => {
+    const filterConditions = filterFieldArray?.map((item: string) => {
       const [key, value] = item.split(":");
       switch (key) {
         case "role":
@@ -175,8 +175,13 @@ export const getAllUsers = async (req: any, res: Response) => {
           createdAt: true,
           updatedAt: true,
           lastLogin: true,
-          seller: true,
+          seller: {
+            include: {
+              Approved: true,
+            },
+          },
           buyer: true,
+          approvals: true,
         },
       }),
 
@@ -225,7 +230,72 @@ export const getAllUsers = async (req: any, res: Response) => {
   }
 };
 
+// get all the details about the user -> admin api
+//
 
-// approve a seller
+export const getUserDetailsForAdmin = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
 
+    // Fetch all details about the user, including related entities
+    const user = await prisma.user.findUnique({
+      where: { id: id },
+      include: {
+        seller: {
+          include: {
+            Approved: true,
+            projects: true,
+            inquiries: true,
+            trustBadges: true,
+            certifications: true,
+          },
+        },
+        buyer: {
+          include: {
+            inquiries: true,
+            Wishlist: {
+              include: {
+                items: {
+                  include: {
+                    product: true,
+                  },
+                },
+              },
+            },
+            projects: true,
+            savedSearches: true,
+          },
+        },
+        approvals: true,
+        addresses: true,
+        analytics: true,
+        subscription: {
+          include: {
+            plan: true,
+          },
+        },
+        blockedAsInitiator: {
+          include: {
+            target: true,
+          },
+        },
+        blockedAsTarget: {
+          include: {
+            initiator: true,
+          },
+        },
+      },
+    });
 
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error fetching user details for admin:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch user details", message: error as any });
+  }
+};
