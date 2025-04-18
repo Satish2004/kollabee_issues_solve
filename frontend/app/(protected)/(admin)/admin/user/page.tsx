@@ -387,38 +387,36 @@ const UserDashboardPage = () => {
   };
 
   return (
-    <main className="p-6 bg-gray-200 h-screen flex justify-center items-center">
-      <div className="container mx-auto bg-white p-6 rounded-md shadow-lg ">
-        <EnhancedDataTable
-          data={data}
-          columns={columns}
-          title="Users List"
-          isLoading={loading}
-          pageSize={pagination.size}
-          currentPage={pagination.page}
-          totalItems={pagination.total}
-          onPageChange={handlePageChange}
-          onSearch={handleSearch}
-          searchValue={search}
-          onRefresh={fetchData}
-          searchPlaceholder="Search users by name or email..."
-          enableExport={false}
-          enablePagination={true}
-          enableSearch={true}
-          enableFiltering={true}
-          enableRefresh={true}
-          renderEmptyState={() => (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="text-center py-10">
-                <p className="text-muted-foreground">
-                  No users found. Try adjusting your filters.
-                </p>
-              </TableCell>
-            </TableRow>
-          )}
-        />
-      </div>
-    </main>
+    <div className="container  min-w-[99%] mx-3 bg-white p-6 rounded-md shadow-lg  ">
+      <EnhancedDataTable
+        data={data}
+        columns={columns}
+        title="Users List"
+        isLoading={loading}
+        pageSize={pagination.size}
+        currentPage={pagination.page}
+        totalItems={pagination.total}
+        onPageChange={handlePageChange}
+        onSearch={handleSearch}
+        searchValue={search}
+        onRefresh={fetchData}
+        searchPlaceholder="Search users by name or email..."
+        enableExport={false}
+        enablePagination={true}
+        enableSearch={true}
+        enableFiltering={true}
+        enableRefresh={true}
+        renderEmptyState={() => (
+          <TableRow>
+            <TableCell colSpan={columns.length} className="text-center py-10">
+              <p className="text-muted-foreground">
+                No users found. Try adjusting your filters.
+              </p>
+            </TableCell>
+          </TableRow>
+        )}
+      />
+    </div>
   );
 };
 

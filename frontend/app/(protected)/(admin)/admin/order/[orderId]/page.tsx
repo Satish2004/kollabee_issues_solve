@@ -153,7 +153,7 @@ const OrderDetailsPage = () => {
   const seller = order.items[0]?.seller;
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-6xl ">
+    <div className="w-full py-6 px-4  ">
       <div className="flex justify-between items-center bg-white mb-10 h-16 rounded-md shadow-sm border px-4">
         <Button
           variant="ghost"

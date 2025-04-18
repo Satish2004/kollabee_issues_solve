@@ -28,6 +28,7 @@ import { removeToken } from "@/lib/utils/token";
 import { HiChatBubbleLeftRight } from "react-icons/hi2";
 import { PiChatCenteredDotsFill } from "react-icons/pi";
 import { IoStorefront } from "react-icons/io5";
+import IconRenderer2 from "../buyer/icons-render-from-figma";
 
 type SidebarProps = {
   className?: string;
@@ -95,7 +96,14 @@ export function AdminSidebar({ className }: SidebarProps) {
         {
           label: "Orders",
           icon: ShoppingCart,
-          href: "/admin/orders",
+          href: "/admin/order",
+        },
+        {
+          label: "Users",
+          icon: "Custom",
+          image:
+            "https://s3-alpha-sig.figma.com/img/55f5/ff7a/fc3ffb170dfb78379cc43abe1c9b594a?Expires=1745798400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=LGr7VY5oL6y0Tvijn53Dx1h15ZbBpSprws-Mp~ubIPMop4Rh8A~8SeccS829tMp-vGZU7sXjyllQAIed2w40D3dj8pAnTWn96MNHms8QEUXTwP08wa6AKdNmdGd~IbsLPcBGPTA3qZIHoayzEVgH7-w1CNlB581KwDVOgKpcz3beHrUn4JU0K4V2iyOUHWA22GnqrbZ0tipjg7Eb0StwVInSJvbzrM8Ul9Vk39~2wqK5wUKzYToT9EEUuHW6e4tVcYTP3pBdCJGInfeIl3M1f1SXUqBnS6hZO7Uj8vq3AYCYFhYpb0nIzMhQG~n-grtk2HQXYpy-i2GG38XgE-BYjQ__",
+          href: "/admin/user",
         },
         // {
         //   label: "Settings",
@@ -184,7 +192,11 @@ export function AdminSidebar({ className }: SidebarProps) {
                       pathname === route.href && "bg-[#FDECED] text-[#363638]"
                     )} `}
                   >
-                    <route.icon className="h-4 w-4" />
+                    {route.icon === "Custom" ? (
+                      <IconRenderer2 icon={route.image} />
+                    ) : (
+                      <route.icon className="h-4 w-4" />
+                    )}
                     {!isCollapsed && <span>{route.label}</span>}
                   </Link>
                 ))}

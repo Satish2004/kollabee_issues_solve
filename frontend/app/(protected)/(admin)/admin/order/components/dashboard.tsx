@@ -20,8 +20,8 @@ export default function Dashboard() {
   }, [activeTab, router]);
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="rounded-lg shadow-sm p-6">
+    <div className="  w-full  space-y-6">
+      <div className="rounded-lg shadow-sm p-4">
         <Tabs
           defaultValue="overview"
           value={activeTab}
