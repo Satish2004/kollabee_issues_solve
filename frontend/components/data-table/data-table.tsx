@@ -661,7 +661,7 @@ function ColumnFilterPopover({
           <Filter className="h-3 w-3" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-52 p-0" align="start">
+      <PopoverContent className="w-52 p-0 bg-white" align="start">
         <Command>
           <CommandInput placeholder={`Filter by ${filterField.label}...`} />
           <CommandList>

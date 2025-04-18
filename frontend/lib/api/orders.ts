@@ -1,4 +1,5 @@
 import { api } from "../axios";
+import { getTopBuyers } from "../../../api/src/controllers/dashboard.controller";
 
 export const ordersApi = {
   createOrder: async (data: {
@@ -63,5 +64,16 @@ export const ordersApi = {
 
   getOrderDetailsForAdmin: async (id: string) => {
     return api.get(`/admin/order/${id}`);
+  },
+
+  getTopBuyers: async (params?: {
+    pageNo?: number;
+    pageSize?: number;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: string;
+    filter?: string;
+  }) => {
+    return api.get("/admin/top-buyer", { params });
   },
 };

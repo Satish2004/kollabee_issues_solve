@@ -13,12 +13,15 @@ import {
   getOrderDetailsForAdmin,
 } from "../controllers/order.controller";
 import { adminController } from "../controllers/admin.controller";
+import { getTopBuyers } from "../controllers/dashboard.controller";
 
 const router = express.Router();
 
+router.get("/top-buyer", getTopBuyers);
 router.get("/users", getAllUsers);
 router.get("/sellers", getAllSellers);
-router.get("buyer", getAllBuyers);
+router.get("/buyer", getAllBuyers);
+
 router.get("/order/:id", getOrderDetailsForAdmin);
 
 /*
