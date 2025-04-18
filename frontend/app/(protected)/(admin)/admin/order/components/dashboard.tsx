@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Overview from "./overview";
 import Orders from "./orders";
@@ -8,7 +9,15 @@ import Analytics from "./analytics";
 import IconRenderer2 from "@/components/buyer/icons-render-from-figma";
 
 export default function Dashboard() {
-  const [activeTab, setActiveTab] = useState("overview");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialTab = searchParams.get("tab") || "overview";
+  const [activeTab, setActiveTab] = useState(initialTab);
+
+  useEffect(() => {
+    // Update the query parameter when the active tab changes
+    router.replace(`?tab=${activeTab}`);
+  }, [activeTab, router]);
 
   return (
     <div className="container mx-auto py-6 space-y-6">

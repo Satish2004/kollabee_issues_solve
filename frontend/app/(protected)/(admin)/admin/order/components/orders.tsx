@@ -8,6 +8,7 @@ import { OrderDetail } from "./order-detail";
 import { FilterDialog } from "./filter-dialog";
 import { mockOrders } from "@/lib/mock-data";
 import { ordersApi } from "@/lib/api/orders";
+import { useRouter } from "next/navigation";
 
 type Order = {
   id: string;
@@ -35,6 +36,7 @@ export default function Orders() {
     productChannel: "all",
   });
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const router = useRouter();
 
   const ordersPerPage = 10;
 
@@ -140,10 +142,6 @@ export default function Orders() {
     fetchData();
   }, [currentPage, searchQuery, filters]);
 
-  useEffect(() => {
-    console.log("filteredOrders", filteredOrders);
-  }, [filteredOrders]);
-
   // Define columns for the DataTable
   const columns: Column<Order>[] = [
     {
@@ -220,7 +218,10 @@ export default function Orders() {
       header: "",
       className: "w-[50px]",
       cell: (order) => (
-        <button className="p-1" onClick={() => handleViewOrder(order)}>
+        <button
+          className="p-1"
+          onClick={() => router.push(`order/${order.id}`)}
+        >
           <Eye className="h-4 w-4 text-muted-foreground" />
         </button>
       ),

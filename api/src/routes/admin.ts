@@ -7,14 +7,19 @@ import {
   getAllSellers,
   requestApproval,
 } from "../controllers/seller.controller";
-import { getAllDetails } from "../controllers/order.controller";
-import { adminController } from "../controllers/admin.controller"
+import {
+  getAllDetails,
+  getOrderDetails,
+  getOrderDetailsForAdmin,
+} from "../controllers/order.controller";
+import { adminController } from "../controllers/admin.controller";
 
 const router = express.Router();
 
 router.get("/users", getAllUsers);
 router.get("/sellers", getAllSellers);
 router.get("buyer", getAllBuyers);
+router.get("/order/:id", getOrderDetailsForAdmin);
 
 /*
 
@@ -95,14 +100,24 @@ router.get("/", async (req: any, res: Response) => {
 });
 
 // Block communication between two users
-router.post("/block-communication", authMiddleware, adminController.blockCommunication)
+router.post(
+  "/block-communication",
+  authMiddleware,
+  adminController.blockCommunication
+);
 
 // Unblock communication between two users
-router.post("/unblock-communication", authMiddleware, adminController.unblockCommunication)
+router.post(
+  "/unblock-communication",
+  authMiddleware,
+  adminController.unblockCommunication
+);
 
 // Get all blocked communications
-router.get("/blocked-communications", authMiddleware, adminController.getBlockedCommunications)
+router.get(
+  "/blocked-communications",
+  authMiddleware,
+  adminController.getBlockedCommunications
+);
 
-
-export default router
-
+export default router;

@@ -60,4 +60,8 @@ export const ordersApi = {
   }) => {
     return api.get("/admin/getAllDetails", { params });
   },
+
+  getOrderDetailsForAdmin: async (id: string) => {
+    return api.get(`/admin/order/${id}`);
+  },
 };
