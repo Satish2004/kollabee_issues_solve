@@ -299,3 +299,46 @@ export const getUserDetailsForAdmin = async (req: any, res: Response) => {
       .json({ error: "Failed to fetch user details", message: error as any });
   }
 };
+
+export const getUsers = async (req: any, res: Response) => {
+  try {
+    const { role } = req.query;
+
+    const users = await prisma.user.findMany({
+      where: {
+        role: role,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        companyName: true,
+        displayName: true,
+        country: true,
+        state: true,
+        address: true,
+        imageUrl: true,
+        companyWebsite: true,
+        zipCode: true,
+        createdAt: true,
+        updatedAt: true,
+        lastLogin: true,
+        seller: {
+          include: {
+            Approved: true,
+          },
+        },
+        buyer: true,
+        approvals: true,
+      },
+    });
+
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch users", message: error as any });
+  }
+};

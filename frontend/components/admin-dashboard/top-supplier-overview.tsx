@@ -2,9 +2,42 @@
 import React from "react"
 import { Avatar } from "@/components/ui/avatar"
 import { Card } from "@/components/ui/card"
-import { Area, AreaChart, Bar, BarChart } from "recharts"
+import { Area, AreaChart, Bar, BarChart, ResponsiveContainer } from "recharts"
 import { Button } from "@/components/ui/button"
+import { Tooltip } from "@radix-ui/react-tooltip"
 
+const data = [
+  {
+    name: 'Page A',
+    uv: 4000,
+    pv: 2400,
+    amt: 2400,
+  },
+  {
+    name: 'Page B',
+    uv: 3000,
+    pv: 1398,
+    amt: 2210,
+  },
+  {
+    name: 'Page C',
+    uv: 2000,
+    pv: 9800,
+    amt: 2290,
+  },
+  {
+    name: 'Page D',
+    uv: 2780,
+    pv: 3908,
+    amt: 2000,
+  },
+  {
+    name: 'Page E',
+    uv: 1890,
+    pv: 4800,
+    amt: 2181,
+  },
+];
 // Dynamic data for the dashboard
 const topSupplierData = {
   name: "Marcos Private Limited",
@@ -60,9 +93,9 @@ const suppliersTableData = [
   { name: "Marco Shoes", price: "$79.49", quantity: 64, amount: "$1,965.81" },
 ]
 
-export default function KollaBeeDashboard() {
+export default function TopSuppliers() {
   return (
-    <div className="p-6 font-sans">
+    <div className=" font-sans">
       <h1 className="text-xl font-semibold mb-6">Top Suppliers on KollaBee</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -70,23 +103,22 @@ export default function KollaBeeDashboard() {
         <Card className="p-6 bg-white">
           <h2 className="text-xl font-bold mb-6">Top Supplier</h2>
 
-          <div className="flex items-start mb-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
+            
+          <div className="flex flex-col items-start mb-6">
             <div className="relative mr-4">
               <Avatar className="w-20 h-20 border-2 border-white">
-                <img src={topSupplierData.avatar || "/placeholder.svg"} alt="Supplier" className="object-cover" />
+                <img src={topSupplierData.avatar || "/placeholder.svg"} alt="Supplier" className="object-cover bg-stone-900" />
               </Avatar>
-              <div className="absolute -bottom-1 -right-1 bg-green-500 rounded-full w-5 h-5 border-2 border-white flex items-center justify-center">
-                <div className="w-2 h-2 bg-white rounded-full"></div>
-              </div>
             </div>
 
-            <div className="flex-1">
+            <div className="flex flex-col items-start">
               <h3 className="text-lg font-semibold">{topSupplierData.name}</h3>
-              <p className="text-sm text-gray-500">{topSupplierData.label}</p>
+              <p className="text-sm text-gray-500 text-center">{topSupplierData.label}</p>
 
               <div className="flex items-center mt-2">
                 <div className="mr-4">
-                  <p className="text-xs text-gray-500">{topSupplierData.date}</p>
+                  <p className="text-xs text-gray-500">Top Selling Product</p>
                   <p className="text-xs">{topSupplierData.salesInfo}</p>
                 </div>
 
@@ -97,6 +129,7 @@ export default function KollaBeeDashboard() {
                     data={topSupplierData.growthData}
                     margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
                   >
+                    <Tooltip />
                     <defs>
                       <linearGradient id="colorGrowth" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.8} />
@@ -116,48 +149,31 @@ export default function KollaBeeDashboard() {
             </div>
             <p className="text-sm text-gray-600">{topSupplierData.salesDescription}</p>
 
-            <div className="mt-2 h-12">
-              <BarChart
-                width={350}
-                height={48}
-                data={topSupplierData.salesData}
-                margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
-                barSize={8}
-              >
-                {topSupplierData.salesData.map((entry, index) => (
-                  <Bar
-                    key={index}
-                    dataKey="value"
-                    fill={entry.color}
-                    background={{ fill: "#eee" }}
-                    radius={[10, 10, 10, 10]}
-                  />
-                ))}
+            <div className="mt-2 h-12 w-40">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart width={150} height={40} data={data}>
+                <Tooltip />
+                <Bar dataKey="uv" fill="#8300eb" radius={[10, 10, 0, 0]} />
+                <Bar dataKey="pv" fill="#e80053" radius={[10, 10, 0, 0]} />
               </BarChart>
+            </ResponsiveContainer>
+            
             </div>
           </div>
+          </div>
 
-          <div>
-            <div className="grid grid-cols-3 border-b pb-2 mb-2">
+          <div className="">
+            <div className="grid grid-cols-2 border-b pb-2 mb-2 ">
               <div className="text-sm text-gray-500">Product Title</div>
               <div className="text-sm text-gray-500">Selling Price</div>
-              <div className="text-sm text-gray-500">Action</div>
             </div>
 
             {topSupplierData.products.map((product) => (
-              <div key={product.id} className="grid grid-cols-3 py-2 items-center">
+              <div key={product.id} className="grid grid-cols-2 py-2 items-center">
                 <div className="flex items-center">
-                  <Avatar className="w-8 h-8 mr-2">
-                    <img src={product.avatar || "/placeholder.svg"} alt={product.name} className="object-cover" />
-                  </Avatar>
                   <span className="text-sm">{product.name}</span>
                 </div>
                 <div className="text-sm">{product.price}</div>
-                <div>
-                  <Button variant="ghost" className="text-sm text-indigo-600 hover:text-indigo-800 p-0">
-                    {product.action}
-                  </Button>
-                </div>
               </div>
             ))}
           </div>

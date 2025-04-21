@@ -24,7 +24,7 @@ export default function BlockedCommunications() {
     try {
       setIsLoading(true)
       const response = await chatApi.getBlockedCommunications()
-      setBlockedCommunications(response.data.blockedCommunications)
+      setBlockedCommunications(response?.blockedCommunications)
     } catch (error) {
       console.error("Failed to fetch blocked communications:", error)
       toast({
@@ -65,7 +65,7 @@ export default function BlockedCommunications() {
   }
 
   return (
-    <Card>
+    <Card className="min-h-96">
       <CardHeader>
         <CardTitle>Blocked Communications</CardTitle>
       </CardHeader>

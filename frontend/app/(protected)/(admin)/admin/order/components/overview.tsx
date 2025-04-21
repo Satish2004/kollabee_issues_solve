@@ -21,49 +21,34 @@ import {
   YAxis,
   ResponsiveContainer,
 } from "recharts";
+import { useEffect, useState } from "react";
+import { AdminApi } from "@/lib/api";
+import MetricCard from "@/components/admin-dashboard/metric-card";
 
 export default function Overview() {
+
+  const [orderMetrics, setOrderMetrics] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchOrderMetrics = async () => {
+      const metricsRes = await AdminApi.getOrderMetrics()
+      setOrderMetrics(metricsRes)
+      setIsLoading(false)
+    }
+    fetchOrderMetrics()
+  }, [])
+
+
   return (
     <div className="space-y-6">
       <h2 className="text-lg font-medium">Orders Overview</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          title="TOTAL ORDERS"
-          value="500"
-          change="+2,123"
-          changeText="from last month"
-          icon={<Package className="h-5 w-5 text-rose-500" />}
-          iconBg="bg-rose-100"
-        />
-
-        <MetricCard
-          title="TOTAL RECEIVED"
-          value="490"
-          change="+$10,000"
-          changeText="Revenue"
-          badge="10.3%"
-          icon={<RefreshCw className="h-5 w-5 text-rose-500" />}
-          iconBg="bg-rose-100"
-        />
-
-        <MetricCard
-          title="RETURNED PRODUCTS"
-          value="10"
-          change="-$2,123"
-          changeText="from last month"
-          icon={<TrendingDown className="h-5 w-5 text-rose-500" />}
-          iconBg="bg-rose-100"
-        />
-
-        <MetricCard
-          title="ON THE WAY TO SHIP"
-          value="12"
-          change="$2,000"
-          changeText="Products shipping"
-          icon={<Package className="h-5 w-5 text-rose-500" />}
-          iconBg="bg-rose-100"
-        />
+      <MetricCard title="Total Orders" value={orderMetrics?.totalOrders?.current} percentage={orderMetrics?.totalOrders?.percentageChange} icon={<Package className="h-4 w-4" />} iconBg="bg-emerald-100" />
+      <MetricCard title="Orders Worth" value={orderMetrics?.ordersWorth?.current} percentage={orderMetrics?.ordersWorth?.percentageChange}  icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
+      <MetricCard title="Returned Products" value={"0"} percentage={orderMetrics?.ordersWorth?.percentageChange}  icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
+      <MetricCard title="Packed Orders" value={orderMetrics?.ordersPacked?.current} percentage={orderMetrics?.ordersPacked?.percentageChange} icon={<ArrowUp className="h-4 w-4" />} iconBg="bg-emerald-100" />
       </div>
 
       <div className="pt-4">
@@ -125,36 +110,6 @@ export default function Overview() {
   );
 }
 
-function MetricCard({ title, value, change, changeText, badge, icon, iconBg }) {
-  const isNegative = change.startsWith("-");
-
-  return (
-    <Card className="border-0 shadow-sm">
-      <CardContent className="p-4">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-xs text-muted-foreground font-medium">{title}</p>
-            <h3 className="text-2xl font-bold mt-1">{value}</h3>
-            <div className="flex items-center mt-1 text-sm">
-              <span
-                className={isNegative ? "text-rose-500" : "text-emerald-500"}
-              >
-                {change}
-              </span>
-              <span className="text-muted-foreground ml-1">{changeText}</span>
-            </div>
-          </div>
-          {badge && (
-            <div className="bg-rose-100 text-rose-500 px-2 py-0.5 rounded text-xs font-medium">
-              {badge}
-            </div>
-          )}
-          <div className={`ml-auto rounded-full p-2 ${iconBg}`}>{icon}</div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function StatCard({ title, value, change, trend }) {
   return (

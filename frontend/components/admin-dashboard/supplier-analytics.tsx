@@ -1,41 +1,23 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AdminApi } from '@/lib/api'
 
 function SupplierAnalytics() {
+  const [metricsData, setMetricsData] = useState<any>(null)
+  // const [monthlyOnboarding, setMonthlyOnboarding] = useState<any>(null)
 
-    const metricsData = [
-        {
-          title: "Customers",
-          value: "3,781",
-          change: "+11.01%",
-          isPositive: true,
-          bgColor: "bg-red-50",
-        },
-        {
-          title: "Orders",
-          value: "1,219",
-          change: "-0.03%",
-          isPositive: false,
-          bgColor: "bg-white",
-        },
-        {
-          title: "Revenue",
-          value: "$695",
-          change: "+15.03%",
-          isPositive: true,
-          bgColor: "bg-white",
-        },
-        {
-          title: "Growth",
-          value: "30.1%",
-          change: "+6.08%",
-          isPositive: true,
-          bgColor: "bg-red-50",
-        },
-      ]
+  useEffect(() => {
+    const fetchMetricsData = async () => {
+      const metricsRes = await AdminApi.getPlatformMetrics()
+      setMetricsData(metricsRes)
+    }
 
+    fetchMetricsData()
+  }, [])
+
+  console.log(metricsData)
       
       const monthlyOnboarding = [
         { name: "Jan", buyers: 8, suppliers: 5 },
@@ -52,24 +34,59 @@ function SupplierAnalytics() {
                 
         {/* Metrics Cards */}
         <div className="col-span-2 grid grid-cols-2 gap-2 w-full">
-        {metricsData.map((metric, index) => (
-          <Card key={index} className={`${metric.bgColor} border border-gray-200`}>
+        <Card className={`bg-indigo-50 border border-gray-200`}>
             <CardContent className="p-6">
-              <div className="text-gray-700 font-medium mb-2">{metric.title}</div>
+              <div className="text-gray-700 font-medium mb-2">Requests</div>
               <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{metric.value}</div>
-                <div className={`flex items-center text-sm ${metric.isPositive ? "text-green-600" : "text-red-600"}`}>
-                  {metric.isPositive ? (
+                <div className="text-3xl font-bold text-gray-900">{metricsData?.requests?.current}</div>
+                <div className={`flex items-center text-sm ${metricsData?.requests?.percentageChange > 0 ? "text-green-600" : "text-red-600"}`}>
+                  {metricsData?.requests?.percentageChange ? (
                     <ArrowUpRight className="w-4 h-4 mr-1" />
                   ) : (
                     <ArrowDownRight className="w-4 h-4 mr-1" />
                   )}
-                  {metric.change}
+                  {metricsData?.requests?.percentageChange}
                 </div>
               </div>
             </CardContent>
           </Card>
-        ))}
+
+          <Card className={`bg-sky-50 border border-gray-200`}>
+            <CardContent className="p-6">
+              <div className="text-gray-700 font-medium mb-2">Messages</div>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-gray-900">{metricsData?.messages?.current}</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`bg-indigo-50 border border-gray-200`}>
+            <CardContent className="p-6">
+              <div className="text-gray-700 font-medium mb-2">Orders</div>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-gray-900">{metricsData?.orders?.current}</div>
+                <div className={`flex items-center text-sm ${metricsData?.orders?.percentageChange > 0 ? "text-green-600" : "text-red-600"}`}>
+                  {metricsData?.orders?.percentageChange ? (
+                    <ArrowUpRight className="w-4 h-4 mr-1" />
+                  ) : (
+                    <ArrowDownRight className="w-4 h-4 mr-1" />
+                  )}
+                  {metricsData?.orders?.percentageChange}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className={`bg-sky-50 border border-gray-200`}>
+            <CardContent className="p-6">
+              <div className="text-gray-700 font-medium mb-2">Certificates Uploaded</div>
+              <div className="flex items-center justify-between">
+                <div className="text-3xl font-bold text-gray-900">{metricsData?.certificatesUploaded?.current}</div>
+              </div>
+            </CardContent>
+          </Card>
+
+          
         </div>
         
         <div className="col-span-3 bg-gray-50 p-6 rounded-lg">

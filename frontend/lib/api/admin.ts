@@ -38,5 +38,17 @@ export const AdminApi = {
         return api.get('/admin/top-suppliers');
     },
 
+    getSupplierAnalytics: async (supplierId: string) => {
+        return api.get(`/admin/supplier-analytics/${supplierId}`);
+    },
+
+    getPlatformMetrics: async () => {
+        return api.get('/admin/platform-metrics');
+    },
+
+    getOrderMetrics: async () => {
+        return api.get('/admin/order-metrics');
+    },
+
 }; 
 

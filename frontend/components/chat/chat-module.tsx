@@ -8,6 +8,8 @@ import ContactList from "./contact-list"
 import { authApi } from "@/lib/api/auth"
 import { chatApi } from "@/lib/api/chat"
 import { useToast } from "@/hooks/use-toast"
+import { Button } from "../ui/button"
+import Link from "next/link"
 
 
 
@@ -304,8 +306,8 @@ export default function ChatModule() {
       const fetchBlockedCommunications = async () => {
         try {
           const response = await chatApi.getBlockedCommunications()
-          if (response.data.blockedCommunications) {
-            setBlockedCommunications(response.data.blockedCommunications)
+          if (response.blockedCommunications) {
+            setBlockedCommunications(response.blockedCommunications)
           }
         } catch (error) {
           console.error("Failed to fetch blocked communications:", error)
@@ -319,7 +321,7 @@ export default function ChatModule() {
     
     return (
         <div className="flex flex-col rounded-lg shadow-sm overflow-hidden min-h-[560px]">
-        <div className="flex rounded-xl px-6 py-4 bg-white mb-6 ">
+        <div className="flex justify-between rounded-xl px-6 py-4 bg-white mb-6 ">
             <div className="flex space-x-8">
             {availableTabs.map((tab) => (
             <button
@@ -333,6 +335,15 @@ export default function ChatModule() {
             </button>
           ))}
             </div>
+
+            {
+              user?.role === "ADMIN" && 
+              <div>
+                <Link href="/admin/chat/chat-administration">
+                  <Button className="button-bg text-white font-semibold">Chat Administration</Button>
+                </Link>
+              </div>
+            }
         </div>
     
         <div className="flex-1 flex  space-x-6">
@@ -351,6 +362,7 @@ export default function ChatModule() {
           currentUser={user}
           isLoading={isLoading}
           conversation={conversations.find((c) => c.id === activeConversation)}
+          isBlocked={blockedCommunications.some((comm) => comm.initiatorId === user?.id)}
         />
         </div>
         </div>

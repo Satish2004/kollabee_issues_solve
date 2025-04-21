@@ -34,7 +34,7 @@ export default function ChatWindow({
   currentUser,
   isLoading,
   conversation,
-  isBlocked = false,
+  isBlocked,
 }: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState("")
   const [attachments, setAttachments] = useState<File[]>([])
@@ -171,7 +171,7 @@ export default function ChatWindow({
     // Render blocked communication notice
     if (isBlocked && conversation) {
       return (
-        <div className="flex-1 flex flex-col h-full">
+        <div className="flex-1 flex flex-col h-[480px] bg-white">
           {/* Conversation Header */}
           <div className="p-4 border-b flex justify-between items-center">
             <div className="flex items-center">

@@ -13,6 +13,7 @@ export default function Dashboard() {
 
     const [selectedStatTime, setSelectedStatTime] = useState<"today" | "week" | "month" | "year">("today")
     const [buyerMetrics, setBuyerMetrics] = useState<any>(null)
+    const [supplierMetrics, setSupplierMetrics] = useState<any>(null)
     const [timePeriodMetrics, setTimePeriodMetrics] = useState<any>(null)
     const [monthlyOnboarding, setMonthlyOnboarding] = useState<any>(null)
     const [productPerformance, setProductPerformance] = useState<any>(null)
@@ -20,7 +21,7 @@ export default function Dashboard() {
     useEffect(() => {
         const fetchBuyerMetrics = async () => {
             const metricsRes = await AdminApi.getBuyerMetrics()
-            setBuyerMetrics(metricsRes)
+            setBuyerMetrics(metricsRes?.metricResponse)
         }
 
         const fetchMonthlyOnboarding = async () => {
@@ -33,9 +34,15 @@ export default function Dashboard() {
             setProductPerformance(performanceRes)
         }
 
+        const fetchSupplierMetrics = async () => {
+            const metricsRes = await AdminApi.getSupplierMetrics()
+            setSupplierMetrics(metricsRes)
+        }
+
         fetchMonthlyOnboarding()
         fetchBuyerMetrics()
         fetchProductPerformance()
+        fetchSupplierMetrics()
     }, [])
 
     useEffect(() => {
@@ -46,7 +53,6 @@ export default function Dashboard() {
         fetchTimePeriodMetrics(selectedStatTime)
     }, [selectedStatTime])
 
-    console.log(buyerMetrics)
     console.log(timePeriodMetrics)
     console.log(monthlyOnboarding)
     console.log(productPerformance)
@@ -96,27 +102,35 @@ export default function Dashboard() {
     <div>
         <div className="space-y-6 mx-auto">
         {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-lg p-4">
+        <h1 className="font-semibold mb-2 text-lg">Buyers Metrics</h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
         {/* New Joined Buyers */}
-        <MetricCard title="NEW JOINED BUYERS" value="23,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="NEW JOINED BUYERS" value={buyerMetrics?.NEW_JOINED_BUYERS?.current} percentage={buyerMetrics?.NEW_JOINED_BUYERS?.percentage} change={buyerMetrics?.NEW_JOINED_BUYERS?.percentageChange}/>
         {/* Buyers Bought Worth */}
-        <MetricCard title="NEW JOINED BUYERS" value="23,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="BUYERS BOUGHT WORTH" value={buyerMetrics?.BUYERS_BOUGHT?.current} percentage={buyerMetrics?.BUYERS_BOUGHT?.percentage} change={buyerMetrics?.BUYERS_BOUGHT?.percentageChange}/>
         {/* Total Buyers */}
-        <MetricCard title="NEW JOINED BUYERS" value="23,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="TOTAL BUYERS" value={buyerMetrics?.TOTAL_BUYERS?.current} percentage={buyerMetrics?.TOTAL_BUYERS?.percentage} change={buyerMetrics?.TOTAL_BUYERS?.percentageChange}/>
         {/* In-Active Buyers */}
-        <MetricCard title="NEW JOINED BUYERS" value="23,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="INACTIVE BUYERS" value={buyerMetrics?.INACTIVE_BUYERS?.current} percentage={buyerMetrics?.INACTIVE_BUYERS?.percentage} change={buyerMetrics?.INACTIVE_BUYERS?.percentageChange}/>
+      </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+      <div className="bg-white rounded-lg p-4">
+        <h1 className="font-semibold mb-2 text-lg">Supplier Metrics</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 ">
         {/* New Joined Buyers */}
-        <MetricCard title="NEW JOINED SUPPLIERS" value="2,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="NEW JOINED SUPPLIERS" value={supplierMetrics?.NEW_JOINED_SUPPLIERS?.current} percentage={supplierMetrics?.NEW_JOINED_SUPPLIERS?.percentage} change={supplierMetrics?.NEW_JOINED_SUPPLIERS?.percentageChange}/>
         {/* Buyers Bought Worth */}
-        <MetricCard title="NEW JOINED SUPPLIERS" value="2,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="SUPPLIERS SOLD WORTH" value={supplierMetrics?.SUPPLIERS_SOLD_WORTH?.current} percentage={supplierMetrics?.SUPPLIERS_SOLD_WORTH?.percentage} change={supplierMetrics?.SUPPLIERS_SOLD_WORTH?.percentageChange}/>
         {/* Total Buyers */}
-        <MetricCard title="NEW JOINED SUPPLIERS" value="2,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="TOTAL PRODUCTS SOLD" value={supplierMetrics?.TOTAL_PRODUCTS_SOLD?.current} percentage={supplierMetrics?.TOTAL_PRODUCTS_SOLD?.percentage} change={supplierMetrics?.TOTAL_PRODUCTS_SOLD?.percentageChange}/>
         {/* In-Active Buyers */}
-        <MetricCard title="NEW JOINED SUPPLIERS" value="2,000" percentage="10.3%" change="+2,123" />
+        <MetricCard title="INACTIVE SUPPLIERS" value={supplierMetrics?.INACTIVE_SUPPLIERS?.current} percentage={supplierMetrics?.INACTIVE_SUPPLIERS?.percentage} change={supplierMetrics?.INACTIVE_SUPPLIERS?.percentageChange}/>
       </div>
+      </div>
+
+
     
       {/* Stats Cards */}
       <div className="px-6 py-4 bg-white rounded-lg">
@@ -157,10 +171,10 @@ export default function Dashboard() {
                 </Select>
         </div>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4 mb-4">
-        <StatCard title="Requests" value="239" change="+6.08%" trend="up" bgColor="bg-slate-100" />
-        <StatCard title="Messages" value="12" bgColor="bg-sky-100" />
-        <StatCard title="Orders" value="3K" change="-0.03%" trend="down" bgColor="bg-slate-100" />
-        <StatCard title="Certificates uploaded" value="200" bgColor="bg-sky-100" />
+        <StatCard title="Requests" value={timePeriodMetrics?.requests?.current} change={timePeriodMetrics?.requests?.percentageChange} trend={timePeriodMetrics?.requests?.percentageChange > 0 ? "up" : "down"} bgColor="bg-slate-100" />
+        <StatCard title="Messages" value={timePeriodMetrics?.messages?.current} bgColor="bg-sky-100" />
+        <StatCard title="Orders" value={timePeriodMetrics?.orders?.current} change={timePeriodMetrics?.orders?.percentageChange} trend={timePeriodMetrics?.orders?.percentageChange > 0 ? "up" : "down"} bgColor="bg-sky-100" />
+        <StatCard title="Certificates uploaded" value={timePeriodMetrics?.certificatesUploaded?.current} bgColor="bg-sky-100" />
       </div>
       </div>
 
