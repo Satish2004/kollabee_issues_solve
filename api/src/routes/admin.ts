@@ -134,6 +134,9 @@ router.get("/top-buyers", authMiddleware, adminController.getTopBuyers)
 router.get("/supplier-metrics", authMiddleware, adminController.getSupplierMetrics)
 router.get("/top-countries", authMiddleware, adminController.getTopCountries)
 router.get("/top-suppliers", authMiddleware, adminController.getTopSuppliers)
+router.get("/supplier-analytics/:supplierId", authMiddleware, adminController.getSupplierAnalytics)
+router.get("/platform-metrics", authMiddleware, adminController.getPlatformMetrics)
+router.get("/order-metrics", authMiddleware, adminController.getOrderMetrics)
 
 
 

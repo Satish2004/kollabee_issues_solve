@@ -1274,7 +1274,215 @@ export const adminController = {
       console.error("Error fetching supplier analytics:", error);
       res.status(500).json({ error: "Failed to fetch supplier analytics" });
     }
+  },
+
+  getPlatformMetrics: async (req: Request, res: Response) => {
+    try {
+      const now = new Date();
+      const currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const pastPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+      const pastPeriodEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+      // Helper function to calculate percentage change
+      const calculatePercentage = (current: number, past: number): string => {
+        if (past === 0) return current === 0 ? '0%' : '100%';
+        const change = ((current - past) / past) * 100;
+        return `${change.toFixed(2)}%`;
+      };
+  
+      // Fetch all metrics in parallel
+      const [
+        requestsCurrent,
+        requestsPast,
+        messagesCurrent,
+        ordersCurrent,
+        ordersPast,
+        certificatesCurrent,
+      ] = await Promise.all([
+        // Requests (current period)
+        prisma.request.count({
+          where: {
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+        // Requests (past period)
+        prisma.request.count({
+          where: {
+            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+          }
+        }),
+        // Messages (current period)
+        prisma.message.count({
+          where: {
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+        // Orders (current period)
+        prisma.order.count({
+          where: {
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+        // Orders (past period)
+        prisma.order.count({
+          where: {
+            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+          }
+        }),
+        // Certificates (current period)
+        prisma.certification.count({
+          where: {
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+      ]);
+  
+      const metrics: PlatformMetrics = {
+        requests: {
+          current: requestsCurrent,
+          percentageChange: calculatePercentage(requestsCurrent, requestsPast)
+        },
+        messages: {
+          current: messagesCurrent
+        },
+        orders: {
+          current: ordersCurrent,
+          percentageChange: calculatePercentage(ordersCurrent, ordersPast)
+        },
+        certificatesUploaded: {
+          current: certificatesCurrent
+        }
+      };
+  
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching platform metrics:", error);
+      res.status(500).json({ error: "Failed to fetch platform metrics" });
+    }
+  },
+
+  getOrderMetrics: async (req: Request, res: Response) => {
+    try {
+      const now = new Date();
+      const currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const pastPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+      const pastPeriodEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+      // Helper function to calculate percentage change
+      const calculatePercentage = (current: number, past: number): string => {
+        if (past === 0) return current === 0 ? '0%' : '100%';
+        const change = ((current - past) / past) * 100;
+        return `${Math.round(change)}%`;
+      };
+  
+      // Fetch all order metrics in parallel
+      const [
+        totalOrdersCurrent,
+        totalOrdersPast,
+        ordersWorthCurrent,
+        ordersWorthPast,
+        packedOrdersCurrent,
+        packedOrdersPast
+      ] = await Promise.all([
+        // Total orders (current period)
+        prisma.order.count({
+          where: {
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+        // Total orders (past period)
+        prisma.order.count({
+          where: {
+            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+          }
+        }),
+        // Orders worth (current period)
+        prisma.order.aggregate({
+          _sum: { totalAmount: true },
+          where: {
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+        // Orders worth (past period)
+        prisma.order.aggregate({
+          _sum: { totalAmount: true },
+          where: {
+            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+          }
+        }),
+        // Packed orders (current period)
+        prisma.order.count({
+          where: {
+            status: 'PACKED',
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+        // Packed orders (past period)
+        prisma.order.count({
+          where: {
+            status: 'PACKED',
+            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+          }
+        })
+      ]);
+  
+      const metrics: OrderMetrics = {
+        totalOrders: {
+          current: totalOrdersCurrent,
+          past: totalOrdersPast,
+          percentageChange: calculatePercentage(totalOrdersCurrent, totalOrdersPast)
+        },
+        ordersWorth: {
+          current: ordersWorthCurrent._sum.totalAmount || 0,
+          past: ordersWorthPast._sum.totalAmount || 0,
+          percentageChange: calculatePercentage(
+            ordersWorthCurrent._sum.totalAmount || 0,
+            ordersWorthPast._sum.totalAmount || 0
+          )
+        },
+        ordersPacked: {
+          current: packedOrdersCurrent,
+          past: packedOrdersPast,
+          percentageChange: calculatePercentage(packedOrdersCurrent, packedOrdersPast)
+        }
+      };
+  
+      res.json(metrics);
+    } catch (error) {
+      console.error("Error fetching order metrics:", error);
+      res.status(500).json({ error: "Failed to fetch order metrics" });
+    }
   }
+}
+
+interface OrderMetrics {
+  totalOrders: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  ordersWorth: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  ordersPacked: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+}
+
+interface MetricValue {
+  current: number;
+  percentageChange?: string;
+}
+
+interface PlatformMetrics {
+  requests: MetricValue;
+  messages: MetricValue;
+  orders: MetricValue;
+  certificatesUploaded: MetricValue;
 }
 
 interface DailyMetric {

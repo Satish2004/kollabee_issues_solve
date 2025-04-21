@@ -93,7 +93,7 @@ export default function BlockCommunicationForm({ buyers, sellers, onSuccess }: B
               <SelectTrigger id="initiator">
                 <SelectValue placeholder="Select a buyer" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white ">
                 <SelectGroup>
                   <SelectLabel>Buyers</SelectLabel>
                   {buyers.map((buyer) => (
@@ -112,7 +112,7 @@ export default function BlockCommunicationForm({ buyers, sellers, onSuccess }: B
               <SelectTrigger id="target">
                 <SelectValue placeholder="Select a seller" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white ">
                 <SelectGroup>
                   <SelectLabel>Sellers</SelectLabel>
                   {sellers.map((seller) => (
@@ -136,7 +136,7 @@ export default function BlockCommunicationForm({ buyers, sellers, onSuccess }: B
           </div>
         </CardContent>
         <CardFooter>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitting} className="button-bg text-white font-semibold">
             {isSubmitting ? "Blocking..." : "Block Communication"}
           </Button>
         </CardFooter>

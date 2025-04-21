@@ -7,7 +7,7 @@ import SuppliersTab from "./suppliers-page"
 
 
 export default function TabInterface() {
-  const [activeTab, setActiveTab] = useState<"analytics" | "suppliers">("suppliers")
+  const [activeTab, setActiveTab] = useState<"analytics" | "suppliers">("analytics")
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -37,7 +37,7 @@ export default function TabInterface() {
           </button>
         </div>
       </div>
-      <div className="p-6">{activeTab === "analytics" ? <AnalyticsTab /> : <SuppliersTab />}</div>
+      <div className="py-6 px-4">{activeTab === "analytics" ? <AnalyticsTab /> : <SuppliersTab />}</div>
     </div>
   )
 }
