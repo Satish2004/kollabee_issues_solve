@@ -5,15 +5,15 @@ import Image from "next/image";
 export default function FreeTrialContact() {
   const trialFeatures = [
     {
-      icon: <ArrowRightCircle className="w-5 h-5" />,
+      icon: <ArrowRightCircle className="w-4 h-4 sm:w-5 sm:h-5" />,
       text: "Seamless transition to paid subscription upon trial completion.",
     },
     {
-      icon: <HeadphonesIcon className="w-5 h-5" />,
+      icon: <HeadphonesIcon className="w-4 h-4 sm:w-5 sm:h-5" />,
       text: "Dedicated customer support during your trial period.",
     },
     {
-      icon: <Workflow className="w-5 h-5" />,
+      icon: <Workflow className="w-4 h-4 sm:w-5 sm:h-5" />,
       text: "Hands-on experience with real project scenarios.",
     },
   ];
@@ -38,42 +38,50 @@ export default function FreeTrialContact() {
   ];
 
   return (
-    <section className="py-16 px-4 max-w-7xl mx-auto">
-      <div className="grid lg:grid-cols-2 gap-20">
+    <section className="py-8 sm:py-12 md:py-16 px-4 max-w-7xl mx-auto">
+      <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 lg:gap-20">
         {/* Left Column */}
-        <div className="space-y-8">
-          <div className="space-y-6">
-            <div className="inline-block bg-gray-100 rounded-full px-4 py-1.5 text-sm">
+        <div className="space-y-6 md:space-y-8">
+          <div className="space-y-4 md:space-y-6">
+            <div className="inline-block bg-gray-100 rounded-full px-3 py-1 sm:px-4 sm:py-1.5 text-xs sm:text-sm">
               Contact Us
             </div>
-            <h2 className="text-5xl leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl leading-tight">
               Experience KollaBee with Our Free Trial Offer!
             </h2>
-            <p className="text-gray-600">
+            <p className="text-gray-600 text-sm sm:text-base">
               Sign up for our free trial to experience SAP's powerful project
               management features firsthand and transform the way you work.
             </p>
           </div>
 
           {/* Trial Features */}
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {trialFeatures.map((feature, index) => (
               <div
                 key={index}
-                className="flex items-center gap-3 text-gray-600 border pl-2 py-2 pr-10 rounded-full w-fit border-[#E6E9EE]"
+                className="flex items-center gap-2 sm:gap-3 text-gray-600 border pl-2 py-1.5 sm:py-2 pr-3 sm:pr-6 md:pr-10 rounded-full border-[#E6E9EE] text-xs sm:text-sm overflow-hidden"
               >
-                <div className="text-[#ED4B5E]">{feature.icon}</div>
-                <span>{feature.text}</span>
+                <div className="text-[#ED4B5E] flex-shrink-0">
+                  {feature.icon}
+                </div>
+                <span className="line-clamp-2 sm:line-clamp-1">
+                  {feature.text}
+                </span>
               </div>
             ))}
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 pt-2 sm:pt-4">
             {stats.map((stat, index) => (
               <div key={index} className="space-y-1">
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <div className="text-gray-600 text-sm">{stat.label}</div>
+                <div className="text-xl sm:text-2xl font-bold">
+                  {stat.value}
+                </div>
+                <div className="text-gray-600 text-xs sm:text-sm">
+                  {stat.label}
+                </div>
               </div>
             ))}
           </div>
@@ -81,14 +89,14 @@ export default function FreeTrialContact() {
 
         {/* Right Column */}
         <div className="space-y-4">
-          <div className="aspect-video w-full rounded-2xl overflow-hidden bg-gray-100 h-[400px]">
+          <div className="w-full rounded-2xl overflow-hidden bg-gray-100 aspect-video">
             {/* Image placeholder - to be replaced by actual image */}
             <Image
               src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/ggligctu42bjhisnp5j6"
               alt="Contact Us"
-              width={500}
-              height={400}
-              className="w-full object-center"
+              width={800}
+              height={450}
+              className="w-full h-full object-cover"
             />
           </div>
 
