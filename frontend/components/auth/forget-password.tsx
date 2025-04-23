@@ -136,7 +136,7 @@ export function ForgotPasswordForm() {
                 </Button>
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex flex-col md:flex-row  gap-4 md:gap-0 items-center justify-between">
                 <div className="text-sm text-gray-600">
                   Remember your password?{" "}
                   <Link

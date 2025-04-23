@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Users } from "lucide-react";
@@ -15,35 +14,36 @@ export default function AuthTemplate({
 }) {
   return (
     <div
-      className="h-screen p-10"
       style={{
         background:
           "linear-gradient(to bottom right,#fce2eb, #edcbd7, #f0d6c6, #ffe7bf)",
       }}
+      className="h-screen p-5 md:p-10 "
     >
-      <div className="bg-white rounded-xl shadow-sm w-full h-[90vh]">
-        <div className="py-12 px-4 h-full flex items-center justify-center">
+      <div className="bg-white rounded-xl shadow-sm w-full h-full">
+        <div className="py-5 md:py-12 px-4 h-full flex flex-col md:flex-row items-center justify-center">
           <div className="mx-auto flex flex-col justify-center space-y-6 max-w-[700px]">
             <div className="flex flex-col space-y-4 text-center">
-              <Link href="/">
+              <Link href="/" className="flex justify-center mb-4 md:mb-8">
                 <Image
                   src="https://res.cloudinary.com/dodniqtyv/image/upload/f_auto,q_auto/w0knrjcs0l7mqswxuway"
                   alt="KollaBee Logo"
                   width={240}
-                  height={42}
-                  className="mx-auto mb-8"
+                  height={142}
+                  className="w-[180px] sm:w-[210px] md:w-[240px] h-auto"
+                  priority
                 />
               </Link>
-              <h1 className="font-futura font-extrabold text-2xl md:text-4xl lg:text-5xl">
+              <h1 className="font-futura font-extrabold text-xl sm:text-2xl md:text-4xl lg:text-5xl">
                 {welcomeMessage}
               </h1>
-              <p className="font-futura font-normal text-base text-muted-foreground">
+              <p className="font-futura font-normal text-sm md:text-base text-muted-foreground">
                 Select Account Type
               </p>
             </div>
 
             <div className="flex flex-col md:flex-row gap-6 w-full font-futra items-center justify-center">
-              <Link href={buyerUrl} className="w-1/3">
+              <Link href={buyerUrl} className=" md:w-1/3">
                 <Card className="hover:bg-accent h-full shadow-md hover:shadow-xl transition-all duration-200">
                   <div className="flex flex-col items-center space-y-4 p-8">
                     <div className="rounded-full bg-pink-50 p-5 dark:bg-pink-900/20">
@@ -58,7 +58,7 @@ export default function AuthTemplate({
                 </Card>
               </Link>
 
-              <Link href={sellerUrl} className="w-1/3">
+              <Link href={sellerUrl} className="md:w-1/3">
                 <Card className="hover:bg-accent h-full shadow-md hover:shadow-xl transition-all duration-200">
                   <div className="p-8 flex flex-col items-center space-y-4">
                     <div className="rounded-full bg-pink-50 p-5 dark:bg-pink-900/20">
