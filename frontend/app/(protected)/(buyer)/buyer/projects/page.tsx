@@ -106,7 +106,7 @@ const ProjectsPage = () => {
 
   // Projects dashboard
   return (
-    <div className=" px-4 md:px-6 w-full">
+    <div className=" px-0 md:px-6 w-full">
       <ProjectsHeader
         onCreateProject={() => router.push("/buyer/projects/new")}
       />

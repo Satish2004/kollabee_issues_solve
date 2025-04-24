@@ -195,6 +195,12 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    if (validatedData.role === "ADMIN" && user.role != "ADMIN") {
+      return res.status(401).json({
+        error: "User is not an admin",
+      });
+    }
+
     // Update last login
     await prisma.user.update({
       where: { id: user.id },

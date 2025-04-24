@@ -63,7 +63,7 @@ function page() {
     }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div className="px-0 md:px-5 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
       <div className="col-span-1 md:col-span-2 lg:col-span-4">
         {isLoading ? ( 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

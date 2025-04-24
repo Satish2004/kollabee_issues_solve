@@ -143,7 +143,7 @@ export default function Page() {
       }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen px-0 md:px-7">
       <div className="relative bg-gradient-to-tr from-[#f4eadc] via-[#f1c2ca] to-[#f4eadc] pb-12">
         <div className="container px-4 pt-8 mx-auto">
           <div className="text-center mb-8">
