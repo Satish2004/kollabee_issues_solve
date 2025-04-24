@@ -164,7 +164,7 @@ export default function Page() {
                     fill
                     className="object-cover rounded-lg"
                   />
-                <button className="absolute right-2 bottom-2 z-10 rounded-full bg-white p-1.5 shadow-sm">
+                <button className="absolute right-2 bottom-2  rounded-full bg-white p-1.5 shadow-sm">
                   <Heart className="h-4 w-4" />
                 </button>
                 </div>
