@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
 interface AboutYouFormProps {
   formData: {
@@ -51,36 +51,47 @@ export function AboutYouForm({
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 px-4 sm:px-0 sm:space-y-8">
       <div className="text-start space-y-2">
-        <h1 className="text-2xl font-bold">Tell Us About You</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold">Tell Us About You</h1>
+        <p className="text-muted-foreground text-sm sm:text-base">
           Are you an individual entrepreneur, a brand, or a retailer?
         </p>
       </div>
 
-      <div className="space-y-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="businessType" className="text-base font-medium">
+      <div className="space-y-4 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-start gap-2">
+            <Label
+              htmlFor="businessType"
+              className="text-sm sm:text-base font-medium"
+            >
               Who Are You?
             </Label>
             <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-200 max-w-sm">
-                    <p>Select the option that best describes your role in the business. This helps us tailor the experience based on your business type</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  align="start"
+                  className="bg-gray-200 max-w-[250px] sm:max-w-sm text-xs sm:text-sm p-2 sm:p-3"
+                >
+                  <p>
+                    Select the option that best describes your role in the
+                    business. This helps us tailor the experience based on your
+                    business type
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <RadioGroup
             value={formData.businessType}
             onValueChange={(value) => handleChange("businessType", value)}
-            className="space-y-3"
+            className="space-y-2 sm:space-y-3"
           >
             {businessTypes.map((type) => (
               <div key={type.value} className="flex items-center space-x-2">
@@ -91,7 +102,7 @@ export function AboutYouForm({
                 />
                 <Label
                   htmlFor={type.value}
-                  className="text-base font-normal cursor-pointer"
+                  className="text-sm sm:text-base font-normal cursor-pointer"
                 >
                   {type.label}
                 </Label>
@@ -107,10 +118,10 @@ export function AboutYouForm({
                 onChange={(e) =>
                   handleChange("otherBusinessType", e.target.value)
                 }
-                className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md"
+                className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md text-sm sm:text-base h-9 sm:h-10"
               />
               {errors.otherBusinessType && (
-                <p className="text-sm text-red-500 mt-1">
+                <p className="text-xs sm:text-sm text-red-500 mt-1">
                   {errors.otherBusinessType}
                 </p>
               )}
@@ -118,35 +129,50 @@ export function AboutYouForm({
           )}
 
           {errors.businessType && (
-            <p className="text-sm text-red-500 mt-1">{errors.businessType}</p>
+            <p className="text-xs sm:text-sm text-red-500 mt-1">
+              {errors.businessType}
+            </p>
           )}
         </div>
 
         <div className="space-y-2">
           <div className="flex items-center gap-2">
-            <Label htmlFor="businessName" className="text-base font-medium">
+            <Label
+              htmlFor="businessName"
+              className="text-sm sm:text-base font-medium"
+            >
               Business Name<span className="text-destructive">*</span>
             </Label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-200 max-w-sm">
-                    <p>Enter the official name of your business as registered. If you don't have a registered business name, enter the name you operate under.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground cursor-pointer" />
+                </TooltipTrigger>
+                <TooltipContent
+                  side="top"
+                  align="start"
+                  className="bg-gray-200 max-w-[250px] sm:max-w-sm text-xs sm:text-sm p-2 sm:p-3"
+                >
+                  <p>
+                    Enter the official name of your business as registered. If
+                    you don't have a registered business name, enter the name
+                    you operate under.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <Input
             id="businessName"
             placeholder="Enter your Business Name"
             value={formData.businessName}
             onChange={(e) => handleChange("businessName", e.target.value)}
-            className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md"
+            className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md text-sm sm:text-base h-9 sm:h-10"
           />
           {errors.businessName && (
-            <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
+            <p className="text-xs sm:text-sm text-red-500 mt-1">
+              {errors.businessName}
+            </p>
           )}
         </div>
       </div>
@@ -154,14 +180,14 @@ export function AboutYouForm({
       <div className="flex justify-between pt-4">
         <Button
           variant="ghost"
-          className="text-primary flex items-center gap-2"
+          className="text-primary flex items-center gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4"
           onClick={onPrevious}
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2 button-bg"
+          className="rounded-[6px] text-white px-4 sm:px-8 py-1 sm:py-2 text-sm sm:text-base button-bg"
           onClick={onNext}
         >
           Continue

@@ -10,7 +10,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -119,7 +119,7 @@ export function BusinessInfoForm({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
@@ -127,10 +127,14 @@ export function BusinessInfoForm({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
                   </TooltipTrigger>
                   <TooltipContent className="bg-gray-200  max-w-sm">
-                    <p>Enter the official name of your business as it appears on legal documents and branding materials. This name will be visible to customers</p>
+                    <p>
+                      Enter the official name of your business as it appears on
+                      legal documents and branding materials. This name will be
+                      visible to customers
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -158,10 +162,14 @@ export function BusinessInfoForm({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
                   </TooltipTrigger>
                   <TooltipContent className="bg-gray-200 max-w-sm">
-                    <p>Enter the complete URL of your business website (e.g., https://yourbusiness.com). Ensure the link is valid and accessible to customers.</p>
+                    <p>
+                      Enter the complete URL of your business website (e.g.,
+                      https://yourbusiness.com). Ensure the link is valid and
+                      accessible to customers.
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -191,7 +199,7 @@ export function BusinessInfoForm({
               Match with the right buyers by selecting one or more categories
               that best describe your business.
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {businessTypes.map(({ value, label }) => (
                 <Button
                   key={value}
@@ -201,7 +209,7 @@ export function BusinessInfoForm({
                       : "outline"
                   }
                   onClick={() => handleBusinessTypeClick(value)}
-                  className={`rounded-md h-9 px-2 text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
                     formData.businessTypes?.includes(value)
                       ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
                       : "border-[#e5e5e5]"
@@ -227,10 +235,14 @@ export function BusinessInfoForm({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                  <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger> 
+                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
                   <TooltipContent className="bg-gray-200  max-w-sm">
-                    <p>Provide the full physical address of your business location, including street, city, state, and ZIP code. This helps customers find your business.</p>
+                    <p>
+                      Provide the full physical address of your business
+                      location, including street, city, state, and ZIP code.
+                      This helps customers find your business.
+                    </p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -261,7 +273,7 @@ export function BusinessInfoForm({
             <p className="text-sm text-muted-foreground">
               Choose one or more categories your business primarily operates in.
             </p>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {businessCategories.map(({ value, label }) => (
                 <Button
                   key={value}
@@ -271,7 +283,7 @@ export function BusinessInfoForm({
                       : "outline"
                   }
                   onClick={() => handleBusinessCategoryClick(value)}
-                  className={`rounded-md h-9 px-2 text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
                     formData.businessCategories?.includes(value)
                       ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
                       : "border-[#e5e5e5]"

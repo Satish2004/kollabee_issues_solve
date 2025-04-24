@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -417,7 +417,7 @@ export function SignupForm({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="font-futura font-normal">
@@ -459,7 +459,7 @@ export function SignupForm({
             {errors.password && (
               <p className="text-sm text-red-500 mt-1">{errors.password}</p>
             )}
-            <div className=" text-xs text-muted-foreground flex flex-row justify-between">
+            <div className="text-xs text-muted-foreground flex flex-col sm:flex-row gap-2 sm:justify-between">
               <div
                 className={`flex items-center gap-2 ${
                   isPasswordValid.hasMinLength ? "text-green-500" : ""
@@ -542,7 +542,7 @@ export function SignupForm({
                 onClick={onVerifyEmail}
                 disabled={!formData.email || generateOTPLoading || otpVerified}
                 variant={otpVerified ? "outline" : "default"}
-                className={`absolute right-0 top-0 h-6 w-20 mt-[6px] mr-2 text-[12px] ${
+                className={`absolute  right-0 top-0 h-6  w-20 mt-[6px] mr-2 text-[12px] ${
                   otpVerified
                     ? " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
                     : " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
@@ -565,12 +565,12 @@ export function SignupForm({
               Describe your Role within the Company
               <span className="text-destructive">*</span>
             </Label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1 sm:gap-2">
               {companyRoles.map((role) => (
                 <Button
                   key={role}
                   variant={formData.role === role ? "default" : "outline"}
-                  className={`h-8 text-xs justify-start px-2 w-fit rounded-[6px] border ${
+                  className={`h-8 text-[10px] sm:text-xs justify-start px-1 sm:px-2 w-fit rounded-[6px] border ${
                     formData.role === role
                       ? "border-[#9e1171] border text-[#9e1171]"
                       : "border-[#e5e5e5]"
@@ -637,7 +637,7 @@ export function SignupForm({
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
               <Select
                 value={formData.countryCode}
                 onValueChange={(value) => {
