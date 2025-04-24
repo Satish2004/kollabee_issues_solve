@@ -90,7 +90,7 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="min-h-screen max-w-screen  overflow-x-hidden">
+    <main className="min-h-screen md:px-6 max-w-screen  overflow-x-hidden">
       <div className=" space-y-3 sm:space-y-6">
         {/* Top section with 4 feature boxes */}
         <FeatureBoxes />
