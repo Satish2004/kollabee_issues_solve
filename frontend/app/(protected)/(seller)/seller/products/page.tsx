@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import ProductStats from "./components/product-stats";
+import Link from "next/link";
+import { AlertCircle, Plus } from "lucide-react";
 import ProductsTable from "./components/products-table";
 import ProductsHeader from "./components/products-header";
 import SearchAndFilter from "./components/search-and-filter";
@@ -10,8 +11,8 @@ import Pagination from "./components/pagination";
 import { useProducts } from "./hooks/use-products";
 import { useCategories } from "./hooks/use-categories";
 import { useProfileCompletion } from "./hooks/use-profile-completion";
-import { LoadingSpinner } from "./components/loading-spinner";
 import { useDebounce } from "./hooks/use-debounce";
+import ProductStats from "./components/product-stats";
 
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<"active" | "draft">("active");
@@ -19,28 +20,33 @@ export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [sortField, setSortField] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Debounce the search query to prevent excessive API calls
   const debouncedSearchQuery = useDebounce(inputValue, 500);
 
-  const {
-    products,
-    isLoading,
-    totalPages,
-    stats,
-    deleteProduct,
-    refetchProducts,
-  } = useProducts({
-    status: activeTab === "active" ? "active" : "DRAFT",
-    search: debouncedSearchQuery,
-    page: currentPage,
-    sortBy: sortField,
-    sortOrder,
-  });
+  const { products, totalPages, stats, deleteProduct, refetchProducts } =
+    useProducts({
+      status: activeTab === "active" ? "active" : "DRAFT",
+      search: debouncedSearchQuery,
+      page: currentPage,
+      sortBy: sortField,
+      sortOrder,
+    });
 
   const { categories } = useCategories();
   const { profileCompletion, remainingSteps, isProfileComplete } =
     useProfileCompletion();
+
+  // Simulate loading state
+  useEffect(() => {
+    setIsLoading(true);
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [activeTab, debouncedSearchQuery, currentPage, sortField, sortOrder]);
 
   // Reset to first page when search query or tab changes
   useEffect(() => {
@@ -49,7 +55,6 @@ export default function ProductsPage() {
 
   const handleSearchChange = (value: string) => {
     setInputValue(value);
-    // The actual API call will be triggered after the debounce delay
   };
 
   const handleSortChange = (field: string) => {
@@ -71,17 +76,29 @@ export default function ProductsPage() {
     } catch (error) {
       console.error("Failed to delete product:", error);
       toast.error("Failed to delete product");
+      setError("Failed to delete product. Please try again.");
+      // Clear error after 5 seconds
+      setTimeout(() => setError(null), 5000);
     }
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="p-6">
-        {/* Stats */}
+    <div className="min-h-screen bg-gray-50 rounded-md">
+      <div className="max-w-7xl md:max-w-full mx-auto p-3 sm:p-4 md:p-6">
+        {/* Error message */}
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700 text-sm">
+            <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {/* Stats Section - Can be a separate component */}
         <ProductStats stats={stats} />
 
-        {/* Product List */}
-        <div className="bg-white rounded-lg shadow">
+        {/* Main Content */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          {/* Header with tabs */}
           <ProductsHeader
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -98,24 +115,75 @@ export default function ProductsPage() {
             onSortChange={handleSortChange}
           />
 
-          {/* Table - Show skeleton loader or actual data */}
+          {/* Loading State */}
           {isLoading ? (
-            <LoadingSpinner isDraftView={activeTab === "draft"} />
+            <div className="p-6 animate-pulse">
+              <div className="h-8 bg-gray-200 rounded mb-6"></div>
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="flex items-center space-x-4 py-4 border-b border-gray-100"
+                >
+                  <div className="rounded-md bg-gray-200 h-12 w-12"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                  <div className="hidden sm:block w-24">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="hidden md:block w-16">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="hidden lg:block w-16">
+                    <div className="h-4 bg-gray-200 rounded"></div>
+                  </div>
+                  <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                </div>
+              ))}
+            </div>
           ) : (
-            <ProductsTable
-              products={products}
-              onDelete={handleDelete}
-              isDraftView={activeTab === "draft"}
-            />
-          )}
+            <>
+              {/* Products Table */}
+              <ProductsTable
+                products={products || []}
+                onDelete={handleDelete}
+                isDraftView={activeTab === "draft"}
+              />
 
-          {/* Pagination - Only show when not loading and we have products */}
-          {!isLoading && products.length > 0 && (
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+              {/* Empty State */}
+              {products?.length === 0 && (
+                <div className="py-16 px-4 text-center">
+                  <p className="text-gray-500 mb-2">No products found</p>
+                  <p className="text-gray-400 text-sm mb-6">
+                    {debouncedSearchQuery
+                      ? "Try adjusting your search or filters"
+                      : activeTab === "active"
+                      ? "You don't have any active products yet"
+                      : "You don't have any draft products"}
+                  </p>
+
+                  {!debouncedSearchQuery && isProfileComplete && (
+                    <Link
+                      href="/seller/products/add-product"
+                      className="inline-flex items-center px-4 py-2 rounded-md bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Your First Product
+                    </Link>
+                  )}
+                </div>
+              )}
+
+              {/* Pagination */}
+              {products?.length > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages || 1}
+                  onPageChange={setCurrentPage}
+                />
+              )}
+            </>
           )}
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -8,29 +8,17 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  ResponsiveContainer,
 } from "recharts";
 import {
-  Bell,
   TrendingUp,
   TrendingDown,
-  AlertCircle,
-  User,
-  CheckCircle,
-  Bug,
   ArrowDownCircleIcon,
   ArrowUpCircleIcon,
 } from "lucide-react";
 import { dashboardApi } from "@/lib/api/dashboard";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
@@ -104,9 +92,7 @@ const Dashboard = () => {
       const [metricsRes] = await Promise.all([dashboardApi.getMetrics()]);
       // getDashboardData;
 
-
       console.log("Metrics Response:", metricsRes);
-      
 
       setDashboardData({
         totalOrders: metricsRes?.totalOrders || 0,
@@ -166,31 +152,14 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen">
-      {/* Header */}
-      {/* <header className="bg-white border-b">
-        <div className="flex justify-between items-center px-6 py-4">
-          <h1 className="text-xl font-semibold">Dashboard</h1>
-          <div className="flex items-center space-x-4">
-            <button className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg">
-              Upgrade
-            </button>
-            <img
-              src="/api/placeholder/32/32"
-              alt="Profile"
-              className="w-8 h-8 rounded-full"
-            />
-          </div>
-        </div>
-      </header> */}
-
-      <div className="">
-        <div className="flex flex-row w-full justify-between gap-6">
+      <div className="px-2 sm:px-4">
+        <div className="flex flex-col lg:flex-row w-full justify-between gap-4 lg:gap-6">
           {/* Main Content Area */}
-          <div className="w-[85%] space-y-6">
+          <div className="w-full lg:w-2/3 space-y-4 lg:space-y-6">
             {/* Orders Overview */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm">
               <h2 className="text-lg font-semibold mb-4">Orders Overview</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 <StatCard
                   title="TOTAL ORDERS"
                   value={dashboardData.totalOrders.toString()}
@@ -299,8 +268,8 @@ const Dashboard = () => {
                 </Select>
               </div>
               {/* Charts and Stats */}
-              <div className="grid grid-cols-3 gap-4  ">
-                <div className="bg-red-50 rounded-xl p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+                <div className="bg-red-50 rounded-xl p-4 lg:p-6">
                   <h3 className="font-semibold text-sm">Requests</h3>
                   <div className="flex flex-row items-center justify-between">
                     <div className="text-2xl font-bold mt-2">
@@ -318,13 +287,13 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-neutral-100 rounded-xl p-6">
+                <div className="bg-neutral-100 rounded-xl p-4 lg:p-6">
                   <h3 className="font-semibold text-sm">Messages</h3>
                   <div className="text-2xl font-bold mt-2">
                     {periodMetrics.messages}
                   </div>
                 </div>
-                <div className="bg-neutral-100 rounded-xl p-6">
+                <div className="bg-neutral-100 rounded-xl p-4 lg:p-6">
                   <h3 className="font-semibold text-sm">Published Products</h3>
                   <div className="text-2xl font-bold mt-2">
                     {periodMetrics.activeProducts}
@@ -333,9 +302,9 @@ const Dashboard = () => {
               </div>
 
               {/* Chart */}
-              <div className="bg-white rounded-xl p-6 shadow-sm">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-semibold">Total Orders</h3>
+              <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm mt-4">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                  <h3 className="font-semibold mb-2 sm:mb-0">Total Orders</h3>
                   <div className="flex items-center space-x-2 text-sm">
                     <span className="flex items-center">
                       <span className="w-2 h-2 bg-red-500 rounded-full mr-1"></span>
@@ -347,34 +316,39 @@ const Dashboard = () => {
                     </span>
                   </div>
                 </div>
-                <div className="h-64 -ml-10 relative">
-                  <LineChart
-                    width={650}
-                    height={250}
-                    data={chartData}
-                    className="cursor-pointer"
-                  >
-                    <CartesianGrid
-                      strokeDasharray="4 4"
-                      vertical={false}
-                      stroke="ccc"
-                    />
-                    <XAxis
-                      dataKey="name"
-                      tick={{ fill: "#616161", fontSize: 14 }}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      stroke="#616161"
-                      tick={{ fill: "#616161", fontSize: 14 }}
-                      tickLine={false}
-                    />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="orders" stroke="#ef4444" />
-                    <Line type="monotone" dataKey="requests" stroke="#f97316" />
-                  </LineChart>
+                <div className="h-64 relative">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={chartData}
+                      className="cursor-pointer"
+                      margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="4 4"
+                        vertical={false}
+                        stroke="#ccc"
+                      />
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fill: "#616161", fontSize: 12 }}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        stroke="#616161"
+                        tick={{ fill: "#616161", fontSize: 12 }}
+                        tickLine={false}
+                      />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="orders" stroke="#ef4444" />
+                      <Line
+                        type="monotone"
+                        dataKey="requests"
+                        stroke="#f97316"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
 
-                  <div className="absolute w-80 h-40 rounded-lg top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/4 flex flex-col items-center justify-center">
+                  <div className="absolute w-full h-full rounded-lg top-0 left-0 flex flex-col items-center justify-center">
                     <span className="text-gray-500 text-sm">
                       No Data Currently
                     </span>
@@ -385,95 +359,19 @@ const Dashboard = () => {
           </div>
 
           {/* Right Sidebar */}
-          <div className="w-[35%] space-y-6 min-h-screen">
-            {/* Profile Strength */}
-            {/* <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h3 className="font-semibold mb-4">Your Profile Strength</h3>
-              <div className="relative w-32 h-32 mx-auto">
-                <svg className="w-full h-full" viewBox="0 0 36 36">
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#eee"
-                    strokeWidth="3"
-                  />
-                  <path
-                    d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                    fill="none"
-                    stroke="#ef4444"
-                    strokeWidth="3"
-                    strokeDasharray="75, 100"
-                  />
-                </svg>
-                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-lg font-bold">
-                  75%
-                </div>
-              </div>
-              <div className="mt-6">
-                <h4 className="font-medium mb-2">List to updates</h4>
-                <div className="space-y-2">
-                  <div className="flex items-center text-sm">
-                    <span className="w-3 h-3 bg-blue-600 rounded-sm mr-2"></span>
-                    Company Details
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <span className="w-3 h-3 bg-pink-500 rounded-sm mr-2"></span>
-                    Certifications
-                  </div>
-                </div>
-              </div>
-              <button className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] mt-4 w-full" onClick={() => router.push('/seller/profile/seller')}>
-                Take Action
-              </button>
-            </div> */}
-
+          <div className="w-full lg:w-1/3 space-y-4 lg:space-y-6">
             {/* Notifications */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm">
               <h3 className="font-semibold mb-4">Notifications/Event Alerts</h3>
-              {/* <div className="space-y-4">
-                <NotificationItem
-                  icon={<Bug className="w-4 h-4" />}
-                  text="You have a bug that needs to be fixed"
-                  time="Just now"
-                />
-                <NotificationItem
-                  icon={<User className="w-4 h-4" />}
-                  text="New user registered"
-                  time="39 minutes ago"
-                />
-                <NotificationItem
-                  icon={<AlertCircle className="w-4 h-4" />}
-                  text="You have a bug that needs to be fixed"
-                  time="12 hours ago"
-                />
-              </div> */}
-
-              <p className="p-10 flex items-center justify-center text-sm font-semibold text-gray-400">
+              <p className="p-4 sm:p-10 flex items-center justify-center text-sm font-semibold text-gray-400">
                 No New Notifications
               </p>
             </div>
 
             {/* Latest Orders */}
-            <div className="bg-white rounded-xl p-6 shadow-sm">
+            <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm">
               <h3 className="font-semibold mb-4">Latest Orders</h3>
-              {/* <div className="space-y-4">
-                <OrderItem
-                  icon={<Bug className="w-4 h-4" />}
-                  text="You have a bug that needs to be fixed"
-                  time="Just now"
-                />
-                <OrderItem
-                  icon={<CheckCircle className="w-4 h-4" />}
-                  text="Released a new version"
-                  time="39 minutes ago"
-                />
-                <OrderItem
-                  icon={<AlertCircle className="w-4 h-4" />}
-                  text="Submitted a bug"
-                  time="12 hours ago"
-                />
-              </div> */}
-              <p className="p-10 flex items-center justify-center text-sm font-semibold text-gray-400">
+              <p className="p-4 sm:p-10 flex items-center justify-center text-sm font-semibold text-gray-400">
                 No Orders Yet
               </p>
             </div>
@@ -490,24 +388,24 @@ const StatCard = ({ title, value, change, changeText, trend, percentage }) => (
       <span className="text-gray-600 text-xs">{title}</span>
       {trend === "up" ? (
         <TrendingUp className="w-4 h-4 text-green-500" />
-      ) : (
+      ) : trend === "down" ? (
         <TrendingDown className="w-4 h-4 text-red-500" />
-      )}
+      ) : null}
     </div>
-    <div className="flex items-center space-x-4">
-      <div className="text-2xl mb-1">{value}</div>
+    <div className="flex items-center space-x-2 flex-wrap">
+      <div className="text-xl sm:text-2xl mb-1">{value}</div>
       {percentage && (
         <span
           className={`ml-2 -mt-1 ${
             percentage <= 0
               ? "bg-red-100 text-red-600"
               : "bg-green-100 text-green-600"
-          } px-2 py-0.5 rounded-xl text-sm flex flex-row items-center`}
+          } px-2 py-0.5 rounded-xl text-xs sm:text-sm flex flex-row items-center`}
         >
           {percentage <= 0 ? (
-            <ArrowDownCircleIcon className="w-4 h-4 mr-1" />
+            <ArrowDownCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
           ) : (
-            <ArrowUpCircleIcon className="w-4 h-4 mr-1" />
+            <ArrowUpCircleIcon className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
           )}
           {Math.abs(percentage)}%
         </span>
@@ -515,7 +413,7 @@ const StatCard = ({ title, value, change, changeText, trend, percentage }) => (
     </div>
     <hr className="w-full mt-3 mb-1"></hr>
     <div className="flex items-center space-x-2">
-      <div className="flex items-center text-sm">
+      <div className="flex items-center text-xs sm:text-sm">
         <span className="font-[800]">${change}</span>
       </div>
       <div className="text-gray-500 text-xs">{changeText}</div>
