@@ -76,16 +76,16 @@ const KollaBeeRequestDetails = () => {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="text-center mt-4">Loading...</div>;
   }
 
   if (!orderData) {
-    return <div>Order not found</div>;
+    return <div className="text-center mt-4">Order not found</div>;
   }
 
   return (
     <div className="bg-gray-100 min-h-screen">
-      <div className="mx-auto bg-white shadow-sm">
+      <div className="mx-auto bg-white shadow-sm max-w-4xl md:max-w-full">
         <div className="p-4">
           <div className="flex justify-between mb-6">
             <button
@@ -95,47 +95,29 @@ const KollaBeeRequestDetails = () => {
               <ChevronLeft className="w-4 h-4 mr-1" />
               Back
             </button>
-            {/* <div className="flex space-x-2">
-              <button
-                onClick={handleDecline}
-                className="rounded-[6px] border border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-sm flex items-center px-4 py-2"
-                disabled={orderData.isAccepted}
-              >
-                <X className="w-4 h-4 mr-1 text-red-500" />
-                Decline Request
-              </button>
-              <button
-                onClick={handleAccept}
-                className="px-4 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-lg text-sm flex items-center"
-                disabled={orderData.isAccepted}
-              >
-                <Check className="w-4 h-4 mr-1" />
-                Accept Request
-              </button>
-            </div> */}
           </div>
 
           <div className="border rounded-md mb-6">
             <div className="p-4">
-              <div className="flex items-center mb-2">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4">
                 <ChevronLeft className="w-4 h-4 mr-2" />
-                <span className="font-medium">
+                <span className="font-medium text-lg sm:text-base">
                   {orderData.shippingAddress?.fullName}
                 </span>
-                <div className="flex items-center ml-2">
+                <div className="flex items-center ml-0 sm:ml-2 mt-2 sm:mt-0">
                   <div className="w-5 h-3 bg-red-600 flex items-center justify-center text-[8px] text-white font-bold">
                     {orderData.shippingAddress?.country}
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-between items-center">
-                <h2 className="text-xl font-semibold">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                <h2 className="text-xl font-semibold mb-2 sm:mb-0">
                   {orderData.items[0]?.product.name}
                 </h2>
               </div>
 
-              <div className="grid grid-cols-5 gap-4 mt-4">
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mt-4">
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Total Amount</p>
                   <p className="font-medium text-sm">
@@ -174,6 +156,8 @@ const KollaBeeRequestDetails = () => {
               </div>
             </div>
           </div>
+
+      
         </div>
       </div>
     </div>
