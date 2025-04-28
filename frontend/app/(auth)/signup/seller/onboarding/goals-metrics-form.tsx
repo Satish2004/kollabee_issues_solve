@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const objectives = [
@@ -104,7 +103,7 @@ export function GoalsMetricsForm({
           <p className="text-sm text-muted-foreground">
             [Choose up to 3 options that best describe your goals.]
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {objectives.map((objective) => (
               <div key={objective} className="flex items-start space-x-3">
                 <Checkbox
@@ -135,7 +134,7 @@ export function GoalsMetricsForm({
           <p className="text-sm text-muted-foreground">
             [Help us understand your pain points to provide better support.]
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {challenges.map((challenge) => (
               <div key={challenge} className="flex items-start space-x-3">
                 <Checkbox
@@ -167,7 +166,7 @@ export function GoalsMetricsForm({
             [Select the metrics you value the most in evaluating KollaBee's
             impact.]
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {metrics.map((metric) => (
               <div key={metric} className="flex items-start space-x-3">
                 <Checkbox

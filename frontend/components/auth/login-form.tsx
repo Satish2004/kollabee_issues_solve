@@ -92,7 +92,7 @@ export function LoginForm({
   }
 
   return (
-    <div className="flex flex-col items-center w-full max-w-lg mx-auto font-futura">
+    <div className="flex flex-col rounded-lg items-center w-full max-w-lg mx-auto font-futura">
       <div className="mb-8">
         <div className="flex justify-center">
           <Image
@@ -163,26 +163,28 @@ export function LoginForm({
               </Button>
 
               <div className="flex flex-col space-y-2">
-                <div className="flex justify-between">
+                <div className="flex flex-col  gap-4 md:gap-0  md:flex-row  items-center md:justify-between">
                   <Link href="/forgot-password" className="text-sm text-gray-600 hover:underline">
                     Forgot password?
                   </Link>
 
                   {!isAdmin && (
                     <>
-                      <div className="text-sm text-gray-600 ">
+                      <div className="text-sm  text-gray-600 ">
                         Don't have an account?
-                        <Link href="/signup" className="ml-1 text-pink-600 hover:underline">
+                        <Link href="/signup" className="ml-1 text-pink-600  hover:underline">
                           Sign up
                         </Link>
                       </div>
+                      <div>
                       <button
                         type="button"
                         onClick={handleRoleSwitch}
                         className="text-sm text-pink-600 hover:underline"
                       >
                         {role === "BUYER" ? "Login as Supplier" : "Login as Buyer"}
-                      </button>
+                        </button>
+                        </div>
                     </>
                   )}
                 </div>

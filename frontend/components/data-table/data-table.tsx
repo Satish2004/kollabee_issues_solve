@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
 export type Column<T> = {
   header: string;
@@ -60,6 +61,7 @@ export type Column<T> = {
   className?: string;
   filterable?: boolean;
   searchable?: boolean;
+  hideOnMobile?: boolean;
 };
 
 type FilterOption = {
@@ -137,6 +139,23 @@ export function DataTable<T>({
   }>(activeFilters || {});
   const [filteredData, setFilteredData] = useState<T[]>(data);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [isMobileView, setIsMobileView] = useState(false);
+
+  // Check for mobile view on mount and window resize
+  useEffect(() => {
+    const checkMobileView = () => {
+      setIsMobileView(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkMobileView();
+
+    // Add event listener for window resize
+    window.addEventListener("resize", checkMobileView);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkMobileView);
+  }, []);
 
   // Generate filter options from data if not provided
   const [generatedFilterOptions, setGeneratedFilterOptions] = useState<{
@@ -298,7 +317,6 @@ export function DataTable<T>({
 
   // Create a paginated view of the data
   const getPaginatedData = () => {
-    return filteredData;
     if (!enablePagination) return filteredData;
 
     const startIdx = (page - 1) * pageSize;
@@ -311,21 +329,25 @@ export function DataTable<T>({
     <Table>
       <TableHeader>
         <TableRow>
-          {columns.map((column, index) => (
-            <TableHead key={index} className={column.className}>
-              {column.header}
-            </TableHead>
-          ))}
+          {columns
+            .filter((column) => !isMobileView || !column.hideOnMobile)
+            .map((column, index) => (
+              <TableHead key={index} className={column.className}>
+                {column.header}
+              </TableHead>
+            ))}
         </TableRow>
       </TableHeader>
       <TableBody>
         {Array.from({ length: pageSize }).map((_, rowIndex) => (
           <TableRow key={rowIndex}>
-            {columns.map((_, colIndex) => (
-              <TableCell key={colIndex}>
-                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
-              </TableCell>
-            ))}
+            {columns
+              .filter((column) => !isMobileView || !column.hideOnMobile)
+              .map((_, colIndex) => (
+                <TableCell key={colIndex}>
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+                </TableCell>
+              ))}
           </TableRow>
         ))}
       </TableBody>
@@ -354,8 +376,49 @@ export function DataTable<T>({
   // The actual filter options to use (either provided or auto-generated)
   const effectiveFilterOptions = filterOptions || generatedFilterOptions;
 
+  // Render mobile card view
+  const renderMobileCardView = () => {
+    return (
+      <div className="space-y-4">
+        {displayData.length > 0 ? (
+          displayData.map((item, index) => (
+            <Card key={index} className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="p-4 space-y-3">
+                  {columns
+                    .filter((column) => !column.hideOnMobile)
+                    .map((column, colIndex) => (
+                      <div
+                        key={colIndex}
+                        className="flex justify-between items-start gap-2"
+                      >
+                        <span className="text-sm font-medium text-muted-foreground">
+                          {column.header}:
+                        </span>
+                        <div className="text-sm text-right">
+                          {column.cell
+                            ? column.cell(item)
+                            : column.accessorKey
+                            ? String(item[column.accessorKey] || "")
+                            : null}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="text-center py-6 text-muted-foreground">
+            No data found
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {title && (
         <h2 className="text-lg font-medium">
           {title}{" "}
@@ -368,17 +431,18 @@ export function DataTable<T>({
       )}
 
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
           {enableFiltering && (
             <Button
               variant={activeFilterCount > 0 ? "default" : "outline"}
               size="sm"
               onClick={handleFilterClick}
-              className={
+              className={cn(
                 activeFilterCount > 0
                   ? "bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700"
-                  : ""
-              }
+                  : "",
+                "w-full sm:w-auto justify-center"
+              )}
             >
               <Filter className="h-4 w-4 mr-2" />
               Filters{" "}
@@ -389,58 +453,35 @@ export function DataTable<T>({
               )}
             </Button>
           )}
-          {enableRefresh && (
-            <Button variant="outline" size="sm" onClick={onRefresh}>
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
-            </Button>
-          )}
-          {enableExport && (
-            <Button variant="outline" size="sm" onClick={onExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          )}
 
-          {/* Active Filter Badges */}
-          {activeFilterCount > 0 && (
-            <div className="flex flex-wrap gap-2 ml-2 items-center">
-              {Object.entries(internalFilters).map(([key, value]) => {
-                const filterField = effectiveFilterOptions?.[key];
-                const filterOption = filterField?.options.find(
-                  (o) => o.value === value
-                );
-                return (
-                  <Badge
-                    key={key}
-                    variant="outline"
-                    className="rounded-full px-3 py-1 flex items-center gap-1"
-                  >
-                    <span className="text-xs font-medium">
-                      {filterField?.label || key}:
-                    </span>{" "}
-                    {filterOption?.label || value}
-                    <X
-                      className="h-3 w-3 ml-1 cursor-pointer opacity-70 hover:opacity-100"
-                      onClick={() => handleFilterChange(key, "all")}
-                    />
-                  </Badge>
-                );
-              })}
+          <div className="flex gap-2 w-full sm:w-auto">
+            {enableRefresh && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="h-7 px-2 text-xs"
-                onClick={resetAllFilters}
+                onClick={onRefresh}
+                className="flex-1 sm:flex-none justify-center"
               >
-                Clear all
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
               </Button>
-            </div>
-          )}
+            )}
+            {enableExport && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onExport}
+                className="flex-1 sm:flex-none justify-center"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            )}
+          </div>
         </div>
 
         {enableSearch && (
-          <div className="relative w-full sm:w-64">
+          <div className="relative w-full">
             <Input
               type="text"
               placeholder={searchPlaceholder}
@@ -453,70 +494,110 @@ export function DataTable<T>({
         )}
       </div>
 
-      <div className="border rounded-md">
+      {/* Active Filter Badges */}
+      {activeFilterCount > 0 && (
+        <div className="flex flex-wrap gap-2 items-center">
+          {Object.entries(internalFilters).map(([key, value]) => {
+            const filterField = effectiveFilterOptions?.[key];
+            const filterOption = filterField?.options.find(
+              (o) => o.value === value
+            );
+            return (
+              <Badge
+                key={key}
+                variant="outline"
+                className="rounded-full px-3 py-1 flex items-center gap-1"
+              >
+                <span className="text-xs font-medium">
+                  {filterField?.label || key}:
+                </span>{" "}
+                {filterOption?.label || value}
+                <X
+                  className="h-3 w-3 ml-1 cursor-pointer opacity-70 hover:opacity-100"
+                  onClick={() => handleFilterChange(key, "all")}
+                />
+              </Badge>
+            );
+          })}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            onClick={resetAllFilters}
+          >
+            Clear all
+          </Button>
+        </div>
+      )}
+
+      <div className="border rounded-md overflow-hidden">
         {isLoading ? (
           renderLoadingState ? (
             renderLoadingState()
           ) : (
             defaultLoadingState
           )
+        ) : isMobileView ? (
+          renderMobileCardView()
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {columns.map((column, index) => (
-                  <TableHead key={index} className={column.className}>
-                    <div className="flex items-center gap-1">
-                      {column.header}
-                      {column.filterable &&
-                        column.accessorKey &&
-                        effectiveFilterOptions[
-                          column.accessorKey as string
-                        ] && (
-                          <ColumnFilterPopover
-                            field={column.accessorKey as string}
-                            filterField={
-                              effectiveFilterOptions[
-                                column.accessorKey as string
-                              ]
-                            }
-                            activeValue={
-                              internalFilters[column.accessorKey as string]
-                            }
-                            onFilterChange={handleFilterChange}
-                          />
-                        )}
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {displayData.length > 0
-                ? displayData.map((item, rowIndex) => (
-                    <TableRow key={rowIndex}>
-                      {columns.map((column, colIndex) => (
-                        <TableCell key={colIndex}>
-                          {column.cell
-                            ? column.cell(item)
-                            : column.accessorKey
-                            ? String(item[column.accessorKey] || "")
-                            : null}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                : renderEmptyState
-                ? renderEmptyState()
-                : defaultEmptyState}
-            </TableBody>
-          </Table>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  {columns.map((column, index) => (
+                    <TableHead key={index} className={column.className}>
+                      <div className="flex items-center gap-1">
+                        {column.header}
+                        {column.filterable &&
+                          column.accessorKey &&
+                          effectiveFilterOptions[
+                            column.accessorKey as string
+                          ] && (
+                            <ColumnFilterPopover
+                              field={column.accessorKey as string}
+                              filterField={
+                                effectiveFilterOptions[
+                                  column.accessorKey as string
+                                ]
+                              }
+                              activeValue={
+                                internalFilters[column.accessorKey as string]
+                              }
+                              onFilterChange={handleFilterChange}
+                            />
+                          )}
+                      </div>
+                    </TableHead>
+                  ))}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {displayData.length > 0
+                  ? displayData.map((item, rowIndex) => (
+                      <TableRow key={rowIndex}>
+                        {columns.map((column, colIndex) => (
+                          <TableCell key={colIndex}>
+                            {column.cell
+                              ? column.cell(item)
+                              : column.accessorKey
+                              ? String(item[column.accessorKey] || "")
+                              : null}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  : renderEmptyState
+                  ? renderEmptyState()
+                  : defaultEmptyState}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
 
       {enablePagination && totalPages > 1 && (
         <Pagination className="hover:cursor-pointer">
-          <PaginationContent>
+          <PaginationContent className="flex flex-wrap justify-center">
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => handlePageChange(Math.max(page - 1, 1))}
@@ -530,7 +611,7 @@ export function DataTable<T>({
             </PaginationItem>
 
             {(() => {
-              const totalPageNumbers = 5;
+              const totalPageNumbers = isMobileView ? 3 : 5;
               let startPage = 1;
               let endPage = Math.min(totalPages, totalPageNumbers);
 
@@ -541,7 +622,10 @@ export function DataTable<T>({
               }
               // Adjust range when current page is in the middle
               else if (page > 2) {
-                startPage = Math.max(1, page - 2);
+                startPage = Math.max(
+                  1,
+                  page - Math.floor(totalPageNumbers / 2)
+                );
                 endPage = Math.min(
                   startPage + totalPageNumbers - 1,
                   totalPages

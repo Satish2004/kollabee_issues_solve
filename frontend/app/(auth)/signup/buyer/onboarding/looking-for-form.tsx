@@ -10,7 +10,7 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
 interface LookingForFormProps {
   formData: {
@@ -71,22 +71,24 @@ export function LookingForForm({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 px-4 sm:px-0">
       <div className="text-start space-y-2">
-        <h1 className="text-2xl font-bold">What Are You Looking For?</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-xl sm:text-2xl font-bold">
+          What Are You Looking For?
+        </h1>
+        <p className="text-muted-foreground text-sm sm:text-base">
           Tell us what you're looking for so we can match you with the best
           suppliers!
         </p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div className="space-y-2">
-          <Label className="text-base font-medium">
+          <Label className="text-sm sm:text-base font-medium">
             Select Your Needs (Multi-Select Allowed)
           </Label>
 
-          <div className="space-y-4 mt-4">
+          <div className="space-y-3 mt-3 sm:mt-4">
             {options.map((option) => (
               <div key={option.id} className="flex items-start space-x-3">
                 <Checkbox
@@ -99,7 +101,7 @@ export function LookingForForm({
                 />
                 <Label
                   htmlFor={option.id}
-                  className="text-base font-normal cursor-pointer"
+                  className="text-sm sm:text-base font-normal cursor-pointer"
                 >
                   {option.label}
                 </Label>
@@ -108,7 +110,9 @@ export function LookingForForm({
           </div>
 
           {errors.lookingFor && (
-            <p className="text-sm text-red-500 mt-1">{errors.lookingFor}</p>
+            <p className="text-xs sm:text-sm text-red-500 mt-1">
+              {errors.lookingFor}
+            </p>
           )}
         </div>
       </div>
@@ -116,14 +120,14 @@ export function LookingForForm({
       <div className="flex justify-between pt-4">
         <Button
           variant="ghost"
-          className="text-primary flex items-center gap-2"
+          className="text-primary flex items-center gap-1 sm:gap-2 text-sm sm:text-base px-2 sm:px-4"
           onClick={onPrevious}
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-3 h-3 sm:w-4 sm:h-4" />
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2 button-bg"
+          className="rounded-[6px] text-white px-4 sm:px-8 py-1 sm:py-2 text-sm sm:text-base button-bg"
           onClick={onSubmit}
           disabled={isSubmitting}
         >

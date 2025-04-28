@@ -68,7 +68,11 @@ export function BuyerSidebar({ className }: SidebarProps) {
       }
     };
 
-    handleResize();
+    // Set initial state based on screen size
+    if (window.innerWidth < 1024) {
+      setIsCollapsed(true);
+    }
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);

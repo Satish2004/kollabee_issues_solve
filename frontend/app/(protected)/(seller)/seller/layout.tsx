@@ -30,9 +30,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <SellerLayoutHeader />
         </div>
 
-        <main className="flex-1 px-6 py-3 bg-gray-100">
-          {children}
-        </main>
+        <main className="flex-1 px-2 md:px-10 py-3 bg-gray-100">{children}</main>
       </div>
 
       <IntroTour />

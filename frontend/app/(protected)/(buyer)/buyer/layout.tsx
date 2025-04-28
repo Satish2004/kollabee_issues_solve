@@ -30,7 +30,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <BuyerLayoutHeader/>
         </div>
 
-        <main className="flex-1 px-10 py-3 bg-gray-100">
+        <main className="flex-1 px-4 py-3 bg-gray-100">
           {children}
         </main>
         </CheckoutProvider>

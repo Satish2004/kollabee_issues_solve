@@ -1,41 +1,46 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { ArrowLeft, Info } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { toast } from "sonner"
-import { sellerApi } from "@/lib/api/seller"
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Info } from "lucide-react";
+import { CategoryEnum, BusinessType } from "@/types/api";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
-const businessTypes = [
-  "Manufacturer",
-  "Distributor",
-  "Service Provider",
-  "Packaging Supplier",
-  "Co-Packer",
-  "Other",
-]
+const businessTypes = Object.values(BusinessType).map((type) => ({
+  value: type,
+  label: type
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" "),
+}));
 
-const businessCategories = [
-  "Fashion, Apparel & Accessories",
-  "Beauty & Cosmetics",
-  "Home & Cleaning Essentials",
-  "Herbal & Natural Products (Ayurveda)",
-  "Food & Beverages",
-  "Health & Wellness",
-  "Other",
-]
+const businessCategories = Object.values(CategoryEnum).map((category) => ({
+  value: category,
+  label: category
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" "),
+}));
 
 interface BusinessInfoFormProps {
   formData: {
     businessName: string;
     websiteLink: string;
     businessAddress: string;
-    businessTypes: string[];
-    businessCategories: string[];
+    businessTypes: BusinessType[];
+    businessCategories: CategoryEnum[];
   };
-  setFormData: (data: (prev: BusinessInfoFormProps['formData']) => BusinessInfoFormProps['formData']) => void;
+  setFormData: (
+    data: (
+      prev: BusinessInfoFormProps["formData"]
+    ) => BusinessInfoFormProps["formData"]
+  ) => void;
   onNext: () => void;
   onPrevious: () => void;
 }
@@ -46,76 +51,62 @@ export function BusinessInfoForm({
   onNext,
   onPrevious,
 }: BusinessInfoFormProps) {
-  const router = useRouter()
+  const [errors, setErrors] = useState({
+    businessName: "",
+    websiteLink: "",
+    businessAddress: "",
+    businessTypes: "",
+    businessCategories: "",
+  });
 
-  const [errors, setErrors] = useState<{
-    businessName?: string;
-    websiteLink?: string;
-    businessAddress?: string;
-    businessTypes?: string;
-    businessCategories?: string;
-  }>({});
-
-  const handleSubmit = async () => {
-    if(!validateForm()){
-      return
-    }
-    try {
-      await sellerApi.updateBusinessInfo({
-        businessName: formData.businessName,
-        businessAddress: formData.businessAddress,
-        websiteLink: formData.websiteLink,
-        businessTypes: formData.businessTypes,
-        businessCategories: formData.businessCategories
-      })
-      toast.success("Business information updated successfully")
-      onNext()
-    } catch (error: any) {
-      console.error("Error:", error)
-      toast.error(error.response?.data?.message || "Failed to update business info")
-    }
-  }
-
-  const handleBusinessTypeClick = (type: string) => {
-    setFormData((prev: BusinessInfoFormProps['formData']) => ({
+  const handleBusinessTypeClick = (type: BusinessType) => {
+    setFormData((prev) => ({
       ...prev,
-      businessTypes: prev.businessTypes.includes(type) ? prev.businessTypes.filter(t => t !== type) : [...prev.businessTypes, type]
+      businessTypes: prev.businessTypes?.includes(type)
+        ? prev.businessTypes.filter((t) => t !== type)
+        : [...(prev.businessTypes || []), type],
     }));
-  }
 
-  const handleBusinessCategoryClick = (category: string) => {
-    setFormData(prev => ({
+    validateForm();
+  };
+
+  const handleBusinessCategoryClick = (category: CategoryEnum) => {
+    setFormData((prev) => ({
       ...prev,
-      businessCategories: prev.businessCategories.includes(category) ? prev.businessCategories.filter(c => c !== category) : [...prev.businessCategories, category]
-    }))
-  }
+      businessCategories: prev.businessCategories?.includes(category)
+        ? prev.businessCategories.filter((c) => c !== category)
+        : [...(prev.businessCategories || []), category],
+    }));
+    validateForm();
+  };
 
   const validateForm = () => {
-    const newErrors: any = {};
-
-    if (!formData.businessName?.trim()) {
-      newErrors.businessName = 'Business name is required';
-    }
-
-    if (!formData.businessAddress?.trim()) {
-      newErrors.businessAddress = 'Business address is required';
-    }
-
-    if (formData.businessTypes.length === 0) {
-      newErrors.businessTypes = 'Please select at least one business type';
-    }
-
-    if (formData.businessCategories.length === 0) {
-      newErrors.businessCategories = 'Please select at least one category';
-    }
-
+    const newErrors = {
+      businessName:
+        formData.businessName.trim() === "" ? "Business Name is required" : "",
+      websiteLink:
+        formData.websiteLink.trim() === "" ? "Website Link is required" : "",
+      businessAddress:
+        formData.businessAddress.trim() === ""
+          ? "Business Address is required"
+          : "",
+      businessTypes:
+        formData.businessTypes.length === 0
+          ? "Select one one Business Type"
+          : "",
+      businessCategories:
+        formData.businessCategories.length === 0
+          ? "Select one Business Category"
+          : "",
+    };
     setErrors(newErrors);
+    return Object.values(newErrors).every((error) => error === "");
+  };
 
-    if (Object.keys(newErrors).length > 0) {
-      toast.error('Please fill in all required fields');
+  const handleNext = () => {
+    if (validateForm()) {
+      onNext();
     }
-
-    return Object.keys(newErrors).length === 0;
   };
 
   return (
@@ -123,108 +114,212 @@ export function BusinessInfoForm({
       <div className="text-start space-y-2">
         <h2 className="text-2xl font-bold">Business Information</h2>
         <p className="text-muted-foreground">
-          Tell us about your business to unlock opportunities with the right buyers.
+          Tell us about your business to unlock opportunities with the right
+          buyers.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Name
-              <Info className="w-4 h-4 text-muted-foreground" />
+              Business Name<span className="text-destructive">*</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200  max-w-sm">
+                    <p>
+                      Enter the official name of your business as it appears on
+                      legal documents and branding materials. This name will be
+                      visible to customers
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </label>
             <Input
               placeholder="Enter your Business Name"
               value={formData.businessName}
-              onChange={(e) => setFormData(prev => ({ ...prev, businessName: e.target.value }))}
-              className="h-11"
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  businessName: e.target.value,
+                }));
+                validateForm();
+              }}
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
+            {errors.businessName && (
+              <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Website Link
-              <Info className="w-4 h-4 text-muted-foreground" />
+              Website Link<span className="text-destructive">*</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200 max-w-sm">
+                    <p>
+                      Enter the complete URL of your business website (e.g.,
+                      https://yourbusiness.com). Ensure the link is valid and
+                      accessible to customers.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </label>
             <Input
               placeholder="Enter your Website Link"
               value={formData.websiteLink}
-              onChange={(e) => setFormData(prev => ({ ...prev, websiteLink: e.target.value }))}
-              className="h-11"
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  websiteLink: e.target.value,
+                }));
+                validateForm();
+              }}
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 "
             />
+            {errors.websiteLink && (
+              <p className="text-sm text-red-500 mt-1">{errors.websiteLink}</p>
+            )}
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-medium">Business Type</label>
+            <label className="text-sm font-medium flex items-center gap-1">
+              Business Type<span className="text-destructive">*</span>
+            </label>
             <p className="text-sm text-muted-foreground">
-              Match with the right buyers by selecting one or more categories that best describe your business.
+              Match with the right buyers by selecting one or more categories
+              that best describe your business.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {businessTypes.map((type) => (
+            <div className="flex flex-wrap gap-1 sm:gap-2">
+              {businessTypes.map(({ value, label }) => (
                 <Button
-                  key={type}
-                  variant={formData.businessTypes.includes(type) ? "default" : "outline"}
-                  onClick={() => handleBusinessTypeClick(type)}
-                  className="rounded-md h-9 px-4 text-sm"
+                  key={value}
+                  variant={
+                    formData.businessTypes?.includes(value)
+                      ? "default"
+                      : "outline"
+                  }
+                  onClick={() => handleBusinessTypeClick(value)}
+                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                    formData.businessTypes?.includes(value)
+                      ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+                      : "border-[#e5e5e5]"
+                  }`}
                   size="sm"
                 >
-                  {type}
+                  {label}
                 </Button>
               ))}
             </div>
+            {errors.businessTypes && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.businessTypes}
+              </p>
+            )}
           </div>
         </div>
 
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Address
-              <Info className="w-4 h-4 text-muted-foreground" />
+              Business Address<span className="text-destructive">*</span>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-gray-200  max-w-sm">
+                    <p>
+                      Provide the full physical address of your business
+                      location, including street, city, state, and ZIP code.
+                      This helps customers find your business.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </label>
             <Input
               placeholder="Enter your Business Address"
               value={formData.businessAddress}
-              onChange={(e) => setFormData(prev => ({ ...prev, businessAddress: e.target.value }))}
-              className="h-11"
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  businessAddress: e.target.value,
+                }));
+                validateForm();
+              }}
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50   "
             />
+            {errors.businessAddress && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.businessAddress}
+              </p>
+            )}
           </div>
 
           <div className="space-y-3">
-            <label className="text-sm font-medium">Business Category</label>
+            <label className="text-sm font-medium flex items-center gap-1">
+              Business Category<span className="text-destructive">*</span>
+            </label>
             <p className="text-sm text-muted-foreground">
               Choose one or more categories your business primarily operates in.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {businessCategories.map((category) => (
+            <div className="flex flex-wrap gap-1 sm:gap-2">
+              {businessCategories.map(({ value, label }) => (
                 <Button
-                  key={category}
-                  variant={formData.businessCategories.includes(category) ? "default" : "outline"}
-                  onClick={() => handleBusinessCategoryClick(category)}
-                  className="rounded-md h-9 px-4 text-sm"
+                  key={value}
+                  variant={
+                    formData.businessCategories?.includes(value)
+                      ? "default"
+                      : "outline"
+                  }
+                  onClick={() => handleBusinessCategoryClick(value)}
+                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                    formData.businessCategories?.includes(value)
+                      ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+                      : "border-[#e5e5e5]"
+                  }`}
                   size="sm"
                 >
-                  {category}
+                  {label}
                 </Button>
               ))}
             </div>
+            {errors.businessCategories && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.businessCategories}
+              </p>
+            )}
           </div>
         </div>
       </div>
 
       <div className="flex justify-between mt-10">
-        <Button onClick={onPrevious} variant="ghost" size="sm" className="text-primary -ml-4">
+        <Button
+          onClick={onPrevious}
+          variant="ghost"
+          size="sm"
+          className="text-primary -ml-4"
+        >
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
-        <Button 
-          className="bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600 text-white px-8"
-          disabled={!validateForm()}
-          onClick={handleSubmit}
+        <Button
+          className="rounded-[6px] text-white px-8 py-2  bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+          onClick={handleNext}
         >
           Continue
         </Button>
       </div>
     </div>
-  )
+  );
 }

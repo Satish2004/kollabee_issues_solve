@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   type ColumnDef,
   flexRender,
@@ -85,23 +85,17 @@ const columns: ColumnDef<Order>[] = [
   },
   {
     id: "actions",
+    header: "Actions",
+
     cell: ({ row }) => {
       const order = row.original;
       return (
         <div className="flex items-center gap-2 justify-end">
-          {/* {order.status === "in_progress" && (
-            <Link href={`/buyer/orders/${row.original.id}`}>
-              <Button className="bg-red-500 text-white hover:bg-red-600">
-                Track Order
-              </Button>
-            </Link>
-          )} */}
-
           <Link href={`/buyer/orders/${row.original.id}`}>
-              <Button className="border border-red-500 text-red-500 hover:border-red-600 hover:bg-red-100 font-semibold">
+            <Button className="border border-red-500 text-red-500 hover:border-red-600 hover:bg-red-100 font-semibold text-xs px-2 sm:px-3 py-1 sm:py-2 sm:text-sm whitespace-nowrap">
               View Details
-              </Button>
-            </Link>
+            </Button>
+          </Link>
         </div>
       );
     },
@@ -127,24 +121,28 @@ export default function OrdersTable() {
   });
 
   return (
-    <div className="space-y-4 bg-white p-5 rounded-xl">
+    <div className="space-y-4 bg-white p-3 sm:p-5 rounded-xl">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">Orders</h2>
+        <h2 className="text-xl sm:text-2xl font-semibold">Orders</h2>
         <span className="text-gray-500">({orders.length})</span>
       </div>
-      <div className="w-full">
-        <div className="w-full rounded-md">
-          <Table className="w-full">
+      <div className="w-full overflow-auto">
+        <div className="rounded-md">
+          <Table className="w-full table-fixed">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="grid grid-cols-5 w-full border-t border-b border-gray-200 pt-4 text-gray-500"
+                  className="grid grid-cols-4 sm:grid-cols-5 w-full border-t border-b border-gray-200 pt-4 text-gray-500"
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
                       key={header.id}
-                      className={header.id === "actions" ? "text-right" : ""}
+                      className={`text-xs sm:text-sm ${
+                        header.id === "actions" ? "text-right" : ""
+                      } ${
+                        header.id === "createdAt" ? "hidden sm:table-cell" : ""
+                      }`}
                     >
                       {header.isPlaceholder
                         ? null
@@ -163,14 +161,20 @@ export default function OrdersTable() {
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="grid grid-cols-5 w-full pt-4"
+                    className="grid grid-cols-4 sm:grid-cols-5 w-full pt-4"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className={
-                          cell.column.id === "actions" ? "text-right" : ""
-                        }
+                        className={`text-xs sm:text-sm ${
+                          cell.column.id === "actions" ? "text-right pr-2" : ""
+                        } ${
+                          cell.column.id === "createdAt"
+                            ? "hidden sm:table-cell"
+                            : ""
+                        } ${
+                          cell.column.id === "id" ? "truncate" : ""
+                        } overflow-hidden`}
                       >
                         {flexRender(
                           cell.column.columnDef.cell,

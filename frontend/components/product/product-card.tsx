@@ -59,17 +59,8 @@ export default function ProductCard({
     }
   };
 
-  // const handleContactSupplier = () => {
-  //   const response = chatApi.createConversation({
-  //     participantId: product.seller.userId,
-  //     participantType: "SELLER",
-  //   });
-  //   // console.log("Response:", response)
-  //   router.push("/buyer/chat");
-  // };
-
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="bg-white w-full rounded-2xl border border-gray-200 overflow-hidden">
       <div className="relative">
         <Image
           src={
@@ -83,18 +74,18 @@ export default function ProductCard({
         />
         <Button
           onClick={handleWishlist}
-          className="absolute bottom-3 right-3 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-white"
+          className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-white p-0"
         >
           <Heart
-            className="w-4 h-4 text-gray-600"
+            className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600"
             fill={`${isInWishlist(product.id) ? "red" : "white"}`}
             stroke={`${isInWishlist(product.id) ? "red" : "black"}`}
           />
         </Button>
       </div>
 
-      <div className="p-4 space-y-4">
-        <div className="flex items-center justify-end text-sm">
+      <div className="p-3 sm:p-4 space-y-2 sm:space-y-4">
+        <div className="flex items-center justify-end text-xs sm:text-sm">
           <span className="font-medium">{product.rating}</span>
           <span className="text-gray-500">/5.0</span>
           <span className="text-gray-500 ml-1">
@@ -103,57 +94,64 @@ export default function ProductCard({
         </div>
 
         <div>
-          <div className="text-2xl mb-1 font-medium">{product.price}</div>
-          <div className="text-sm text-gray-500">
+          <div className="text-lg sm:text-2xl mb-0.5 sm:mb-1 font-medium">
+            {product.price}
+          </div>
+          <div className="text-xs sm:text-sm text-gray-500">
             Min. order: {product.minOrderQuantity}
           </div>
         </div>
 
-        <div className="space-y-1">
-          <div className="font-medium">{product.seller.businessName}</div>
-          <div className="flex items-center justify-between text-sm text-gray-500 space-x-2">
-            <div className="flex items-center  space-x-2">
+        <div className="space-y-0.5 sm:space-y-1">
+          <div className="font-medium text-sm sm:text-base line-clamp-1">
+            {product.seller.businessName}
+          </div>
+          <div className="flex items-center justify-between text-xs sm:text-sm text-gray-500 space-x-1 sm:space-x-2">
+            <div className="flex items-center space-x-1 sm:space-x-2">
               <span>
                 {findYearDifference(product.seller.yearEstablished) || 0} yrs
               </span>
               <div className="flex items-center">
-                <span className="w-4 h-3 bg-red-500 mr-1" />{" "}
-                {/* Placeholder for flag */}
+                <span className="w-3 h-2 sm:w-4 sm:h-3 bg-red-500 mr-1" />{" "}
                 <span>{product.seller.country} Supplier</span>
               </div>
             </div>
             {product.seller.verified && (
-              <div className="flex items-center  text-green-600">
-                <span className="text-sm font-semibold">Verified</span>
+              <div className="flex items-center text-green-600">
+                <span className="text-xs sm:text-sm font-semibold">
+                  Verified
+                </span>
               </div>
-              //TODO: THERE IS NO VERIFIED DATA IN SELLER (BY ANURAG)
             )}
           </div>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-1 sm:space-y-2">
           <Button
-           type="button"
+            type="button"
             onClick={handleCart}
-            className={`w-full py-6 px-4 rounded-md text-white font-semibold ${isInCart(product.id) ? "bg-zinc-700 hover:bg-zinc-600" : "button-bg"}`}
+            className={`w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold ${
+              isInCart(product.id)
+                ? "bg-zinc-700 hover:bg-zinc-600"
+                : "button-bg"
+            }`}
           >
-            {isLoading
-              ? "Adding..."
-              : isInCart(product.id)
-              ? <div className="flex items-center space-x-2"><span>Remove From Cart</span><BsCartDashFill className="" /></div>
-              : "Add to Cart"}
+            {isLoading ? (
+              "Adding..."
+            ) : isInCart(product.id) ? (
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <span>Remove From Cart</span>
+                <BsCartDashFill className="" />
+              </div>
+            ) : (
+              "Add to Cart"
+            )}
           </Button>
 
-          
-          {/* <Button
-            onClick={handleContactSupplier}
-            className="w-full py-6 px-4 rounded-lg gradient-border"
-          >
-            <span className="gradient-text font-semibold">
-              Contact Supplier
-            </span>
-          </Button> */}
-          <ContactSupplierButton supplierId={product.seller.userId} supplierName={product.seller.businessName} />
+          <ContactSupplierButton
+            supplierId={product.seller.userId}
+            supplierName={product.seller.businessName}
+          />
         </div>
       </div>
     </div>
