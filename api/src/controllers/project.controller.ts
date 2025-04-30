@@ -8,40 +8,281 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const createProject = async (req: any, res: Response) => {
   try {
     const { milestones, ...projectData } = req.body;
-    console.log("req.user ", req.user);
-    let projectTimeline = [];
-    let { projectTimelineFrom, projectTimelineTo, ...newProjectData } =
-      projectData;
-    if (projectTimelineFrom && projectTimelineTo) {
-      projectTimeline.push(new Date(projectTimelineFrom));
-      projectTimeline.push(new Date(projectTimelineTo));
+
+    // Process timeline dates based on project type
+    const projectTimeline = [];
+    let {
+      projectTimelineFrom,
+      projectTimelineTo,
+      receiveDate,
+      launchDate,
+      serviceStartDate,
+      serviceEndDate,
+      ...newProjectData
+    } = projectData;
+
+    // Set timeline based on project type
+    if (projectData.selectedServices?.includes("services-brand-support")) {
+      if (serviceStartDate) projectTimeline.push(new Date(serviceStartDate));
+      if (serviceEndDate) projectTimeline.push(new Date(serviceEndDate));
+
+      // Set legacy fields for compatibility
+      projectTimelineFrom = serviceStartDate;
+      projectTimelineTo = serviceEndDate;
+    } else {
+      if (receiveDate) projectTimeline.push(new Date(receiveDate));
+      if (launchDate) projectTimeline.push(new Date(launchDate));
+
+      // Set legacy fields for compatibility
+      projectTimelineFrom = receiveDate;
+      projectTimelineTo = launchDate || receiveDate;
     }
 
-    const newMileStones = milestones.map((milestone: any) => ({
-      name: milestone.name,
-      description: milestone.description,
-      paymentPercentage: Number.parseFloat(milestone.paymentPercentage),
-      dueDate: milestone.dueDate[0] ? new Date(milestone.dueDate[0]) : null,
-    }));
+    // // Process milestones
+    // const newMileStones =
+    //   milestones?.map((milestone: any) => ({
+    //     name: milestone.name || "Milestone",
+    //     description: milestone.description || "Description",
+    //     paymentPercentage: Number.parseFloat(
+    //       milestone.paymentPercentage || "100"
+    //     ),
+    //     dueDate: milestone.dueDate ? new Date(milestone.dueDate) : new Date(),
+    //   })) || [];
 
-    console.log("req.body ", projectTimeline);
+    // // If no milestones provided, create a default one
+    // if (newMileStones.length === 0 && projectTimeline.length > 0) {
+    //   newMileStones.push({
+    //     name: "Project Completion",
+    //     description: "Full payment upon completion",
+    //     paymentPercentage: 100,
+    //     dueDate: projectTimeline[projectTimeline.length - 1] || new Date(),
+    //   });
+    // }
 
+    // Set business name from project title if available
+    if (projectData.projectTitle && !projectData.businessName) {
+      newProjectData.businessName = projectData.projectTitle;
+    }
+
+    // Set category and product type based on project type
+    if (projectData.selectedServices?.includes("custom-manufacturing")) {
+      newProjectData.category = projectData.productCategory || "OTHER";
+      newProjectData.productType = projectData.productCategory || "OTHER";
+    } else if (projectData.selectedServices?.includes("packaging-only")) {
+      newProjectData.category = "PACKAGING";
+      newProjectData.productType = projectData.packagingCategory || "PACKAGING";
+    } else if (
+      projectData.selectedServices?.includes("services-brand-support")
+    ) {
+      newProjectData.category = "SERVICES";
+      newProjectData.productType = "SERVICES";
+    }
+
+    // Set certifications string for backward compatibility
+    if (
+      projectData.certifications &&
+      Array.isArray(projectData.certifications)
+    ) {
+      newProjectData.certificationsRequired =
+        projectData.certifications.join(", ");
+    }
+
+    // Set other required fields with defaults if needed
+    newProjectData.formulationType =
+      projectData.hasDesignOrFormula || projectData.formulationType || "N/A";
+    newProjectData.targetBenefit =
+      projectData.customizationLevel || projectData.targetBenefit || "N/A";
+    newProjectData.packagingType =
+      projectData.needsPackaging || projectData.packagingType || "N/A";
+    newProjectData.materialPreferences =
+      projectData.ecoFriendly || projectData.materialPreferences || "N/A";
+    newProjectData.sampleRequirements =
+      projectData.needsSample || projectData.sampleRequirements || "no";
+    newProjectData.minimumOrderQuantity =
+      projectData.quantity?.toString() ||
+      projectData.minimumOrderQuantity ||
+      "100";
+
+    // Create the project with all fields
     const project = await prisma.project.create({
       data: {
         ...newProjectData,
-        projectTimeline: projectTimeline,
-        milestones: {
-          create: newMileStones || [], // Handle empty milestones gracefully
-        },
-        ownerId: req.user.buyerId, // Set the ownerId to the authenticated user's buyerId
+        projectTimeline,
+
+        // Store dates properly
+        receiveDate: receiveDate ? new Date(receiveDate) : null,
+        launchDate: launchDate ? new Date(launchDate) : null,
+        serviceStartDate: serviceStartDate ? new Date(serviceStartDate) : null,
+        serviceEndDate: serviceEndDate ? new Date(serviceEndDate) : null,
+
+        // Store reference files as JSON
+        referenceFiles: projectData.referenceFiles
+          ? JSON.stringify(projectData.referenceFiles)
+          : null,
+
+        // Store certifications as array
+        certifications: projectData.certifications || [],
+
+        // Set owner
+        ownerId: req.user.buyerId,
       },
-      include: { milestones: true }, // Include milestones in the response
+      include: { milestones: true },
     });
+
+    console.log("Project created:", project);
 
     res.status(201).json(project);
   } catch (error) {
     console.error("Error creating project:", error);
-    res.status(500).json({ error: "Failed to create project" });
+    res.status(500).json({
+      error: "Failed to create project",
+      details: (error as Error)?.message || "Unknown error",
+    });
+  }
+};
+
+export const updateProject = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { milestones, ...projectData } = req.body;
+
+    // Check if project exists and user has permission
+    const project = await prisma.project.findUnique({ where: { id } });
+    if (!project || project.ownerId !== req.user.buyerId) {
+      return res.status(403).json({ error: "Access denied" });
+    }
+
+    // Process timeline dates based on project type
+    const projectTimeline = [];
+    let {
+      projectTimelineFrom,
+      projectTimelineTo,
+      receiveDate,
+      launchDate,
+      serviceStartDate,
+      serviceEndDate,
+      ...newProjectData
+    } = projectData;
+
+    // Set timeline based on project type
+    if (projectData.selectedServices?.includes("services-brand-support")) {
+      if (serviceStartDate) projectTimeline.push(new Date(serviceStartDate));
+      if (serviceEndDate) projectTimeline.push(new Date(serviceEndDate));
+
+      // Set legacy fields for compatibility
+      projectTimelineFrom = serviceStartDate;
+      projectTimelineTo = serviceEndDate;
+    } else {
+      if (receiveDate) projectTimeline.push(new Date(receiveDate));
+      if (launchDate) projectTimeline.push(new Date(launchDate));
+
+      // Set legacy fields for compatibility
+      projectTimelineFrom = receiveDate;
+      projectTimelineTo = launchDate || receiveDate;
+    }
+
+    // Process milestones
+    const newMileStones =
+      milestones?.map((milestone: any) => ({
+        name: milestone.name || "Milestone",
+        description: milestone.description || "Description",
+        paymentPercentage: Number.parseFloat(
+          milestone.paymentPercentage || "100"
+        ),
+        dueDate: milestone.dueDate ? new Date(milestone.dueDate) : new Date(),
+      })) || [];
+
+    // If no milestones provided, create a default one
+    if (newMileStones.length === 0 && projectTimeline.length > 0) {
+      newMileStones.push({
+        name: "Project Completion",
+        description: "Full payment upon completion",
+        paymentPercentage: 100,
+        dueDate: projectTimeline[projectTimeline.length - 1] || new Date(),
+      });
+    }
+
+    // Set business name from project title if available
+    if (projectData.projectTitle && !projectData.businessName) {
+      newProjectData.businessName = projectData.projectTitle;
+    }
+
+    // Set category and product type based on project type
+    if (projectData.selectedServices?.includes("custom-manufacturing")) {
+      newProjectData.category = projectData.productCategory || "OTHER";
+      newProjectData.productType = projectData.productCategory || "OTHER";
+    } else if (projectData.selectedServices?.includes("packaging-only")) {
+      newProjectData.category = "PACKAGING";
+      newProjectData.productType = projectData.packagingCategory || "PACKAGING";
+    } else if (
+      projectData.selectedServices?.includes("services-brand-support")
+    ) {
+      newProjectData.category = "SERVICES";
+      newProjectData.productType = "SERVICES";
+    }
+
+    // Set certifications string for backward compatibility
+    if (
+      projectData.certifications &&
+      Array.isArray(projectData.certifications)
+    ) {
+      newProjectData.certificationsRequired =
+        projectData.certifications.join(", ");
+    }
+
+    // Set other required fields with defaults if needed
+    newProjectData.formulationType =
+      projectData.hasDesignOrFormula || projectData.formulationType || "N/A";
+    newProjectData.targetBenefit =
+      projectData.customizationLevel || projectData.targetBenefit || "N/A";
+    newProjectData.packagingType =
+      projectData.needsPackaging || projectData.packagingType || "N/A";
+    newProjectData.materialPreferences =
+      projectData.ecoFriendly || projectData.materialPreferences || "N/A";
+    newProjectData.sampleRequirements =
+      projectData.needsSample || projectData.sampleRequirements || "no";
+    newProjectData.minimumOrderQuantity =
+      projectData.quantity?.toString() ||
+      projectData.minimumOrderQuantity ||
+      "100";
+
+    // Update the project with all fields
+    const updatedProject = await prisma.project.update({
+      where: { id },
+      data: {
+        ...newProjectData,
+        projectTimeline,
+
+        // Store dates properly
+        receiveDate: receiveDate ? new Date(receiveDate) : null,
+        launchDate: launchDate ? new Date(launchDate) : null,
+        serviceStartDate: serviceStartDate ? new Date(serviceStartDate) : null,
+        serviceEndDate: serviceEndDate ? new Date(serviceEndDate) : null,
+
+        // Store reference files as JSON
+        referenceFiles: projectData.referenceFiles
+          ? JSON.stringify(projectData.referenceFiles)
+          : null,
+
+        // Store certifications as array
+        certifications: projectData.certifications || [],
+
+        // Update milestones
+        milestones: {
+          deleteMany: {}, // Clear existing milestones
+          create: newMileStones,
+        },
+      },
+      include: { milestones: true },
+    });
+
+    res.status(200).json(updatedProject);
+  } catch (error) {
+    console.error("Error updating project:", error);
+    res.status(500).json({
+      error: "Failed to update project",
+      details: (error as Error)?.message || "Unknown error",
+    });
   }
 };
 
@@ -57,6 +298,8 @@ export const getProjects = async (req: any, res: Response) => {
         milestones: true,
       },
     });
+
+    // console.log("last project : ", projects[projects.length - 1]);
     res.status(200).json(projects);
   } catch (error) {
     console.error("Error fetching projects:", error);
@@ -92,36 +335,6 @@ export const getProjectById = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Error fetching project by ID:", error);
     res.status(500).json({ error: "Failed to fetch project" });
-  }
-};
-
-export const updateProject = async (req: any, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { milestones, ...projectData } = req.body;
-
-    const project = await prisma.project.findUnique({ where: { id } });
-
-    if (!project || project.ownerId !== req.user.buyerId) {
-      return res.status(403).json({ error: "Access denied" });
-    }
-
-    const updatedProject = await prisma.project.update({
-      where: { id },
-      data: {
-        ...projectData,
-        milestones: {
-          deleteMany: {}, // Clear existing milestones
-          create: milestones || [], // Handle empty milestones gracefully
-        },
-      },
-      include: { milestones: true }, // Include milestones in the response
-    });
-
-    res.status(200).json(updatedProject);
-  } catch (error) {
-    console.error("Error updating project:", error);
-    res.status(500).json({ error: "Failed to update project" });
   }
 };
 
