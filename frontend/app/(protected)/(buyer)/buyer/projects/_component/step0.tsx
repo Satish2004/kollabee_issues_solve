@@ -64,9 +64,7 @@ const Step0 = ({ handleNext }: { handleNext: () => void }) => {
           onClick={() => handleServiceSelect("packaging-only")}
         >
           <CardContent className="p-6 flex flex-col h-full">
-            <h3 className="  text-lg  font-normal mb-2">
-              Packaging Only
-            </h3>
+            <h3 className="  text-lg  font-normal mb-2">Packaging Only</h3>
             <p className=" text-sm font-normal text-gray-600 flex-grow">
               Premium, sustainable, or standard packaging — tailored to fit your
               product.
