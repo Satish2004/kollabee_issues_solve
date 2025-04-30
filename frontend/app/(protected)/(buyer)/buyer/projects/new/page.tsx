@@ -21,7 +21,9 @@ import type { Project } from "@/types/api";
 const ProjectsPage = () => {
   return (
     <FormProvider>
-      <CreateProjects />
+      <div className="px-0 md:px-6 w-full h-full">
+        <CreateProjects />
+      </div>
     </FormProvider>
   );
 };

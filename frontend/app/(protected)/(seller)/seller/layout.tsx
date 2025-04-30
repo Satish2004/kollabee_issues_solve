@@ -1,21 +1,19 @@
 "use client";
-import React, { use, useEffect } from 'react';
+import React, { use, useEffect } from "react";
 import { SellerSidebar } from "@/components/seller/seller-sidebar";
 import SellerLayoutHeader from "@/components/seller/layout-header";
 import { useRouter } from "next/navigation";
-import { IntroTour } from '@/components/tour/IntroTour';
+import { IntroTour } from "@/components/tour/IntroTour";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    if(!localStorage.getItem("token")){
+    if (!localStorage.getItem("kollabee_token")) {
       router.push("/login");
-      console.log("Token not found")
+      console.log("Token not found");
     }
   }, []);
-
-
 
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
@@ -30,7 +28,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <SellerLayoutHeader />
         </div>
 
-        <main className="flex-1 px-2 md:px-10 py-3 bg-gray-100">{children}</main>
+        <main className="flex-1 px-2 md:px-10 py-3 bg-gray-100">
+          {children}
+        </main>
       </div>
 
       <IntroTour />

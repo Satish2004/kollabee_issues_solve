@@ -630,37 +630,81 @@ model AdvertisementMetrics {
   @@index([advertisementId])
 }
 
+
+
 model Project {
   id                     String     @id @default(uuid())
+  // Core fields
   selectedServices       String[]
   category               String
   businessName           String
   productType            String
-  formulationType        String
-  targetBenefit          String
-  texturePreferences     String
-  colorPreferences       String
-  fragrancePreferences   String
-  packagingType          String
-  materialPreferences    String
-  bottleSize             String
-  labelingNeeded         String
-  minimumOrderQuantity   String
-  certificationsRequired String
-  sampleRequirements     String
+  
+  // Legacy fields for backward compatibility
+  formulationType        String?
+  targetBenefit          String?
+  texturePreferences     String?
+  colorPreferences       String?
+  fragrancePreferences   String?
+  packagingType          String?
+  materialPreferences    String?
+  bottleSize             String?
+  labelingNeeded         String?
+  minimumOrderQuantity   String?
+  certificationsRequired String?
+  sampleRequirements     String?
+  
+  // Timeline and budget
   projectTimeline        DateTime[]
   budget                 Float
-  pricingCurrency        String
+  pricingCurrency        String @default("USD")
+  
+  // New fields 
+  projectTitle           String?
+  productCategory        String?
+  packagingCategory      String?
+  productDescription     String?     
+  hasDesignOrFormula     String?
+  customizationLevel     String?
+  hasTargetPrice         String?
+  targetPrice            String?
+  needsSample            String?
+  needsPackaging         String?
+  needsDesign            String?
+  packagingDescription   String?     
+  productForPackaging    String?     
+  ecoFriendly            String?
+  packagingDimensions    String?     
+  needsLabeling          String?
+  hasPackagingDesign     String?
+  projectDescription     String?     
+  brandVision            String?     
+  brandStatus            String?
+  quantity               Int?
+  budgetType             String?
+  budgetFlexibility      String?
+  receiveDate            DateTime?
+  launchDate             DateTime?
+  serviceStartDate       DateTime?
+  serviceEndDate         DateTime?
+  supplierLocation       String?
+  additionalDetails      String?     
+  referenceFiles         Json?      // Store file references as JSON
+  certifications         String[]   // Store certifications as array
+  
+  // Relations
   milestones             Milestone[]
   ownerId                String
-  owner                  Buyer     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  sellers                Seller[] @relation("ProjectToSeller") // Added relationship
-  savedSeller            Seller[] @relation("SavedSeller")
+  owner                  Buyer      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sellers                Seller[]   @relation("ProjectToSeller")
+  savedSeller            Seller[]   @relation("SavedSeller")
   requestedSeller        projectReq[]
 
+  // Timestamps
   createdAt              DateTime   @default(now())
   updatedAt              DateTime   @updatedAt
 }
+
 
 
 model projectReq {

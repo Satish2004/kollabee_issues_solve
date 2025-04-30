@@ -6,12 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
+import InfoButton from "@/components/ui/IButton";
 
 interface AboutYouFormProps {
   formData: {
@@ -68,24 +64,11 @@ export function AboutYouForm({
             >
               Who Are You?
             </Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  align="start"
-                  className="bg-gray-200 max-w-[250px] sm:max-w-sm text-xs sm:text-sm p-2 sm:p-3"
-                >
-                  <p>
-                    Select the option that best describes your role in the
-                    business. This helps us tailor the experience based on your
-                    business type
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <InfoButton
+              text={
+                " Select the option that best describes your role in the business. This helps us tailor the experience based on your business type"
+              }
+            />
           </div>
 
           <RadioGroup
@@ -141,26 +124,13 @@ export function AboutYouForm({
               htmlFor="businessName"
               className="text-sm sm:text-base font-medium"
             >
-              Business Name<span className="text-destructive">*</span>
+              Business Name{" "}
+              <InfoButton
+                text={
+                  "  Enter the official name of your business as registered. If you don't have a registered business name, enter the name you operate under."
+                }
+              />
             </Label>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Info className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground cursor-pointer" />
-                </TooltipTrigger>
-                <TooltipContent
-                  side="top"
-                  align="start"
-                  className="bg-gray-200 max-w-[250px] sm:max-w-sm text-xs sm:text-sm p-2 sm:p-3"
-                >
-                  <p>
-                    Enter the official name of your business as registered. If
-                    you don't have a registered business name, enter the name
-                    you operate under.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
           </div>
           <Input
             id="businessName"

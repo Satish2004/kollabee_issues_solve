@@ -87,12 +87,16 @@ export const deleteDocument = async (req: Request, res: Response) => {
     }
 
     const publicId = cloudinaryLink.split("/").pop()?.split(".")[0];
+    console.log("Public ID:", publicId);
 
     if (!publicId) {
       return res.status(400).json({ error: "Invalid Cloudinary link" });
     }
 
-    await cloudinary.uploader.destroy(publicId, { resource_type: "raw" });
+    const response = await cloudinary.uploader.destroy(publicId, {
+      resource_type: "raw",
+    });
+    console.log("Delete document response:", response);
 
     res.json({ message: "Document deleted successfully" });
   } catch (error) {
@@ -110,12 +114,19 @@ export const deleteImage = async (req: Request, res: Response) => {
     }
 
     const publicId = cloudinaryLink.split("/").pop()?.split(".")[0];
+    console.log("Public ID:", publicId);
 
     if (!publicId) {
       return res.status(400).json({ error: "Invalid Cloudinary link" });
     }
 
-    await cloudinary.uploader.destroy(publicId);
+    const data = await cloudinary.uploader.destroy(
+      "product-images/" + publicId,
+      {
+        resource_type: "image",
+      }
+    );
+    console.log("Delete image response:", data);
 
     res.json({ message: "Image deleted successfully" });
   } catch (error) {

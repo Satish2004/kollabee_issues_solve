@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Circle, ArrowLeft, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
+import InfoButton from "../../../../../components/ui/IButton";
 import {
   Select,
   SelectTrigger,
@@ -12,12 +13,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+
 
 interface SignupFormProps {
   formData: {
@@ -511,19 +507,12 @@ export function SignupForm({
               className="flex font-normal items-center gap-2"
             >
               Business Email<span className="text-destructive">*</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-200 max-w-sm">
-                    <p>
-                      Enter your business email address. This email will be used
-                      to send you OTP for verification.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <InfoButton
+                text={
+                  "Enter your business email address. This email will be used to send you OTP for verification"
+                }
+              />
+             
             </Label>
             <div className="relative">
               <Input
