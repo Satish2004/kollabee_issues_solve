@@ -288,7 +288,7 @@ export const updateProject = async (req: any, res: Response) => {
 
 export const getProjects = async (req: any, res: Response) => {
   try {
-    const projects = await prisma.project.findMany({
+    const projectsData = await prisma.project.findMany({
       include: {
         requestedSeller: {
           where: {
@@ -300,7 +300,7 @@ export const getProjects = async (req: any, res: Response) => {
     });
 
     // console.log("last project : ", projects[projects.length - 1]);
-    res.status(200).json(projects);
+    res.status(200).json(projectsData);
   } catch (error) {
     console.error("Error fetching projects:", error);
     res.status(500).json({ error: "Failed to fetch projects" });
