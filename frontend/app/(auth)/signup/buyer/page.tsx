@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 export default function SignupBuyerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(1);
+  const [currentStage, setCurrentStage] = useState(0);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",

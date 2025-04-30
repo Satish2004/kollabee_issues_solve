@@ -5,12 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info } from "lucide-react";
 import { CategoryEnum, BusinessType } from "@/types/api";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import InfoButton from "@/components/ui/IButton";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -123,21 +118,12 @@ export function BusinessInfoForm({
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Name<span className="text-destructive">*</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-200  max-w-sm">
-                    <p>
-                      Enter the official name of your business as it appears on
-                      legal documents and branding materials. This name will be
-                      visible to customers
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              Business Name{" "}
+              <InfoButton
+                text={
+                  "Enter the official name of your business as it appears on legal documents and branding materials. This name will bevisible to customers"
+                }
+              />
             </label>
             <Input
               placeholder="Enter your Business Name"
@@ -158,21 +144,12 @@ export function BusinessInfoForm({
 
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Website Link<span className="text-destructive">*</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-200 max-w-sm">
-                    <p>
-                      Enter the complete URL of your business website (e.g.,
-                      https://yourbusiness.com). Ensure the link is valid and
-                      accessible to customers.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              Website Link
+              <InfoButton
+                text={
+                  "Enter the complete URL of your business website (e.g., https://yourbusiness.com). Ensure the link is valid and accessible to customers."
+                }
+              />
             </label>
             <Input
               placeholder="Enter your Website Link"
@@ -193,12 +170,14 @@ export function BusinessInfoForm({
 
           <div className="space-y-3">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Type<span className="text-destructive">*</span>
+              Business Type{" "}
+              <InfoButton
+                text={
+                  " Match with the right buyers by selecting one or more categories that best describe your business."
+                }
+              />
             </label>
-            <p className="text-sm text-muted-foreground">
-              Match with the right buyers by selecting one or more categories
-              that best describe your business.
-            </p>
+            <p className="text-sm text-muted-foreground"></p>
             <div className="flex flex-wrap gap-1 sm:gap-2">
               {businessTypes.map(({ value, label }) => (
                 <Button
@@ -209,7 +188,7 @@ export function BusinessInfoForm({
                       : "outline"
                   }
                   onClick={() => handleBusinessTypeClick(value)}
-                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5]  placeholder:text-black/50 ${
                     formData.businessTypes?.includes(value)
                       ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
                       : "border-[#e5e5e5]"
@@ -231,21 +210,12 @@ export function BusinessInfoForm({
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Address<span className="text-destructive">*</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-200  max-w-sm">
-                    <p>
-                      Provide the full physical address of your business
-                      location, including street, city, state, and ZIP code.
-                      This helps customers find your business.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              Business Address{" "}
+              <InfoButton
+                text={
+                  "Provide the full physical address of your business location, including street, city, state, and ZIP code. This helps customers find your business."
+                }
+              />
             </label>
             <Input
               placeholder="Enter your Business Address"
