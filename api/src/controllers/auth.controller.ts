@@ -5,6 +5,8 @@ import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { OAuth2Client } from "google-auth-library";
+import { googleClient } from "../config/google.config";
 
 declare module "bcryptjs";
 declare module "jsonwebtoken";
@@ -462,5 +464,184 @@ export const updatePassword = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Update password error:", error);
     res.status(500).json({ error: "Failed to update password" });
+  }
+};
+
+// Google OAuth functions
+export const googleAuth = (req: Request, res: Response) => {
+  try {
+    // Get the role from query parameters
+    const role = (req.query.role as string) || "BUYER";
+
+    // Validate role
+    if (!["BUYER", "SELLER", "ADMIN"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
+    // Store role in state parameter
+    const state = Buffer.from(JSON.stringify({ role })).toString("base64");
+
+    // Generate Google OAuth URL
+    const authUrl = googleClient.generateAuthUrl({
+      access_type: "offline",
+      scope: [
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email",
+      ],
+      state,
+    });
+
+    console.log("Google Auth URL:", authUrl);
+
+    // Redirect to Google OAuth
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error("Google auth error:", error);
+    res.status(500).json({ error: "Failed to initiate Google authentication" });
+  }
+};
+
+export const googleCallback = async (req: Request, res: Response) => {
+  try {
+    const { code, state } = req.query;
+
+    if (!code) {
+      return res.status(400).json({ error: "Authorization code is required" });
+    }
+
+    // Parse state to get role
+    let role = "BUYER";
+    try {
+      const stateData = JSON.parse(
+        Buffer.from(state as string, "base64").toString()
+      );
+      console.log("role", stateData);
+      role = stateData.role || "BUYER";
+    } catch (error) {
+      console.error("Error parsing state:", error);
+    }
+
+    // Exchange code for tokens
+    const { tokens } = await googleClient.getToken(code as string);
+
+    // Set credentials
+    googleClient.setCredentials(tokens);
+
+    // Get user info
+    const oauth2 = new OAuth2Client();
+    oauth2.setCredentials(tokens);
+
+    const userInfoResponse = await oauth2.request({
+      url: "https://www.googleapis.com/oauth2/v3/userinfo",
+    });
+
+    const userInfo = userInfoResponse.data as {
+      email: string;
+      name: string;
+      picture?: string;
+    };
+
+    console.log("User Info:", userInfo);
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({
+      where: { email: userInfo.email },
+      include: {
+        seller: true,
+        buyer: true,
+        admin: true,
+      },
+    });
+
+    if (!user) {
+      // Create new user
+      user = await prisma.$transaction(async (tx: any) => {
+        // Create user
+        const newUser = await tx.user.create({
+          data: {
+            email: userInfo.email,
+            name: userInfo.name,
+            role: role,
+            imageUrl: userInfo.picture,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+
+        // Create role-specific profile
+        if (role === "SELLER") {
+          await tx.seller.create({
+            data: { userId: newUser.id },
+          });
+        } else if (role === "BUYER") {
+          await tx.buyer.create({
+            data: { userId: newUser.id },
+          });
+        } else {
+          res.redirect(
+            `${
+              process.env.FRONTEND_URL
+            }/auth/callback?error=${"You can not create an admin account"}`
+          );
+        }
+
+        // Fetch updated user with relations
+        return await tx.user.findUnique({
+          where: { id: newUser.id },
+          include: {
+            seller: true,
+            buyer: true,
+            admin: true,
+          },
+        });
+      });
+    } else {
+      // Check if user has the requested role
+      // console.log("user", user, user.role, role);
+
+      if (user.role !== role) {
+        // If the user exists but has a different role, update the role
+        console.log("redirecting to error page");
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/google?error=${"user is not a a"}${role}`
+        );
+      }
+
+      // Update user's last login
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() },
+      });
+    }
+
+    // Generate JWT token
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        ...(user.role === "SELLER"
+          ? { sellerId: user.seller?.id }
+          : user.role === "ADMIN"
+          ? { adminId: user.admin?.id }
+          : { buyerId: user.buyer?.id }),
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    // Set JWT token in cookie
+    setAuthCookie(res, token);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/google?token=${token}&role=${role}&code=${code}`
+    );
+
+    return;
+  } catch (error) {
+    console.error("Google callback error:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?error=${error}`);
   }
 };

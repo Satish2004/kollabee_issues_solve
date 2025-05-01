@@ -1,15 +1,20 @@
 import { Info } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const InfoButton = ({ text }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true); // Ensure the component is mounted before rendering dynamic content
+  }, []);
 
   const showTooltip = () => {
-    setIsVisible(true);
+    if (isMounted) setIsVisible(true);
   };
 
   const hideTooltip = () => {
-    setIsVisible(false);
+    if (isMounted) setIsVisible(false);
   };
 
   return (
@@ -24,10 +29,9 @@ const InfoButton = ({ text }) => {
           fontSize: "16px",
         }}
       >
-        {/* You can use an icon library like Font Awesome or Material Icons here */}
         <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
       </button>
-      {isVisible && (
+      {isMounted && isVisible && (
         <div
           style={{
             position: "absolute",

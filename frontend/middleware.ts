@@ -24,6 +24,7 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = [
     "/",
     "/test",
+    "/google",
     "/login",
     "/login/seller",
     "/login/buyer",
