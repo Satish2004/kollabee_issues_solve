@@ -66,11 +66,13 @@ export const createProject = async (req: any, res: Response) => {
 
     // Set category and product type based on project type
     if (projectData.selectedServices?.includes("custom-manufacturing")) {
-      newProjectData.category = projectData.productCategory || "OTHER";
-      newProjectData.productType = projectData.productCategory || "OTHER";
+      newProjectData.category =
+        projectData.productCategory.join(",") || "OTHER";
+      newProjectData.productType = projectData.productCategory.join(",") || "OTHER";
     } else if (projectData.selectedServices?.includes("packaging-only")) {
       newProjectData.category = "PACKAGING";
-      newProjectData.productType = projectData.packagingCategory || "PACKAGING";
+      newProjectData.productType =
+        projectData.packagingCategory.join(",") || "PACKAGING";
     } else if (
       projectData.selectedServices?.includes("services-brand-support")
     ) {
@@ -129,7 +131,7 @@ export const createProject = async (req: any, res: Response) => {
       include: { milestones: true },
     });
 
-    console.log("Project created:", project);
+    // console.log("Project created:", project);
 
     res.status(201).json(project);
   } catch (error) {
@@ -209,8 +211,10 @@ export const updateProject = async (req: any, res: Response) => {
 
     // Set category and product type based on project type
     if (projectData.selectedServices?.includes("custom-manufacturing")) {
-      newProjectData.category = projectData.productCategory || "OTHER";
-      newProjectData.productType = projectData.productCategory || "OTHER";
+      newProjectData.category =
+        projectData.productCategory.join(",") || "OTHER";
+      newProjectData.productType =
+        projectData.productCategory.join(",") || "OTHER";
     } else if (projectData.selectedServices?.includes("packaging-only")) {
       newProjectData.category = "PACKAGING";
       newProjectData.productType = projectData.packagingCategory || "PACKAGING";

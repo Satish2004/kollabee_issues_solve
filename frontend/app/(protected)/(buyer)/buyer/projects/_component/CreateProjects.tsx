@@ -31,7 +31,7 @@ const CreateProjects = ({
   setOpen?: Dispatch<SetStateAction<boolean>>;
   initialData?: Project;
 }) => {
-  const [currentStage, setCurrentStage] = useState(0);
+  const [currentStage, setCurrentStage] = useState(3);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -104,8 +104,8 @@ const CreateProjects = ({
       if (serviceType === "custom-manufacturing") {
         if (!formData.projectTitle)
           newErrors.projectTitle = "Project title is required.";
-        if (!formData.productCategory)
-          newErrors.productCategory = "Product category is required.";
+        if (!formData.productCategory || formData.productCategory.length === 0)
+          newErrors.productCategory = "Select Atleast One Category.";
         if (!formData.productDescription)
           newErrors.productDescription = "Product description is required.";
         if (!formData.hasDesignOrFormula)
