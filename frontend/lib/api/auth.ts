@@ -19,6 +19,7 @@ interface SignupData {
 
   // Seller specific details
   businessName?: string;
+  businessDescription?: string;
   businessAddress?: string;
   websiteLink?: string;
   businessTypes?: BusinessType[];

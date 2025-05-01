@@ -17,7 +17,7 @@ import { useRouter } from "next/navigation";
 
 export default function SignupBuyerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(1);
+  const [currentStage, setCurrentStage] = useState(2);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -29,6 +29,7 @@ export default function SignupBuyerPage() {
     confirmPassword: "",
     role: "",
     businessName: "",
+    businessDescription: "",
     businessType: "", // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
     otherBusinessType: "",
     lookingFor: [] as string[], // What the buyer is looking for
@@ -167,6 +168,7 @@ export default function SignupBuyerPage() {
 
         // Company details
         companyName: formData.businessName,
+        businessDescription: formData.businessDescription,
 
         // Additional buyer details
         businessType: formData.businessType,
@@ -215,9 +217,14 @@ export default function SignupBuyerPage() {
   };
 
   const validateStage2 = () => {
-    const { businessName, businessType, otherBusinessType } = formData;
+    const {
+      businessName,
+      businessDescription,
+      businessType,
+      otherBusinessType,
+    } = formData;
 
-    if (!businessName || !businessType) {
+    if (!businessName || !businessType || !businessDescription) {
       toast.error("Please fill all required fields");
       return false;
     }
