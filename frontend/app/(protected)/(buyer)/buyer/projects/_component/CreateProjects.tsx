@@ -31,7 +31,7 @@ const CreateProjects = ({
   setOpen?: Dispatch<SetStateAction<boolean>>;
   initialData?: Project;
 }) => {
-  const [currentStage, setCurrentStage] = useState(3);
+  const [currentStage, setCurrentStage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
