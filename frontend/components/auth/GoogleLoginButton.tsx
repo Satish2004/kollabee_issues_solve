@@ -36,10 +36,10 @@ export function GoogleLoginButton({
       variant="outline"
       onClick={handleGoogleLogin}
       disabled={isLoading || loading}
-      className={`w-full flex items-center justify-center gap-2 ${className}`}
+      className={`w-full flex items-center justify-start gap-2 py-5 ${className}`}
     >
-      <FcGoogle className="h-5 w-5" />
-      <span>{loading ? "Connecting..." : "Continue with Google"}</span>
+      <FcGoogle className="h-8 w-8" />
+      <span className="font-sans w-full text-base">{loading ? "Connecting..." : "Continue with Google"}</span>
     </Button>
   );
 }

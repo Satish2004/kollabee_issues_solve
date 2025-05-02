@@ -138,7 +138,7 @@ export function LoginForm({
             <GoogleLoginButton role={googleLoginRole || "BUYER"} />
             <div className="relative my-4">
               <Separator />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-gray-500">
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-gray-600">
                 OR
               </span>
             </div>
