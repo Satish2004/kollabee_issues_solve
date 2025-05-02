@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Info } from "lucide-react";
 import { CategoryEnum, BusinessType } from "@/types/api";
 import InfoButton from "@/components/ui/IButton";
+import { Textarea } from "@/components/ui/textarea";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -26,6 +27,7 @@ const businessCategories = Object.values(CategoryEnum).map((category) => ({
 interface BusinessInfoFormProps {
   formData: {
     businessName: string;
+    businessDescription: string;
     websiteLink: string;
     businessAddress: string;
     businessTypes: BusinessType[];
@@ -48,6 +50,7 @@ export function BusinessInfoForm({
 }: BusinessInfoFormProps) {
   const [errors, setErrors] = useState({
     businessName: "",
+    businessDescription: "",
     websiteLink: "",
     businessAddress: "",
     businessTypes: "",
@@ -79,6 +82,10 @@ export function BusinessInfoForm({
     const newErrors = {
       businessName:
         formData.businessName.trim() === "" ? "Business Name is required" : "",
+      businessDescription:
+        formData.businessDescription.trim() === ""
+          ? "Business Description is required"
+          : "",
       websiteLink:
         formData.websiteLink.trim() === "" ? "Website Link is required" : "",
       businessAddress:
@@ -139,6 +146,34 @@ export function BusinessInfoForm({
             />
             {errors.businessName && (
               <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              Business Description{" "}
+              <InfoButton
+                text={
+                  "Enter your bussiness description to help customers understand what you offer. This description will be visible to customers."
+                }
+              />
+            </label>
+            <Textarea
+              placeholder="Enter your Business description"
+              value={formData.businessDescription}
+              onChange={(e) => {
+                setFormData((prev) => ({
+                  ...prev,
+                  businessDescription: e.target.value,
+                }));
+                validateForm();
+              }}
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+            />
+            {errors.businessDescription && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.businessDescription}
+              </p>
             )}
           </div>
 

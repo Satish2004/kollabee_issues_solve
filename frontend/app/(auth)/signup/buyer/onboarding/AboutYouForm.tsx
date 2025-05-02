@@ -8,6 +8,7 @@ import { ArrowLeft, Info } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import InfoButton from "@/components/ui/IButton";
+import { Textarea } from "@/components/ui/textarea";
 
 interface AboutYouFormProps {
   formData: {
@@ -27,15 +28,47 @@ export function AboutYouForm({
   onNext,
   onPrevious,
 }: AboutYouFormProps) {
-  const [errors, setErrors] = useState<{
-    businessName?: string;
-    businessType?: string;
-    otherBusinessType?: string;
-  }>({});
+  const [errors, setErrors] = useState({
+    businessName: "",
+    businessDescription: "",
+    businessType: "",
+    otherBusinessType: "",
+  }));
+
+  const handleNext = () => {
+    if (validateForm()) {
+      onNext();
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {
+      businessName:
+        formData.businessName.trim() === "" ? "Business Name is required" : "",
+      businessDescription:
+        formData.businessDescription.trim() === ""
+          ? "Business Description is required"
+          : "",
+      otherBusinessType:
+        formData.businessType === "Other" && !formData.otherBusinessType
+          ? "Specify your Business Type"
+          : "",
+
+      businessType:
+        formData.businessType.trim() === ""
+          ? "Select one one Business Type"
+          : "",
+    };
+
+    setErrors(newErrors);
+
+    console.log("Form Errors:", newErrors);
+
+    return Object.values(newErrors).every((error) => error === "");
+  };
 
   const handleChange = (field: string, value: string) => {
     setFormData({ ...formData, [field]: value });
-    setErrors({ ...errors, [field]: undefined });
   };
 
   const businessTypes = [
@@ -98,8 +131,10 @@ export function AboutYouForm({
               <Input
                 placeholder="Please specify"
                 value={formData.otherBusinessType || ""}
-                onChange={(e) =>
-                  handleChange("otherBusinessType", e.target.value)
+                onChange={(e) => {
+                  handleChange("otherBusinessType", e.target.value);
+                  validateForm();
+                }
                 }
                 className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md text-sm sm:text-base h-9 sm:h-10"
               />
@@ -136,12 +171,41 @@ export function AboutYouForm({
             id="businessName"
             placeholder="Enter your Business Name"
             value={formData.businessName}
-            onChange={(e) => handleChange("businessName", e.target.value)}
+            onChange={(e) => {
+              handleChange("businessName", e.target.value)
+              validateForm()
+            }}
             className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md text-sm sm:text-base h-9 sm:h-10"
           />
           {errors.businessName && (
             <p className="text-xs sm:text-sm text-red-500 mt-1">
               {errors.businessName}
+            </p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-medium flex items-center gap-1">
+            Business Description{" "}
+            <InfoButton
+              text={
+                "Enter your bussiness description to help customers understand what you offer. This description will be visible to customers."
+              }
+            />
+          </label>
+          <Textarea
+            placeholder="Enter your Business description"
+            value={formData.businessDescription}
+            onChange={(e) => {
+              handleChange("businessDescription", e.target.value)
+              validateForm()
+            }
+            }
+            className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+          />
+          {errors.businessDescription && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.businessDescription}
             </p>
           )}
         </div>
@@ -158,7 +222,7 @@ export function AboutYouForm({
         </Button>
         <Button
           className="rounded-[6px] text-white px-4 sm:px-8 py-1 sm:py-2 text-sm sm:text-base button-bg"
-          onClick={onNext}
+          onClick={handleNext}
         >
           Continue
         </Button>

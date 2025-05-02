@@ -34,6 +34,7 @@ export default function SignupSellerPage() {
     role: "",
     businessName: "",
     businessType: "",
+    businessDescription: "",
     businessAddress: "",
     websiteLink: "",
     businessTypes: [] as BusinessType[],
@@ -183,6 +184,7 @@ export default function SignupSellerPage() {
 
         // Seller profile
         businessName: formData.businessName,
+        businessDescription: formData.businessDescription,
         businessAddress: formData.businessAddress,
         websiteLink: formData.websiteLink,
         businessTypes: formData.businessTypes,
@@ -230,6 +232,7 @@ export default function SignupSellerPage() {
   const validateStage2 = () => {
     const {
       businessName,
+      businessDescription,
       businessTypes,
       businessAddress,
       websiteLink,
@@ -237,6 +240,7 @@ export default function SignupSellerPage() {
     } = formData;
     if (
       !businessName ||
+      !businessDescription ||
       businessTypes.length === 0 ||
       !businessAddress ||
       !websiteLink ||
@@ -361,6 +365,7 @@ export default function SignupSellerPage() {
                   <BusinessInfoForm
                     formData={{
                       businessName: formData.businessName || "",
+                      businessDescription: formData.businessDescription || "",
                       websiteLink: formData.websiteLink || "",
                       businessAddress: formData.businessAddress || "",
                       businessTypes: formData.businessTypes || [],
@@ -370,6 +375,7 @@ export default function SignupSellerPage() {
                       setFormData((prev) => {
                         const updated = updater({
                           businessName: prev.businessName || "",
+                          businessDescription: prev.businessDescription || "",
                           websiteLink: prev.websiteLink || "",
                           businessAddress: prev.businessAddress || "",
                           businessTypes: prev.businessTypes || [],

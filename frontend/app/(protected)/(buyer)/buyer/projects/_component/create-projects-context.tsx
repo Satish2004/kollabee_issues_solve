@@ -10,7 +10,7 @@ interface ProjectFormData {
 
   // Common fields
   projectTitle?: string;
-  productCategory?: string;
+  productCategory: string[];
   packagingCategory?: string;
   certifications?: string[];
   referenceFiles?: { url: string; publicId: string }[];
@@ -55,7 +55,6 @@ interface ProjectFormData {
   // Legacy fields for compatibility
   category?: string;
   businessName?: string;
-  productType?: string;
   formulationType?: string;
   targetBenefit?: string;
   texturePreferences?: string;
@@ -166,14 +165,11 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
     // Map category and product type
     if (formData.selectedServices.includes("custom-manufacturing")) {
-      apiData.category = formData.productCategory || "";
-      apiData.productType = formData.productCategory || "";
+      apiData.category = formData.productCategory || [];
     } else if (formData.selectedServices.includes("packaging-only")) {
       apiData.category = "PACKAGING";
-      apiData.productType = formData.packagingCategory || "";
     } else if (formData.selectedServices.includes("services-brand-support")) {
       apiData.category = "SERVICES";
-      apiData.productType = formData.selectedServices.join(", ");
     }
 
     // Set business name from project title
@@ -238,11 +234,11 @@ export function FormProvider({ children }: { children: ReactNode }) {
   return (
     <FormContext.Provider
       value={{
-      formData,
-      updateFormData,
-      updateNestedFormData,
-      createProject: async () => await createProject(),
-      updateProject: async (id: string) => await updateProject(id),
+        formData,
+        updateFormData,
+        updateNestedFormData,
+        createProject: async () => await createProject(),
+        updateProject: async (id: string) => await updateProject(id),
       }}
     >
       {children}
