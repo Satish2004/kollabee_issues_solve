@@ -33,7 +33,7 @@ export function AboutYouForm({
     businessDescription: "",
     businessType: "",
     otherBusinessType: "",
-  }));
+  })
 
   const handleNext = () => {
     if (validateForm()) {
