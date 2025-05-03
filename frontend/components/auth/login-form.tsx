@@ -87,9 +87,8 @@ export function LoginForm({
         show: true,
         type: "error",
         message1: "Login failed",
-        message2: err.message || "Invalid credentials",
+        message2: error?.response?.data?.error || "Invalid credentials",
       });
-      toast.error(error?.response?.data?.error || "Invalid credentials");
     } finally {
       setIsLoading(false);
     }
