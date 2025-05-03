@@ -110,6 +110,7 @@ export default function SignupSellerPage() {
 
   const handleOtpChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return;
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -418,9 +419,12 @@ export default function SignupSellerPage() {
 
         <OTPModal
           isOpen={showOTP}
-          onClose={() => setShowOTP(false)}
+          onClose={() => { setShowOTP(false);
+            setOtp(Array(6).fill(""));
+           }}
           email={formData.email}
           otp={otp}
+          setOtp={setOtp}
           onOtpChange={handleOtpChange}
           onKeyDown={handleKeyDown}
           onVerify={handleOTPVerify}

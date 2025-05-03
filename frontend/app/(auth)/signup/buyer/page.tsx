@@ -347,6 +347,7 @@ export default function SignupBuyerPage() {
           onClose={() => setShowOTP(false)}
           email={formData.email}
           otp={otp}
+          setOtp={setOtp}
           onOtpChange={handleOtpChange}
           onKeyDown={handleKeyDown}
           onVerify={handleOTPVerify}
