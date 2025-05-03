@@ -20,8 +20,8 @@ export default function Step2({
   setErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }) {
   const { formData, updateFormData } = useFormContext();
-  const [quantity, setQuantity] = useState(formData.quantity || 100);
-  const [budget, setBudget] = useState(formData.budget || 1000);
+  const [quantity, setQuantity] = useState(formData.quantity);
+  const [budget, setBudget] = useState(formData.budget);
 
   const handleChange = (field: string, value: any) => {
     updateFormData(field, value);
@@ -78,30 +78,6 @@ export default function Step2({
       </div>
 
       <div className="space-y-8">
-        <div className="mb-8">
-          <RadioGroup
-            value={formData.budgetType || "total"}
-            onValueChange={(value) => handleChange("budgetType", value)}
-            className="flex space-x-8"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="total" id="budget-total" />
-              <Label htmlFor="budget-total" className="text-base font-normal">
-                Total Budget
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="per-unit" id="budget-per-unit" />
-              <Label
-                htmlFor="budget-per-unit"
-                className="text-base font-normal"
-              >
-                Per unit
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <Label htmlFor="quantity" className="text-base font-normal">
@@ -187,6 +163,37 @@ export default function Step2({
                 {errors.budget}
               </p>
             )}
+
+            <div className="">
+              <Label htmlFor="budget" className="text-base font-normal">
+                Budget Type
+                <span className="text-[#EA3D4F]">*</span>
+              </Label>
+              <RadioGroup
+                value={formData.budgetType}
+                onValueChange={(value) => handleChange("budgetType", value)}
+                className="flex space-x-8"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="total" id="budget-total" />
+                  <Label
+                    htmlFor="budget-total"
+                    className="text-base font-normal"
+                  >
+                    Total Budget
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="per-unit" id="budget-per-unit" />
+                  <Label
+                    htmlFor="budget-per-unit"
+                    className="text-base font-normal"
+                  >
+                    Per unit Budget
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
           </div>
         </div>
 

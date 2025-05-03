@@ -11,6 +11,8 @@ interface ProjectFormData {
   // Common fields
   projectTitle?: string;
   productCategory: string[];
+  customCategories: string[];
+
   packagingCategory?: string;
   certifications?: string[];
   referenceFiles?: { url: string; publicId: string }[];
@@ -83,6 +85,11 @@ interface ProjectFormData {
 const initialFormData: ProjectFormData = {
   // Step 0
   selectedServices: [],
+  customCategories: [],
+  productCategory: [],
+  budgetType:"total",
+  quantity:100,
+  budget:1000,
 
   // Legacy fields for compatibility
   milestones: [
@@ -165,7 +172,9 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
     // Map category and product type
     if (formData.selectedServices.includes("custom-manufacturing")) {
-      apiData.category = formData.productCategory || [];
+      apiData.category = formData.productCategory?.includes["Other"]
+        ? formData.customCategories
+        : formData.productCategory ?? [];
     } else if (formData.selectedServices.includes("packaging-only")) {
       apiData.category = "PACKAGING";
     } else if (formData.selectedServices.includes("services-brand-support")) {
@@ -209,8 +218,11 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
   const createProject = async () => {
     try {
-      const apiData = mapFormDataToApiFormat();
-      const response = await projectApi.createProject(apiData);
+      let apiData = mapFormDataToApiFormat();
+      const { customCategories, ...restApiData } = apiData;
+
+      console.log("API Data to be sent:", restApiData);
+      const response = await projectApi.createProject(restApiData);
       console.log("Project created successfully:", response.data);
       return response;
     } catch (error) {
@@ -221,8 +233,9 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
   const updateProject = async (id: string) => {
     try {
-      const apiData = mapFormDataToApiFormat();
-      const response = await projectApi.updateProject(id, apiData);
+      let apiData = mapFormDataToApiFormat();
+      const { customCategories, ...restApiData } = apiData;
+      const response = await projectApi.updateProject(id, restApiData);
       console.log("Project updated successfully:", response.data);
       return response;
     } catch (error) {

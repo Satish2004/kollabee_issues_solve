@@ -276,7 +276,8 @@ const CreateProjects = ({
         }
       } else {
         try {
-          const response = await projectApi.createProject(formData);
+          const { customCategories, ...restFormData } = formData;
+          const response = await projectApi.createProject(restFormData);
           if (response.status < 200 || response.status >= 300) {
             toast({
               title: "Error",
