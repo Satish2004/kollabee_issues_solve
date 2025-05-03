@@ -31,6 +31,10 @@ import {
   deleteProfileCertificate,
   getProfileCompletion,
   requestApproval,
+  getSellerBusinessInfo,
+  updateSellerBussinessInfo,
+  getSellerGoalsMetric,
+  updateSellerGoalsMetric,
 } from "../controllers/seller.controller";
 import { authMiddleware } from "../middleware/auth";
 import { upload } from "../utils/multer";
@@ -45,6 +49,13 @@ router.get("/sellers", getSellers);
 router.get("/seller", getSeller);
 // router.get('/profile', getSellerProfile);
 // router.put('/profile', updateSellerProfile);
+
+router.get("/profile/bussinessInfo", authMiddleware, getSellerBusinessInfo);
+router.put("/profile/bussinessInfo", authMiddleware, updateSellerBussinessInfo);
+
+router.get("/profile/goalsMetric", authMiddleware, getSellerGoalsMetric);
+router.put("/profile/goalsMetric", authMiddleware, updateSellerGoalsMetric);
+
 router.get("/profile/categories", authMiddleware, getSellerProfileCategories);
 router.put(
   "/profile/categories",

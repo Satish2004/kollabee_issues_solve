@@ -1,21 +1,21 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { AlertCircle, CheckCircle, Clock, Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button";
+import { AlertCircle, CheckCircle, Clock, Loader2 } from "lucide-react";
 
 type ProfileHeaderProps = {
-  profileData: any
-  isLoading: boolean
-  stepsToBeCompleted: number[]
+  profileData: any;
+  isLoading: boolean;
+  stepsToBeCompleted: number[];
   approvalStatus: {
-    approvalRequested: boolean
-    approvalRequestedAt: Date | null
-    isApproved: boolean
-  }
-  isSubmittingApproval: boolean
-  requestApproval: () => Promise<void>
-  getPendingStepNames: () => string[]
-}
+    approvalRequested: boolean;
+    approvalRequestedAt: Date | null;
+    isApproved: boolean;
+  };
+  isSubmittingApproval: boolean;
+  requestApproval: () => Promise<void>;
+  getPendingStepNames: () => string[];
+};
 
 export const ProfileHeader = ({
   profileData,
@@ -32,12 +32,16 @@ export const ProfileHeader = ({
         <div className="flex items-center">
           <div className="mr-4 bg-[#a11770]/10 p-3 rounded-full">
             <span className="text-xl font-semibold text-[#a11770]">
-              {profileData?.name?.charAt(0) || profileData?.email?.charAt(0) || "P"}
+              {profileData?.name?.charAt(0) ||
+                profileData?.email?.charAt(0) ||
+                "P"}
             </span>
           </div>
           <div>
             <h1 className="text-xl font-semibold">Profile</h1>
-            <p className="text-sm text-gray-500">{profileData?.name || profileData?.email}</p>
+            <p className="text-sm text-gray-500">
+              {profileData?.name || profileData?.email}
+            </p>
           </div>
         </div>
 
@@ -52,7 +56,9 @@ export const ProfileHeader = ({
             <div className="flex flex-col">
               <div className="flex items-center text-amber-600 mb-2">
                 <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-                <span className="font-medium">{stepsToBeCompleted.length} steps remaining to complete</span>
+                <span className="font-medium">
+                  {stepsToBeCompleted.length} steps remaining to complete
+                </span>
               </div>
               <div className="text-sm text-gray-600 ml-7">
                 <span>Pending: </span>
@@ -78,7 +84,9 @@ export const ProfileHeader = ({
               <CheckCircle className="h-5 w-5 mr-2" />
               <div>
                 <span className="font-medium">Approved by admin</span>
-                <p className="text-xs text-green-600">Your profile is now visible to potential clients</p>
+                <p className="text-xs text-green-600">
+                  Your profile is now visible to potential clients
+                </p>
               </div>
             </div>
           ) : approvalStatus.approvalRequested ? (
@@ -89,7 +97,9 @@ export const ProfileHeader = ({
                 <p className="text-xs text-blue-600">
                   Submitted{" "}
                   {approvalStatus.approvalRequestedAt
-                    ? new Date(approvalStatus.approvalRequestedAt).toLocaleDateString()
+                    ? new Date(
+                        approvalStatus.approvalRequestedAt
+                      ).toLocaleDateString()
                     : "recently"}
                 </p>
               </div>
@@ -122,11 +132,13 @@ export const ProfileHeader = ({
           <div
             className="bg-[#a11770] h-1 transition-all duration-500"
             style={{
-              width: `${Math.round(((11 - stepsToBeCompleted.length) / 11) * 100)}%`,
+              width: `${Math.round(
+                ((11 - stepsToBeCompleted.length) / 11) * 100
+              )}%`,
             }}
           ></div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};

@@ -40,7 +40,7 @@ export const sellerApi = {
   },
 
   getBusinessInfo: async () => {
-    return api.get("/seller/business");
+    return api.get("/seller/profile/bussinessInfo");
   },
 
   getSellers: async () => {
@@ -52,14 +52,14 @@ export const sellerApi = {
   },
 
   updateBusinessInfo: (data: BusinessInfo) =>
-    api.put("/seller/business-info", data),
+    api.put("/seller/profile/bussinessInfo", data),
 
   reqApproval: async () => {
     return api.put("/seller/approval");
   },
 
-  // updateGoalsAndMetrics: (data: GoalsAndMetrics) =>
-  //   api.post('/seller/goals-metrics', data),
+  updateGoalsAndMetrics: (data: GoalsAndMetrics) =>
+    api.post("/seller/goals-metrics", data),
 
   // getDashboard: async (period?: '7d' | '30d') => {
   //   return api.get('/seller/dashboard', { params: { period } });

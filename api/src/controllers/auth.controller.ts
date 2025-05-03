@@ -178,6 +178,12 @@ export const login = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "User not found" });
     }
 
+    if (user.provider === "GOOGLE") {
+      return res.status(401).json({
+        error: "User registered with Google. Please login with Google.",
+      });
+    }
+
     // Verify password
     const validPassword = await bcrypt.compare(
       validatedData.password,
@@ -562,6 +568,7 @@ export const googleCallback = async (req: Request, res: Response) => {
             email: userInfo.email,
             name: userInfo.name,
             role: role,
+            provider: "GOOGLE",
             imageUrl: userInfo.picture,
             createdAt: new Date(),
             updatedAt: new Date(),
