@@ -77,6 +77,23 @@ export const profileApi = {
     return api.get("/seller/profile");
   },
 
+  getBusinessInfo: async () => {
+    return api.get("/seller/profile/bussinessInfo");
+  },
+
+  updateBusinessInfo: async (data: any) => {
+    return api.put("/seller/profile/bussinessInfo", data);
+  },
+
+  // Goals and Metrics
+  getGoalsMetrics: async () => {
+    return api.get("/seller/profile/goalsMetric");
+  },
+
+  updateGoalsMetrics: async (data: any) => {
+    return api.put("/seller/profile/goalsMetric", data);
+  },
+
   // Update seller profile categories
   updateCategories: async (data: any) => {
     return api.put("/seller/profile/categories", data);

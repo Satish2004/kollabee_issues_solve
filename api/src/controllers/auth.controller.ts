@@ -13,20 +13,92 @@ declare module "jsonwebtoken";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Validation schemas
-const signupSchema = z.object({
+//  firstName: "",
+//   lastName: "",
+//   email: "",
+//   phone: "",
+//   country: "India",
+//   countryCode: "+91",
+//   password: "",
+//   confirmPassword: "",
+//   role: "",
+//   businessName: "",
+//   businessType: "",
+//   businessDescription: "",
+//   businessAddress: "",
+//   websiteLink: "",
+//   businessTypes: [] as BusinessType[],
+//   businessCategories: [] as CategoryEnum[],
+//   selectedObjectives: [] as string[],
+//   selectedChallenges: [] as string[],
+//   selectedMetrics: [] as string[],
+//   agreement: false,
+
+// const [formData, setFormData] = useState({
+//   firstName: "",
+//   lastName: "",
+//   email: "",
+//   phone: "",
+//   countryCode: "+91",
+//   country: "India",
+//   password: "",
+//   confirmPassword: "",
+//   role: "",
+//   businessName: "",
+//   businessDescription: "",
+//   businessType: "", // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
+//   otherBusinessType: "",
+//   lookingFor: [] as string[], // What the buyer is looking for
+// });
+
+// Common fields for both seller and buyer
+const commonSignupFields = {
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email format"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  role: z.enum(["BUYER", "SELLER", "ADMIN"]),
-  companyName: z.string().optional(),
-  phoneNumber: z.string().optional(),
+  confirmPassword: z.string(),
+  phone: z.string().optional(),
   countryCode: z.string().optional(),
   country: z.string().optional(),
   state: z.string().optional(),
-  address: z.string().optional(),
-  companyWebsite: z.string().optional(),
-});
+  role: z.enum(["BUYER", "SELLER", "ADMIN"]),
+};
+
+// Seller-specific fields
+const sellerFields = {
+  businessName: z.string().optional(),
+  businessType: z.string().optional(),
+  businessDescription: z.string().optional(),
+  businessAddress: z.string().optional(),
+  websiteLink: z.string().optional(),
+  businessTypes: z.array(z.string()).optional(),
+  businessCategories: z.array(z.string()).optional(),
+  selectedObjectives: z.array(z.string()).optional(),
+  selectedChallenges: z.array(z.string()).optional(),
+  selectedMetrics: z.array(z.string()).optional(),
+  agreement: z.boolean().optional(),
+};
+
+// Buyer-specific fields
+const buyerFields = {
+  businessName: z.string().optional(),
+  businessDescription: z.string().optional(),
+  businessType: z.string().optional(),
+  otherBusinessType: z.string().optional(),
+  lookingFor: z.array(z.string()).optional(),
+};
+
+const signupSchema = z
+  .object({
+    ...commonSignupFields,
+    ...sellerFields,
+    ...buyerFields,
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -65,6 +137,9 @@ export const signup = async (req: Request, res: Response) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
+    // Combine first and last name
+    const fullName = `${validatedData.firstName} ${validatedData.lastName}`;
+
     // Create user with transaction to ensure both user and role-specific profile are created
     const result = await prisma.$transaction(async (tx: any) => {
       // Create user
@@ -72,15 +147,17 @@ export const signup = async (req: Request, res: Response) => {
         data: {
           email: validatedData.email,
           password: hashedPassword,
-          name: validatedData.name,
+          name: fullName,
+          firstName: validatedData.firstName,
+          lastName: validatedData.lastName,
           role: validatedData.role,
-          companyName: validatedData.companyName,
-          phoneNumber: validatedData.phoneNumber,
-          country: validatedData.country,
-          countryCode: validatedData.countryCode,
-          state: validatedData.state,
-          address: validatedData.address,
-          companyWebsite: validatedData.companyWebsite,
+          companyName: validatedData.businessName || "",
+          phoneNumber: validatedData.phone || "",
+          country: validatedData.country || "",
+          countryCode: validatedData.countryCode || "",
+          state: validatedData.state || "",
+          address: validatedData.businessAddress || "",
+          companyWebsite: validatedData.websiteLink || "",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -88,19 +165,34 @@ export const signup = async (req: Request, res: Response) => {
 
       // Create role-specific profile
       if (validatedData.role === "SELLER") {
-        //console.log("seller");
-        const data = await tx.seller.create({
+        // Create seller profile with all the seller-specific fields
+        await tx.seller.create({
           data: {
             userId: user.id,
-            businessName: validatedData.companyName,
-            businessAddress: validatedData.address,
-            websiteLink: validatedData.companyWebsite,
-            country: validatedData.country,
+            businessName: validatedData.businessName || "",
+            businessDescription: validatedData.businessDescription || "",
+            businessAddress: validatedData.businessAddress || "",
+            websiteLink: validatedData.websiteLink || "",
+            country: validatedData.country || "",
+            businessTypes: validatedData.businessTypes || [],
+            businessCategories: validatedData.businessCategories || [],
+            objectives: validatedData.selectedObjectives || [],
+            challenges: validatedData.selectedChallenges || [],
+            metrics: validatedData.selectedMetrics || [],
+            profileCompletion: [1, 2],
           },
         });
-      } else {
+      } else if (validatedData.role === "BUYER") {
+        // Create buyer profile with all the buyer-specific fields
         await tx.buyer.create({
-          data: { userId: user.id },
+          data: {
+            userId: user.id,
+            businessName: validatedData.businessName || "",
+            businessDescription: validatedData.businessDescription || "",
+            businessType: validatedData.businessType || "",
+            otherBusinessType: validatedData.otherBusinessType || "",
+            lookingFor: validatedData.lookingFor || [],
+          },
         });
       }
 
@@ -120,7 +212,6 @@ export const signup = async (req: Request, res: Response) => {
       return updatedUser;
     });
 
-    //console.log(result);
     // Generate JWT token
     const token = jwt.sign(
       {
@@ -135,9 +226,7 @@ export const signup = async (req: Request, res: Response) => {
     );
 
     // Set JWT token in cookie
-    const data = setAuthCookie(res, token);
-
-    //console.log("req:", req);
+    setAuthCookie(res, token);
 
     // Return success response
     res.status(201).json({
@@ -148,7 +237,7 @@ export const signup = async (req: Request, res: Response) => {
         email: result.email,
         name: result.name,
         role: result.role,
-        companyName: result.companyName,
+        companyName: result.companyName || result.businessName,
       },
     });
   } catch (error) {
@@ -176,6 +265,12 @@ export const login = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.provider === "GOOGLE") {
+      return res.status(401).json({
+        error: "User registered with Google. Please login with Google.",
+      });
     }
 
     // Verify password
@@ -562,6 +657,7 @@ export const googleCallback = async (req: Request, res: Response) => {
             email: userInfo.email,
             name: userInfo.name,
             role: role,
+            provider: "GOOGLE",
             imageUrl: userInfo.picture,
             createdAt: new Date(),
             updatedAt: new Date(),

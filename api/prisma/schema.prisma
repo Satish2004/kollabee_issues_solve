@@ -11,6 +11,8 @@ model User {
   id               String                    @id @default(uuid())
   email            String                    @unique
   name             String?
+  firstName        String?
+  lastName         String?
   role             Role                      @default(BUYER)
   companyName      String?
   createdAt        DateTime                  @default(now())
@@ -27,6 +29,7 @@ model User {
   zipCode          String?
   lastLogin        DateTime?
   password         String?
+  provider         String?
   aiPreferences    AIMatchingPreference?
   addresses        Address[]
   admin            Admin?
@@ -286,6 +289,7 @@ model Seller {
   id                 String          @id @default(uuid())
   userId             String          @unique
   businessName       String?
+  businessDescription String?     
   businessAddress    String?
   websiteLink        String?
   businessCategories CategoryEnum[]

@@ -478,6 +478,96 @@ export const getSeller = async (req: any, res: Response) => {
   }
 };
 
+export const getSellerBusinessInfo = async (req: any, res: Response) => {
+  try {
+    const session = req.user;
+
+    if (!session?.userId || !session.sellerId) {
+      return res.status(400).json({ error: "Unauthorized" });
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId: session.userId },
+      select: {
+        businessName: true,
+        businessDescription: true,
+        businessAddress: true,
+        websiteLink: true,
+        businessTypes: true,
+        businessCategories: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(400).json({ error: "Seller not found" });
+    }
+
+    return res.status(200).json(seller);
+  } catch (error) {
+    console.error("Error fetching business info:", error);
+    return res.status(500).json({ error: "Failed to fetch business info" });
+  }
+};
+
+export const updateSellerBussinessInfo = async function (
+  req: any,
+  res: Response
+) {
+  try {
+    const user = req.user;
+
+    const {
+      businessName,
+      businessDescription,
+      businessAddress,
+      websiteLink,
+      businessTypes,
+      businessCategories,
+    } = req.body;
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId: user.userId },
+      select: { id: true, profileCompletion: true },
+    });
+
+    if (!seller) {
+      return res.status(400).json({ error: "Seller not found" });
+    }
+
+    // Check if we have valid data to mark this step as complete
+    const hasData =
+      businessName &&
+      businessDescription &&
+      businessAddress &&
+      websiteLink &&
+      businessTypes?.length > 0 &&
+      businessCategories?.length > 0;
+
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 1])]
+      : currentCompletion.filter((step) => step !== 1);
+
+    const updatedSeller = await prisma.seller.update({
+      where: { userId: user.userId },
+      data: {
+        businessName,
+        businessDescription,
+        businessAddress,
+        websiteLink,
+        businessTypes,
+        businessCategories,
+        profileCompletion: newCompletion,
+      },
+    });
+
+    return res.status(200).json(updatedSeller);
+  } catch (error) {
+    console.error("Error updating business info:", error);
+    return res.status(4500).json({ error: "Failed to update business info" });
+  }
+};
+
 export const getSellerProfileCategories = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
@@ -522,8 +612,8 @@ export const updateSellerProfileCategories = async (
     const hasCategories = selectedCategories.length > 0;
 
     const newCompletion = hasCategories
-      ? [...new Set([...currentCompletion, 1])]
-      : currentCompletion.filter((step) => step !== 1);
+      ? [...new Set([...currentCompletion, 3])]
+      : currentCompletion.filter((step) => step !== 3);
 
     await prisma.seller.update({
       where: { userId },
@@ -587,8 +677,8 @@ export const updateSellerProfileProductionServices = async (
     const hasData = services.length > 0;
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 2])]
-      : currentCompletion.filter((step) => step !== 2);
+      ? [...new Set([...currentCompletion, 4])]
+      : currentCompletion.filter((step) => step !== 4);
 
     await prisma.seller.update({
       where: { userId },
@@ -649,8 +739,8 @@ export const updateSellerProfileProductionManagement = async (
     const hasData = managementType.length > 0;
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 3])]
-      : currentCompletion.filter((step) => step !== 3);
+      ? [...new Set([...currentCompletion, 5])]
+      : currentCompletion.filter((step) => step !== 5);
 
     await prisma.seller.update({
       where: { userId },
@@ -712,8 +802,8 @@ export const updateSellerProfileManufacturingLocations = async (
     const hasData = locations.length > 0;
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 4])]
-      : currentCompletion.filter((step) => step !== 4);
+      ? [...new Set([...currentCompletion, 6])]
+      : currentCompletion.filter((step) => step !== 6);
 
     await prisma.seller.update({
       where: { userId },
@@ -767,8 +857,8 @@ export const updateSellerProfileCapabilities = async (
     const hasData = capabilities.length > 0;
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 5])]
-      : currentCompletion.filter((step) => step !== 5);
+      ? [...new Set([...currentCompletion, 7])]
+      : currentCompletion.filter((step) => step !== 7);
 
     await prisma.seller.update({
       where: { userId },
@@ -826,8 +916,8 @@ export const updateSellerProfileTargetAudience = async (
       audiences !== undefined && audiences.length !== null && audiences !== "";
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 6])]
-      : currentCompletion.filter((step) => step !== 6);
+      ? [...new Set([...currentCompletion, 8])]
+      : currentCompletion.filter((step) => step !== 8);
 
     await prisma.seller.update({
       where: { userId },
@@ -878,8 +968,8 @@ export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
     const hasData = size !== undefined && size.length !== null && size !== "";
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 7])]
-      : currentCompletion.filter((step) => step !== 7);
+      ? [...new Set([...currentCompletion, 9])]
+      : currentCompletion.filter((step) => step !== 9);
 
     await prisma.seller.update({
       where: { userId },
@@ -939,8 +1029,8 @@ export const updateSellerProfileAnnualRevenue = async (
       revenue !== undefined && revenue.length !== null && revenue !== "";
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 8])]
-      : currentCompletion.filter((step) => step !== 8);
+      ? [...new Set([...currentCompletion, 10])]
+      : currentCompletion.filter((step) => step !== 10);
 
     await prisma.seller.update({
       where: { userId },
@@ -999,8 +1089,8 @@ export const updateSellerProfileMinimumOrder = async (
       minimumOrderQuantity !== "";
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 9])]
-      : currentCompletion.filter((step) => step !== 9);
+      ? [...new Set([...currentCompletion, 11])]
+      : currentCompletion.filter((step) => step !== 11);
 
     await prisma.seller.update({
       where: { userId },
@@ -1054,8 +1144,8 @@ export const updateSellerProfileComments = async (req: any, res: Response) => {
       notes !== undefined && notes.length !== null && notes !== "";
 
     const newCompletion = hasData
-      ? [...new Set([...currentCompletion, 10])]
-      : currentCompletion.filter((step) => step !== 10);
+      ? [...new Set([...currentCompletion, 12])]
+      : currentCompletion.filter((step) => step !== 12);
 
     await prisma.seller.update({
       where: { userId },
@@ -1134,6 +1224,97 @@ export const uploadProfileCertificate = async (req: any, res: Response) => {
   }
 };
 
+export const getSellerGoalsMetric = async (req: any, res: Response) => {
+  try {
+    const session = await req.user;
+
+    if (!session?.userId || !session.sellerId) {
+      return res.status(400).json({ error: "Unauthorized" });
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId: session.userId },
+      select: {
+        objectives: true,
+        challenges: true,
+        metrics: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(400).json({ error: "Seller not found" });
+    }
+
+    return res.status(200).json({
+      selectedObjectives: seller.objectives || [],
+      selectedChallenges: seller.challenges || [],
+      selectedMetrics: seller.metrics || [],
+      agreement: true, // Default to true if they've already set this up
+    });
+  } catch (error) {
+    console.error("Error fetching goals and metrics:", error);
+    return res.status(400).json({ error: "Failed to fetch goals and metrics" });
+  }
+};
+
+export const updateSellerGoalsMetric = async (req: any, res: Response) => {
+  try {
+    const session = await req.user;
+
+    if (!session?.userId || !session.sellerId) {
+      return res.status(400).json({ error: "Unauthorized" });
+    }
+
+    const {
+      selectedObjectives,
+      selectedChallenges,
+      selectedMetrics,
+      agreement,
+    } = req.body;
+
+    if (!agreement) {
+      return res.status(400).json({ error: "You must agree to the terms" });
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId: session.userId },
+      select: { id: true, profileCompletion: true },
+    });
+
+    if (!seller) {
+      return res.status(400).json({ error: "Seller not found" });
+    }
+
+    // Check if we have valid data to mark this step as complete
+    const hasData =
+      selectedObjectives?.length > 0 &&
+      selectedChallenges?.length > 0 &&
+      selectedMetrics?.length > 0;
+
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = hasData
+      ? [...new Set([...currentCompletion, 2])]
+      : currentCompletion.filter((step) => step !== 2);
+
+    const updatedSeller = await prisma.seller.update({
+      where: { userId: session.userId },
+      data: {
+        objectives: selectedObjectives,
+        challenges: selectedChallenges,
+        metrics: selectedMetrics,
+        profileCompletion: newCompletion,
+      },
+    });
+
+    return res.status(200).json(updatedSeller);
+  } catch (error) {
+    console.error("Error updating goals and metrics:", error);
+    return res
+      .status(400)
+      .json({ error: "Failed to update goals and metrics" });
+  }
+};
+
 export const getAllProfileCertificates = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
@@ -1180,7 +1361,7 @@ export const deleteProfileCertificate = async (req: any, res: Response) => {
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = isLastCertificate
-      ? currentCompletion.filter((step) => step !== 11)
+      ? currentCompletion.filter((step) => step !== 13)
       : currentCompletion;
 
     const [_, updatedSeller] = await prisma.$transaction([

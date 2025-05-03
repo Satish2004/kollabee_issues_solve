@@ -25,11 +25,11 @@ const Section: React.FC<SectionProps> = ({
         className="flex justify-between items-center cursor-pointer py-3"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <h3 className=" text-sm font-normal">{title}</h3>
+        <h3 className="font-medium text-sm">{title}</h3>
         {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </div>
       {isOpen && (
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm font-normal">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           {children}
         </div>
       )}
@@ -39,14 +39,83 @@ const Section: React.FC<SectionProps> = ({
 
 interface FieldProps {
   label: string;
-  value: string | number | undefined | null;
+  value:
+    | string
+    | number
+    | string[]
+    | { url: string; publicId: string }[]
+    | undefined
+    | null;
+  type?: "text" | "images" | "categories";
 }
 
-const Field: React.FC<FieldProps> = ({ label, value }) => {
+const Field: React.FC<FieldProps> = ({ label, value, type = "text" }) => {
+  if (type === "images" && Array.isArray(value)) {
+    return (
+      <div className="flex flex-col col-span-2">
+        <span className="text-[#78787A] text-xs font-normal">{label}:</span>
+        {value.length > 0 ? (
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {value.map((file: any, index) => (
+              <div
+                key={index}
+                className="border rounded-md overflow-hidden h-16"
+              >
+                {file.url.match(/\.(jpeg|jpg|gif|png)$/) ? (
+                  <img
+                    src={file.url || "/placeholder.svg"}
+                    alt="Reference"
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full bg-gray-100 text-xs text-gray-500 p-1 truncate">
+                    {file.url.split("/").pop()}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span className="font-normal">No files uploaded</span>
+        )}
+      </div>
+    );
+  }
+
+  if (type === "categories" && Array.isArray(value)) {
+    return (
+      <div className="flex flex-col col-span-2">
+        <span className="text-[#78787A] text-xs font-normal">{label}:</span>
+        {value.length > 0 ? (
+          <div className="flex flex-wrap gap-1 mt-1">
+            {value.map((category: string, index) => (
+              <span
+                key={index}
+                className={`text-xs px-2 py-1 rounded-full ${
+                  category === "Other"
+                    ? "bg-gray-100"
+                    : category.startsWith("Custom:")
+                    ? "bg-pink-50"
+                    : "bg-gray-100"
+                }`}
+              >
+                {category}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <span className="font-normal">None selected</span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col">
       <span className="text-[#78787A] text-xs font-normal">{label}:</span>
-      <span className="font-normal">{value || "Not specified"}</span>
+      <span className="font-normal">
+        {Array.isArray(value) ? value.join(", ") : value || "Not specified"}
+      </span>
     </div>
   );
 };
@@ -78,7 +147,11 @@ export default function ConfirmationScreen({
         <h3 className="font-normal mb-3">Project Details</h3>
         <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm font-normal">
           <Field label="Project Title" value={formData.projectTitle} />
-          <Field label="Product Category" value={formData.productCategory} />
+          <Field
+            label="Product Category"
+            value={formData.productCategory}
+            type="categories"
+          />
         </div>
       </div>
 
@@ -98,7 +171,6 @@ export default function ConfirmationScreen({
               ? "I want to rebrand an existing product"
               : "Not specified"
           }
-          className="font-normal"
         />
         <Field
           label="Customization Level"
@@ -120,6 +192,13 @@ export default function ConfirmationScreen({
               : "No target price specified"
           }
         />
+        {formData.referenceFiles && formData.referenceFiles.length > 0 && (
+          <Field
+            label="Reference Files"
+            value={formData.referenceFiles}
+            type="images"
+          />
+        )}
       </Section>
 
       <Section title="Requirements">
@@ -183,8 +262,8 @@ export default function ConfirmationScreen({
   const renderPackagingOnlyConfirmation = () => (
     <>
       <div>
-        <h3 className="font-normal mb-3">Packaging Details</h3>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm font-normal">
+        <h3 className="font-semibold mb-3">Packaging Details</h3>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <Field label="Project Title" value={formData.projectTitle} />
           <Field
             label="Packaging Category"
@@ -218,6 +297,13 @@ export default function ConfirmationScreen({
           label="Dimensions & Requirements"
           value={formData.packagingDimensions}
         />
+        {formData.referenceFiles && formData.referenceFiles.length > 0 && (
+          <Field
+            label="Reference Files"
+            value={formData.referenceFiles}
+            type="images"
+          />
+        )}
       </Section>
 
       <Section title="Additional Services">
@@ -278,8 +364,8 @@ export default function ConfirmationScreen({
   const renderServicesBrandSupportConfirmation = () => (
     <>
       <div>
-        <h3 className="font-normal mb-3">Service Details</h3>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm font-normal">
+        <h3 className="font-semibold mb-3">Service Details</h3>
+        <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
           <Field label="Project Title" value={formData.projectTitle} />
           <Field
             label="Brand Status"
@@ -306,6 +392,13 @@ export default function ConfirmationScreen({
               : "None specified"
           }
         />
+        {formData.referenceFiles && formData.referenceFiles.length > 0 && (
+          <Field
+            label="Reference Files"
+            value={formData.referenceFiles}
+            type="images"
+          />
+        )}
       </Section>
 
       <Section title="Budget">
@@ -336,16 +429,18 @@ export default function ConfirmationScreen({
   );
 
   return (
-    <div className="w-full font-futura">
+    <div className="w-full">
       <div className="bg-pink-50 p-4 rounded-t-xl">
-        <h2 className="text-center font-normal text-lg">Review Your Project</h2>
+        <h2 className="text-center font-semibold text-lg">
+          Review Your Project
+        </h2>
       </div>
 
-      <div className="p-6 space-y-6 ">
+      <div className="p-6 space-y-6">
         {/* Service Type */}
         <div>
-          <h3 className="font-normal mb-3">Project Type</h3>
-          <div className="text-sm font-normal">
+          <h3 className="font-semibold mb-3">Project Type</h3>
+          <div className="text-sm">
             <Field
               label="Service Type"
               value={

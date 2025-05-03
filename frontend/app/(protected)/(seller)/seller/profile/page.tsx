@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useProfileSections } from "@/hooks/use-profile-sections";
-import { useProfileFormState } from "@/hooks/use-profile-form-state";
+import  useProfileFormState  from "@/hooks/use-profile-form-state";
 import { useProfileData } from "./hooks/use-profile-data";
 import { useStepNavigation } from "./hooks/use-step-navigation";
 import { useCertificateManagement } from "./hooks/use-certificate-management";

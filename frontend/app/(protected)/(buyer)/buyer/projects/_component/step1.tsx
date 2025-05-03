@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useFormContext } from "./create-projects-context";
 import { uploadApi } from "@/lib/api/upload";
-import { X, Upload, ImageIcon } from "lucide-react";
+import { X, Upload, ImageIcon, Search, Plus } from "lucide-react";
 
 interface Step1Props {
   handleNext: () => void;
@@ -31,12 +31,12 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
   const [filteredCertifications, setFilteredCertifications] = useState<
     string[]
   >([]);
-  const [showCertificateSearch, setShowCertificateSearch] = useState(false);
+  const [showCertificateSearch, setShowCertificateSearch] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<
-    { url: string; publicId: string }[]
-  >([]);
+
   const [showProductCategories, setShowProductCategories] = useState(false);
+
+  const [newCustomCategory, setNewCustomCategory] = useState("");
 
   // Product categories based on project type
   const productCategories = {
@@ -149,6 +149,29 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
     }
   }, [searchTerm]);
 
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Handle click outside for product categories dropdown
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        showProductCategories &&
+        dropdownRef.current &&
+        event.target instanceof Node &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setShowProductCategories(false);
+      }
+    }
+
+    // Add event listener
+    document.addEventListener("mousedown", handleClickOutside);
+
+    // Clean up
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showProductCategories]);
   const handleChange = (field: string, value: string) => {
     updateFormData(field, value);
     setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -167,7 +190,6 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
           url: response.url,
           publicId: response.public_id,
         };
-        setUploadedFiles([...uploadedFiles, newFile]);
         updateFormData("referenceFiles", [
           ...(formData.referenceFiles || []),
           newFile,
@@ -183,10 +205,9 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
   const handleDeleteFile = async (publicId: string) => {
     try {
       await uploadApi.deleteImage(publicId);
-      const updatedFiles = uploadedFiles.filter(
-        (file) => file.publicId !== publicId
-      );
-      setUploadedFiles(updatedFiles);
+      const updatedFiles =
+        formData.referenceFiles &&
+        formData.referenceFiles.filter((file) => file.publicId !== publicId);
       updateFormData("referenceFiles", updatedFiles);
     } catch (error) {
       console.error("Error deleting file:", error);
@@ -203,6 +224,22 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
     } else {
       updateFormData("certifications", [...currentCerts, cert]);
     }
+  };
+
+  const addCustomCategory = () => {
+    if (!newCustomCategory.trim()) return;
+
+    const currentCategories = formData.productCategory || [];
+
+    // Only add if it doesn't already exist
+    if (!currentCategories.includes(newCustomCategory.trim())) {
+      updateFormData("productCategory", [
+        ...currentCategories,
+        newCustomCategory.trim(),
+      ]);
+    }
+
+    setNewCustomCategory("");
   };
 
   // Render different forms based on project type
@@ -234,7 +271,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             <Label htmlFor="productCategory" className="text-sm font-normal">
               Product category<span className="text-[#EA3D4F]">*</span>
             </Label>
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <Button
                 type="button"
                 variant="outline"
@@ -253,44 +290,42 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
                 <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
                   <div className="p-2">
                     {productCategories["custom-manufacturing"].map(
-                      (category) => (
-                        <div
-                          key={category}
-                          className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded"
-                        >
-                          <input
-                            type="checkbox"
-                            id={`category-${category}`}
-                            checked={(formData.productCategory || []).includes(
-                              category
-                            )}
-                            onChange={() => {
+                      (category) => {
+                        const isSelected = (
+                          formData.productCategory || []
+                        ).includes(category);
+                        return (
+                          <div
+                            key={category}
+                            className={`flex items-center space-x-2 p-2 rounded cursor-pointer transition-colors duration-150 ${
+                              isSelected ? "bg-pink-50" : "hover:bg-gray-100"
+                            }`}
+                            onClick={() => {
+                              // Simple toggle function - just add or remove the category
                               const currentCategories =
                                 formData.productCategory || [];
-                              if (currentCategories.includes(category)) {
-                                updateFormData(
-                                  "productCategory",
-                                  currentCategories.filter(
+                              const newCategories = isSelected
+                                ? currentCategories.filter(
                                     (c) => c !== category
                                   )
-                                );
-                              } else {
-                                updateFormData("productCategory", [
-                                  ...currentCategories,
-                                  category,
-                                ]);
-                              }
+                                : [...currentCategories, category];
+
+                              // Update form data
+                              updateFormData("productCategory", newCategories);
                             }}
-                            className="rounded border-gray-300"
-                          />
-                          <Label
-                            htmlFor={`category-${category}`}
-                            className="text-sm font-normal cursor-pointer"
                           >
-                            {category}
-                          </Label>
-                        </div>
-                      )
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              className="rounded border-gray-300"
+                              readOnly
+                            />
+                            <span className="text-sm font-normal cursor-pointer w-full">
+                              {category}
+                            </span>
+                          </div>
+                        );
+                      }
                     )}
                   </div>
                 </div>
@@ -324,6 +359,72 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {(formData.productCategory || []).includes("Other") && (
+              <div className="mt-4 space-y-3 border rounded-md p-4 ">
+                <p className="text-sm font-normal">Add custom categories:</p>
+
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Enter custom category"
+                    value={newCustomCategory}
+                    onChange={(e) => setNewCustomCategory(e.target.value)}
+                    className="w-full"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomCategory();
+                      }
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={addCustomCategory}
+                    className="flex items-center text-normal"
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    <span className="font-normal"> Add</span>
+                  </Button>
+                </div>
+
+                {formData.customCategories.length > 0 && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-500 mb-2">
+                      Your custom categories:
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.customCategories.map((category) => (
+                        <div
+                          key={category}
+                          className="bg-pink-50 rounded-full px-3 py-1 text-sm font-normal flex items-center"
+                        >
+                          {category}
+                          <button
+                            type="button"
+                            className="ml-2 text-gray-500 hover:text-gray-700"
+                            onClick={() => {
+                              const currentCategories =
+                                formData.productCategory || [];
+                              updateFormData(
+                                "productCategory",
+                                currentCategories.filter((c) => c !== category)
+                              );
+                            }}
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-xs text-gray-500">
+                  Press Enter or click Add to add a custom category
+                </p>
               </div>
             )}
             {errors.productCategory && (
@@ -464,9 +565,9 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             </label>
           </div>
 
-          {uploadedFiles.length > 0 && (
+          {formData.referenceFiles && formData.referenceFiles.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-              {uploadedFiles.map((file, index) => (
+              {formData.referenceFiles.map((file, index) => (
                 <div key={index} className="relative group">
                   <div className="border rounded-md overflow-hidden h-24 flex items-center justify-center">
                     {file.url.match(/\.(jpeg|jpg|gif|png)$/) ? (
@@ -497,19 +598,22 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
           )}
         </div>
         <div className="space-y-2">
-          <div className="flex justify-between items-center">
-            <Label className="text-sm font-normal">
+          <div className="flex justify-start gap-4 items-center">
+            <Label className="text-sm font-futura font-normal">
               What certifications should the supplier have? (Optional)
             </Label>
-            <Button
+            {/* <Button
               type="button"
               variant="outline"
               size="sm"
-              className="text-normal font-futura"
               onClick={() => setShowCertificateSearch(!showCertificateSearch)}
             >
-              {showCertificateSearch ? "Hide Search" : "Search Certifications"}
-            </Button>
+              <p className="font-futura font-normal flex gap-2 ">
+                <Search /> {showCertificateSearch
+                  ? "Hide Search"
+                  : "Certifications"}
+              </p>
+            </Button> */}
           </div>
 
           {showCertificateSearch && (
@@ -887,9 +991,9 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             </label>
           </div>
 
-          {uploadedFiles.length > 0 && (
+          {formData.referenceFiles && formData.referenceFiles.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-              {uploadedFiles.map((file, index) => (
+              {formData.referenceFiles.map((file, index) => (
                 <div key={index} className="relative group">
                   <div className="border rounded-md overflow-hidden h-24 flex items-center justify-center">
                     {file.url.match(/\.(jpeg|jpg|gif|png)$/) ? (
@@ -1024,17 +1128,6 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
               <Label className="text-sm font-normal">
                 What certifications should the supplier have? (optional)
               </Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="text-normal font-futura"
-                onClick={() => setShowCertificateSearch(!showCertificateSearch)}
-              >
-                {showCertificateSearch
-                  ? "Hide Search"
-                  : "Search Certifications"}
-              </Button>
             </div>
 
             {showCertificateSearch && (
@@ -1224,9 +1317,9 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             </label>
           </div>
 
-          {uploadedFiles.length > 0 && (
+          {formData.referenceFiles && formData.referenceFiles.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mt-4">
-              {uploadedFiles.map((file, index) => (
+              {formData.referenceFiles.map((file, index) => (
                 <div key={index} className="relative group">
                   <div className="border rounded-md overflow-hidden h-32 flex items-center justify-center">
                     {file.url.match(/\.(jpeg|jpg|gif|png)$/) ? (

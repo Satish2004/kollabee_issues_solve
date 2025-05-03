@@ -13,6 +13,8 @@ import AnnualRevenueForm from "../forms/annual-revenue-form";
 import MinimumOrderForm from "../forms/minimum-order-form";
 import CommentsNotesForm from "../forms/comments-notes-form";
 import CertificatesForm from "../forms/certificates-form";
+import BusinessInfoForm from "../forms/business-info-form";
+import GoalsMetricsForm from "../forms/goals-metrics-form";
 
 type ProfileFormContentProps = {
   activeStep: number;
@@ -63,6 +65,16 @@ export const ProfileFormContent = ({
     }
 
     switch (currentStep) {
+      case "business-info":
+        return (
+          <BusinessInfoForm
+            formState={currentFormState}
+            onChange={(newValue) => handleFormChange("business-info", newValue)}
+            onSave={() => handleEnhancedSectionUpdate("business-info")}
+            hasChanges={hasFormChanges("business-info")}
+            isSaving={isSaving}
+          />
+        );
       case "categories":
         return (
           <CategoriesForm
@@ -185,6 +197,16 @@ export const ProfileFormContent = ({
             formState={currentFormState}
             onAddCertificate={onAddCertificate}
             onRemoveCertificate={handleRemoveCertificate}
+            isSaving={isSaving}
+          />
+        );
+      case "goals-metrics":
+        return (
+          <GoalsMetricsForm
+            formState={currentFormState}
+            onChange={(newValue) => handleFormChange("goals-metrics", newValue)}
+            onSave={() => handleEnhancedSectionUpdate("goals-metrics")}
+            hasChanges={hasFormChanges("goals-metrics")}
             isSaving={isSaving}
           />
         );
