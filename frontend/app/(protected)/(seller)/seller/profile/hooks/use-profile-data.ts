@@ -29,7 +29,7 @@ export const useProfileData = () => {
   const loadProfileCompletion = async () => {
     try {
       const response: any = await profileApi.getProfileCompletion();
-      const allSteps = Array.from({ length: 11 }, (_, i) => i + 1);
+      const allSteps = Array.from({ length: 13 }, (_, i) => i + 1);
       const nonCompletedSteps = allSteps.filter(
         (step) => !response.includes(step)
       );

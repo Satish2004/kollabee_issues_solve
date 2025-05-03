@@ -209,13 +209,7 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
         </div>
       </div>
 
-      {hasChanges && (
-        <div className="flex justify-end">
-          <Button onClick={onSave} disabled={isSaving} className="bg-[#a11770] text-white hover:bg-[#a11770]/70">
-            {isSaving ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      )}
+    
     </div>
   )
 }
