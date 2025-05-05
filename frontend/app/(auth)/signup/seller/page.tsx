@@ -42,7 +42,8 @@ export default function SignupSellerPage() {
     selectedObjectives: [] as string[],
     selectedChallenges: [] as string[],
     selectedMetrics: [] as string[],
-    agreement: false,
+    agreement1: false,
+    agreement2: false,
   });
 
   const [showOTP, setShowOTP] = useState(false);
@@ -255,13 +256,15 @@ export default function SignupSellerPage() {
 
   const validateStage3 = () => {
     const {
-      agreement,
+      agreement1,
+      agreement2,
       selectedMetrics,
       selectedChallenges,
       selectedObjectives,
     } = formData;
     if (
-      !agreement ||
+      !agreement1 ||
+      !agreement2 ||
       selectedMetrics.length === 0 ||
       selectedChallenges.length === 0 ||
       selectedObjectives.length === 0
@@ -395,7 +398,8 @@ export default function SignupSellerPage() {
                       selectedObjectives: formData.selectedObjectives,
                       selectedChallenges: formData.selectedChallenges,
                       selectedMetrics: formData.selectedMetrics,
-                      agreement: formData.agreement,
+                      agreement1: formData.agreement1,
+                      agreement2: formData.agreement2,
                     }}
                     setFormData={(data) => {
                       setFormData((prev) => ({
@@ -403,7 +407,8 @@ export default function SignupSellerPage() {
                         selectedObjectives: data(prev).selectedObjectives,
                         selectedChallenges: data(prev).selectedChallenges,
                         selectedMetrics: data(prev).selectedMetrics,
-                        agreement: data(prev).agreement,
+                        agreement1: data(prev).agreement1,
+                        agreement2: data(prev).agreement2,
                       }));
                     }}
                     onSubmit={handleNextStage}
@@ -419,9 +424,10 @@ export default function SignupSellerPage() {
 
         <OTPModal
           isOpen={showOTP}
-          onClose={() => { setShowOTP(false);
+          onClose={() => {
+            setShowOTP(false);
             setOtp(Array(6).fill(""));
-           }}
+          }}
           email={formData.email}
           otp={otp}
           setOtp={setOtp}

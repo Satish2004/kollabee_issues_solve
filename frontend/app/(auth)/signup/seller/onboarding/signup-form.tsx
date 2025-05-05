@@ -40,9 +40,9 @@ interface SignupFormProps {
 
 const companyRoles = [
   "Founder/CEO",
-  "Senior - Level Management",
-  "Mid - Level Management",
-  "Junior - Level",
+  "Executive/Leadership",
+  "Manager",
+  "Team Member",
   "Intern",
   "Sales Manager",
   "Export Manager",
@@ -562,7 +562,7 @@ export function SignupForm({
                 <Button
                   key={role}
                   variant={formData.role === role ? "default" : "outline"}
-                  className={`h-8 text-[10px] sm:text-xs justify-start px-1 sm:px-2 w-fit rounded-[6px] border ${
+                  className={`h-8 text-[10px] sm:text-xs font-normal justify-start px-1 sm:px-2 w-fit rounded-[6px] border ${
                     formData.role === role
                       ? "border-[#9e1171] border text-[#9e1171]"
                       : "border-[#e5e5e5]"
