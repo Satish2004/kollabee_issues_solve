@@ -57,7 +57,6 @@ const commonSignupFields = {
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email format"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
   phone: z.string().optional(),
   countryCode: z.string().optional(),
   country: z.string().optional(),
@@ -77,7 +76,8 @@ const sellerFields = {
   selectedObjectives: z.array(z.string()).optional(),
   selectedChallenges: z.array(z.string()).optional(),
   selectedMetrics: z.array(z.string()).optional(),
-  agreement: z.boolean().optional(),
+  agreement1: z.boolean().optional(),
+  agreement2: z.boolean().optional(),
 };
 
 // Buyer-specific fields
@@ -97,16 +97,11 @@ const buyerSchema = z.object({
   lookingFor: z.array(z.string()),
 });
 
-const signupSchema = z
-  .object({
-    ...commonSignupFields,
-    ...sellerFields,
-    ...buyerFields,
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const signupSchema = z.object({
+  ...commonSignupFields,
+  ...sellerFields,
+  ...buyerFields,
+});
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -188,6 +183,8 @@ export const signup = async (req: Request, res: Response) => {
             challenges: validatedData.selectedChallenges || [],
             metrics: validatedData.selectedMetrics || [],
             profileCompletion: [1, 2],
+            agreement1: validatedData.agreement1 || false,
+            agreement2: validatedData.agreement2 || false,
           },
         });
       } else if (validatedData.role === "BUYER") {

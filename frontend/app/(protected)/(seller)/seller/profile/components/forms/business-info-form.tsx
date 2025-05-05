@@ -7,6 +7,8 @@ import { CategoryEnum, BusinessType } from "@/types/api"
 import InfoButton from "@/components/ui/IButton"
 import { Textarea } from "@/components/ui/textarea"
 
+
+
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
   label: type
@@ -194,7 +196,7 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
                   key={value}
                   variant={formState.businessCategories?.includes(value) ? "default" : "outline"}
                   onClick={() => handleBusinessCategoryClick(value)}
-                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5]  placeholder:text-black/50 ${
                     formState.businessCategories?.includes(value)
                       ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
                       : "border-[#e5e5e5]"

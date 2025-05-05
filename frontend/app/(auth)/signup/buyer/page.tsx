@@ -162,6 +162,8 @@ export default function SignupBuyerPage() {
         // User details
         email: formData.email,
         password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         name: formData.firstName + " " + formData.lastName,
         role: "BUYER",
         phoneNumber: formData.phone,

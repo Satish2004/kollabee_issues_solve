@@ -1238,6 +1238,8 @@ export const getSellerGoalsMetric = async (req: any, res: Response) => {
         objectives: true,
         challenges: true,
         metrics: true,
+        agrrement1: true,
+        agrrement2: true,
       },
     });
 
@@ -1249,7 +1251,8 @@ export const getSellerGoalsMetric = async (req: any, res: Response) => {
       selectedObjectives: seller.objectives || [],
       selectedChallenges: seller.challenges || [],
       selectedMetrics: seller.metrics || [],
-      agreement: true, // Default to true if they've already set this up
+      agreement1: seller.agrrement1 || false,
+      agreement2: seller.agrrement2 || false, // Default to true if they've already set this up
     });
   } catch (error) {
     console.error("Error fetching goals and metrics:", error);
@@ -1269,12 +1272,13 @@ export const updateSellerGoalsMetric = async (req: any, res: Response) => {
       selectedObjectives,
       selectedChallenges,
       selectedMetrics,
-      agreement,
+      agreement1,
+      agreement2,
     } = req.body;
 
-    if (!agreement) {
-      return res.status(400).json({ error: "You must agree to the terms" });
-    }
+    // if (!agreement1 || !agreement2) {
+    //   return res.status(400).json({ error: "You must agree to the terms" });
+    // }
 
     const seller = await prisma.seller.findUnique({
       where: { userId: session.userId },
@@ -1289,7 +1293,9 @@ export const updateSellerGoalsMetric = async (req: any, res: Response) => {
     const hasData =
       selectedObjectives?.length > 0 &&
       selectedChallenges?.length > 0 &&
-      selectedMetrics?.length > 0;
+      selectedMetrics?.length > 0 &&
+      agreement1 &&
+      agreement2;
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasData
@@ -1303,6 +1309,8 @@ export const updateSellerGoalsMetric = async (req: any, res: Response) => {
         challenges: selectedChallenges,
         metrics: selectedMetrics,
         profileCompletion: newCompletion,
+        agrrement1: agreement1,
+        agrrement2: agreement2,
       },
     });
 

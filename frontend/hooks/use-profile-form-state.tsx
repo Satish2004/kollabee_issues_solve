@@ -76,7 +76,8 @@ const useProfileFormState = ({
           selectedObjectives: [],
           selectedChallenges: [],
           selectedMetrics: [],
-          agreement: false,
+          agreement1: false,
+          agreement2: false,
         };
       case "categories":
         return {

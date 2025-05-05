@@ -19,6 +19,7 @@ model User {
   updatedAt        DateTime                  @updatedAt
   companyWebsite   String?
   country          String?
+  countryCode     String?
   displayName      String?
   fullName         String?
   imageUrl         String?
@@ -338,6 +339,8 @@ model Seller {
   Approved          Approved? 
   approvalRequested Boolean @default(false)
   approvalReqestAt  DateTime?
+  agrrement1       Boolean?   @default(false)
+  agrrement2       Boolean?   @default(false)
 
   @@index([userId])
 }

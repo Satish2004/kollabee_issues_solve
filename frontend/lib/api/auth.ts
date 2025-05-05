@@ -11,6 +11,8 @@ interface SignupData {
   name: string;
   role: "BUYER" | "SELLER";
   phoneNumber?: string;
+  firstName?: string;
+  lastName?: string;
 
   // Company details
   companyName?: string;
