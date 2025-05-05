@@ -170,9 +170,9 @@ export default function BuyerLayoutHeader() {
           className="relative z-50"
         >
           {mobileMenuOpen ? (
-          ""
-            // <X className="h-6 w-6" />
+            ""
           ) : (
+            // <X className="h-6 w-6" />
             <Menu className="h-6 w-6" />
           )}
         </Button>
@@ -227,11 +227,21 @@ export default function BuyerLayoutHeader() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="size-10 rounded-full border-neutral-300 relative"
+                    className={`size-10 rounded-full ${
+                      numberOfCartItems > 3
+                        ? "border-red-500 border-2"
+                        : "border-neutral-300"
+                    } relative`}
                   >
                     <ShoppingCartIcon className="size-5 cursor-pointer" />
                     {numberOfCartItems > 0 && (
-                      <div className="flex items-center justify-center absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full">
+                      <div
+                        className={`flex items-center justify-center absolute -top-1 -right-1 ${
+                          numberOfCartItems > 3
+                            ? "w-6 h-6 bg-red-500 animate-pulse"
+                            : "w-5 h-5 bg-red-500"
+                        } rounded-full`}
+                      >
                         <span className="text-xs font-semibold text-white">
                           {numberOfCartItems}
                         </span>
@@ -309,15 +319,27 @@ export default function BuyerLayoutHeader() {
           <Button
             variant="outline"
             size="icon"
-            className="size-9 rounded-full border-neutral-300 relative"
+            className={`size-9 rounded-full ${
+              numberOfCartItems > 3
+                ? "border-red-500 border-2"
+                : "border-neutral-300"
+            } relative`}
             onClick={() => router.push("/seller/notifications")}
           >
             <ShoppingCartIcon className="size-8 cursor-pointer" />
-            <div className="flex items-center justify-center absolute top-1 right-0 w-3 h-3 bg-gray-600 rounded-full p-1">
-              <span className="text-xs font-semibold text-white">
-                {numberOfCartItems}
-              </span>
-            </div>
+            {numberOfCartItems > 0 && (
+              <div
+                className={`flex items-center justify-center absolute -top-1 -right-1 ${
+                  numberOfCartItems > 3
+                    ? "w-6 h-6 bg-red-500 animate-pulse"
+                    : "w-5 h-5 bg-red-500"
+                } rounded-full`}
+              >
+                <span className="text-xs font-semibold text-white">
+                  {numberOfCartItems}
+                </span>
+              </div>
+            )}
           </Button>
         </Link>
         <Button
