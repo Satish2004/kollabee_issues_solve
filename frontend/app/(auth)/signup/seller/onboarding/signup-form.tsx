@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Circle, ArrowLeft, Info } from "lucide-react";
+import { Circle, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import InfoButton from "../../../../../components/ui/IButton";
 import {
@@ -13,7 +13,11 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-
+import ReactCountryFlag from "react-country-flag";
+import {
+  getCountryCode,
+  getSpecialCaseCountryCode,
+} from "@/components/country-utils";
 
 interface SignupFormProps {
   formData: {
@@ -406,7 +410,7 @@ export function SignupForm({
   return (
     <div className="space-y-8 font-futura font-normal">
       <div className="text-start space-y-2">
-        <h1 className="text-2xl  font-futura">Create Your Account</h1>
+        <h1 className="text-2xl font-futura">Create Your Account</h1>
         <p className="text-muted-foreground">
           Fill in your details to create your account and get started with
           Kollabee.
@@ -512,7 +516,6 @@ export function SignupForm({
                   "Enter your business email address. This email will be used to send you OTP for verification"
                 }
               />
-             
             </Label>
             <div className="relative">
               <Input
@@ -642,11 +645,20 @@ export function SignupForm({
               >
                 <SelectTrigger className="w-[100px] h-10 rounded-l-md bg-white border border-gray-300 px-3">
                   <SelectValue placeholder="🌍 +1">
-                    {
-                      countries.find((c) => c.code === formData.countryCode)
-                        ?.flag
-                    }{" "}
-                    {formData.countryCode || "+1"}
+                    <ReactCountryFlag
+                      countryCode={getCountryCode(formData.countryCode || "+1")}
+                      svg
+                      style={{
+                        width: "1em",
+                        height: "1em",
+                        marginRight: "0.5em",
+                      }}
+                      title={
+                        countries.find((c) => c.code === formData.countryCode)
+                          ?.name || "India"
+                      }
+                    />
+                    {formData.countryCode || "+91"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2 bg-white">
@@ -663,8 +675,20 @@ export function SignupForm({
                   {filteredCountries.length > 0 ? (
                     filteredCountries.map((country) => (
                       <SelectItem key={country.name} value={country.code}>
-                        <span>{country.flag}</span> {country.name} (
-                        {country.code})
+                        <ReactCountryFlag
+                          countryCode={getSpecialCaseCountryCode(
+                            country.code,
+                            country.name
+                          )}
+                          svg
+                          style={{
+                            width: "1em",
+                            height: "1em",
+                            marginRight: "0.5em",
+                          }}
+                          title={country.name}
+                        />
+                        {country.name} ({country.code})
                       </SelectItem>
                     ))
                   ) : (
