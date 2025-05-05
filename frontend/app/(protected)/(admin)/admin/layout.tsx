@@ -10,7 +10,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!localStorage.getItem("kollabee_token")) {
-      router.push("/login");
+      router.push("/");
       console.log("Token not found");
     }
   }, []);
