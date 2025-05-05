@@ -335,7 +335,7 @@ export default function SignupBuyerPage() {
               {currentStage === 4 && (
                 <SuccessMessage
                   userType="buyer"
-                  onContinue={() => router.push("/buyer/dashboard")}
+                  onContinue={() => router.push("/buyer")}
                 />
               )}
             </Card>

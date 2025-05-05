@@ -371,6 +371,11 @@ model Buyer {
   reviews                Review[]
   savedSearches          SavedSearch[]
   Wishlist               Wishlist?
+  businessName String?
+  businessDescription String?
+  businessType String?
+  otherBusinessType String?
+  lookingFor String[]
   requiredCertifications Certification[] @relation("BuyerToCertification")
   products               Product[]       @relation("BuyerToProduct")
   favoriteSuppliers      Seller[]        @relation("BuyerToSeller")

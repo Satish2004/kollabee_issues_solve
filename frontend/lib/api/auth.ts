@@ -55,6 +55,24 @@ export const authApi = {
     return response;
   },
 
+  buyerGoogleLogin: async (data: {
+    token: string;
+    businessName: string;
+    businessDescription: string;
+    businessType: string; // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
+    otherBusinessType?: string;
+    lookingFor: string[]; // What the buyer is looking for
+    role: string;
+  }) => {
+    const response: any = await api.post(`${authUrl}/auth/buyer/google`, data);
+    if (response?.token) {
+      setToken(response?.token);
+      localStorage.setItem("token", response?.token);
+      Cookies.set("token", response?.token, { expires: 7 }); // Token expires in 7 days
+    }
+    return response;
+  },
+
   generateOTP: async (email: string) => {
     return api.post(`${authUrl}/auth/generate-otp`, { email });
   },
