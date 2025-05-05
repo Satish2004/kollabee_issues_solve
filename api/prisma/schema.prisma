@@ -19,6 +19,7 @@ model User {
   updatedAt        DateTime                  @updatedAt
   companyWebsite   String?
   country          String?
+  countryCode     String?
   displayName      String?
   fullName         String?
   imageUrl         String?
@@ -338,6 +339,8 @@ model Seller {
   Approved          Approved? 
   approvalRequested Boolean @default(false)
   approvalReqestAt  DateTime?
+  agrrement1       Boolean?   @default(false)
+  agrrement2       Boolean?   @default(false)
 
   @@index([userId])
 }
@@ -371,6 +374,11 @@ model Buyer {
   reviews                Review[]
   savedSearches          SavedSearch[]
   Wishlist               Wishlist?
+  businessName String?
+  businessDescription String?
+  businessType String?
+  otherBusinessType String?
+  lookingFor String[]
   requiredCertifications Certification[] @relation("BuyerToCertification")
   products               Product[]       @relation("BuyerToProduct")
   favoriteSuppliers      Seller[]        @relation("BuyerToSeller")
@@ -765,6 +773,45 @@ enum CategoryEnum {
   FOOD_BEVERAGES
   HEALTH_WELLNESS
   OTHER
+
+   BRAND_STRATEGY_DEVELOPMENT
+  DESIGN_CREATIVE_SERVICES
+  DIGITAL_MARKETING
+  WEB_ECOMMERCE_DEVELOPMENT
+  PHOTOGRAPHY_VIDEOGRAPHY
+  MARKET_RESEARCH_ANALYTICS
+  PUBLIC_RELATIONS_OUTREACH
+  RETAIL_ECOMMERCE_STRATEGY
+  CONTENT_CREATION_COPYWRITING
+  CONSULTING_SERVICES
+  PRIMARY_PACKAGING
+  FLEXIBLE_PACKAGING
+  RIGID_PACKAGING
+  COMPONENTS_ACCESSORIES
+  SUSTAINABLE_PACKAGING
+  SECONDARY_PACKAGING
+  AYURVEDA_HERBAL
+  BEAUTY
+  BEVERAGES
+  COSMETICS
+  CLEANING_HOME_CARE_KITCHEN
+  CONSUMER_ELECTRONICS
+  FOOD
+  FURNITURE_HOME_DECOR
+  FASHION_ACCESSORIES
+  HEALTH_WELLNESS_DUPLICATE
+  INGREDIENTS
+  FLAVOURS
+  FRAGRANCES
+  MOTHER_BABY_CARE
+  NATURAL_ORGANIC_PRODUCTS
+  PERSONAL_CARE_HYGIENE
+  PET_CARE_PRODUCTS
+  TEA_COFFEE
+  TEXTILES_APPAREL
+  TOYS
+
+  
 }
 
 enum OrderStatus {

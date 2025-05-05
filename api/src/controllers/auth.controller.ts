@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
@@ -57,7 +57,6 @@ const commonSignupFields = {
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email format"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
   phone: z.string().optional(),
   countryCode: z.string().optional(),
   country: z.string().optional(),
@@ -77,7 +76,8 @@ const sellerFields = {
   selectedObjectives: z.array(z.string()).optional(),
   selectedChallenges: z.array(z.string()).optional(),
   selectedMetrics: z.array(z.string()).optional(),
-  agreement: z.boolean().optional(),
+  agreement1: z.boolean().optional(),
+  agreement2: z.boolean().optional(),
 };
 
 // Buyer-specific fields
@@ -89,16 +89,19 @@ const buyerFields = {
   lookingFor: z.array(z.string()).optional(),
 };
 
-const signupSchema = z
-  .object({
-    ...commonSignupFields,
-    ...sellerFields,
-    ...buyerFields,
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
+const buyerSchema = z.object({
+  businessName: z.string(),
+  businessDescription: z.string(),
+  businessType: z.string(),
+  otherBusinessType: z.string().optional(),
+  lookingFor: z.array(z.string()),
+});
+
+const signupSchema = z.object({
+  ...commonSignupFields,
+  ...sellerFields,
+  ...buyerFields,
+});
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email format"),
@@ -180,6 +183,8 @@ export const signup = async (req: Request, res: Response) => {
             challenges: validatedData.selectedChallenges || [],
             metrics: validatedData.selectedMetrics || [],
             profileCompletion: [1, 2],
+            agreement1: validatedData.agreement1 || false,
+            agreement2: validatedData.agreement2 || false,
           },
         });
       } else if (validatedData.role === "BUYER") {
@@ -246,6 +251,80 @@ export const signup = async (req: Request, res: Response) => {
     }
     console.error("Signup error:", error);
     res.status(500).json({ error: "Error creating user" });
+  }
+};
+
+export const buyerSingnupGoogle = async (req: any, res: Response) => {
+  try {
+    const {
+      companyName,
+      businessDescription,
+      businessType,
+      otherBusinessType,
+      lookingFor,
+      roleInCompany,
+      token,
+    } = req.body;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const validatedData = buyerSchema.parse(req.body);
+
+    console.log("decoded", decoded);
+    if (!decoded.userId) {
+      return res.status(400).json({ error: "Invalid token" });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: { id: decoded.userId },
+      include: {
+        buyer: true,
+      },
+    });
+
+    if (!existingUser) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    if (!existingUser.buyer) {
+      await prisma.buyer.create({
+        data: {
+          businessName: companyName,
+          businessDescription: businessDescription,
+          businessType: businessType,
+          otherBusinessType: otherBusinessType,
+          lookingFor: lookingFor,
+          userId: decoded.userId,
+        },
+      });
+    } else {
+      await prisma.buyer.update({
+        where: {
+          userId: decoded.userId,
+        },
+        data: {
+          businessName: companyName,
+          businessDescription: businessDescription,
+          businessType: businessType,
+          otherBusinessType: otherBusinessType,
+          lookingFor: lookingFor,
+          userId: decoded.userId,
+        },
+      });
+    }
+
+    setAuthCookie(res, token);
+
+    return res.status(200).json({
+      message: "Buyer created successfully",
+      token, // Still include token in response for client-side storage if needed
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+
+    console.log("error", error);
+    return res.status(500).json({ error: "Error creating user" });
   }
 };
 
@@ -691,9 +770,30 @@ export const googleCallback = async (req: Request, res: Response) => {
           },
         });
       });
+
+      if (user) {
+        const token = jwt.sign(
+          {
+            userId: user.id,
+            role: user.role,
+            ...(user.role === "SELLER"
+              ? { sellerId: user.seller?.id }
+              : user.role === "ADMIN"
+              ? { adminId: user.admin?.id }
+              : { buyerId: user.buyer?.id }),
+          },
+          process.env.JWT_SECRET!,
+          { expiresIn: "7d" }
+        );
+
+        if (role === "BUYER") {
+          return res.redirect(
+            `${process.env.FRONTEND_URL}/google?token=${token}&role=${role}&code=${code}&new=true`
+          );
+        }
+      }
     } else {
       // Check if user has the requested role
-      // console.log("user", user, user.role, role);
 
       if (user.role !== role) {
         // If the user exists but has a different role, update the role

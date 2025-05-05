@@ -179,7 +179,7 @@ export function BusinessInfoForm({
 
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Website Link
+              Business Website/Instagram
               <InfoButton
                 text={
                   "Enter the complete URL of your business website (e.g., https://yourbusiness.com). Ensure the link is valid and accessible to customers."

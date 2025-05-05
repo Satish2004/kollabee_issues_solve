@@ -6,17 +6,21 @@ import { toast } from "sonner";
 import { setToken } from "@/lib/utils/token";
 import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
+import SignupBuyerPage from "./buyerSignup";
 
 export default function GoogleRedirectPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [token, setToken] = useState("");
+  const [realRole, setRole] = useState("");
 
   useEffect(() => {
     const token = searchParams.get("token");
     const role = searchParams.get("role");
     const errorMessage = searchParams.get("error");
+    const newUser = searchParams.get("new");
 
     setErrorMessage(errorMessage || "");
 
@@ -31,13 +35,15 @@ export default function GoogleRedirectPageContent() {
       // Redirect based on role
       if (role === "ADMIN") {
         router.push("/admin");
-      } else if (role === "BUYER") {
-        router.push("/buyer");
       } else if (role === "SELLER") {
         router.push("/seller");
+      } else if (role === "BUYER" || newUser === "true") {
+        setRole("BUYER");
+        setToken(token);
+
+        console.log("buyer identicatied : ", role, token);
       } else {
-        // Default redirect if role is not specified
-        router.push("/");
+        router.push("/buyer");
       }
     }
 
@@ -52,6 +58,9 @@ export default function GoogleRedirectPageContent() {
             <p className="text-gray-500">Loading...</p>
           </div>
         )}
+
+        {realRole === "BUYER" && <SignupBuyerPage token={token} />}
+
         {errorMessage && (
           <div className="mt-4">
             <p className="text-red-500">{errorMessage}</p>

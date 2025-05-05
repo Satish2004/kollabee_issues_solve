@@ -4,24 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const objectives = [
-  "Expand your buyer network",
-  "Vegan Products",
-  "Organic Ingredients",
-  "Small-Batch Production",
+  "Expand into new markets",
+  "Connect with high-quality buyers",
+  "Increase brand visibility",
+  "Build relationships with startups or emerging brands",
+  "Promote sustainable or ethical practices",
+  "Grow export volume",
 ];
 
 const challenges = [
-  "Eco-Friendly Practices",
-  "Vegan Products",
-  "Organic Ingredients",
-  "Small-Batch Production",
+  "Difficulty reaching serious buyers",
+  "Low brand visibility",
+  "Price pressure and margin squeeze",
+  "Long lead times for closing deals",
+  "Managing small batch/MOQ efficiently",
+  "Complex compliance or certification demands",
 ];
 
 const metrics = [
-  "Small Businesses",
-  "Startups & Entrepreneurs",
-  "Established Brands",
-  "Regional Buyers",
+  "Number of quality leads",
+  "Volume/value of confirmed orders",
+  "New market penetration",
+  "Repeat buyers and customer loyalty",
+  "Brand visibility and recognition",
+  "Speed of response and deal closure",
 ];
 
 type GoalsMetricsFormProps = {
@@ -168,12 +174,30 @@ const GoalsMetricsForm = ({
           </h3>
           <div className="flex items-start space-x-3">
             <Checkbox
-              id="agreement"
-              checked={formState.agreement}
+              id="agreement1"
+              checked={formState.agreement1}
               onCheckedChange={(checked) =>
                 onChange({
                   ...formState,
-                  agreement: checked as boolean,
+                  agreement1: checked as boolean,
+                })
+              }
+            />
+            <label
+              htmlFor="agreement1"
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              I agree to KollaBee’s Terms & Conditions and Privacy Policy.
+            </label>
+          </div>
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="agreement"
+              checked={formState.agreement2}
+              onCheckedChange={(checked) =>
+                onChange({
+                  ...formState,
+                  agreement2: checked as boolean,
                 })
               }
             />
@@ -181,15 +205,12 @@ const GoalsMetricsForm = ({
               htmlFor="agreement"
               className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              By submitting this form, I give Kollabee permission to store my
-              contact details and share updates about relevant buyers and market
-              opportunities.
+              I give Kollabee permission to store my contact details and share
+              updates about relevant buyers and market opportunities.
             </label>
           </div>
         </div>
       </div>
-
-      
     </div>
   );
 };
