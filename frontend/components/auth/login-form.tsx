@@ -23,6 +23,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 import { Separator } from "@/components/ui/separator";
+import { AppleLogin } from "./AppleLoginButton";
 
 interface LoginError {
   message: string;
@@ -134,13 +135,20 @@ export function LoginForm({
         <CardContent>
           {/* Google Login Button */}
           <div className="mb-6">
-            <GoogleLoginButton role={googleLoginRole || "BUYER"} />
-            <div className="relative my-4">
-              <Separator />
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-gray-600">
-                OR
-              </span>
-            </div>
+            {!isAdmin && (
+              <>
+                <div className="flex flex-col space-y-2">
+                  <AppleLogin role={googleLoginRole || "BUYER"} />
+                  <GoogleLoginButton role={googleLoginRole || "BUYER"} />
+                </div>
+                <div className="relative my-4">
+                  <Separator />
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-gray-600">
+                    OR
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
           <form className="space-y-4" onSubmit={handleSubmit}>
