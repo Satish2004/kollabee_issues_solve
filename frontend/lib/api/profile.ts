@@ -1,7 +1,10 @@
 import { api } from "../axios";
-import { User } from "@/types/api";
+import type { User } from "@/types/api";
 import { removeToken } from "../utils/token";
 import Cookies from "js-cookie";
+// Add these functions to your existing profile API file
+
+import { toast } from "sonner";
 
 export interface ProfileUpdateData {
   name?: string;
@@ -31,6 +34,7 @@ export interface BankDetailsData {
   upiId?: string;
   zipCode: string;
 }
+
 const authUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export const profileApi = {
@@ -77,154 +81,394 @@ export const profileApi = {
     return api.get("/seller/profile");
   },
 
+  // Business Info
   getBusinessInfo: async () => {
-    return api.get("/seller/profile/bussinessInfo");
+    try {
+      const response = await api.get("/seller/profile/bussinessInfo");
+      return response;
+    } catch (error) {
+      console.error("Error fetching business info:", error);
+      throw error;
+    }
   },
 
   updateBusinessInfo: async (data: any) => {
-    return api.put("/seller/profile/bussinessInfo", data);
+    try {
+      const response = await api.put(
+        "/seller/profile/bussinessInfo",
+        data
+      );
+      toast.success("Business information updated successfully");
+      return response;
+    } catch (error) {
+      console.error("Error updating business info:", error);
+      toast.error("Failed to update business information");
+      throw error;
+    }
   },
 
   // Goals and Metrics
   getGoalsMetrics: async () => {
-    return api.get("/seller/profile/goalsMetric");
+    try {
+      const response = await api.get("/seller/profile/goalsMetric");
+      return response;
+    } catch (error) {
+      console.error("Error fetching goals and metrics:", error);
+      throw error;
+    }
   },
 
   updateGoalsMetrics: async (data: any) => {
-    return api.put("/seller/profile/goalsMetric", data);
+    try {
+      const response = await api.put(
+        "/seller/profile/goalsMetric",
+        data
+      );
+      toast.success("Goals and metrics updated successfully");
+      return response;
+    } catch (error) {
+      console.error("Error updating goals and metrics:", error);
+      toast.error("Failed to update goals and metrics");
+      throw error;
+    }
   },
 
-  // Update seller profile categories
-  updateCategories: async (data: any) => {
-    return api.put("/seller/profile/categories", data);
+  // Step 4: Business Overview
+  getBusinessOverview: async () => {
+    try {
+      const response = await api.get("/seller/profile/business-overview");
+      return response;
+    } catch (error) {
+      console.error("Error fetching business overview:", error);
+      throw error;
+    }
   },
 
-  //Get Categories
-  getCategories: async () => {
-    return api.get("/seller/profile/categories");
+  updateBusinessOverview: async (data: any) => {
+    try {
+      // Handle file upload if there's a logo preview
+      let formData = null;
+      let logoFile = null;
+
+      if (data.logoPreview && data.logoPreview.startsWith("data:")) {
+        // Convert base64 to file
+        const res = await fetch(data.logoPreview);
+        const blob = await res.blob();
+        logoFile = new File([blob], "logo.png", { type: "image/png" });
+      }
+
+      if (logoFile) {
+        formData = new FormData();
+        formData.append("logo", logoFile);
+
+        // Add all other data as JSON
+        const dataWithoutPreview = { ...data };
+        delete dataWithoutPreview.logoPreview;
+        formData.append("data", JSON.stringify(dataWithoutPreview));
+
+        const response = await api.put(
+          "/seller/profile/business-overview",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        toast.success("Business overview updated successfully");
+        return response;
+      } else {
+        // No file to upload, just send the data
+        const dataWithoutPreview = { ...data };
+        delete dataWithoutPreview.logoPreview;
+
+        const response = await api.put(
+          "/seller/profile/business-overview",
+          dataWithoutPreview
+        );
+        toast.success("Business overview updated successfully");
+        return response;
+      }
+    } catch (error) {
+      console.error("Error updating business overview:", error);
+      toast.error("Failed to update business overview");
+      throw error;
+    }
   },
 
-  // Update production services
-  updateProductionServices: async (data: any) => {
-    return api.put("/seller/profile/production-services", data);
+  // Step 5: Capabilities & Operations
+  getCapabilitiesOperations: async () => {
+    try {
+      const response = await api.get(
+        "/seller/profile/capabilities-operations"
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching capabilities & operations:", error);
+      throw error;
+    }
   },
 
-  //Get Production Services
-  getProductionServices: async () => {
-    return api.get("/seller/profile/production-services");
+  updateCapabilitiesOperations: async (data: any) => {
+    try {
+      // Handle file uploads if there are factory image previews
+      let formData = null;
+      const factoryImageFiles = [];
+
+      if (data.factoryImagePreviews && data.factoryImagePreviews.length > 0) {
+        formData = new FormData();
+
+        // Process each preview image
+        for (let i = 0; i < data.factoryImagePreviews.length; i++) {
+          const preview = data.factoryImagePreviews[i];
+          if (preview.file) {
+            formData.append("factoryImages", preview.file);
+            factoryImageFiles.push(preview.file);
+          }
+        }
+
+        // Add all other data as JSON
+        const dataWithoutPreviews = { ...data };
+        delete dataWithoutPreviews.factoryImagePreviews;
+        formData.append("data", JSON.stringify(dataWithoutPreviews));
+
+        const response = await api.put(
+          "/seller/profile/capabilities-operations",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        toast.success("Capabilities & operations updated successfully");
+        return response;
+      } else {
+        // No files to upload, just send the data
+        const dataWithoutPreviews = { ...data };
+        delete dataWithoutPreviews.factoryImagePreviews;
+
+        const response = await api.put(
+          "/seller/profile/capabilities-operations",
+          dataWithoutPreviews
+        );
+        toast.success("Capabilities & operations updated successfully");
+        return response;
+      }
+    } catch (error) {
+      console.error("Error updating capabilities & operations:", error);
+      toast.error("Failed to update capabilities & operations");
+      throw error;
+    }
   },
 
-  // Update production management
-  updateProductionManagement: async (data: any) => {
-    return api.put("/seller/profile/production-management", data);
+  // Step 6: Compliance & Credentials
+  getComplianceCredentials: async () => {
+    try {
+      const response = await api.get(
+        "/seller/profile/compliance-credentials"
+      );
+      return response;
+    } catch (error) {
+      console.error("Error fetching compliance & credentials:", error);
+      throw error;
+    }
   },
 
-  //Get Production Management
-  getProductionManagement: async () => {
-    return api.get("/seller/profile/production-management");
+  updateComplianceCredentials: async (data: any) => {
+    try {
+      // Handle file uploads
+      const formData = new FormData();
+      let hasFiles = false;
+
+      // Business registration document
+      if (data.businessRegPreview) {
+        // This would be handled by the onFileUpload function
+        hasFiles = true;
+      }
+
+      // Certification documents
+      if (data.certificationPreviews && data.certificationPreviews.length > 0) {
+        // This would be handled by the onFileUpload function
+        hasFiles = true;
+      }
+
+      // Client logos
+      if (data.clientLogoPreviews && data.clientLogoPreviews.length > 0) {
+        // This would be handled by the onFileUpload function
+        hasFiles = true;
+      }
+
+      // Clean up data before sending
+      const cleanData = { ...data };
+      delete cleanData.businessRegPreview;
+      delete cleanData.certificationPreviews;
+      delete cleanData.clientLogoPreviews;
+
+      if (hasFiles) {
+        formData.append("data", JSON.stringify(cleanData));
+
+        const response = await api.put(
+          "/seller/profile/compliance-credentials",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        toast.success("Compliance & credentials updated successfully");
+        return response;
+      } else {
+        const response = await api.put(
+          "/seller/profile/compliance-credentials",
+          cleanData
+        );
+        toast.success("Compliance & credentials updated successfully");
+        return response;
+      }
+    } catch (error) {
+      console.error("Error updating compliance & credentials:", error);
+      toast.error("Failed to update compliance & credentials");
+      throw error;
+    }
   },
 
-  // Update manufacturing locations
-  updateManufacturingLocations: async (data: any) => {
-    return api.put("/seller/profile/manufacturing-locations", data);
+  // Step 7: Brand Presence
+  getBrandPresence: async () => {
+    try {
+      const response = await api.get("/seller/profile/brand-presence");
+      return response;
+    } catch (error) {
+      console.error("Error fetching brand presence:", error);
+      throw error;
+    }
   },
 
-  // Get manufacturing locations
-  getManufacturingLocations: async () => {
-    return api.get("/seller/profile/manufacturing-locations");
+  updateBrandPresence: async (data: any) => {
+    try {
+      // Handle file uploads
+      const formData = new FormData();
+      let hasFiles = false;
+
+      // Project images
+      if (data.projectImagePreviews && data.projectImagePreviews.length > 0) {
+        // This would be handled by the onFileUpload function
+        hasFiles = true;
+      }
+
+      // Brand video
+      if (data.videoPreview) {
+        // This would be handled by the onFileUpload function
+        hasFiles = true;
+      }
+
+      // Clean up data before sending
+      const cleanData = { ...data };
+      delete cleanData.projectImagePreviews;
+      delete cleanData.videoPreview;
+
+      if (hasFiles) {
+        formData.append("data", JSON.stringify(cleanData));
+
+        const response = await api.put(
+          "/seller/profile/brand-presence",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        toast.success("Brand presence updated successfully");
+        return response;
+      } else {
+        const response = await api.put(
+          "/seller/profile/brand-presence",
+          cleanData
+        );
+        toast.success("Brand presence updated successfully");
+        return response;
+      }
+    } catch (error) {
+      console.error("Error updating brand presence:", error);
+      toast.error("Failed to update brand presence");
+      throw error;
+    }
   },
 
-  // Update business capabilities
-  updateBusinessCapabilities: async (data: any) => {
-    return api.put("/seller/profile/capabilities", data);
+  // Step 8: Final Review & Submit
+  getProfileSummary: async () => {
+    try {
+      const response = await api.get("/seller/profile/summary");
+      return response;
+    } catch (error) {
+      console.error("Error fetching profile summary:", error);
+      throw error;
+    }
   },
 
-  // Get business capabilities
-  getBusinessCapabilities: async () => {
-    return api.get("/seller/profile/capabilities");
-  },
-
-  // Update target audience
-  updateTargetAudience: async (data: any) => {
-    return api.put("/seller/profile/target-audience", data);
-  },
-
-  // Get target audience
-  getTargetAudience: async () => {
-    return api.get("/seller/profile/target-audience");
-  },
-
-  // Update team size
-  updateTeamSize: async (data: any) => {
-    return api.put("/seller/profile/team-size", data);
-  },
-
-  // Get team size
-  getTeamSize: async () => {
-    return api.get("/seller/profile/team-size");
-  },
-
-  // Update annual revenue
-  updateAnnualRevenue: async (data: any) => {
-    return api.put("/seller/profile/annual-revenue", data);
-  },
-
-  // Get annual revenue
-  getAnnualRevenue: async () => {
-    return api.get("/seller/profile/annual-revenue");
-  },
-
-  // Update minimum order quantity
-  updateMinimumOrder: async (data: any) => {
-    return api.put("/seller/profile/minimum-order", data);
-  },
-
-  // Get minimum order quantity
-  getMinimumOrder: async () => {
-    return api.get("/seller/profile/minimum-order");
-  },
-
-  // Update comments and notes
-  updateCommentsNotes: async (data: any) => {
-    return api.put("/seller/profile/comments", data);
-  },
-
-  // Get comments and notes
-  getCommentsNotes: async () => {
-    return api.get("/seller/profile/comments");
-  },
-
-  //Upload Certificate
-  uploadCertificate: async (formData: FormData) => {
-    // Accept full FormData
-    return api.post("/seller/profile/certificates", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-  },
-
-  // Update certificates
-  // updateCertificates: async (file: File) => {
-  //   const formData = new FormData();
-  //   formData.append('image', file);
-  //   return api.post<{ url: string }>('/seller/profile/certificates', formData, {
-  //     headers: {
-  //       'Content-Type': 'multipart/form-data',
-  //     },
-  //   })
-  // },
-
-  // Get certificates
-  getCertificates: async () => {
-    return api.get("/seller/profile/certificates");
-  },
-
-  deleteCertificate: async (certificateId: string) => {
-    return api.delete(`/seller/profile/certificates/${certificateId}`);
-  },
-
+  // Profile completion and approval
   getProfileCompletion: async () => {
     return api.get("/seller/profile/completion");
+  },
+
+  getPendingStepNames: async () => {
+    return api.get("/seller/profile/pending-steps");
+  },
+
+  requestApproval: async () => {
+    try {
+      const response = await api.post("/seller/approval");
+      toast.success("Profile submitted for approval successfully");
+      return response;
+    } catch (error) {
+      console.error("Error requesting approval:", error);
+      toast.error("Failed to submit profile for approval");
+      throw error;
+    }
+  },
+  // File upload helper
+  uploadFile: async (file: File, field: string) => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("field", field);
+
+      const response = await api.post(
+        "/seller/profile/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      return response;
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Failed to upload file");
+      throw error;
+    }
+  },
+
+  // Delete file helper
+  deleteFile: async (fileUrl: string, field: string) => {
+    try {
+      const response = await api.delete("/seller/profile/file", {
+        data: { fileUrl, field },
+      });
+
+      return response;
+    } catch (error) {
+      console.error("Error deleting file:", error);
+      toast.error("Failed to delete file");
+      throw error;
+    }
   },
 };

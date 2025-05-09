@@ -24,6 +24,7 @@ router.post(
   uploadProductImage
 );
 
+
 router.post("/product-doc", authMiddleware, upload.single("pdf"), uploadPDF);
 
 router.delete("/delete-image", authMiddleware, deleteImage);

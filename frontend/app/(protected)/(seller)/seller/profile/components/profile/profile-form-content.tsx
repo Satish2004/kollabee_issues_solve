@@ -2,19 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import CategoriesForm from "../forms/categories-form";
-import ProductionServicesForm from "../forms/production-services-form";
-import ProductionManagedForm from "../forms/production-managed-form";
-import ProductionManufacturedForm from "../forms/production-manufactured-form";
-import BusinessCapabilitiesForm from "../forms/business-capabilities-form";
-import TargetAudienceForm from "../forms/target-audience-form";
-import TeamSizeForm from "../forms/team-size-form";
-import AnnualRevenueForm from "../forms/annual-revenue-form";
-import MinimumOrderForm from "../forms/minimum-order-form";
-import CommentsNotesForm from "../forms/comments-notes-form";
-import CertificatesForm from "../forms/certificates-form";
 import BusinessInfoForm from "../forms/business-info-form";
 import GoalsMetricsForm from "../forms/goals-metrics-form";
+import BusinessOverviewForm from "../forms/business-overview-form";
+import CapabilitiesOperationsForm from "../forms/capabilities-operations-form";
+import ComplianceCredentialsForm from "../forms/compliance-credentials-form";
+import BrandPresenceForm from "../forms/brand-presence-form";
+import FinalReviewForm from "../forms/final-review-form";
 
 type ProfileFormContentProps = {
   activeStep: number;
@@ -23,13 +17,19 @@ type ProfileFormContentProps = {
   formStates: any;
   sectionLoading: string | null;
   isSaving: boolean;
+  isSubmittingApproval: boolean;
   handleFormChange: (sectionId: string, value: any) => void;
   handleEnhancedSectionUpdate: (sectionId: string) => Promise<void>;
   hasFormChanges: (sectionId: string) => boolean;
   handlePrevious: () => void;
   handleNext: () => void;
-  onAddCertificate: () => void;
-  handleRemoveCertificate: (certificateId: string) => Promise<void>;
+  onFileUpload: (file: File, field: string) => Promise<string | null>;
+  onDeleteFile: (fileUrl: string, field: string) => void;
+  onSubmitForApproval: () => Promise<void>;
+  pendingStepNames: string[];
+  onAddCertificate?: () => void;
+  handleRemoveCertificate?: (certificateId: string) => Promise<void>;
+  uploadProgress?: Record<string, number>;
 };
 
 export const ProfileFormContent = ({
@@ -39,13 +39,19 @@ export const ProfileFormContent = ({
   formStates,
   sectionLoading,
   isSaving,
+  isSubmittingApproval,
   handleFormChange,
   handleEnhancedSectionUpdate,
   hasFormChanges,
   handlePrevious,
   handleNext,
+  onFileUpload,
+  onDeleteFile,
+  onSubmitForApproval,
+  pendingStepNames,
   onAddCertificate,
   handleRemoveCertificate,
+  uploadProgress = {},
 }: ProfileFormContentProps) => {
   const renderStepContent = () => {
     const currentStep = steps[activeStep].id;
@@ -75,131 +81,6 @@ export const ProfileFormContent = ({
             isSaving={isSaving}
           />
         );
-      case "categories":
-        return (
-          <CategoriesForm
-            formState={currentFormState}
-            onChange={(newValue) => handleFormChange("categories", newValue)}
-            onSave={() => handleEnhancedSectionUpdate("categories")}
-            hasChanges={hasFormChanges("categories")}
-            isSaving={isSaving}
-          />
-        );
-      case "production-services":
-        return (
-          <ProductionServicesForm
-            formState={currentFormState}
-            onChange={(newValue) =>
-              handleFormChange("production-services", newValue)
-            }
-            onSave={() => handleEnhancedSectionUpdate("production-services")}
-            hasChanges={hasFormChanges("production-services")}
-            isSaving={isSaving}
-          />
-        );
-      case "production-managed":
-        return (
-          <ProductionManagedForm
-            formState={currentFormState}
-            onChange={(newValue) =>
-              handleFormChange("production-managed", newValue)
-            }
-            onSave={() => handleEnhancedSectionUpdate("production-managed")}
-            hasChanges={hasFormChanges("production-managed")}
-            isSaving={isSaving}
-          />
-        );
-      case "production-manufactured":
-        return (
-          <ProductionManufacturedForm
-            formState={currentFormState}
-            onChange={(newValue) =>
-              handleFormChange("production-manufactured", newValue)
-            }
-            onSave={() =>
-              handleEnhancedSectionUpdate("production-manufactured")
-            }
-            hasChanges={hasFormChanges("production-manufactured")}
-            isSaving={isSaving}
-          />
-        );
-      case "business-capabilities":
-        return (
-          <BusinessCapabilitiesForm
-            formState={currentFormState}
-            onChange={(newValue) =>
-              handleFormChange("business-capabilities", newValue)
-            }
-            onSave={() => handleEnhancedSectionUpdate("business-capabilities")}
-            hasChanges={hasFormChanges("business-capabilities")}
-            isSaving={isSaving}
-          />
-        );
-      case "target-audience":
-        return (
-          <TargetAudienceForm
-            formState={currentFormState}
-            onChange={(newValue) =>
-              handleFormChange("target-audience", newValue)
-            }
-            onSave={() => handleEnhancedSectionUpdate("target-audience")}
-            hasChanges={hasFormChanges("target-audience")}
-            isSaving={isSaving}
-          />
-        );
-      case "team-size":
-        return (
-          <TeamSizeForm
-            formState={currentFormState}
-            onChange={(newValue) => handleFormChange("team-size", newValue)}
-            onSave={() => handleEnhancedSectionUpdate("team-size")}
-            hasChanges={hasFormChanges("team-size")}
-            isSaving={isSaving}
-          />
-        );
-      case "annual-revenue":
-        return (
-          <AnnualRevenueForm
-            formState={currentFormState}
-            onChange={(newValue) =>
-              handleFormChange("annual-revenue", newValue)
-            }
-            onSave={() => handleEnhancedSectionUpdate("annual-revenue")}
-            hasChanges={hasFormChanges("annual-revenue")}
-            isSaving={isSaving}
-          />
-        );
-      case "minimum-order":
-        return (
-          <MinimumOrderForm
-            formState={currentFormState}
-            onChange={(newValue) => handleFormChange("minimum-order", newValue)}
-            onSave={() => handleEnhancedSectionUpdate("minimum-order")}
-            hasChanges={hasFormChanges("minimum-order")}
-            isSaving={isSaving}
-          />
-        );
-      case "comments-notes":
-        return (
-          <CommentsNotesForm
-            formState={currentFormState}
-            onChange={(newValue) =>
-              handleFormChange("comments-notes", newValue)
-            }
-            onSave={() => handleEnhancedSectionUpdate("comments-notes")}
-            hasChanges={hasFormChanges("comments-notes")}
-            isSaving={isSaving}
-          />
-        );
-      case "certificates":
-        return (
-          <CertificatesForm
-            formState={currentFormState}
-            onAddCertificate={onAddCertificate}
-            onRemoveCertificate={handleRemoveCertificate}
-            isSaving={isSaving}
-          />
-        );
       case "goals-metrics":
         return (
           <GoalsMetricsForm
@@ -210,6 +91,86 @@ export const ProfileFormContent = ({
             isSaving={isSaving}
           />
         );
+      case "business-overview":
+        return (
+          <BusinessOverviewForm
+            formState={currentFormState}
+            onChange={(newValue) =>
+              handleFormChange("business-overview", newValue)
+            }
+            onSave={() => handleEnhancedSectionUpdate("business-overview")}
+            hasChanges={hasFormChanges("business-overview")}
+            isSaving={isSaving}
+            onFileUpload={onFileUpload}
+            uploadProgress={uploadProgress}
+          />
+        );
+      case "capabilities-operations":
+        return (
+          <CapabilitiesOperationsForm
+            formState={currentFormState}
+            onChange={(newValue) =>
+              handleFormChange("capabilities-operations", newValue)
+            }
+            onSave={() =>
+              handleEnhancedSectionUpdate("capabilities-operations")
+            }
+            hasChanges={hasFormChanges("capabilities-operations")}
+            isSaving={isSaving}
+            onFileUpload={onFileUpload}
+            onDeleteImage={onDeleteFile}
+            uploadProgress={uploadProgress}
+          />
+        );
+      case "compliance-credentials":
+        return (
+          <ComplianceCredentialsForm
+            formState={currentFormState}
+            onChange={(newValue) =>
+              handleFormChange("compliance-credentials", newValue)
+            }
+            onSave={() => handleEnhancedSectionUpdate("compliance-credentials")}
+            hasChanges={hasFormChanges("compliance-credentials")}
+            isSaving={isSaving}
+            onFileUpload={onFileUpload}
+            onDeleteFile={onDeleteFile}
+            uploadProgress={uploadProgress}
+          />
+        );
+      case "brand-presence":
+        return (
+          <BrandPresenceForm
+            formState={currentFormState}
+            onChange={(newValue) =>
+              handleFormChange("brand-presence", newValue)
+            }
+            onSave={() => handleEnhancedSectionUpdate("brand-presence")}
+            hasChanges={hasFormChanges("brand-presence")}
+            isSaving={isSaving}
+            onFileUpload={onFileUpload}
+            onDeleteFile={onDeleteFile}
+            uploadProgress={uploadProgress}
+          />
+        );
+      case "final-review":
+        return (
+          <FinalReviewForm
+            profileData={currentFormState}
+            onSubmitForApproval={onSubmitForApproval}
+            isSubmitting={isSubmittingApproval}
+            pendingSteps={pendingStepNames}
+          />
+        );
+      case "certificates":
+        if (onAddCertificate && handleRemoveCertificate) {
+          return (
+            <div className="certificates-form">
+              {/* Placeholder for certificates form if needed */}
+              <p>Certificates form would go here</p>
+            </div>
+          );
+        }
+        return null;
       default:
         return null;
     }
@@ -244,15 +205,18 @@ export const ProfileFormContent = ({
         </div>
 
         <div className="flex-1 flex justify-center">
-          {hasFormChanges(steps[activeStep].id) && (
-            <Button
-              onClick={() => handleEnhancedSectionUpdate(steps[activeStep].id)}
-              disabled={isSaving}
-              className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
-            >
-              Save Changes
-            </Button>
-          )}
+          {hasFormChanges(steps[activeStep].id) &&
+            steps[activeStep].id !== "final-review" && (
+              <Button
+                onClick={() =>
+                  handleEnhancedSectionUpdate(steps[activeStep].id)
+                }
+                disabled={isSaving}
+                className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
+              >
+                Save Changes
+              </Button>
+            )}
         </div>
 
         <div className="flex-1 flex justify-end">

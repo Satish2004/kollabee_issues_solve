@@ -1,12 +1,14 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useProfileSections } from "@/hooks/use-profile-sections";
-import  useProfileFormState  from "@/hooks/use-profile-form-state";
+import useProfileFormState from "@/hooks/use-profile-form-state";
 import { useProfileData } from "./hooks/use-profile-data";
 import { useStepNavigation } from "./hooks/use-step-navigation";
 import { useCertificateManagement } from "./hooks/use-certificate-management";
 import { useProfileApproval } from "./hooks/use-profile-approval";
 import { useEnhancedSectionUpdate } from "./hooks/use-enhanced-section-update";
+import { useFileManagement } from "./hooks/use-file-management";
 import { ProfileHeader } from "./components/profile/profile-header";
 import { ProfileFormContent } from "./components/profile/profile-form-content";
 import ProfileStepper from "./components/profile-stepper";
@@ -39,6 +41,10 @@ const KollaBeeProfile = () => {
     setIsSaving: (value) => setIsSaving(value),
     setSectionLoading: (value) => setSectionLoading(value),
   });
+
+  // File management
+  const { uploadProgress, isUploading, handleFileUpload, handleDeleteFile } =
+    useFileManagement();
 
   // Step navigation
   const {
@@ -158,13 +164,19 @@ const KollaBeeProfile = () => {
                   formStates={formStates}
                   sectionLoading={sectionLoading}
                   isSaving={isSaving}
+                  isSubmittingApproval={isSubmittingApproval}
                   handleFormChange={handleFormChange}
                   handleEnhancedSectionUpdate={handleEnhancedSectionUpdate}
                   hasFormChanges={hasFormChanges}
                   handlePrevious={handlePrevious}
                   handleNext={handleNext}
+                  onFileUpload={handleFileUpload}
+                  onDeleteFile={handleDeleteFile}
+                  onSubmitForApproval={requestApproval}
+                  pendingStepNames={getPendingStepNames()}
                   onAddCertificate={() => setCertificateModalOpen(true)}
                   handleRemoveCertificate={handleRemoveCertificate}
+                  uploadProgress={uploadProgress}
                 />
               </div>
             </div>
