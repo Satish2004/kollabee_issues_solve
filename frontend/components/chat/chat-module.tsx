@@ -44,6 +44,7 @@ export default function ChatModule() {
     const socket = io(
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000",
       {
+        transports: ["websocket"],
         withCredentials: true,
       }
     );
