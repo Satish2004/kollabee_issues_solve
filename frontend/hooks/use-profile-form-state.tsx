@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { profileApi } from "@/lib/api/profile";
 import { sellerApi } from "@/lib/api/seller";
+import { uploadApi } from "@/lib/api/upload";
 
 type Step = {
   id: string;
@@ -20,17 +21,11 @@ type ProfileFormProps = {
 const createInitialFormStates = () => ({
   "business-info": null,
   "goals-metrics": null,
-  categories: null,
-  "production-services": null,
-  "production-managed": null,
-  "production-manufactured": null,
-  "business-capabilities": null,
-  "target-audience": null,
-  "team-size": null,
-  "annual-revenue": null,
-  "minimum-order": null,
-  "comments-notes": null,
-  certificates: null,
+  "business-overview": null,
+  "capabilities-operations": null,
+  "compliance-credentials": null,
+  "brand-presence": null,
+  "final-review": null,
 });
 
 const useProfileFormState = ({
@@ -44,6 +39,9 @@ const useProfileFormState = ({
   const [originalFormStates, setOriginalFormStates] = useState<
     Record<string, any>
   >({});
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
+    {}
+  );
   const sectionLoadingRef = useRef<string[]>([]);
 
   const updateFormState = useCallback(
@@ -76,53 +74,74 @@ const useProfileFormState = ({
           selectedObjectives: [],
           selectedChallenges: [],
           selectedMetrics: [],
-          agreement1: false,
-          agreement2: false,
+          agreement: false,
         };
-      case "categories":
+      case "business-overview":
         return {
-          selectedCategories: [],
-          subcategories: {},
+          businessName: "",
+          businessDescription: "",
+          businessAddress: "",
+          websiteLink: "",
+          businessTypes: [],
+          businessCategories: [],
+          businessLogo: null,
+          logoPreview: null,
+          yearFounded: "",
+          teamSize: "",
+          annualRevenue: "",
+          languagesSpoken: [],
+          businessAttributes: [],
+          otherLanguageSelected: false,
+          otherLanguages: "",
+          otherAttributeSelected: false,
+          otherAttributes: "",
         };
-      case "production-services":
+      case "capabilities-operations":
         return {
-          services: [],
-        };
-      case "production-managed":
-        return {
-          managementType: "",
-        };
-      case "production-manufactured":
-        return {
-          locations: [],
-        };
-      case "business-capabilities":
-        return {
-          capabilities: [],
-        };
-      case "target-audience":
-        return {
-          audiences: [],
-        };
-      case "team-size":
-        return {
-          size: "",
-        };
-      case "annual-revenue":
-        return {
-          revenue: "",
-        };
-      case "minimum-order":
-        return {
+          servicesProvided: [],
           minimumOrderQuantity: "",
+          lowMoqFlexibility: false,
+          productionModel: "",
+          productionCountries: [],
+          providesSamples: false,
+          sampleDispatchTime: "",
+          productionTimeline: "",
+          factoryImages: [],
+          factoryImagePreviews: [],
+          otherServiceSelected: false,
+          otherServices: "",
+          otherCountrySelected: false,
+          otherCountries: "",
         };
-      case "comments-notes":
+      case "compliance-credentials":
         return {
-          notes: "",
+          businessRegistration: null,
+          businessRegPreview: null,
+          certifications: [],
+          certificationPreviews: [],
+          certificationTypes: [],
+          notableClients: "",
+          clientLogos: [],
+          clientLogoPreviews: [],
+          otherCertSelected: false,
+          otherCertifications: "",
         };
-      case "certificates":
+      case "brand-presence":
         return {
-          certificates: [],
+          projectImages: [],
+          projectImagePreviews: [],
+          brandVideo: null,
+          videoPreview: null,
+          socialMediaLinks: JSON.stringify({
+            instagram: "",
+            linkedin: "",
+            website: "",
+          }),
+          additionalNotes: "",
+        };
+      case "final-review":
+        return {
+          // This will be populated with all profile data
         };
       default:
         return {};
@@ -152,42 +171,24 @@ const useProfileFormState = ({
         case "goals-metrics":
           response = await profileApi.getGoalsMetrics();
           break;
-        case "categories":
-          response = await profileApi.getCategories();
+        case "business-overview":
+          response = await profileApi.getBusinessOverview();
           break;
-        case "production-services":
-          response = await profileApi.getProductionServices();
+        case "capabilities-operations":
+          response = await profileApi.getCapabilitiesOperations();
           break;
-        case "production-managed":
-          response = await profileApi.getProductionManagement();
+        case "compliance-credentials":
+          response = await profileApi.getComplianceCredentials();
           break;
-        case "production-manufactured":
-          response = await profileApi.getManufacturingLocations();
+        case "brand-presence":
+          response = await profileApi.getBrandPresence();
           break;
-        case "business-capabilities":
-          response = await profileApi.getBusinessCapabilities();
-          break;
-        case "target-audience":
-          response = await profileApi.getTargetAudience();
-          break;
-        case "team-size":
-          response = await profileApi.getTeamSize();
-          break;
-        case "annual-revenue":
-          response = await profileApi.getAnnualRevenue();
-          break;
-        case "minimum-order":
-          response = await profileApi.getMinimumOrder();
-          break;
-        case "comments-notes":
-          response = await profileApi.getCommentsNotes();
-          break;
-        case "certificates":
-          response = await profileApi.getCertificates();
+        case "final-review":
+          response = await profileApi.getProfileSummary();
           break;
       }
 
-      console.log("Response: ", response);
+      console.log(`Response for ${sectionId}:`, response);
       if (response) {
         const newFormState = response || getDefaultFormState(sectionId);
 
@@ -241,6 +242,141 @@ const useProfileFormState = ({
     );
   };
 
+  // Handle file upload
+  const handleFileUpload = async (file: File, field: string) => {
+    try {
+      setUploadProgress({ ...uploadProgress, [field]: 0 });
+
+      // Validate file size
+      const maxSizeMB = field === "brandVideo" ? 50 : 5; // 50MB for videos, 5MB for other files
+      const fileSizeMB = file.size / (1024 * 1024);
+
+      if (fileSizeMB > maxSizeMB) {
+        toast.error(`File size exceeds the maximum limit of ${maxSizeMB}MB`);
+        return null;
+      }
+
+      // Validate file type
+      const validImageTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      const validDocTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ];
+      const validVideoTypes = [
+        "video/mp4",
+        "video/quicktime",
+        "video/x-msvideo",
+      ];
+
+      let isValidType = false;
+
+      if (
+        field === "businessLogo" ||
+        field === "factoryImages" ||
+        field === "projectImages" ||
+        field === "clientLogos"
+      ) {
+        isValidType = validImageTypes.includes(file.type);
+        if (!isValidType) {
+          toast.error(
+            "Please upload a valid image file (JPEG, PNG, GIF, WEBP)"
+          );
+          return null;
+        }
+      } else if (
+        field === "businessRegistration" ||
+        field === "certifications"
+      ) {
+        isValidType = [...validImageTypes, ...validDocTypes].includes(
+          file.type
+        );
+        if (!isValidType) {
+          toast.error(
+            "Please upload a valid document or image file (PDF, DOC, DOCX, JPEG, PNG)"
+          );
+          return null;
+        }
+      } else if (field === "brandVideo") {
+        isValidType = validVideoTypes.includes(file.type);
+        if (!isValidType) {
+          toast.error("Please upload a valid video file (MP4, MOV, AVI)");
+          return null;
+        }
+      }
+
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => {
+          const currentProgress = prev[field] || 0;
+          if (currentProgress < 90) {
+            return { ...prev, [field]: currentProgress + 10 };
+          }
+          return prev;
+        });
+      }, 300);
+
+      let response;
+
+      // Determine which upload function to use based on the file type and field
+      if (file.type.startsWith("image/")) {
+        if (
+          field === "businessLogo" ||
+          field === "factoryImages" ||
+          field === "clientLogos" ||
+          field === "projectImages"
+        ) {
+          response = await uploadApi.uploadProductImage(file);
+        } else {
+          response = await uploadApi.uploadProfileImage(file);
+        }
+      } else if (
+        file.type === "application/pdf" ||
+        field === "businessRegistration" ||
+        field === "certifications"
+      ) {
+        response = await uploadApi.uploadPDF(file);
+      } else if (field === "brandVideo") {
+        // For video uploads, we'll use the PDF upload endpoint as a placeholder
+        // In a real implementation, you'd want a dedicated video upload endpoint
+        response = await uploadApi.uploadPDF(file);
+      }
+
+      clearInterval(progressInterval);
+      setUploadProgress((prev) => ({ ...prev, [field]: 100 }));
+
+      // Clear progress after a delay
+      setTimeout(() => {
+        setUploadProgress((prev) => {
+          const newProgress = { ...prev };
+          delete newProgress[field];
+          return newProgress;
+        });
+      }, 1000);
+
+      // Return the URL from the response
+      return response?.data?.imageUrl || response?.data?.fileUrl;
+    } catch (error) {
+      console.error(`Error uploading ${field}:`, error);
+      toast.error(
+        `Failed to upload ${field.replace(/([A-Z])/g, " $1").toLowerCase()}`
+      );
+
+      setUploadProgress((prev) => {
+        const newProgress = { ...prev };
+        delete newProgress[field];
+        return newProgress;
+      });
+
+      return null;
+    }
+  };
+
   // Handle section updates
   const handleSectionUpdate = async (sectionId: string) => {
     if (!hasFormChanges(sectionId)) {
@@ -260,38 +396,20 @@ const useProfileFormState = ({
         case "goals-metrics":
           response = await profileApi.updateGoalsMetrics(data);
           break;
-        case "categories":
-          response = await profileApi.updateCategories(data);
+        case "business-overview":
+          response = await profileApi.updateBusinessOverview(data);
           break;
-        case "production-services":
-          response = await profileApi.updateProductionServices(data);
+        case "capabilities-operations":
+          response = await profileApi.updateCapabilitiesOperations(data);
           break;
-        case "production-managed":
-          response = await profileApi.updateProductionManagement(data);
+        case "compliance-credentials":
+          response = await profileApi.updateComplianceCredentials(data);
           break;
-        case "production-manufactured":
-          response = await profileApi.updateManufacturingLocations(data);
+        case "brand-presence":
+          response = await profileApi.updateBrandPresence(data);
           break;
-        case "business-capabilities":
-          response = await profileApi.updateBusinessCapabilities(data);
-          break;
-        case "target-audience":
-          response = await profileApi.updateTargetAudience(data);
-          break;
-        case "team-size":
-          response = await profileApi.updateTeamSize(data);
-          break;
-        case "annual-revenue":
-          response = await profileApi.updateAnnualRevenue(data);
-          break;
-        case "minimum-order":
-          response = await profileApi.updateMinimumOrder(data);
-          break;
-        case "comments-notes":
-          response = await profileApi.updateCommentsNotes(data);
-          break;
-        case "certificates":
-          // Certificate updates are handled separately
+        case "final-review":
+          // Final review doesn't have an update endpoint
           break;
       }
 
@@ -337,38 +455,29 @@ const useProfileFormState = ({
           data.agreement === true
         );
 
-      case "categories":
-        return data.selectedCategories && data.selectedCategories.length > 0;
+      case "business-overview":
+        return (
+          !!data.businessName &&
+          !!data.businessDescription &&
+          !!data.businessAddress &&
+          !!data.websiteLink &&
+          !!data.yearFounded &&
+          !!data.teamSize &&
+          !!data.annualRevenue
+        );
 
-      case "production-services":
-        return data.services && data.services.length > 0;
+      case "capabilities-operations":
+        return (
+          data.servicesProvided?.length > 0 &&
+          !!data.minimumOrderQuantity &&
+          !!data.productionModel
+        );
 
-      case "production-managed":
-        return !!data.managementType;
+      case "compliance-credentials":
+        return !!data.businessRegistration;
 
-      case "production-manufactured":
-        return data.locations && data.locations.length > 0;
-
-      case "business-capabilities":
-        return data.capabilities && data.capabilities.length > 0;
-
-      case "target-audience":
-        return data.audiences && data.audiences.length > 0;
-
-      case "team-size":
-        return !!data.size;
-
-      case "annual-revenue":
-        return !!data.revenue;
-
-      case "minimum-order":
-        return !!data.minimumOrderQuantity;
-
-      case "comments-notes":
-        return !!data.notes && data.notes.trim() !== "";
-
-      case "certificates":
-        return data.certificates && data.certificates.length > 0;
+      case "brand-presence":
+        return data.projectImages?.length >= 2;
 
       default:
         return false;
@@ -383,6 +492,8 @@ const useProfileFormState = ({
     hasFormChanges,
     handleSectionUpdate,
     hasData,
+    uploadProgress,
+    handleFileUpload,
   };
 };
 

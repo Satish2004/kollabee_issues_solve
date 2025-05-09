@@ -286,15 +286,109 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 }
 
+// model Seller {
+//   id                 String          @id @default(uuid())
+//   userId             String          @unique
+//   businessName       String?
+//   ing?
+//   businessCategories CategoryEnum[]
+//   businessTypes      BusinessType[]
+//   employeeCount      IntbusinessDescription String?     
+//   businessAddress    String?
+//   websiteLink        Str?
+//   exportPercentage   Float?
+//   moq                Int?
+//   yearEstablished    Int?
+//   rating             Float?          @default(0)
+//   location           String?
+//   country            String?
+//   state              String?
+//   qualityControl     String?
+//   rd                 String?
+//   roleInCompany      String?
+//   subCategories      Json?
+//   productionServices String[]
+//   productionManagementType productionManaged?
+//   manufacturingLocations String[]
+//   targetAudience     audience[]
+//   teamSize           String?
+//   annualRevenue      String?
+//   minimumOrderQuantity String?
+//   comments           String?
+//   challenges         String[]
+//   profileCompletion  Int[]
+//   metrics            String[]
+//   objectives         String[]
+//   mainMarkets        String[]
+//   advertisements     Advertisement[]
+//   inquiries          Inquiry[]
+//   orders             Order[]
+//   orderItems         OrderItem[]
+//   returns            Return[]
+//   products           Product[]
+//   requests           Request[]
+//   user               User            @relation(fields: [userId], references: [id])
+//   favoritedBy        Buyer[]         @relation("BuyerToSeller")
+//   certifications     Certification[] @relation("CertificationToSeller")
+//   trustBadges        TrustBadge[]    @relation("SellerToTrustBadge")
+//   projects           Project[]       @relation("ProjectToSeller") // Added relationship
+//   savedByProjects    Project[]       @relation("SavedSeller")
+//   projectReq         projectReq[]
+//   approved           Boolean? @default(false)
+//   ApprovedId        String?
+//   Approved          Approved? 
+//   approvalRequested Boolean @default(false)
+//   approvalReqestAt  DateTime?
+//   agrrement1       Boolean?   @default(false)
+//   agrrement2       Boolean?   @default(false)
+
+//   @@index([userId])
+// }
+
+
 model Seller {
   id                 String          @id @default(uuid())
   userId             String          @unique
   businessName       String?
-  businessDescription String?     
+  businessDescription String?
   businessAddress    String?
   websiteLink        String?
   businessCategories CategoryEnum[]
   businessTypes      BusinessType[]
+  
+  // Business Overview (Step 4)
+  businessLogo       String?
+  yearFounded        Int?
+  teamSize           String?
+  annualRevenue      String?
+  languagesSpoken    String[]
+  businessAttributes String[]
+  
+  // Capabilities & Operations (Step 5)
+  bussinessRegistration String?
+  servicesProvided   String[]
+  minimumOrderQuantity String?
+  lowMoqFlexibility  Boolean?        @default(false)
+  productionModel    String?
+  productionCountries String[]
+  providesSamples    Boolean?        @default(false)
+  sampleDispatchTime String?
+  productionTimeline String?
+  factoryImages      String[]
+  
+  // Compliance & Credentials (Step 6)
+  businessRegistration String?
+  certificationTypes String[]
+  notableClients     String?
+  clientLogos        String[]
+  
+  // Brand Presence (Step 7)
+  projectImages      String[]
+  brandVideo         String?
+  socialMediaLinks   Json?           // Store as { instagram: "", linkedin: "", website: "" }
+  additionalNotes    String?
+  
+  // Existing fields
   employeeCount      Int?
   exportPercentage   Float?
   moq                Int?
@@ -311,15 +405,21 @@ model Seller {
   productionManagementType productionManaged?
   manufacturingLocations String[]
   targetAudience     audience[]
-  teamSize           String?
-  annualRevenue      String?
-  minimumOrderQuantity String?
   comments           String?
   challenges         String[]
   profileCompletion  Int[]
   metrics            String[]
   objectives         String[]
   mainMarkets        String[]
+  
+  // Approval fields
+  approvalRequested  Boolean         @default(false)
+  approvalReqestAt   DateTime?
+  approved           Boolean?        @default(false)
+  ApprovedId         String?
+  Approved           Approved?
+  
+  // Relations
   advertisements     Advertisement[]
   inquiries          Inquiry[]
   orders             Order[]
@@ -328,19 +428,15 @@ model Seller {
   products           Product[]
   requests           Request[]
   user               User            @relation(fields: [userId], references: [id])
-  favoritedBy        Buyer[]         @relation("BuyerToSeller")
+  favoritedBy        Buyer[]         @relation(name: "BuyerToSeller")
   certifications     Certification[] @relation("CertificationToSeller")
   trustBadges        TrustBadge[]    @relation("SellerToTrustBadge")
-  projects           Project[]       @relation("ProjectToSeller") // Added relationship
+  projects           Project[]       @relation("ProjectToSeller")
   savedByProjects    Project[]       @relation("SavedSeller")
   projectReq         projectReq[]
-  approved           Boolean? @default(false)
-  ApprovedId        String?
-  Approved          Approved? 
-  approvalRequested Boolean @default(false)
-  approvalReqestAt  DateTime?
-  agrrement1       Boolean?   @default(false)
-  agrrement2       Boolean?   @default(false)
+  
+  agrrement1         Boolean?        @default(false)
+  agrrement2         Boolean?        @default(false)
 
   @@index([userId])
 }

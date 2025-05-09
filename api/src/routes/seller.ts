@@ -35,6 +35,18 @@ import {
   updateSellerBussinessInfo,
   getSellerGoalsMetric,
   updateSellerGoalsMetric,
+  getBusinessOverview,
+  updateBusinessOverview,
+  getCapabilitiesOperations,
+  updateCapabilitiesOperations,
+  deleteFactoryImage,
+  getComplianceCredentials,
+  updateComplianceCredentials,
+  getBrandPresence,
+  updateBrandPresence,
+  deleteProjectImage,
+  getProfileSummary,
+  getPendingStepNames,
 } from "../controllers/seller.controller";
 import { authMiddleware } from "../middleware/auth";
 import { upload } from "../utils/multer";
@@ -56,100 +68,161 @@ router.put("/profile/bussinessInfo", authMiddleware, updateSellerBussinessInfo);
 router.get("/profile/goalsMetric", authMiddleware, getSellerGoalsMetric);
 router.put("/profile/goalsMetric", authMiddleware, updateSellerGoalsMetric);
 
-router.get("/profile/categories", authMiddleware, getSellerProfileCategories);
+// Step 4: Business Overview
+router.get("/profile/business-overview", authMiddleware, getBusinessOverview);
 router.put(
-  "/profile/categories",
+  "/profile/business-overview",
   authMiddleware,
-  updateSellerProfileCategories
+  upload.single("logo"),
+  updateBusinessOverview
 );
+
+// Step 5: Capabilities & Operations
 router.get(
-  "/profile/production-services",
+  "/profile/capabilities-operations",
   authMiddleware,
-  getSellerProfileProductionServices
+  getCapabilitiesOperations
 );
 router.put(
-  "/profile/production-services",
+  "/profile/capabilities-operations",
   authMiddleware,
-  updateSellerProfileProductionServices
+  upload.array("factoryImages", 5),
+  updateCapabilitiesOperations
 );
+router.delete("/profile/factory-image", authMiddleware, deleteFactoryImage);
+
+// Step 6: Compliance & Credentials
 router.get(
-  "/profile/production-management",
+  "/profile/compliance-credentials",
   authMiddleware,
-  getSellerProfileProductionManagement
+  getComplianceCredentials
 );
 router.put(
-  "/profile/production-management",
+  "/profile/compliance-credentials",
   authMiddleware,
-  updateSellerProfileProductionManagement
+  upload.fields([
+    { name: "businessRegistration", maxCount: 1 },
+    { name: "certifications", maxCount: 5 },
+    { name: "clientLogos", maxCount: 5 },
+  ]),
+  updateComplianceCredentials
 );
-router.get(
-  "/profile/manufacturing-locations",
-  authMiddleware,
-  getSellerProfileManufacturingLocations
-);
+
+// Step 7: Brand Presence
+router.get("/profile/brand-presence", authMiddleware, getBrandPresence);
 router.put(
-  "/profile/manufacturing-locations",
+  "/profile/brand-presence",
   authMiddleware,
-  updateSellerProfileManufacturingLocations
+  upload.fields([
+    { name: "projectImages", maxCount: 10 },
+    { name: "brandVideo", maxCount: 1 },
+  ]),
+  updateBrandPresence
 );
-router.get(
-  "/profile/capabilities",
-  authMiddleware,
-  getSellerProfileCapabilities
-);
-router.put(
-  "/profile/capabilities",
-  authMiddleware,
-  updateSellerProfileCapabilities
-);
-router.get(
-  "/profile/target-audience",
-  authMiddleware,
-  getSellerProfileTargetAudience
-);
-router.put(
-  "/profile/target-audience",
-  authMiddleware,
-  updateSellerProfileTargetAudience
-);
-router.get("/profile/team-size", authMiddleware, getSellerProfileTeamSize);
-router.put("/profile/team-size", authMiddleware, updateSellerProfileTeamSize);
-router.get(
-  "/profile/annual-revenue",
-  authMiddleware,
-  getSellerProfileAnnualRevenue
-);
-router.put(
-  "/profile/annual-revenue",
-  authMiddleware,
-  updateSellerProfileAnnualRevenue
-);
-router.get(
-  "/profile/minimum-order",
-  authMiddleware,
-  getSellerProfileMinimumOrder
-);
-router.put(
-  "/profile/minimum-order",
-  authMiddleware,
-  updateSellerProfileMinimumOrder
-);
-router.get("/profile/comments", authMiddleware, getSellerProfileComments);
-router.put("/profile/comments", authMiddleware, updateSellerProfileComments);
-// router.get('/profile/certificates', authMiddleware, getSellerProfileCertificates);
-// router.put('/profile/certificates', authMiddleware, updateSellerProfileCertificates);
-router.post(
-  "/profile/certificates",
-  authMiddleware,
-  upload.single("image"),
-  uploadProfileCertificate
-);
-router.get("/profile/certificates", authMiddleware, getAllProfileCertificates);
-router.delete(
-  "/profile/certificates/:id",
-  authMiddleware,
-  deleteProfileCertificate
-);
+router.delete("/profile/project-image", authMiddleware, deleteProjectImage);
+
+// Step 8: Final Review & Submit
+router.get("/profile/summary", authMiddleware, getProfileSummary);
+
+// Profile completion and approval
+router.get("/profile/completion", authMiddleware, getProfileCompletion);
+router.get("/profile/pending-steps", authMiddleware, getPendingStepNames);
+router.post("/approval", authMiddleware, requestApproval);
+
+// router.get("/profile/categories", authMiddleware, getSellerProfileCategories);
+// router.put(
+//   "/profile/categories",
+//   authMiddleware,
+//   updateSellerProfileCategories
+// );
+// router.get(
+//   "/profile/production-services",
+//   authMiddleware,
+//   getSellerProfileProductionServices
+// );
+// router.put(
+//   "/profile/production-services",
+//   authMiddleware,
+//   updateSellerProfileProductionServices
+// );
+// router.get(
+//   "/profile/production-management",
+//   authMiddleware,
+//   getSellerProfileProductionManagement
+// );
+// router.put(
+//   "/profile/production-management",
+//   authMiddleware,
+//   updateSellerProfileProductionManagement
+// );
+// router.get(
+//   "/profile/manufacturing-locations",
+//   authMiddleware,
+//   getSellerProfileManufacturingLocations
+// );
+// router.put(
+//   "/profile/manufacturing-locations",
+//   authMiddleware,
+//   updateSellerProfileManufacturingLocations
+// );
+// router.get(
+//   "/profile/capabilities",
+//   authMiddleware,
+//   getSellerProfileCapabilities
+// );
+// router.put(
+//   "/profile/capabilities",
+//   authMiddleware,
+//   updateSellerProfileCapabilities
+// );
+// router.get(
+//   "/profile/target-audience",
+//   authMiddleware,
+//   getSellerProfileTargetAudience
+// );
+// router.put(
+//   "/profile/target-audience",
+//   authMiddleware,
+//   updateSellerProfileTargetAudience
+// );
+// router.get("/profile/team-size", authMiddleware, getSellerProfileTeamSize);
+// router.put("/profile/team-size", authMiddleware, updateSellerProfileTeamSize);
+// router.get(
+//   "/profile/annual-revenue",
+//   authMiddleware,
+//   getSellerProfileAnnualRevenue
+// );
+// router.put(
+//   "/profile/annual-revenue",
+//   authMiddleware,
+//   updateSellerProfileAnnualRevenue
+// );
+// router.get(
+//   "/profile/minimum-order",
+//   authMiddleware,
+//   getSellerProfileMinimumOrder
+// );
+// router.put(
+//   "/profile/minimum-order",
+//   authMiddleware,
+//   updateSellerProfileMinimumOrder
+// );
+// router.get("/profile/comments", authMiddleware, getSellerProfileComments);
+// router.put("/profile/comments", authMiddleware, updateSellerProfileComments);
+// // router.get('/profile/certificates', authMiddleware, getSellerProfileCertificates);
+// // router.put('/profile/certificates', authMiddleware, updateSellerProfileCertificates);
+// router.post(
+//   "/profile/certificates",
+//   authMiddleware,
+//   upload.single("image"),
+//   uploadProfileCertificate
+// );
+// router.get("/profile/certificates", authMiddleware, getAllProfileCertificates);
+// router.delete(
+//   "/profile/certificates/:id",
+//   authMiddleware,
+//   deleteProfileCertificate
+// );
 router.get("/profile/completion", authMiddleware, getProfileCompletion);
 
 router.put("/approval", authMiddleware, requestApproval);

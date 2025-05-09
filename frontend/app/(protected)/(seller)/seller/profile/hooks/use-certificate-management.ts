@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { profileApi } from "@/lib/api/profile";
+import { uploadApi } from "@/lib/api";
 
 type UseCertificateManagementProps = {
   formStates: any;
@@ -44,7 +45,7 @@ export const useCertificateManagement = ({
         formData.append("expiryDate", newCertificate.expiryDate.toISOString());
       }
 
-      const response = await profileApi.uploadCertificate(formData);
+      const response = await uploadApi.uploadProfileImage(newCertificate.image);
 
       // Update certificates list
       const updatedCertificates = [
@@ -76,7 +77,7 @@ export const useCertificateManagement = ({
   const handleRemoveCertificate = async (certificateId: string) => {
     setIsSaving(true);
     try {
-      await profileApi.deleteCertificate(certificateId);
+      // await profileApi.deleteCertificate(certificateId);
 
       // Update certificates list
       const updatedCertificates = formStates.certificates.certificates.filter(

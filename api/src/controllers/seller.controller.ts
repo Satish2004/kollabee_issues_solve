@@ -1748,3 +1748,626 @@ export const requestApproval = async (req: any, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getBusinessOverview = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: {
+        businessName: true,
+        businessDescription: true,
+        businessAddress: true,
+        websiteLink: true,
+        businessTypes: true,
+        businessCategories: true,
+        businessLogo: true,
+        yearFounded: true,
+        teamSize: true,
+        annualRevenue: true,
+        languagesSpoken: true,
+        businessAttributes: true,
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Get business overview error:", error);
+    res.status(500).json({ error: "Failed to get business overview" });
+  }
+};
+
+export const updateBusinessOverview = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const {
+      businessName,
+      businessDescription,
+      businessAddress,
+      websiteLink,
+      businessTypes,
+      businessCategories,
+      yearFounded,
+      teamSize,
+      annualRevenue,
+      languagesSpoken,
+      businessAttributes,
+      role,
+    } = req.body;
+
+    // Handle logo upload if present
+    let businessLogo = undefined;
+    if (req.file) {
+      const cloudinaryResult: any = await uploadToCloudinary(
+        req.file.buffer,
+        "business-logos"
+      );
+      businessLogo = cloudinaryResult.secure_url;
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: { id: true, profileCompletion: true },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    // Check if we have valid data to mark this step as complete
+    const hasRequiredData =
+      businessName &&
+      businessDescription &&
+      businessAddress &&
+      websiteLink &&
+      businessTypes?.length > 0 &&
+      businessCategories?.length > 0 &&
+      yearFounded &&
+      teamSize &&
+      annualRevenue;
+
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = hasRequiredData
+      ? [...new Set([...currentCompletion, 4])]
+      : currentCompletion.filter((step) => step !== 4);
+
+    // Update user role if provided
+    if (role) {
+      await prisma.user.update({
+        where: { id: userId },
+        data: { role },
+      });
+    }
+
+    const updatedSeller = await prisma.seller.update({
+      where: { userId },
+      data: {
+        businessName,
+        businessDescription,
+        businessAddress,
+        websiteLink,
+        businessTypes,
+        businessCategories,
+        ...(businessLogo && { businessLogo }),
+        yearFounded,
+        teamSize,
+        annualRevenue,
+        languagesSpoken,
+        businessAttributes,
+        profileCompletion: newCompletion,
+      },
+    });
+
+    res.json(updatedSeller);
+  } catch (error) {
+    console.error("Update business overview error:", error);
+    res.status(500).json({ error: "Failed to update business overview" });
+  }
+};
+
+// Capabilities & Operations - Step 5
+export const getCapabilitiesOperations = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: {
+        servicesProvided: true,
+        minimumOrderQuantity: true,
+        lowMoqFlexibility: true,
+        productionModel: true,
+        productionCountries: true,
+        providesSamples: true,
+        sampleDispatchTime: true,
+        productionTimeline: true,
+        factoryImages: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Get capabilities & operations error:", error);
+    res.status(500).json({ error: "Failed to get capabilities & operations" });
+  }
+};
+
+export const updateCapabilitiesOperations = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const {
+      servicesProvided,
+      minimumOrderQuantity,
+      lowMoqFlexibility,
+      productionModel,
+      productionCountries,
+      providesSamples,
+      sampleDispatchTime,
+      productionTimeline,
+    } = req.body;
+
+    // Handle factory images upload if present
+    let factoryImages = undefined;
+    if (req.files && req.files.length > 0) {
+      const uploadPromises = req.files.map((file: any) =>
+        uploadToCloudinary(file.buffer, "factory-images")
+      );
+      const uploadResults = await Promise.all(uploadPromises);
+      factoryImages = uploadResults.map((result: any) => result.secure_url);
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: { id: true, profileCompletion: true, factoryImages: true },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    // Check if we have valid data to mark this step as complete
+    const hasRequiredData =
+      servicesProvided?.length > 0 && minimumOrderQuantity && productionModel;
+
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = hasRequiredData
+      ? [...new Set([...currentCompletion, 5])]
+      : currentCompletion.filter((step) => step !== 5);
+
+    // Merge existing factory images with new ones if any
+    const updatedFactoryImages = factoryImages
+      ? [...(seller.factoryImages || []), ...factoryImages].slice(0, 5) // Limit to 5 images
+      : seller.factoryImages;
+
+    const updatedSeller = await prisma.seller.update({
+      where: { userId },
+      data: {
+        servicesProvided,
+        minimumOrderQuantity,
+        lowMoqFlexibility,
+        productionModel,
+        productionCountries,
+        providesSamples,
+        sampleDispatchTime,
+        productionTimeline,
+        ...(factoryImages && { factoryImages: updatedFactoryImages }),
+        profileCompletion: newCompletion,
+      },
+    });
+
+    res.json(updatedSeller);
+  } catch (error) {
+    console.error("Update capabilities & operations error:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to update capabilities & operations" });
+  }
+};
+
+// Compliance & Credentials - Step 6
+export const getComplianceCredentials = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: {
+        businessRegistration: true,
+        certifications: true,
+        certificationTypes: true,
+        notableClients: true,
+        clientLogos: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Get compliance & credentials error:", error);
+    res.status(500).json({ error: "Failed to get compliance & credentials" });
+  }
+};
+
+export const updateComplianceCredentials = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { certificationTypes, notableClients } = req.body;
+
+    // Handle file uploads
+    const uploads: Record<string, string> = {};
+
+    if (req.files) {
+      // Business registration document
+      if (req.files.businessRegistration) {
+        const result = (await uploadToCloudinary(
+          req.files.businessRegistration[0].buffer,
+          "business-registrations"
+        )) as any;
+        uploads.businessRegistration = result.secure_url;
+      }
+
+      // Certification documents
+      if (req.files.certifications) {
+        const certUploadPromises = req.files.certifications.map((file: any) =>
+          uploadToCloudinary(file.buffer, "certifications")
+        );
+        const certResults = await Promise.all(certUploadPromises);
+        uploads.certifications = certResults
+          .map((result: any) => result.secure_url)
+          .join(","); // Convert the array to a single string
+      }
+
+      // Client logos
+      if (req.files.clientLogos) {
+        const logoUploadPromises = req.files.clientLogos.map((file: any) =>
+          uploadToCloudinary(file.buffer, "client-logos")
+        );
+        const logoResults = await Promise.all(logoUploadPromises);
+        uploads.clientLogos = logoResults
+          .map((result: any) => result.secure_url)
+          .join(","); // Convert the array to a single string
+      }
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        bussinessRegistration: true,
+        profileCompletion: true,
+        certifications: true,
+        clientLogos: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    // Check if we have valid data to mark this step as complete
+    const hasRequiredData =
+      uploads.businessRegistration || seller.bussinessRegistration;
+
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = hasRequiredData
+      ? [...new Set([...currentCompletion, 6])]
+      : currentCompletion.filter((step) => step !== 6);
+
+    // Merge existing certifications and logos with new ones if any
+    const updatedCertifications = uploads.certifications
+      ? [...(seller.certifications || []), ...uploads.certifications]
+      : seller.certifications;
+
+    const updatedClientLogos = uploads.clientLogos
+      ? [...(seller.clientLogos || []), ...uploads.clientLogos]
+      : seller.clientLogos;
+
+    const updatedSeller = await prisma.seller.update({
+      where: { userId },
+      data: {
+        ...(uploads.businessRegistration && {
+          businessRegistration: uploads.businessRegistration,
+        }),
+        certifications: {
+          connect: Array.isArray(updatedCertifications)
+            ? updatedCertifications.map((cert) =>
+                typeof cert === "string" ? { id: cert } : cert
+              )
+            : [],
+        },
+        certificationTypes,
+        notableClients,
+        clientLogos: updatedClientLogos,
+        profileCompletion: newCompletion,
+      },
+    });
+
+    res.json(updatedSeller);
+  } catch (error) {
+    console.error("Update compliance & credentials error:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to update compliance & credentials" });
+  }
+};
+
+// Brand Presence - Step 7
+export const getBrandPresence = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: {
+        projectImages: true,
+        brandVideo: true,
+        socialMediaLinks: true,
+        additionalNotes: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Get brand presence error:", error);
+    res.status(500).json({ error: "Failed to get brand presence" });
+  }
+};
+
+export const updateBrandPresence = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { socialMediaLinks, additionalNotes } = req.body;
+
+    // Handle file uploads
+    const uploads: Record<string, any> = {};
+
+    if (req.files) {
+      // Project images
+      if (req.files.projectImages) {
+        const imageUploadPromises = req.files.projectImages.map((file: any) =>
+          uploadToCloudinary(file.buffer, "project-images")
+        );
+        const imageResults = await Promise.all(imageUploadPromises);
+        uploads.projectImages = imageResults.map(
+          (result: any) => result.secure_url
+        );
+      }
+
+      // Brand video
+      if (req.files.brandVideo) {
+        const videoResult = (await uploadToCloudinary(
+          req.files.brandVideo[0].buffer,
+          "brand-videos",
+          {
+            resource_type: "video",
+          }
+        )) as any;
+        uploads.brandVideo = videoResult.secure_url;
+      }
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: {
+        id: true,
+        profileCompletion: true,
+        projectImages: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    // Check if we have valid data to mark this step as complete
+    const existingImages = seller.projectImages || [];
+    const newImages = uploads.projectImages || [];
+    const hasRequiredData = existingImages.length + newImages.length >= 2;
+
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion = hasRequiredData
+      ? [...new Set([...currentCompletion, 7])]
+      : currentCompletion.filter((step) => step !== 7);
+
+    // Merge existing project images with new ones
+    const updatedProjectImages = uploads.projectImages
+      ? [...existingImages, ...uploads.projectImages]
+      : existingImages;
+
+    const updatedSeller = await prisma.seller.update({
+      where: { userId },
+      data: {
+        projectImages: updatedProjectImages,
+        ...(uploads.brandVideo && { brandVideo: uploads.brandVideo }),
+        socialMediaLinks,
+        additionalNotes,
+        profileCompletion: newCompletion,
+      },
+    });
+
+    res.json(updatedSeller);
+  } catch (error) {
+    console.error("Update brand presence error:", error);
+    res.status(500).json({ error: "Failed to update brand presence" });
+  }
+};
+
+// Final Review & Submit - Step 8
+export const getProfileSummary = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+            phoneNumber: true,
+            country: true,
+            state: true,
+            address: true,
+            companyWebsite: true,
+          },
+        },
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    res.json(seller);
+  } catch (error) {
+    console.error("Get profile summary error:", error);
+    res.status(500).json({ error: "Failed to get profile summary" });
+  }
+};
+
+// Delete factory image
+export const deleteFactoryImage = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) {
+      return res.status(400).json({ error: "Image URL is required" });
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: { factoryImages: true },
+    });
+
+    if (!seller || !seller.factoryImages) {
+      return res.status(404).json({ error: "Seller or images not found" });
+    }
+
+    const updatedImages = seller.factoryImages.filter(
+      (url) => url !== imageUrl
+    );
+
+    await prisma.seller.update({
+      where: { userId },
+      data: { factoryImages: updatedImages },
+    });
+
+    res.json({ success: true, factoryImages: updatedImages });
+  } catch (error) {
+    console.error("Delete factory image error:", error);
+    res.status(500).json({ error: "Failed to delete factory image" });
+  }
+};
+
+// Delete project image
+export const deleteProjectImage = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) {
+      return res.status(400).json({ error: "Image URL is required" });
+    }
+
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: { projectImages: true, profileCompletion: true },
+    });
+
+    if (!seller || !seller.projectImages) {
+      return res.status(404).json({ error: "Seller or images not found" });
+    }
+
+    const updatedImages = seller.projectImages.filter(
+      (url) => url !== imageUrl
+    );
+
+    // Check if we still meet the minimum requirement of 2 images
+    const currentCompletion = seller.profileCompletion || [];
+    const newCompletion =
+      updatedImages.length >= 2
+        ? currentCompletion
+        : currentCompletion.filter((step) => step !== 7);
+
+    await prisma.seller.update({
+      where: { userId },
+      data: {
+        projectImages: updatedImages,
+        profileCompletion: newCompletion,
+      },
+    });
+
+    res.json({ success: true, projectImages: updatedImages });
+  } catch (error) {
+    console.error("Delete project image error:", error);
+    res.status(500).json({ error: "Failed to delete project image" });
+  }
+};
+
+// Get step name by number
+export const getStepName = (stepNumber: number): string => {
+  switch (stepNumber) {
+    case 4:
+      return "Business Overview";
+    case 5:
+      return "Capabilities & Operations";
+    case 6:
+      return "Compliance & Credentials";
+    case 7:
+      return "Brand Presence";
+    case 8:
+      return "Final Review & Submit";
+    default:
+      return `Step ${stepNumber}`;
+  }
+};
+
+// Helper function to get pending step names
+export const getPendingStepNames = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: { profileCompletion: true },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    // Calculate which steps are remaining
+    const allSteps = [4, 5, 6, 7, 8]; // New step numbers
+    const completedSteps = seller.profileCompletion || [];
+    const remainingSteps = allSteps.filter(
+      (step) => !completedSteps.includes(step)
+    );
+
+    // Map step numbers to names
+    const pendingStepNames = remainingSteps.map((step) => getStepName(step));
+
+    res.json(pendingStepNames);
+  } catch (error) {
+    console.error("Get pending step names error:", error);
+    res.status(500).json({ error: "Failed to get pending step names" });
+  }
+};
