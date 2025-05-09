@@ -82,7 +82,21 @@ const server = app.listen(port, () => {
 // Initialize Socket.IO and attach it to the server
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+   origin: (origin, callback) => {
+      console.log("Incoming request from:", origin);
+      const allowedOrigins = [
+        "https://kollabee-theta.vercel.app",
+        "https://kollabee-frontend.onrender.com",
+        "http://localhost:3000",
+        "http://localhost:3001",
+        // For local testing
+      ];
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
