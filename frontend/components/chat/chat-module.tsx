@@ -42,7 +42,7 @@ export default function ChatModule() {
 
   useEffect(() => {
     const socket = io(
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:2000",
+      process.env.NEXT_PUBLIC_API_URL2 || "http://localhost:2000",
       {
         transports: ["websocket"],
         withCredentials: true,
