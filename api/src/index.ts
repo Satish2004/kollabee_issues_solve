@@ -22,6 +22,7 @@ app.use(
       console.log("Incoming request from:", origin);
       const allowedOrigins = [
         "https://kollabee-theta.vercel.app",
+        "https://kollabee-frontend.onrender.com",
         "http://localhost:3000",
         "http://localhost:3001",
         // For local testing
