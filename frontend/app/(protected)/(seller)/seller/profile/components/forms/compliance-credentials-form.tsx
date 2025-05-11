@@ -3,13 +3,12 @@
 import type React from "react";
 
 import { useState, useRef } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Progress } from "@/components/ui/progress";
 import InfoButton from "@/components/ui/IButton";
 import { Upload, X, Trash2, AlertCircle, FileText, File } from "lucide-react";
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 
 const certificationOptions = [
   "ISO 9001",
@@ -32,6 +31,7 @@ const certificationOptions = [
   "SEDEX",
   "WRAP",
   "SA8000",
+  "Other",
 ];
 
 type ComplianceCredentialsFormProps = {
@@ -60,13 +60,27 @@ const ComplianceCredentialsForm = ({
   const certificationFileInputRef = useRef<HTMLInputElement>(null);
   const clientLogoFileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState<Record<string, boolean>>({});
+  const [customCertifications, setCustomCertifications] = useState<string[]>(
+    formState.customCertifications || []
+  );
 
-  const handleCertificationTypeToggle = (certType: string) => {
+  const handleCertificationTypesChange = (selectedCertifications: string[]) => {
     onChange({
       ...formState,
-      certificationTypes: formState.certificationTypes?.includes(certType)
-        ? formState.certificationTypes.filter((c: string) => c !== certType)
-        : [...(formState.certificationTypes || []), certType],
+      certificationTypes: selectedCertifications.filter(
+        (cert) => cert !== "Other"
+      ),
+      otherCertSelected: selectedCertifications.includes("Other"),
+    });
+  };
+
+  const handleCustomCertificationsChange = (
+    newCustomCertifications: string[]
+  ) => {
+    setCustomCertifications(newCustomCertifications);
+    onChange({
+      ...formState,
+      customCertifications: newCustomCertifications,
     });
   };
 
@@ -428,13 +442,13 @@ const ComplianceCredentialsForm = ({
               <span className="text-red-500 ml-0.5">*</span>
               <InfoButton text="Upload your business registration certificate or license" />
             </label>
-            <div className="flex items-start gap-4">
+            <div className="flex flex-col items-start gap-4 w-full">
               <input
                 type="file"
                 ref={businessRegFileInputRef}
                 onChange={handleBusinessRegUpload}
                 accept=".pdf,.doc,.docx,image/jpeg,image/png,image/gif,image/webp"
-                className="hidden"
+                className="hidden w-full"
               />
               {formState.businessRegPreview ? (
                 <div className="relative w-24 h-24 border rounded-md overflow-hidden flex items-center justify-center">
@@ -458,7 +472,7 @@ const ComplianceCredentialsForm = ({
               ) : (
                 <div
                   onClick={triggerBusinessRegFileInput}
-                  className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
+                  className="w-64 h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
                 >
                   {isUploading.businessReg ? (
                     <div className="flex flex-col items-center">
@@ -468,22 +482,25 @@ const ComplianceCredentialsForm = ({
                       </span>
                     </div>
                   ) : (
-                    <>
-                      <Upload className="h-8 w-8 text-gray-400" />
-                      <span className="text-xs text-gray-500 mt-1">
-                        Upload Document
-                      </span>
-                    </>
+                    <div className="">
+                      <div className=" flex items-center flex-col">
+                        <Upload className="h-8 w-8 text-gray-400" />
+                        <span className="text-xs text-gray-500 mt-1">
+                          Upload Document
+                        </span>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
-              <div className="text-sm text-gray-500">
-                <p>
-                  Business license, registration certificate, or other legal
-                  document
-                </p>
-                <p>Max size: 5MB</p>
-                <p>Formats: PDF, DOC, DOCX, JPEG, PNG</p>
+              <div className="text-sm text-gray-500 flex ">
+                <div className="">
+                  <p>
+                    Business license, registration certificate, or other legal
+                    document
+                  </p>
+                  <p>(JPEG, PNG, GIF, WEBP, max 5MB)</p>
+                </div>
               </div>
             </div>
 
@@ -508,63 +525,25 @@ const ComplianceCredentialsForm = ({
             )}
           </div>
 
-          {/* Certification Types */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Certification Types (Optional)
-              <InfoButton text="Select the certifications your business has obtained" />
-            </label>
-            <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-2">
-              {certificationOptions.map((cert) => (
-                <div key={cert} className="flex items-start space-x-2">
-                  <Checkbox
-                    id={`cert-${cert}`}
-                    checked={formState.certificationTypes?.includes(cert)}
-                    onCheckedChange={() => handleCertificationTypeToggle(cert)}
-                  />
-                  <label
-                    htmlFor={`cert-${cert}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {cert}
-                  </label>
-                </div>
-              ))}
-              <div className="flex items-center space-x-2 col-span-2 mt-2">
-                <Checkbox
-                  id="cert-other"
-                  checked={formState.otherCertSelected}
-                  onCheckedChange={(checked) => {
-                    onChange({
-                      ...formState,
-                      otherCertSelected: checked === true,
-                    });
-                  }}
-                />
-                <label
-                  htmlFor="cert-other"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Other (please specify)
-                </label>
-              </div>
-              {formState.otherCertSelected && (
-                <div className="col-span-2 mt-2">
-                  <Input
-                    placeholder="Enter other certifications"
-                    value={formState.otherCertifications || ""}
-                    onChange={(e) => {
-                      onChange({
-                        ...formState,
-                        otherCertifications: e.target.value,
-                      });
-                    }}
-                    className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Certification Types - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Certification Types"
+            placeholder="Select certifications your business has obtained"
+            options={certificationOptions}
+            selectedValues={
+              formState.otherCertSelected
+                ? [...(formState.certificationTypes || []), "Other"]
+                : formState.certificationTypes || []
+            }
+            onChange={handleCertificationTypesChange}
+            isRequired={false}
+            error={errors.certificationTypes}
+            allowCustomValues={true}
+            customValuesLabel="Add other certifications:"
+            customValueCategory="Other"
+            customValues={customCertifications}
+            onCustomValuesChange={handleCustomCertificationsChange}
+          />
 
           {/* Certification Documents */}
           <div className="space-y-3">
@@ -813,7 +792,7 @@ const ComplianceCredentialsForm = ({
                     <>
                       <Upload className="h-6 w-6 text-gray-400" />
                       <span className="text-xs text-gray-500 mt-1">
-                        Upload Logo
+                        Upload Image
                       </span>
                     </>
                   )}
@@ -850,8 +829,6 @@ const ComplianceCredentialsForm = ({
           </div>
         </div>
       </div>
-
-    
     </div>
   );
 };

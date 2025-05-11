@@ -75,14 +75,15 @@ const GoalsMetricsForm = ({
   return (
     <div className="space-y-8">
       <div className="space-y-8">
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
-            What Do You Aim to Achieve with KollaBee?
+            1. What are your main goals on KollaBee? (Choose up to 3)
           </h3>
-          <p className="text-sm text-muted-foreground">
-            [Choose up to 3 options that best describe your goals.]
+          <p className="text-sm font-futura italic">
+            Select up to 3 goals that best reflect what you're hoping to achieve
+            on the platform.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
             {objectives.map((objective) => (
               <div key={objective} className="flex items-start space-x-3">
                 <Checkbox
@@ -105,15 +106,16 @@ const GoalsMetricsForm = ({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
-            What Challenges Are You Looking to Overcome?{" "}
-            <span className="text-red-500">*</span>
+            2. What challenges are you looking to overcome? (Select all that
+            apply) <span className="text-red-500">*</span>
           </h3>
-          <p className="text-sm text-muted-foreground">
-            [Help us understand your pain points to provide better support.]
+          <p className="text-sm font-futura italic">
+            Select the most relevant challenges you face in your current
+            operations or sales strategy.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
             {challenges.map((challenge) => (
               <div key={challenge} className="flex items-start space-x-3">
                 <Checkbox
@@ -138,12 +140,12 @@ const GoalsMetricsForm = ({
 
         <div className="space-y-4">
           <h3 className="font-bold">
-            What Success Metrics Matter Most to You?{" "}
+            3. What success metrics matter most to you? (Select your top 3){" "}
             <span className="text-red-500">*</span>
           </h3>
           <p className="text-sm text-muted-foreground">
-            [Select the metrics you value the most in evaluating KollaBee's
-            impact.]
+            Select the metrics you value the most in evaluating KollaBee's
+            impact.
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {metrics.map((metric) => (
@@ -187,7 +189,24 @@ const GoalsMetricsForm = ({
               htmlFor="agreement1"
               className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              I agree to KollaBee’s Terms & Conditions and Privacy Policy.
+              I agree to KollaBee’s{" "}
+              <a
+                href="/terms-conditions"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Terms & Conditions{" "}
+              </a>{" "}
+              and{" "}
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Privacy Policy.
+              </a>
             </label>
           </div>
           <div className="flex items-start space-x-3">

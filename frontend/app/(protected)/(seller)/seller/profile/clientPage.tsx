@@ -144,7 +144,7 @@ const KollaBeeProfile = () => {
         {/* Main content area */}
         <div className="flex-1 overflow-visible">
           {/* Profile completion and updates */}
-          <div className="space-y-6 w-full bg-white">
+          <div className=" w-full bg-white">
             {/* Stepper */}
             <ProfileStepper
               steps={steps}
