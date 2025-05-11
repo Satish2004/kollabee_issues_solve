@@ -9,6 +9,8 @@ import { toast } from "sonner";
 export interface ProfileUpdateData {
   name?: string;
   fullName?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   companyName?: string;
   companyWebsite?: string;
@@ -94,10 +96,7 @@ export const profileApi = {
 
   updateBusinessInfo: async (data: any) => {
     try {
-      const response = await api.put(
-        "/seller/profile/bussinessInfo",
-        data
-      );
+      const response = await api.put("/seller/profile/bussinessInfo", data);
       toast.success("Business information updated successfully");
       return response;
     } catch (error) {
@@ -120,10 +119,7 @@ export const profileApi = {
 
   updateGoalsMetrics: async (data: any) => {
     try {
-      const response = await api.put(
-        "/seller/profile/goalsMetric",
-        data
-      );
+      const response = await api.put("/seller/profile/goalsMetric", data);
       toast.success("Goals and metrics updated successfully");
       return response;
     } catch (error) {
@@ -200,9 +196,7 @@ export const profileApi = {
   // Step 5: Capabilities & Operations
   getCapabilitiesOperations: async () => {
     try {
-      const response = await api.get(
-        "/seller/profile/capabilities-operations"
-      );
+      const response = await api.get("/seller/profile/capabilities-operations");
       return response;
     } catch (error) {
       console.error("Error fetching capabilities & operations:", error);
@@ -267,9 +261,7 @@ export const profileApi = {
   // Step 6: Compliance & Credentials
   getComplianceCredentials: async () => {
     try {
-      const response = await api.get(
-        "/seller/profile/compliance-credentials"
-      );
+      const response = await api.get("/seller/profile/compliance-credentials");
       return response;
     } catch (error) {
       console.error("Error fetching compliance & credentials:", error);
@@ -439,15 +431,11 @@ export const profileApi = {
       formData.append("file", file);
       formData.append("field", field);
 
-      const response = await api.post(
-        "/seller/profile/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await api.post("/seller/profile/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       return response;
     } catch (error) {

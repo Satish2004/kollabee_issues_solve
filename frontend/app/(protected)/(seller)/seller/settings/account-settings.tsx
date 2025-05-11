@@ -1,9 +1,11 @@
-"use client"
-import React, { useState } from 'react';
-import { Camera, Trash2 } from 'lucide-react';
+"use client";
+import React, { useState } from "react";
+import { Camera, Trash2 } from "lucide-react";
 
 interface AccountFormData {
   fullName: string;
+  firstName: string;
+  lastName: string;
   companyEmail: string;
   officeAddress: string;
   phoneCountry: string;
@@ -19,41 +21,50 @@ interface AccountSettingsProps {
   initialData?: Partial<AccountFormData>;
 }
 
-const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }) => {
+const AccountSettings: React.FC<AccountSettingsProps> = ({
+  onSave,
+  initialData,
+}) => {
   const [formData, setFormData] = useState<AccountFormData>({
-    fullName: initialData?.fullName || '',
-    companyEmail: initialData?.companyEmail || '',
-    officeAddress: initialData?.officeAddress || '',
-    phoneCountry: initialData?.phoneCountry || 'US',
-    phoneNumber: initialData?.phoneNumber || '',
-    country: initialData?.country || '',
-    state: initialData?.state || '',
-    zipCode: initialData?.zipCode || '',
+    fullName: initialData?.fullName || "",
+    firstName: initialData?.firstName || "",
+    lastName: initialData?.lastName || "",
+    companyEmail: initialData?.companyEmail || "",
+    officeAddress: initialData?.officeAddress || "",
+    phoneCountry: initialData?.phoneCountry || "US",
+    phoneNumber: initialData?.phoneNumber || "",
+    country: initialData?.country || "",
+    state: initialData?.state || "",
+    zipCode: initialData?.zipCode || "",
   });
 
-  const [profileImageUrl, setProfileImageUrl] = useState<string>('/api/placeholder/200/200');
-  const [errors, setErrors] = useState<Partial<Record<keyof AccountFormData, string>>>({});
+  const [profileImageUrl, setProfileImageUrl] = useState<string>(
+    "/api/placeholder/200/200"
+  );
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof AccountFormData, string>>
+  >({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
     // Clear error when user starts typing
     if (errors[name as keyof AccountFormData]) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        [name]: ''
+        [name]: "",
       }));
     }
   };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -62,33 +73,33 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
     if (file) {
       // Validate file size (2MB)
       if (file.size > 2 * 1024 * 1024) {
-        setErrors(prev => ({
+        setErrors((prev) => ({
           ...prev,
-          profileImage: 'Image size should be less than 2MB'
+          profileImage: "Image size should be less than 2MB",
         }));
         return;
       }
 
       // Validate file type
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-        setErrors(prev => ({
+      if (!["image/jpeg", "image/png"].includes(file.type)) {
+        setErrors((prev) => ({
           ...prev,
-          profileImage: 'Only JPEG and PNG files are allowed'
+          profileImage: "Only JPEG and PNG files are allowed",
         }));
         return;
       }
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        profileImage: file
+        profileImage: file,
       }));
       setProfileImageUrl(URL.createObjectURL(file));
     }
   };
 
   const handleDeleteImage = () => {
-    setProfileImageUrl('/api/placeholder/200/200');
-    setFormData(prev => {
+    setProfileImageUrl("/api/placeholder/200/200");
+    setFormData((prev) => {
       const newData = { ...prev };
       delete newData.profileImage;
       return newData;
@@ -99,35 +110,35 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
     const newErrors: Partial<Record<keyof AccountFormData, string>> = {};
 
     if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
+      newErrors.fullName = "Full name is required";
     }
 
     if (!formData.companyEmail.trim()) {
-      newErrors.companyEmail = 'Company email is required';
+      newErrors.companyEmail = "Company email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.companyEmail)) {
-      newErrors.companyEmail = 'Invalid email format';
+      newErrors.companyEmail = "Invalid email format";
     }
 
     if (!formData.officeAddress.trim()) {
-      newErrors.officeAddress = 'Office address is required';
+      newErrors.officeAddress = "Office address is required";
     }
 
     if (!formData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
+      newErrors.phoneNumber = "Phone number is required";
     } else if (!/^\d{10}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Invalid phone number format';
+      newErrors.phoneNumber = "Invalid phone number format";
     }
 
     if (!formData.country) {
-      newErrors.country = 'Country is required';
+      newErrors.country = "Country is required";
     }
 
     if (!formData.state) {
-      newErrors.state = 'State is required';
+      newErrors.state = "State is required";
     }
 
     if (!formData.zipCode.trim()) {
-      newErrors.zipCode = 'Zip code is required';
+      newErrors.zipCode = "Zip code is required";
     }
 
     setErrors(newErrors);
@@ -153,7 +164,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
                 alt="Profile"
                 className="w-48 h-48 rounded-full object-cover"
               />
-              <label 
+              <label
                 htmlFor="profile-upload"
                 className="absolute bottom-2 right-2 bg-white rounded-full p-2 shadow-lg cursor-pointer hover:bg-gray-50"
               >
@@ -168,7 +179,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
               />
             </div>
             <div className="text-center text-sm text-gray-500">
-              Format: PNG, JPEG    Size: 2MB
+              Format: PNG, JPEG Size: 2MB
             </div>
             {errors.profileImage && (
               <div className="text-red-500 text-sm">{errors.profileImage}</div>
@@ -195,19 +206,37 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
         <div className="col-span-2 space-y-6">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Full Name*
+              First Name*
             </label>
             <input
               type="text"
               name="fullName"
-              value={formData.fullName}
+              value={formData.firstName}
               onChange={handleInputChange}
               placeholder="Enter your Full Name"
               className={`w-full px-3 py-2 border rounded-lg ${
-                errors.fullName ? 'border-red-500' : 'border-gray-300'
+                errors.firstName ? "border-red-500" : "border-gray-300"
               }`}
             />
-            {errors.fullName && (
+            {errors.firstName && (
+              <div className="text-red-500 text-sm mt-1">{errors.fullName}</div>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Last Name*
+            </label>
+            <input
+              type="text"
+              name="fullName"
+              value={formData.firstName}
+              onChange={handleInputChange}
+              placeholder="Enter your Full Name"
+              className={`w-full px-3 py-2 border rounded-lg ${
+                errors.firstName ? "border-red-500" : "border-gray-300"
+              }`}
+            />
+            {errors.firstName && (
               <div className="text-red-500 text-sm mt-1">{errors.fullName}</div>
             )}
           </div>
@@ -223,11 +252,13 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
               onChange={handleInputChange}
               placeholder="Enter your Company Email Address"
               className={`w-full px-3 py-2 border rounded-lg ${
-                errors.companyEmail ? 'border-red-500' : 'border-gray-300'
+                errors.companyEmail ? "border-red-500" : "border-gray-300"
               }`}
             />
             {errors.companyEmail && (
-              <div className="text-red-500 text-sm mt-1">{errors.companyEmail}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {errors.companyEmail}
+              </div>
             )}
           </div>
 
@@ -242,11 +273,13 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
               onChange={handleInputChange}
               placeholder="Create your Office Address"
               className={`w-full px-3 py-2 border rounded-lg ${
-                errors.officeAddress ? 'border-red-500' : 'border-gray-300'
+                errors.officeAddress ? "border-red-500" : "border-gray-300"
               }`}
             />
             {errors.officeAddress && (
-              <div className="text-red-500 text-sm mt-1">{errors.officeAddress}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {errors.officeAddress}
+              </div>
             )}
           </div>
 
@@ -274,12 +307,14 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
                 onChange={handleInputChange}
                 placeholder="1234567890"
                 className={`w-full px-3 py-2 border rounded-r-lg ${
-                  errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
+                  errors.phoneNumber ? "border-red-500" : "border-gray-300"
                 }`}
               />
             </div>
             {errors.phoneNumber && (
-              <div className="text-red-500 text-sm mt-1">{errors.phoneNumber}</div>
+              <div className="text-red-500 text-sm mt-1">
+                {errors.phoneNumber}
+              </div>
             )}
           </div>
 
@@ -292,7 +327,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
               value={formData.country}
               onChange={handleSelectChange}
               className={`w-full px-3 py-2 border rounded-lg ${
-                errors.country ? 'border-red-500' : 'border-gray-300'
+                errors.country ? "border-red-500" : "border-gray-300"
               }`}
             >
               <option value="">Select Country</option>
@@ -317,11 +352,11 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
                 value={formData.state}
                 onChange={handleSelectChange}
                 className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.state ? 'border-red-500' : 'border-gray-300'
+                  errors.state ? "border-red-500" : "border-gray-300"
                 }`}
               >
                 <option value="">Select State</option>
-                {formData.country === 'IN' && (
+                {formData.country === "IN" && (
                   <>
                     <option value="DL">Delhi</option>
                     <option value="MH">Maharashtra</option>
@@ -329,7 +364,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
                     <option value="TN">Tamil Nadu</option>
                   </>
                 )}
-                {formData.country === 'US' && (
+                {formData.country === "US" && (
                   <>
                     <option value="CA">California</option>
                     <option value="NY">New York</option>
@@ -353,11 +388,13 @@ const AccountSettings: React.FC<AccountSettingsProps> = ({ onSave, initialData }
                 onChange={handleInputChange}
                 placeholder="Enter Zip Code"
                 className={`w-full px-3 py-2 border rounded-lg ${
-                  errors.zipCode ? 'border-red-500' : 'border-gray-300'
+                  errors.zipCode ? "border-red-500" : "border-gray-300"
                 }`}
               />
               {errors.zipCode && (
-                <div className="text-red-500 text-sm mt-1">{errors.zipCode}</div>
+                <div className="text-red-500 text-sm mt-1">
+                  {errors.zipCode}
+                </div>
               )}
             </div>
           </div>
