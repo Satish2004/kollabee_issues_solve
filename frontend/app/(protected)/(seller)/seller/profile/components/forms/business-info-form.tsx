@@ -1,13 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { CategoryEnum, BusinessType } from "@/types/api"
-import InfoButton from "@/components/ui/IButton"
-import { Textarea } from "@/components/ui/textarea"
-
-
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { CategoryEnum, BusinessType } from "@/types/api";
+import InfoButton from "@/components/ui/IButton";
+import { Textarea } from "@/components/ui/textarea";
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -15,7 +14,7 @@ const businessTypes = Object.values(BusinessType).map((type) => ({
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" "),
-}))
+}));
 
 const businessCategories = Object.values(CategoryEnum).map((category) => ({
   value: category,
@@ -23,17 +22,23 @@ const businessCategories = Object.values(CategoryEnum).map((category) => ({
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" "),
-}))
+}));
 
 type BusinessInfoFormProps = {
-  formState: any
-  onChange: (newValue: any) => void
-  onSave: () => void
-  hasChanges: boolean
-  isSaving: boolean
-}
+  formState: any;
+  onChange: (newValue: any) => void;
+  onSave: () => void;
+  hasChanges: boolean;
+  isSaving: boolean;
+};
 
-const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }: BusinessInfoFormProps) => {
+const BusinessInfoForm = ({
+  formState,
+  onChange,
+  onSave,
+  hasChanges,
+  isSaving,
+}: BusinessInfoFormProps) => {
   const [errors, setErrors] = useState({
     businessName: "",
     businessDescription: "",
@@ -41,7 +46,19 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
     businessAddress: "",
     businessTypes: "",
     businessCategories: "",
-  })
+  });
+
+  const [customCategories, setCustomCategories] = useState<string[]>(
+    formState.customCategories || []
+  );
+
+  const handleCustomCategoriesChange = (newCustomCategories: string[]) => {
+    setCustomCategories(newCustomCategories);
+    onChange({
+      ...formState,
+      customCategories: newCustomCategories,
+    });
+  };
 
   const handleBusinessTypeClick = (type: BusinessType) => {
     onChange({
@@ -49,17 +66,41 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
       businessTypes: formState.businessTypes?.includes(type)
         ? formState.businessTypes.filter((t: BusinessType) => t !== type)
         : [...(formState.businessTypes || []), type],
-    })
-  }
+    });
+  };
 
   const handleBusinessCategoryClick = (category: CategoryEnum) => {
     onChange({
       ...formState,
       businessCategories: formState.businessCategories?.includes(category)
-        ? formState.businessCategories.filter((c: CategoryEnum) => c !== category)
+        ? formState.businessCategories.filter(
+            (c: CategoryEnum) => c !== category
+          )
         : [...(formState.businessCategories || []), category],
-    })
-  }
+    });
+  };
+
+  const businessCategoryOptions = businessCategories.map(({ label }) => label);
+
+  const getSelectedCategoryLabels = () => {
+    return (formState.businessCategories || []).map((value: CategoryEnum) => {
+      const category = businessCategories.find((c) => c.value === value);
+      return category ? category.label : value;
+    });
+  };
+
+  const handleBusinessCategoryChange = (selectedCategories: string[]) => {
+    // Convert the display labels back to enum values
+    const enumValues = selectedCategories.map((label) => {
+      const category = businessCategories.find((c) => c.label === label);
+      return category ? category.value : label;
+    });
+
+    onChange({
+      ...formState,
+      businessCategories: enumValues,
+    });
+  };
 
   return (
     <div className="space-y-8">
@@ -81,7 +122,7 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
                 onChange({
                   ...formState,
                   businessName: e.target.value,
-                })
+                });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -103,7 +144,7 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
                 onChange({
                   ...formState,
                   businessDescription: e.target.value,
-                })
+                });
               }}
               className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -125,7 +166,7 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
                 onChange({
                   ...formState,
                   websiteLink: e.target.value,
-                })
+                });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -144,7 +185,11 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
               {businessTypes.map(({ value, label }) => (
                 <Button
                   key={value}
-                  variant={formState.businessTypes?.includes(value) ? "default" : "outline"}
+                  variant={
+                    formState.businessTypes?.includes(value)
+                      ? "default"
+                      : "outline"
+                  }
                   onClick={() => handleBusinessTypeClick(value)}
                   className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] placeholder:text-black/50 ${
                     formState.businessTypes?.includes(value)
@@ -177,43 +222,30 @@ const BusinessInfoForm = ({ formState, onChange, onSave, hasChanges, isSaving }:
                 onChange({
                   ...formState,
                   businessAddress: e.target.value,
-                })
+                });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Category<span className="text-red-500 ml-0.5">*</span>
-            </label>
-            <p className="text-sm text-muted-foreground">
-              Choose one or more categories your business primarily operates in.
-            </p>
-            <div className="flex flex-wrap gap-1 sm:gap-2">
-              {businessCategories.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={formState.businessCategories?.includes(value) ? "default" : "outline"}
-                  onClick={() => handleBusinessCategoryClick(value)}
-                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5]  placeholder:text-black/50 ${
-                    formState.businessCategories?.includes(value)
-                      ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-                      : "border-[#e5e5e5]"
-                  }`}
-                  size="sm"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
+          <MultiSelectDropdown
+            label="Business Category"
+            placeholder="Select one or more business categories"
+            options={businessCategoryOptions}
+            selectedValues={getSelectedCategoryLabels()}
+            onChange={handleBusinessCategoryChange}
+            isRequired={true}
+            error={errors.businessCategories}
+            allowCustomValues={true}
+            customValuesLabel="Add custom business categories:"
+            customValueCategory="Other"
+            customValues={customCategories}
+            onCustomValuesChange={handleCustomCategoriesChange}
+          />
         </div>
       </div>
-
-    
     </div>
-  )
-}
+  );
+};
 
-export default BusinessInfoForm
+export default BusinessInfoForm;

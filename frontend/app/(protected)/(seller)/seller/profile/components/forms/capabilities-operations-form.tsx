@@ -5,13 +5,12 @@ import type React from "react";
 import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Progress } from "@/components/ui/progress";
 import InfoButton from "@/components/ui/IButton";
 import { Upload, X, Trash2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 
 const servicesOptions = [
   "White Label Products",
@@ -30,6 +29,7 @@ const servicesOptions = [
   "Consultation Services",
   "Sustainability Consulting",
   "Product Photography & Videography",
+  "Other",
 ];
 
 const productionModelOptions = [
@@ -59,6 +59,7 @@ const countryOptions = [
   "Turkey",
   "Switzerland",
   "Taiwan",
+  "Other",
 ];
 
 type CapabilitiesOperationsFormProps = {
@@ -85,22 +86,58 @@ const CapabilitiesOperationsForm = ({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [customServices, setCustomServices] = useState<string[]>(
+    formState.customServices || []
+  );
+  const [customCountries, setCustomCountries] = useState<string[]>(
+    formState.customCountries || []
+  );
 
-  const handleServiceToggle = (service: string) => {
+  const handleServicesChange = (selectedServices: string[]) => {
     onChange({
       ...formState,
-      servicesProvided: formState.servicesProvided?.includes(service)
-        ? formState.servicesProvided.filter((s: string) => s !== service)
-        : [...(formState.servicesProvided || []), service],
+      servicesProvided: selectedServices.filter(
+        (service) => service !== "Other"
+      ),
+      otherServiceSelected: selectedServices.includes("Other"),
     });
   };
 
-  const handleCountryToggle = (country: string) => {
+  const handleCustomServicesChange = (newCustomServices: string[]) => {
+    setCustomServices(newCustomServices);
     onChange({
       ...formState,
-      productionCountries: formState.productionCountries?.includes(country)
-        ? formState.productionCountries.filter((c: string) => c !== country)
-        : [...(formState.productionCountries || []), country],
+      customServices: newCustomServices,
+    });
+  };
+
+  const handleProductionModelChange = (selectedModels: string[]) => {
+    // For radio-like behavior, we only keep the last selected value
+    const productionModel =
+      selectedModels.length > 0
+        ? selectedModels[selectedModels.length - 1]
+        : "";
+    onChange({
+      ...formState,
+      productionModel,
+    });
+  };
+
+  const handleCountriesChange = (selectedCountries: string[]) => {
+    onChange({
+      ...formState,
+      productionCountries: selectedCountries.filter(
+        (country) => country !== "Other"
+      ),
+      otherCountrySelected: selectedCountries.includes("Other"),
+    });
+  };
+
+  const handleCustomCountriesChange = (newCustomCountries: string[]) => {
+    setCustomCountries(newCustomCountries);
+    onChange({
+      ...formState,
+      customCountries: newCustomCountries,
     });
   };
 
@@ -214,79 +251,68 @@ const CapabilitiesOperationsForm = ({
     });
   };
 
-  const deleteExistingFactoryImage = (imageUrl: string, index: number) => {
-    onDeleteImage(imageUrl, "factoryImages");
+  // Update the deleteExistingFactoryImage function to properly call the API
+  const deleteExistingFactoryImage = async (
+    imageUrl: string,
+    index: number
+  ) => {
+    if (typeof imageUrl !== "string") {
+      console.error("Invalid imageUrl:", imageUrl);
+      setErrors({
+        ...errors,
+        factoryImages: "Invalid image URL. Cannot delete image.",
+      });
+      return;
+    }
 
-    const updatedImages = [...(formState.factoryImages || [])];
-    updatedImages.splice(index, 1);
+    try {
+      console.log("Deleting factory image:", imageUrl);
 
-    onChange({
-      ...formState,
-      factoryImages: updatedImages,
-    });
+      // Call the API to delete the image
+      await onDeleteImage(imageUrl, "factoryImages");
+
+      // Update the UI after successful deletion
+      const updatedImages = [...(formState.factoryImages || [])];
+      updatedImages.splice(index, 1);
+
+      onChange({
+        ...formState,
+        factoryImages: updatedImages,
+      });
+
+      toast.success("Factory image deleted successfully");
+    } catch (error) {
+      console.error("Error deleting factory image:", error);
+      setErrors({
+        ...errors,
+        factoryImages: "Failed to delete factory image. Please try again.",
+      });
+    }
   };
 
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
-          {/* Services Provided */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Services Provided<span className="text-red-500 ml-0.5">*</span>
-              <InfoButton text="Select the services your business offers to clients" />
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {servicesOptions.map((service) => (
-                <div key={service} className="flex items-start space-x-2">
-                  <Checkbox
-                    id={`service-${service}`}
-                    checked={formState.servicesProvided?.includes(service)}
-                    onCheckedChange={() => handleServiceToggle(service)}
-                  />
-                  <label
-                    htmlFor={`service-${service}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {service}
-                  </label>
-                </div>
-              ))}
-              <div className="flex items-center space-x-2 col-span-2 mt-2">
-                <Checkbox
-                  id="service-other"
-                  checked={formState.otherServiceSelected}
-                  onCheckedChange={(checked) => {
-                    onChange({
-                      ...formState,
-                      otherServiceSelected: checked === true,
-                    });
-                  }}
-                />
-                <label
-                  htmlFor="service-other"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Other (please specify)
-                </label>
-              </div>
-              {formState.otherServiceSelected && (
-                <div className="col-span-2 mt-2">
-                  <Input
-                    placeholder="Enter other services"
-                    value={formState.otherServices || ""}
-                    onChange={(e) => {
-                      onChange({
-                        ...formState,
-                        otherServices: e.target.value,
-                      });
-                    }}
-                    className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Services Provided - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Services Provided"
+            placeholder="Select services you provide"
+            options={servicesOptions}
+            selectedValues={
+              formState.otherServiceSelected
+                ? [...(formState.servicesProvided || []), "Other"]
+                : formState.servicesProvided || []
+            }
+            onChange={handleServicesChange}
+            isRequired={true}
+            error={errors.servicesProvided}
+            allowCustomValues={true}
+            customValuesLabel="Add other services:"
+            customValueCategory="Other"
+            customValues={customServices}
+            onCustomValuesChange={handleCustomServicesChange}
+          />
 
           {/* Minimum Order Quantity (MOQ) */}
           <div className="space-y-2">
@@ -323,6 +349,7 @@ const CapabilitiesOperationsForm = ({
                     lowMoqFlexibility: checked,
                   });
                 }}
+                className="data-[state=checked]:bg-[#a11770]"
               />
             </div>
             <p className="text-sm text-gray-500 ml-1">
@@ -330,98 +357,40 @@ const CapabilitiesOperationsForm = ({
             </p>
           </div>
 
-          {/* Production Model */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Production Model<span className="text-red-500 ml-0.5">*</span>
-              <InfoButton text="Select how your production is managed" />
-            </label>
-            <RadioGroup
-              value={formState.productionModel || ""}
-              onValueChange={(value) => {
-                onChange({
-                  ...formState,
-                  productionModel: value,
-                });
-              }}
-              className="space-y-2"
-            >
-              {productionModelOptions.map((option) => (
-                <div key={option} className="flex items-center space-x-2">
-                  <RadioGroupItem
-                    value={option}
-                    id={`production-model-${option}`}
-                  />
-                  <Label
-                    htmlFor={`production-model-${option}`}
-                    className="text-sm"
-                  >
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+          {/* Production Model - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Production Model"
+            placeholder="Select your production model"
+            options={productionModelOptions}
+            selectedValues={
+              formState.productionModel ? [formState.productionModel] : []
+            }
+            onChange={handleProductionModelChange}
+            isRequired={true}
+            error={errors.productionModel}
+          />
         </div>
 
         <div className="space-y-6">
-          {/* Production Countries */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Production Countries
-              <InfoButton text="Select the countries where your production takes place" />
-            </label>
-            <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto pr-2">
-              {countryOptions.map((country) => (
-                <div key={country} className="flex items-start space-x-2">
-                  <Checkbox
-                    id={`country-${country}`}
-                    checked={formState.productionCountries?.includes(country)}
-                    onCheckedChange={() => handleCountryToggle(country)}
-                  />
-                  <label
-                    htmlFor={`country-${country}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {country}
-                  </label>
-                </div>
-              ))}
-              <div className="flex items-center space-x-2 col-span-2 mt-2">
-                <Checkbox
-                  id="country-other"
-                  checked={formState.otherCountrySelected}
-                  onCheckedChange={(checked) => {
-                    onChange({
-                      ...formState,
-                      otherCountrySelected: checked === true,
-                    });
-                  }}
-                />
-                <label
-                  htmlFor="country-other"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Other (please specify)
-                </label>
-              </div>
-              {formState.otherCountrySelected && (
-                <div className="col-span-2 mt-2">
-                  <Input
-                    placeholder="Enter other countries"
-                    value={formState.otherCountries || ""}
-                    onChange={(e) => {
-                      onChange({
-                        ...formState,
-                        otherCountries: e.target.value,
-                      });
-                    }}
-                    className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Production Countries - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Production Countries"
+            placeholder="Select countries where production takes place"
+            options={countryOptions}
+            selectedValues={
+              formState.otherCountrySelected
+                ? [...(formState.productionCountries || []), "Other"]
+                : formState.productionCountries || []
+            }
+            onChange={handleCountriesChange}
+            isRequired={false}
+            error={errors.productionCountries}
+            allowCustomValues={true}
+            customValuesLabel="Add other countries:"
+            customValueCategory="Other"
+            customValues={customCountries}
+            onCustomValuesChange={handleCustomCountriesChange}
+          />
 
           {/* Sample & Production Timelines */}
           <div className="space-y-3">
@@ -438,6 +407,7 @@ const CapabilitiesOperationsForm = ({
                     providesSamples: checked,
                   });
                 }}
+                className="data-[state=checked]:bg-[#a11770]"
               />
             </div>
 
@@ -602,7 +572,7 @@ const CapabilitiesOperationsForm = ({
         </div>
       </div>
 
-    
+     
     </div>
   );
 };

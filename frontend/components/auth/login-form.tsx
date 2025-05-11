@@ -138,8 +138,8 @@ export function LoginForm({
             {!isAdmin && (
               <>
                 <div className="flex flex-col space-y-2">
-                  <AppleLogin role={googleLoginRole || "BUYER"} />
                   <GoogleLoginButton role={googleLoginRole || "BUYER"} />
+                  <AppleLogin role={googleLoginRole || "BUYER"} />
                 </div>
                 <div className="relative my-4">
                   <Separator />
