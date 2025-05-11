@@ -85,9 +85,10 @@ export default function SignupBuyerPage() {
 
     setGenerateOTPLoading(true);
     try {
-      await authApi.generateOTP(formData.email);
+      setCountdown(35);
       setShowOTP(true);
-      setCountdown(30);
+      await authApi.generateOTP(formData.email);
+
       setIsResendDisabled(true);
       toast.success("OTP sent successfully");
     } catch (error: any) {
@@ -283,7 +284,7 @@ export default function SignupBuyerPage() {
         </div>
       )}
     >
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-pink-50 to-orange-50 p-10">
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-pink-50 to-orange-50 p-4 md:p-10">
         <div className="bg-white rounded-xl shadow-sm w-full min-h-[calc(100vh-5rem)] p-8">
           <div className="max-w-[1000px] mx-auto">
             <div className="space-y-8 mb-8">
@@ -356,6 +357,7 @@ export default function SignupBuyerPage() {
           onResend={handleResendOTP}
           isResendDisabled={isResendDisabled}
           countdown={countdown}
+          setCountdown={setCountdown}
           isVerifying={verifyOTPLoading}
           error={otpError}
         />

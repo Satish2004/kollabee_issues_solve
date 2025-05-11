@@ -31,7 +31,7 @@ const ProfileStepper = ({
   return (
     <div className="flex justify-center w-full">
       <div
-        className="overflow-x-auto max-w-4xl w-full pb-4 relative custom-scrollbar"
+        className="overflow-x-auto max-w-4xl w-full pb-0 relative custom-scrollbar"
         ref={stepperContainerRef}
       >
         <div className="flex justify-center min-w-max">

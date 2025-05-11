@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Circle, ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import InfoButton from "../../../../../components/ui/IButton";
+import InfoButton from "@/components/ui/IButton";
 import {
   Select,
   SelectTrigger,
@@ -18,6 +18,7 @@ import {
   getCountryCode,
   getSpecialCaseCountryCode,
 } from "@/components/country-utils";
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 
 interface SignupFormProps {
   formData: {
@@ -268,6 +269,8 @@ export function SignupForm({
     role?: string;
   }>({});
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [customRole, setCustomRole] = useState<string>("");
+  const [customRoles, setCustomRoles] = useState<string[]>([]);
 
   const [search, setSearch] = useState("");
   const [filteredCountries, setFilteredCountries] = useState(countries);
@@ -406,6 +409,36 @@ export function SignupForm({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showCountryDropdown]);
+
+  // Handle role selection with MultiSelectDropdown
+  const handleRoleChange = (selectedRoles: string[]) => {
+    // Since we only want a single role, take the last selected one
+    const selectedRole =
+      selectedRoles.length > 0 ? selectedRoles[selectedRoles.length - 1] : "";
+
+    setFormData({
+      ...formData,
+      role: selectedRole,
+    });
+
+    // Clear role error if a role is selected
+    if (selectedRole) {
+      setErrors({ ...errors, role: undefined });
+    }
+  };
+
+  const handleCustomRoleChange = (newCustomRoles: string[]) => {
+    setCustomRoles(newCustomRoles);
+
+    // If there are custom roles, set the first one as the selected role
+    if (newCustomRoles.length > 0) {
+      setFormData({
+        ...formData,
+        role: newCustomRoles[0],
+      });
+      setErrors({ ...errors, role: undefined });
+    }
+  };
 
   return (
     <div className="space-y-8 font-futura font-normal">
@@ -552,31 +585,30 @@ export function SignupForm({
               )}
             </div>
           </div>
+
+          {/* Role Selection - Using MultiSelectDropdown */}
           <div className="space-y-2">
-            <Label className="font-futura font-normal">
+            {/* <Label className="font-futura font-normal">
               Describe your Role within the Company
               <span className="text-destructive">*</span>
-            </Label>
-            <div className="flex flex-wrap gap-1 sm:gap-2">
-              {companyRoles.map((role) => (
-                <Button
-                  key={role}
-                  variant={formData.role === role ? "default" : "outline"}
-                  className={`h-8 text-[10px] sm:text-xs font-normal justify-start px-1 sm:px-2 w-fit rounded-[6px] border ${
-                    formData.role === role
-                      ? "border-[#9e1171] border text-[#9e1171]"
-                      : "border-[#e5e5e5]"
-                  }`}
-                  onClick={() => setFormData({ ...formData, role: role })}
-                >
-                  {role}
-                </Button>
-              ))}
-            </div>
-            {errors.role && (
-              <p className="text-sm text-red-500 mt-1">{errors.role}</p>
-            )}
+            </Label> */}
+            <MultiSelectDropdown
+              label=" Describe your Role within the Company"
+              placeholder="Select your role"
+              options={companyRoles}
+              selectedValues={formData.role ? [formData.role] : []}
+              onChange={handleRoleChange}
+              isRequired={true}
+              error={errors.role}
+              allowCustomValues={true}
+              customValuesLabel="Add your specific role:"
+              customValueCategory="Other"
+              customValues={customRoles}
+              onCustomValuesChange={handleCustomRoleChange}
+              className="mt-0"
+            />
           </div>
+
           <div className="space-y-4"></div>
         </div>
 
@@ -601,7 +633,7 @@ export function SignupForm({
               <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
             )}
           </div>
-          <div className="space-y-14">
+          <div className="space-y-4 md:space-y-10">
             <div className="space-y-2 relative">
               <Label className="font-futura font-normal">
                 Confirm Password<span className="text-destructive">*</span>
@@ -629,88 +661,101 @@ export function SignupForm({
               )}
             </div>
 
-            <div className="flex flex-col md:flex-row items-start md:items-center gap-2">
-              <Select
-                value={formData.countryCode}
-                onValueChange={(value) => {
-                  setFormData({
-                    ...formData,
-                    countryCode: value,
-                    country: countries.find((c) => c.code === value)?.name,
-                  });
-                  setSearch("");
-                  setIsSelecting(false);
-                }}
-                onOpenChange={setIsSelecting}
-              >
-                <SelectTrigger className="w-[100px] h-10 rounded-l-md bg-white border border-gray-300 px-3">
-                  <SelectValue placeholder="🌍 +1">
-                    <ReactCountryFlag
-                      countryCode={getCountryCode(formData.countryCode || "+1")}
-                      svg
-                      style={{
-                        width: "1em",
-                        height: "1em",
-                        marginRight: "0.5em",
-                      }}
-                      title={
-                        countries.find((c) => c.code === formData.countryCode)
-                          ?.name || "India"
-                      }
-                    />
-                    {formData.countryCode || "+91"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2 bg-white">
-                  {isSelecting && (
-                    <input
-                      autoFocus
-                      type="text"
-                      placeholder="Search country..."
-                      className="w-full p-2 border border-gray-300 rounded-md mb-2"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                  )}
-                  {filteredCountries.length > 0 ? (
-                    filteredCountries.map((country) => (
-                      <SelectItem key={country.name} value={country.code}>
-                        <ReactCountryFlag
-                          countryCode={getSpecialCaseCountryCode(
-                            country.code,
-                            country.name
-                          )}
-                          svg
-                          style={{
-                            width: "1em",
-                            height: "1em",
-                            marginRight: "0.5em",
-                          }}
-                          title={country.name}
-                        />
-                        {country.name} ({country.code})
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm p-2">
-                      No countries found
-                    </p>
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col items-start  gap-2">
+              <Label className="font-futura font-normal">
+                Phone Number<span className="text-destructive">*</span>
+              </Label>
+              <div className="w-full flex">
+                {/* Country Code Select */}
+                <Select
+                  value={formData.countryCode}
+                  onValueChange={(value) => {
+                    setFormData({
+                      ...formData,
+                      countryCode: value,
+                      country: countries.find((c) => c.code === value)?.name,
+                    });
+                    setSearch("");
+                    setIsSelecting(false);
+                  }}
+                  onOpenChange={setIsSelecting}
+                >
+                  <SelectTrigger className="w-[100px] h-10 border-r-0 rounded-r-none bg-white border border-gray-300 px-3 flex items-center">
+                    <SelectValue placeholder="🌍 +1">
+                      <ReactCountryFlag
+                        countryCode={getCountryCode(
+                          formData.countryCode || "+1"
+                        )}
+                        svg
+                        style={{
+                          width: "1em",
+                          height: "1em",
+                          marginRight: "0.5em",
+                        }}
+                        title={
+                          countries.find((c) => c.code === formData.countryCode)
+                            ?.name || "India"
+                        }
+                      />
+                      {formData.countryCode || "+91"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2 bg-white">
+                    {isSelecting && (
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Search country..."
+                        className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                      />
+                    )}
+                    {filteredCountries.length > 0 ? (
+                      filteredCountries.map((country) => (
+                        <SelectItem key={country.name} value={country.code}>
+                          <ReactCountryFlag
+                            countryCode={getSpecialCaseCountryCode(
+                              country.code,
+                              country.name
+                            )}
+                            svg
+                            style={{
+                              width: "1em",
+                              height: "1em",
+                              marginRight: "0.5em",
+                            }}
+                            title={country.name}
+                          />
+                          {country.name} ({country.code})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm p-2">
+                        No countries found
+                      </p>
+                    )}
+                  </SelectContent>
+                </Select>
 
-              <Input
-                placeholder="Enter your Phone Number"
-                value={formData.phone}
-                onChange={(e) => {
-                  setFormData({ ...formData, phone: e.target.value });
-                  setErrors({ ...errors, phone: undefined });
-                }}
-                className={`flex-1 bg-white border ${
-                  errors.phone ? "border-red-500" : "border-gray-300"
-                } rounded-md placeholder-gray-400 px-3 py-2`}
-                tabIndex={6}
-              />
+                {/* Phone Input */}
+                <Input
+                  placeholder="Enter your Phone Number"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    setErrors({ ...errors, phone: undefined });
+                  }}
+                  className={`flex-1 h-10 bg-white border ${
+                    errors.phone ? "border-red-500" : "border-gray-300"
+                  } border-l-0 rounded-l-none placeholder-gray-400 px-3 py-2`}
+                  tabIndex={6}
+                />
+              </div>
+
+              {errors.phone && (
+                <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
+              )}
             </div>
           </div>
         </div>

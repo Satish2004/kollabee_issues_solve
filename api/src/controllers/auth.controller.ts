@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
 import { OAuth2Client } from "google-auth-library";
 import { googleClient } from "../config/google.config";
+import { countries } from "../utils/countries";
 
 declare module "bcryptjs";
 declare module "jsonwebtoken";
@@ -62,6 +63,7 @@ const commonSignupFields = {
   country: z.string().optional(),
   state: z.string().optional(),
   role: z.enum(["BUYER", "SELLER", "ADMIN"]),
+  roleInCompany: z.string().optional(),
 };
 
 // Seller-specific fields
@@ -142,6 +144,53 @@ export const signup = async (req: Request, res: Response) => {
 
     // Combine first and last name
     const fullName = `${validatedData.firstName} ${validatedData.lastName}`;
+    const address = validatedData.businessAddress || "";
+
+    const zipCodeMatch = address.match(/\b\d{6}\b/);
+    const zipCode = zipCodeMatch ? zipCodeMatch[0] : undefined;
+
+    // 2. Match State from known list
+    const states = [
+      "Andhra Pradesh",
+      "Arunachal Pradesh",
+      "Assam",
+      "Bihar",
+      "Chhattisgarh",
+      "Goa",
+      "Gujarat",
+      "Haryana",
+      "Himachal Pradesh",
+      "Jharkhand",
+      "Karnataka",
+      "Kerala",
+      "Madhya Pradesh",
+      "Maharashtra",
+      "Manipur",
+      "Meghalaya",
+      "Mizoram",
+      "Nagaland",
+      "Odisha",
+      "Punjab",
+      "Rajasthan",
+      "Sikkim",
+      "Tamil Nadu",
+      "Telangana",
+      "Tripura",
+      "Uttar Pradesh",
+      "Uttarakhand",
+      "West Bengal",
+      "Delhi",
+      "Jammu and Kashmir",
+      "Ladakh",
+    ];
+
+    const matchedState = states.find((state) =>
+      address.toLowerCase().includes(state.toLowerCase())
+    );
+
+    const matchedCountry = countries.find((country) =>
+      address.toLowerCase().includes(country.name.toLowerCase())
+    );
 
     // Create user with transaction to ensure both user and role-specific profile are created
     const result = await prisma.$transaction(async (tx: any) => {
@@ -156,9 +205,10 @@ export const signup = async (req: Request, res: Response) => {
           role: validatedData.role,
           companyName: validatedData.businessName || "",
           phoneNumber: validatedData.phone || "",
-          country: validatedData.country || "",
-          countryCode: validatedData.countryCode || "",
-          state: validatedData.state || "",
+          country: matchedCountry?.name ?? (validatedData.country || ""),
+          countryCode:
+            matchedCountry?.code ?? (validatedData.countryCode || ""),
+          state: zipCode ?? (validatedData.state || ""),
           address: validatedData.businessAddress || "",
           companyWebsite: validatedData.websiteLink || "",
           createdAt: new Date(),
@@ -177,14 +227,15 @@ export const signup = async (req: Request, res: Response) => {
             businessAddress: validatedData.businessAddress || "",
             websiteLink: validatedData.websiteLink || "",
             country: validatedData.country || "",
+            roleInCompany: validatedData.roleInCompany || "",
             businessTypes: validatedData.businessTypes || [],
             businessCategories: validatedData.businessCategories || [],
             objectives: validatedData.selectedObjectives || [],
             challenges: validatedData.selectedChallenges || [],
             metrics: validatedData.selectedMetrics || [],
             profileCompletion: [1, 2],
-            agreement1: validatedData.agreement1 || false,
-            agreement2: validatedData.agreement2 || false,
+            agrrement1: validatedData.agreement1 || false,
+            agrrement2: validatedData.agreement2 || false,
           },
         });
       } else if (validatedData.role === "BUYER") {

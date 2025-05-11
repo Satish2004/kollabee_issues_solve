@@ -1,7 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  CheckCircle2,
+  Circle,
+} from "lucide-react";
 import BusinessInfoForm from "../forms/business-info-form";
 import GoalsMetricsForm from "../forms/goals-metrics-form";
 import BusinessOverviewForm from "../forms/business-overview-form";
@@ -9,6 +16,8 @@ import CapabilitiesOperationsForm from "../forms/capabilities-operations-form";
 import ComplianceCredentialsForm from "../forms/compliance-credentials-form";
 import BrandPresenceForm from "../forms/brand-presence-form";
 import FinalReviewForm from "../forms/final-review-form";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 type ProfileFormContentProps = {
   activeStep: number;
@@ -53,6 +62,30 @@ export const ProfileFormContent = ({
   handleRemoveCertificate,
   uploadProgress = {},
 }: ProfileFormContentProps) => {
+  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+
+  // Determine which steps are completed (not in pendingStepNames)
+  useEffect(() => {
+    const completed = steps
+      .map((step, index) =>
+        !pendingStepNames.includes(step.id) ? index : null
+      )
+      .filter((index): index is number => index !== null);
+    setCompletedSteps(completed);
+  }, [pendingStepNames, steps]);
+
+  // Show animation when a step is completed
+  useEffect(() => {
+    if (completedSteps.includes(activeStep) && !showCompletionAnimation) {
+      setShowCompletionAnimation(true);
+      const timer = setTimeout(() => {
+        setShowCompletionAnimation(false);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [completedSteps, activeStep]);
+
   const renderStepContent = () => {
     const currentStep = steps[activeStep].id;
     const currentFormState = formStates[currentStep];
@@ -176,27 +209,49 @@ export const ProfileFormContent = ({
     }
   };
 
+  // Calculate progress percentage
+  const progressPercentage = ((activeStep + 1) / steps.length) * 100;
+
   return (
-    <div className="border rounded-md p-4">
-      <div className="p-4 flex items-center justify-between">
-        <div>
-          <h3 className="font-semibold">
-            {sections[steps[activeStep].id]?.title}
-          </h3>
-          <p className="text-sm text-gray-500">
-            {sections[steps[activeStep].id]?.description}
-          </p>
+    <div className="border rounded-lg shadow-sm overflow-hidden bg-white">
+      {/* Step indicator */}
+      <div className=" border-b px-6 py-4">
+        <div className="flex flex-col space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">
+                {sections[steps[activeStep].id]?.title}
+              </h2>
+              <p className="text-sm text-gray-500 mt-1">
+                {sections[steps[activeStep].id]?.description}
+              </p>
+            </div>
+            <div className="hidden md:flex items-center bg-white px-4 py-2 rounded-full shadow-sm border">
+              <span className="text-sm font-medium text-gray-500">Step</span>
+              <span className="text-xl font-bold mx-2 text-[#9e1171]">
+                {activeStep + 1}
+              </span>
+              <span className="text-sm font-medium text-gray-500">
+                of {steps.length}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="px-4 pb-4">{renderStepContent()}</div>
-      <div className={`p-4 border-t flex justify-between items-center`}>
-        <div className="flex-1 flex justify-start">
+
+      {/* Form content */}
+      <div className="p-6 min-h-[400px] relative">{renderStepContent()}</div>
+
+      {/* Navigation buttons */}
+      <div className="p-6 border-t flex flex-wrap md:flex-nowrap gap-4 justify-between items-center">
+        <div className="w-full md:w-auto">
           {activeStep > 0 && (
             <Button
               type="button"
               onClick={handlePrevious}
               disabled={activeStep === 0 || isSaving}
-              className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
+              variant="outline"
+              className="flex items-center w-full md:w-auto"
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               Previous
@@ -204,7 +259,7 @@ export const ProfileFormContent = ({
           )}
         </div>
 
-        <div className="flex-1 flex justify-center">
+        <div className="w-full md:w-auto flex justify-center">
           {hasFormChanges(steps[activeStep].id) &&
             steps[activeStep].id !== "final-review" && (
               <Button
@@ -212,20 +267,27 @@ export const ProfileFormContent = ({
                   handleEnhancedSectionUpdate(steps[activeStep].id)
                 }
                 disabled={isSaving}
-                className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
+                className="flex items-center w-full md:w-auto bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white hover:opacity-90"
               >
-                Save Changes
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save Changes"
+                )}
               </Button>
             )}
         </div>
 
-        <div className="flex-1 flex justify-end">
+        <div className="w-full md:w-auto flex justify-end">
           {activeStep < steps.length - 1 && (
             <Button
               type="button"
               onClick={handleNext}
               disabled={activeStep === steps.length - 1 || isSaving}
-              className="flex items-center bg-[#a11770] text-white hover:bg-[#a11770]/70"
+              className="flex items-center w-full md:w-auto bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white hover:opacity-90"
             >
               Next
               <ChevronRight className="w-4 h-4 ml-2" />

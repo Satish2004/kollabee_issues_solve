@@ -61,6 +61,7 @@ const KollaBeeProfile = () => {
     steps,
     hasFormChanges,
     handleSectionUpdate,
+    stepsToBeCompleted,
   });
 
   // Enhanced section update with optimistic UI
@@ -111,7 +112,6 @@ const KollaBeeProfile = () => {
   }, [activeStep]);
 
   useEffect(() => {
-    console.log("Profile data updated:", profileData);
     setApprovalStatus({
       approvalRequested: profileData.seller?.approvalRequested,
       approvalRequestedAt: profileData.seller?.approvalRequestedAt,
@@ -144,7 +144,7 @@ const KollaBeeProfile = () => {
         {/* Main content area */}
         <div className="flex-1 overflow-visible">
           {/* Profile completion and updates */}
-          <div className="space-y-6 w-full bg-white">
+          <div className=" w-full bg-white">
             {/* Stepper */}
             <ProfileStepper
               steps={steps}

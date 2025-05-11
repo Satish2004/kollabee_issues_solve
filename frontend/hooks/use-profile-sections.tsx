@@ -15,12 +15,12 @@ export const useProfileSections = () => {
     "business-info": {
       title: "Business Information",
       description:
-        "Provide details about your business to help buyers understand your offerings.",
+        "Tell us about your business to unlock opportunities with the right buyers.",
     },
     "goals-metrics": {
       title: "Goals & Metrics",
       description:
-        "Help us understand your priorities so we can tailor the platform to your needs.",
+        "Help us understand your business objectives so we can connect you with the right buyers and opportunities.",
     },
     "business-overview": {
       title: "Business Overview",

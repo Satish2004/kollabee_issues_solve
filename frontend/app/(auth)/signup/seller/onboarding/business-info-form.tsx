@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { CategoryEnum, BusinessType } from "@/types/api";
 import InfoButton from "@/components/ui/IButton";
 import { Textarea } from "@/components/ui/textarea";
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -23,6 +24,12 @@ const businessCategories = Object.values(CategoryEnum).map((category) => ({
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" "),
 }));
+
+// Convert business types to string array for the dropdown
+const businessTypeOptions = businessTypes.map(({ label }) => label);
+
+// Convert business categories to string array for the dropdown
+const businessCategoryOptions = businessCategories.map(({ label }) => label);
 
 interface BusinessInfoFormProps {
   formData: {
@@ -57,24 +64,33 @@ export function BusinessInfoForm({
     businessCategories: "",
   });
 
-  const handleBusinessTypeClick = (type: BusinessType) => {
+  const handleBusinessTypeChange = (selectedTypes: string[]) => {
+    // Convert the display labels back to enum values for the API
+    const enumValues = selectedTypes.map((label) => {
+      const type = businessTypes.find((t) => t.label === label);
+      return type ? type.value : label;
+    });
+
     setFormData((prev) => ({
       ...prev,
-      businessTypes: prev.businessTypes?.includes(type)
-        ? prev.businessTypes.filter((t) => t !== type)
-        : [...(prev.businessTypes || []), type],
+      businessTypes: enumValues as BusinessType[],
     }));
 
     validateForm();
   };
 
-  const handleBusinessCategoryClick = (category: CategoryEnum) => {
+  const handleBusinessCategoryChange = (selectedCategories: string[]) => {
+    // Convert the display labels back to enum values for the API
+    const enumValues = selectedCategories.map((label) => {
+      const category = businessCategories.find((c) => c.label === label);
+      return category ? category.value : label;
+    });
+
     setFormData((prev) => ({
       ...prev,
-      businessCategories: prev.businessCategories?.includes(category)
-        ? prev.businessCategories.filter((c) => c !== category)
-        : [...(prev.businessCategories || []), category],
+      businessCategories: enumValues as CategoryEnum[],
     }));
+
     validateForm();
   };
 
@@ -94,11 +110,11 @@ export function BusinessInfoForm({
           : "",
       businessTypes:
         formData.businessTypes.length === 0
-          ? "Select one one Business Type"
+          ? "Select at least one Business Type"
           : "",
       businessCategories:
         formData.businessCategories.length === 0
-          ? "Select one Business Category"
+          ? "Select at least one Business Category"
           : "",
     };
     setErrors(newErrors);
@@ -111,6 +127,21 @@ export function BusinessInfoForm({
     }
   };
 
+  // Convert enum values to display labels for the dropdowns
+  const getSelectedTypeLabels = () => {
+    return (formData.businessTypes || []).map((value: BusinessType) => {
+      const type = businessTypes.find((t) => t.value === value);
+      return type ? type.label : value;
+    });
+  };
+
+  const getSelectedCategoryLabels = () => {
+    return (formData.businessCategories || []).map((value: CategoryEnum) => {
+      const category = businessCategories.find((c) => c.value === value);
+      return category ? category.label : value;
+    });
+  };
+
   return (
     <div className="space-y-8">
       <div className="text-start space-y-2">
@@ -121,62 +152,65 @@ export function BusinessInfoForm({
         </p>
       </div>
 
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <label className="text-sm font-medium flex items-center gap-1">
+            Business Name{" "}
+            <InfoButton
+              text={
+                "Enter the official name of your business as it appears on legal documents and branding materials. This name will be visible to customers"
+              }
+            />
+          </label>
+          <Input
+            placeholder="Enter your Business Name"
+            value={formData.businessName}
+            onChange={(e) => {
+              setFormData((prev) => ({
+                ...prev,
+                businessName: e.target.value,
+              }));
+              validateForm();
+            }}
+            className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+          />
+          {errors.businessName && (
+            <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
+          )}
+        </div>
+
+        {/* Business Description - Full Width */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium flex items-center gap-1">
+            Business Description{" "}
+            <InfoButton
+              text={
+                "Enter your business description to help customers understand what you offer. This description will be visible to customers."
+              }
+            />
+          </label>
+          <Textarea
+            placeholder="Enter your Business description"
+            value={formData.businessDescription}
+            onChange={(e) => {
+              setFormData((prev) => ({
+                ...prev,
+                businessDescription: e.target.value,
+              }));
+              validateForm();
+            }}
+            className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+          />
+          {errors.businessDescription && (
+            <p className="text-sm text-red-500 mt-1">
+              {errors.businessDescription}
+            </p>
+          )}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Name{" "}
-              <InfoButton
-                text={
-                  "Enter the official name of your business as it appears on legal documents and branding materials. This name will bevisible to customers"
-                }
-              />
-            </label>
-            <Input
-              placeholder="Enter your Business Name"
-              value={formData.businessName}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  businessName: e.target.value,
-                }));
-                validateForm();
-              }}
-              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-            />
-            {errors.businessName && (
-              <p className="text-sm text-red-500 mt-1">{errors.businessName}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Description{" "}
-              <InfoButton
-                text={
-                  "Enter your bussiness description to help customers understand what you offer. This description will be visible to customers."
-                }
-              />
-            </label>
-            <Textarea
-              placeholder="Enter your Business description"
-              value={formData.businessDescription}
-              onChange={(e) => {
-                setFormData((prev) => ({
-                  ...prev,
-                  businessDescription: e.target.value,
-                }));
-                validateForm();
-              }}
-              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-            />
-            {errors.businessDescription && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.businessDescription}
-              </p>
-            )}
-          </div>
-
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
               Business Website/Instagram
@@ -196,50 +230,24 @@ export function BusinessInfoForm({
                 }));
                 validateForm();
               }}
-              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 "
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
             {errors.websiteLink && (
               <p className="text-sm text-red-500 mt-1">{errors.websiteLink}</p>
             )}
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Type{" "}
-              <InfoButton
-                text={
-                  " Match with the right buyers by selecting one or more categories that best describe your business."
-                }
-              />
-            </label>
-            <p className="text-sm text-muted-foreground"></p>
-            <div className="flex flex-wrap gap-1 sm:gap-2">
-              {businessTypes.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={
-                    formData.businessTypes?.includes(value)
-                      ? "default"
-                      : "outline"
-                  }
-                  onClick={() => handleBusinessTypeClick(value)}
-                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5]  placeholder:text-black/50 ${
-                    formData.businessTypes?.includes(value)
-                      ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-                      : "border-[#e5e5e5]"
-                  }`}
-                  size="sm"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-            {errors.businessTypes && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.businessTypes}
-              </p>
-            )}
-          </div>
+          {/* Business Type - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Business Type"
+            placeholder="Select one or more business types"
+            options={businessTypeOptions}
+            selectedValues={getSelectedTypeLabels()}
+            onChange={handleBusinessTypeChange}
+            isRequired={true}
+            error={errors.businessTypes}
+            infoText="Match with the right buyers by selecting one or more categories that best describe your business."
+          />
         </div>
 
         <div className="space-y-6">
@@ -262,7 +270,7 @@ export function BusinessInfoForm({
                 }));
                 validateForm();
               }}
-              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50   "
+              className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
             {errors.businessAddress && (
               <p className="text-sm text-red-500 mt-1">
@@ -271,40 +279,17 @@ export function BusinessInfoForm({
             )}
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Category<span className="text-destructive">*</span>
-            </label>
-            <p className="text-sm text-muted-foreground">
-              Choose one or more categories your business primarily operates in.
-            </p>
-            <div className="flex flex-wrap gap-1 sm:gap-2">
-              {businessCategories.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={
-                    formData.businessCategories?.includes(value)
-                      ? "default"
-                      : "outline"
-                  }
-                  onClick={() => handleBusinessCategoryClick(value)}
-                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
-                    formData.businessCategories?.includes(value)
-                      ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-                      : "border-[#e5e5e5]"
-                  }`}
-                  size="sm"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-            {errors.businessCategories && (
-              <p className="text-sm text-red-500 mt-1">
-                {errors.businessCategories}
-              </p>
-            )}
-          </div>
+          {/* Business Category - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Business Category"
+            placeholder="Select one or more business categories"
+            options={businessCategoryOptions}
+            selectedValues={getSelectedCategoryLabels()}
+            onChange={handleBusinessCategoryChange}
+            isRequired={true}
+            error={errors.businessCategories}
+            helperText="Choose one or more categories your business primarily operates in."
+          />
         </div>
       </div>
 
@@ -319,7 +304,7 @@ export function BusinessInfoForm({
           Back
         </Button>
         <Button
-          className="rounded-[6px] text-white px-8 py-2  bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
           onClick={handleNext}
         >
           Continue

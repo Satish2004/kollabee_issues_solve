@@ -11,6 +11,7 @@ import InfoButton from "@/components/ui/IButton";
 import { Upload, X, Trash2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import { countries } from "@/app/(auth)/signup/seller/onboarding/signup-form";
 
 const servicesOptions = [
   "White Label Products",
@@ -38,29 +39,7 @@ const productionModelOptions = [
   "Hybrid (In-house + Outsourced)",
 ];
 
-const countryOptions = [
-  "United States",
-  "China",
-  "India",
-  "Germany",
-  "Japan",
-  "United Kingdom",
-  "France",
-  "Italy",
-  "Brazil",
-  "Canada",
-  "South Korea",
-  "Australia",
-  "Spain",
-  "Mexico",
-  "Indonesia",
-  "Netherlands",
-  "Saudi Arabia",
-  "Turkey",
-  "Switzerland",
-  "Taiwan",
-  "Other",
-];
+const countryOptions = countries.map((c) => c.name);
 
 type CapabilitiesOperationsFormProps = {
   formState: any;
@@ -418,7 +397,8 @@ const CapabilitiesOperationsForm = ({
                 </label>
                 <Input
                   placeholder="e.g., 3–5 business days"
-                  value={formState.sampleDispatchTime || ""}
+                  value={formState.sampleDispatchTime}
+                  type="date"
                   onChange={(e) => {
                     onChange({
                       ...formState,
@@ -434,7 +414,8 @@ const CapabilitiesOperationsForm = ({
               <label className="text-sm font-medium">Production Timeline</label>
               <Input
                 placeholder="e.g., 2–4 weeks"
-                value={formState.productionTimeline || ""}
+                value={formState.productionTimeline}
+                type="date"
                 onChange={(e) => {
                   onChange({
                     ...formState,
@@ -454,7 +435,6 @@ const CapabilitiesOperationsForm = ({
           <div className="space-y-3">
             <label className="text-sm font-medium flex items-center gap-1">
               Factory Images (Optional)
-              <InfoButton text="Upload up to 5 photos showcasing your facility or production setup" />
             </label>
 
             <div className="grid grid-cols-3 gap-3">
@@ -571,8 +551,6 @@ const CapabilitiesOperationsForm = ({
           </div>
         </div>
       </div>
-
-     
     </div>
   );
 };

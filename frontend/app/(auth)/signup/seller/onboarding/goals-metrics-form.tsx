@@ -98,18 +98,21 @@ export function GoalsMetricsForm({
       <div className="text-start space-y-2">
         <h2 className="text-2xl font-bold">Goals and Metrics</h2>
         <p className="text-muted-foreground">
-          Help us understand your priorities so we can tailor the platform to
-          your needs.
+          Help us understand your business objectives so we can connect you with
+          the right buyers and opportunities.
         </p>
       </div>
 
       <div className="space-y-8">
-        <div className="space-y-4">
-          <h3 className="font-bold">What are your main goals on KollaBee?</h3>
-          <p className="text-sm text-muted-foreground">
-            [Choose up to 3 options that best describe your goals.]
+        <div className="">
+          <h3 className="font-bold">
+            What are your main goals on KollaBee? (Choose up to 3)
+          </h3>
+          <p className="text-sm font-futura italic">
+            Select up to 3 goals that best reflect what you're hoping to achieve
+            on the platform.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 mt-3 gap-3">
             {objectives.map((objective) => (
               <div key={objective} className="flex items-start space-x-3">
                 <Checkbox
@@ -132,15 +135,16 @@ export function GoalsMetricsForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
-            What Challenges Are You Looking to Overcome?{" "}
+            What Challenges Are You Looking to Overcome? (Select all that apply)
             <span className="text-destructive">*</span>
           </h3>
-          <p className="text-sm text-muted-foreground">
-            [Help us understand your pain points to provide better support.]
+          <p className="text-sm font-futura italic">
+            Select the most relevant challenges you face in your current
+            operations or sales strategy.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
             {challenges.map((challenge) => (
               <div key={challenge} className="flex items-start space-x-3">
                 <Checkbox
@@ -163,16 +167,16 @@ export function GoalsMetricsForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
-            What Success Metrics Matter Most to You?{" "}
+            What Success Metrics Matter Most to You? (Select your top 3)
             <span className="text-destructive">*</span>
           </h3>
-          <p className="text-sm text-muted-foreground">
-            [Select the metrics you value the most in evaluating KollaBee's
-            impact.]
+          <p className="text-sm font-futura italic">
+            Select the metrics you value the most to evaluate your success on
+            KollaBee.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
             {metrics.map((metric) => (
               <div key={metric} className="flex items-start space-x-3">
                 <Checkbox
@@ -214,7 +218,24 @@ export function GoalsMetricsForm({
               htmlFor="agreement1"
               className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              I agree to KollaBee’s Terms & Conditions and Privacy Policy.
+              I agree to KollaBee’s{" "}
+              <a
+                href="/terms-conditions"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Terms & Conditions{" "}
+              </a>{" "}
+              and{" "}
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Privacy Policy.
+              </a>
             </label>
           </div>
           <div className="flex items-start space-x-3">

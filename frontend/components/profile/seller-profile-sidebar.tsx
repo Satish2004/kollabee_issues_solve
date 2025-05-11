@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu 
 } from "lucide-react"
+import React from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { useEffect, useState } from "react"

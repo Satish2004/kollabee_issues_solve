@@ -13,6 +13,8 @@ interface SignupData {
   phoneNumber?: string;
   firstName?: string;
   lastName?: string;
+  country?: string;
+  countryCode?: string;
 
   // Company details
   companyName?: string;
@@ -27,9 +29,11 @@ interface SignupData {
   businessTypes?: BusinessType[];
   businessCategories?: CategoryEnum[];
   roleInCompany?: string;
-  objectives?: string[];
-  challenges?: string[];
-  metrics?: string[];
+  selectedObjectives?: string[];
+  selectedChallenges?: string[];
+  selectedMetrics?: string[];
+  agreement1?: boolean;
+  agreement2?: boolean;
 }
 const authUrl = process.env.NEXT_PUBLIC_API_URL;
 
