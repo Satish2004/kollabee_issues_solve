@@ -435,8 +435,8 @@ model Seller {
   savedByProjects    Project[]       @relation("SavedSeller")
   projectReq         projectReq[]
   
-  agrrement1         Boolean?        @default(false)
-  agrrement2         Boolean?        @default(false)
+  agreement1         Boolean?        @default(false)
+  agreement2         Boolean?        @default(false)
 
   @@index([userId])
 }

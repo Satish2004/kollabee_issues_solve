@@ -21,7 +21,7 @@ import { BusinessType, CategoryEnum } from "@/types/api";
 
 export default function SignupSellerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(3);
+  const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -168,7 +168,6 @@ export default function SignupSellerPage() {
 
   const handleSubmit = async () => {
     setSubmitLoading(true);
-    console.log(formData);
     try {
       const response = await authApi.signup({
         // User details
@@ -179,6 +178,8 @@ export default function SignupSellerPage() {
         name: formData.firstName + " " + formData.lastName,
         role: "SELLER",
         phoneNumber: formData.phone,
+        country: formData.country,
+        countryCode: formData.countryCode,
 
         // Company details
         companyName: formData.businessName,
@@ -193,9 +194,11 @@ export default function SignupSellerPage() {
         businessTypes: formData.businessTypes,
         businessCategories: formData.businessCategories,
         roleInCompany: formData.role,
-        objectives: formData.selectedObjectives,
-        challenges: formData.selectedChallenges,
-        metrics: formData.selectedMetrics,
+        selectedObjectives: formData.selectedObjectives,
+        selectedChallenges: formData.selectedChallenges,
+        selectedMetrics: formData.selectedMetrics,
+        agreement1: formData.agreement1,
+        agreement2: formData.agreement2,
       });
       toast.success(response?.message);
       router.push("/seller");
