@@ -8,7 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import InfoButton from "@/components/ui/IButton";
-import { Upload, X, Trash2, AlertCircle, Video } from "lucide-react";
+import {
+  Upload,
+  X,
+  Trash2,
+  AlertCircle,
+  Video,
+  Globe,
+  Linkedin,
+  Instagram,
+} from "lucide-react";
 
 type BrandPresenceFormProps = {
   formState: any;
@@ -481,12 +490,13 @@ const BrandPresenceForm = ({
           {/* Social Media Links */}
           <div className="space-y-3">
             <label className="text-sm font-medium flex items-center gap-1">
-              Social Media & Web Presence (Optional)
-              <InfoButton text="Add links to your social media profiles and website" />
+              Social Media Links (Optional)
+              <InfoButton text="Connect with your audience and show your brand's online presence" />
             </label>
-            <div className="space-y-3">
-              <div className="space-y-2">
-                <label className="text-xs text-gray-500">Instagram</label>
+
+            <div className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <Instagram className="h-5 w-5 text-[#a11770]" />
                 <Input
                   placeholder="https://instagram.com/yourbrand"
                   value={socialMedia.instagram}
@@ -496,8 +506,9 @@ const BrandPresenceForm = ({
                   className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs text-gray-500">LinkedIn</label>
+
+              <div className="flex items-center space-x-2">
+                <Linkedin className="h-5 w-5 text-[#a11770]" />
                 <Input
                   placeholder="https://linkedin.com/company/yourbrand"
                   value={socialMedia.linkedin}
@@ -507,8 +518,9 @@ const BrandPresenceForm = ({
                   className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs text-gray-500">Website</label>
+
+              <div className="flex items-center space-x-2">
+                <Globe className="h-5 w-5 text-[#a11770]" />
                 <Input
                   placeholder="https://yourbrand.com"
                   value={socialMedia.website}
@@ -541,8 +553,6 @@ const BrandPresenceForm = ({
           </div>
         </div>
       </div>
-
-     
     </div>
   );
 };

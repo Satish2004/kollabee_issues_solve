@@ -1,18 +1,17 @@
-"use client";
+"use client"
 
-import type React from "react";
+import type React from "react"
 
-import { useState, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Progress } from "@/components/ui/progress";
-import { CategoryEnum, BusinessType } from "@/types/api";
-import InfoButton from "@/components/ui/IButton";
-import { X, ImageIcon, Upload, AlertCircle } from "lucide-react";
+import { useState, useRef } from "react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Progress } from "@/components/ui/progress"
+import { CategoryEnum, BusinessType } from "@/types/api"
+import InfoButton from "@/components/ui/IButton"
+import { X, ImageIcon, Upload, AlertCircle } from "lucide-react"
+import { toast } from "sonner"
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown"
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -20,7 +19,7 @@ const businessTypes = Object.values(BusinessType).map((type) => ({
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" "),
-}));
+}))
 
 const businessCategories = Object.values(CategoryEnum).map((category) => ({
   value: category,
@@ -28,7 +27,14 @@ const businessCategories = Object.values(CategoryEnum).map((category) => ({
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" "),
-}));
+}))
+
+// Convert business categories to string array for the dropdown
+const businessCategoryOptions = businessCategories.map(({ label }) => label)
+// Add "Other" option to the categories
+if (!businessCategoryOptions.includes("Other")) {
+  businessCategoryOptions.push("Other")
+}
 
 const teamSizeOptions = [
   "1–10",
@@ -41,7 +47,7 @@ const teamSizeOptions = [
   "1000–5000",
   "5000–10000",
   "10000+",
-];
+]
 
 const revenueOptions = [
   "Under $100K",
@@ -51,7 +57,7 @@ const revenueOptions = [
   "$5M – $10M",
   "$10M – $50M",
   "$50M+",
-];
+]
 
 const languageOptions = [
   "English",
@@ -68,7 +74,8 @@ const languageOptions = [
   "Tamil",
   "Urdu",
   "Korean",
-];
+  "Other",
+]
 
 const businessAttributeOptions = [
   "Sustainable / Eco-Friendly Practices",
@@ -84,17 +91,18 @@ const businessAttributeOptions = [
   "Awarded for Sustainability",
   "Featured in Sustainability Media",
   "Recognized for Innovation in Manufacturing",
-];
+  "Other",
+]
 
 type BusinessOverviewFormProps = {
-  formState: any;
-  onChange: (newValue: any) => void;
-  onSave: () => void;
-  hasChanges: boolean;
-  isSaving: boolean;
-  onFileUpload: (file: File, field: string) => Promise<string | null>;
-  uploadProgress?: Record<string, number>;
-};
+  formState: any
+  onChange: (newValue: any) => void
+  onSave: () => void
+  hasChanges: boolean
+  isSaving: boolean
+  onFileUpload: (file: File | null, field: string, url?: string) => Promise<string | boolean | null>
+  uploadProgress?: Record<string, number>
+}
 
 const BusinessOverviewForm = ({
   formState,
@@ -105,9 +113,12 @@ const BusinessOverviewForm = ({
   onFileUpload,
   uploadProgress = {},
 }: BusinessOverviewFormProps) => {
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [customCategories, setCustomCategories] = useState<string[]>(formState.customCategories || [])
+  const [customLanguages, setCustomLanguages] = useState<string[]>(formState.customLanguages || [])
+  const [customAttributes, setCustomAttributes] = useState<string[]>(formState.customAttributes || [])
 
   const handleBusinessTypeClick = (type: BusinessType) => {
     onChange({
@@ -115,88 +126,184 @@ const BusinessOverviewForm = ({
       businessTypes: formState.businessTypes?.includes(type)
         ? formState.businessTypes.filter((t: BusinessType) => t !== type)
         : [...(formState.businessTypes || []), type],
-    });
-  };
+    })
+  }
 
-  const handleBusinessCategoryClick = (category: CategoryEnum) => {
+  const handleBusinessCategoryChange = (selectedCategories: string[]) => {
+    // Convert the display labels back to enum values for the API
+    const enumValues = selectedCategories.map((label) => {
+      const category = businessCategories.find((c) => c.label === label)
+      return category ? category.value : label
+    })
+
     onChange({
       ...formState,
-      businessCategories: formState.businessCategories?.includes(category)
-        ? formState.businessCategories.filter(
-            (c: CategoryEnum) => c !== category
-          )
-        : [...(formState.businessCategories || []), category],
-    });
-  };
+      businessCategories: enumValues,
+    })
+  }
 
-  const handleLanguageToggle = (language: string) => {
+  const handleCustomCategoriesChange = (newCustomCategories: string[]) => {
+    setCustomCategories(newCustomCategories)
     onChange({
       ...formState,
-      languagesSpoken: formState.languagesSpoken?.includes(language)
-        ? formState.languagesSpoken.filter((l: string) => l !== language)
-        : [...(formState.languagesSpoken || []), language],
-    });
-  };
+      customCategories: newCustomCategories,
+    })
+  }
 
-  const handleAttributeToggle = (attribute: string) => {
+  const handleTeamSizeChange = (selectedSizes: string[]) => {
+    // For radio-like behavior, we only keep the last selected value
+    const teamSize = selectedSizes.length > 0 ? selectedSizes[selectedSizes.length - 1] : ""
     onChange({
       ...formState,
-      businessAttributes: formState.businessAttributes?.includes(attribute)
-        ? formState.businessAttributes.filter((a: string) => a !== attribute)
-        : [...(formState.businessAttributes || []), attribute],
-    });
-  };
+      teamSize,
+    })
+  }
+
+  const handleRevenueChange = (selectedRevenues: string[]) => {
+    // For radio-like behavior, we only keep the last selected value
+    const annualRevenue = selectedRevenues.length > 0 ? selectedRevenues[selectedRevenues.length - 1] : ""
+    onChange({
+      ...formState,
+      annualRevenue,
+    })
+  }
+
+  const handleLanguagesChange = (selectedLanguages: string[]) => {
+    onChange({
+      ...formState,
+      languagesSpoken: selectedLanguages.filter((lang) => lang !== "Other"),
+      otherLanguageSelected: selectedLanguages.includes("Other"),
+    })
+  }
+
+  const handleCustomLanguagesChange = (newCustomLanguages: string[]) => {
+    setCustomLanguages(newCustomLanguages)
+    onChange({
+      ...formState,
+      customLanguages: newCustomLanguages,
+    })
+  }
+
+  const handleAttributesChange = (selectedAttributes: string[]) => {
+    onChange({
+      ...formState,
+      businessAttributes: selectedAttributes.filter((attr) => attr !== "Other"),
+      otherAttributeSelected: selectedAttributes.includes("Other"),
+    })
+  }
+
+  const handleCustomAttributesChange = (newCustomAttributes: string[]) => {
+    setCustomAttributes(newCustomAttributes)
+    onChange({
+      ...formState,
+      customAttributes: newCustomAttributes,
+    })
+  }
+
+  // Add a function to handle logo deletion
+  const handleDeleteLogo = async () => {
+    if (!formState.businessLogo || typeof formState.businessLogo !== "string") {
+      console.error("Invalid logo URL:", formState.businessLogo)
+      setErrors({
+        ...errors,
+        logo: "Invalid logo URL. Cannot delete logo.",
+      })
+      return
+    }
+
+    try {
+      console.log("Deleting business logo:", formState.businessLogo)
+
+      // Call the API to delete the logo
+      const success = await onFileUpload(null, "deleteLogo", formState.businessLogo)
+
+      if (success) {
+        // Update the UI after successful deletion
+        onChange({
+          ...formState,
+          logoPreview: null,
+          businessLogo: null,
+        })
+
+        toast.success("Logo deleted successfully")
+      } else {
+        setErrors({
+          ...errors,
+          logo: "Failed to delete logo. Please try again.",
+        })
+      }
+    } catch (error) {
+      console.error("Error deleting logo:", error)
+      setErrors({
+        ...errors,
+        logo: "Failed to delete logo. Please try again.",
+      })
+    }
+  }
+
+  // Update the removeLogoPreview function to call the API if there's a businessLogo
+  const removeLogoPreview = () => {
+    if (formState.businessLogo) {
+      handleDeleteLogo()
+    } else {
+      onChange({
+        ...formState,
+        logoPreview: null,
+        businessLogo: null,
+      })
+    }
+  }
 
   // Update the handleLogoUpload function to properly handle the API response
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+      const file = e.target.files[0]
 
       // Create a preview URL immediately for UI feedback
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (event) => {
         onChange({
           ...formState,
           logoPreview: event.target?.result as string,
-        });
-      };
-      reader.readAsDataURL(file);
+        })
+      }
+      reader.readAsDataURL(file)
 
-      setIsUploading(true);
+      setIsUploading(true)
       try {
         // Upload the file and get the URL
-        const imageUrl = await onFileUpload(file, "businessLogo");
+        const imageUrl = await onFileUpload(file, "businessLogo")
 
         if (imageUrl) {
           // Update the form state with the uploaded image URL
           onChange({
             ...formState,
             businessLogo: imageUrl,
-          });
+          })
         }
       } catch (error) {
-        console.error("Error uploading logo:", error);
+        console.error("Error uploading logo:", error)
         setErrors({
           ...errors,
           logo: "Failed to upload logo. Please try again.",
-        });
+        })
       } finally {
-        setIsUploading(false);
+        setIsUploading(false)
       }
     }
-  };
+  }
 
   const triggerFileInput = () => {
-    fileInputRef.current?.click();
-  };
+    fileInputRef.current?.click()
+  }
 
-  const removeLogoPreview = () => {
-    onChange({
-      ...formState,
-      logoPreview: null,
-      businessLogo: null,
-    });
-  };
+  // Convert enum values to display labels for the dropdown
+  const getSelectedCategoryLabels = () => {
+    return (formState.businessCategories || []).map((value: CategoryEnum) => {
+      const category = businessCategories.find((c) => c.value === value)
+      return category ? category.label : value
+    })
+  }
 
   return (
     <div className="space-y-8">
@@ -239,16 +346,12 @@ const BusinessOverviewForm = ({
                   {isUploading ? (
                     <div className="flex flex-col items-center">
                       <Upload className="h-6 w-6 text-gray-400 animate-pulse" />
-                      <span className="text-xs text-gray-500 mt-1">
-                        Uploading...
-                      </span>
+                      <span className="text-xs text-gray-500 mt-1">Uploading...</span>
                     </div>
                   ) : (
                     <>
                       <ImageIcon className="h-8 w-8 text-gray-400" />
-                      <span className="text-xs text-gray-500 mt-1">
-                        Upload Logo
-                      </span>
+                      <span className="text-xs text-gray-500 mt-1">Upload Logo</span>
                     </>
                   )}
                 </div>
@@ -266,10 +369,7 @@ const BusinessOverviewForm = ({
                   <span>Uploading...</span>
                   <span>{uploadProgress["businessLogo"]}%</span>
                 </div>
-                <Progress
-                  value={uploadProgress["businessLogo"]}
-                  className="h-1"
-                />
+                <Progress value={uploadProgress["businessLogo"]} className="h-1" />
               </div>
             )}
 
@@ -293,7 +393,7 @@ const BusinessOverviewForm = ({
                 onChange({
                   ...formState,
                   businessName: e.target.value,
-                });
+                })
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -310,7 +410,7 @@ const BusinessOverviewForm = ({
                 onChange({
                   ...formState,
                   businessDescription: e.target.value,
-                });
+                })
               }}
               className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -327,7 +427,7 @@ const BusinessOverviewForm = ({
                 onChange({
                   ...formState,
                   websiteLink: e.target.value,
-                });
+                })
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -344,7 +444,7 @@ const BusinessOverviewForm = ({
                 onChange({
                   ...formState,
                   businessAddress: e.target.value,
-                });
+                })
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -358,11 +458,7 @@ const BusinessOverviewForm = ({
               {businessTypes.map(({ value, label }) => (
                 <Button
                   key={value}
-                  variant={
-                    formState.businessTypes?.includes(value)
-                      ? "default"
-                      : "outline"
-                  }
+                  variant={formState.businessTypes?.includes(value) ? "default" : "outline"}
                   onClick={() => handleBusinessTypeClick(value)}
                   className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] placeholder:text-black/50 ${
                     formState.businessTypes?.includes(value)
@@ -377,40 +473,28 @@ const BusinessOverviewForm = ({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Category<span className="text-red-500 ml-0.5">*</span>
-            </label>
-            <div className="flex flex-wrap gap-1 sm:gap-2">
-              {businessCategories.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={
-                    formState.businessCategories?.includes(value)
-                      ? "default"
-                      : "outline"
-                  }
-                  onClick={() => handleBusinessCategoryClick(value)}
-                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
-                    formState.businessCategories?.includes(value)
-                      ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-                      : "border-[#e5e5e5]"
-                  }`}
-                  size="sm"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
+          {/* Business Category using the MultiSelectDropdown component */}
+          <MultiSelectDropdown
+            label="Business Category"
+            placeholder="Select one or more business categories"
+            options={businessCategoryOptions}
+            selectedValues={getSelectedCategoryLabels()}
+            onChange={handleBusinessCategoryChange}
+            isRequired={true}
+            error={errors.businessCategories}
+            allowCustomValues={true}
+            customValuesLabel="Add custom business categories:"
+            customValueCategory="Other"
+            customValues={customCategories}
+            onCustomValuesChange={handleCustomCategoriesChange}
+          />
         </div>
 
         <div className="space-y-6">
           {/* Business Year Founded */}
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Year Founded
-              <span className="text-red-500 ml-0.5">*</span>
+              Business Year Founded<span className="text-red-500 ml-0.5">*</span>
             </label>
             <Input
               type="number"
@@ -420,7 +504,7 @@ const BusinessOverviewForm = ({
                 onChange({
                   ...formState,
                   yearFounded: e.target.value,
-                });
+                })
               }}
               min="1900"
               max={new Date().getFullYear()}
@@ -428,181 +512,72 @@ const BusinessOverviewForm = ({
             />
           </div>
 
-          {/* Business Team Size */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Team Size<span className="text-red-500 ml-0.5">*</span>
-            </label>
-            <RadioGroup
-              value={formState.teamSize || ""}
-              onValueChange={(value) => {
-                onChange({
-                  ...formState,
-                  teamSize: value,
-                });
-              }}
-              className="grid grid-cols-2 gap-2"
-            >
-              {teamSizeOptions.map((option) => (
-                <div key={option} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={`team-size-${option}`} />
-                  <Label htmlFor={`team-size-${option}`} className="text-sm">
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+          {/* Business Team Size - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Business Team Size"
+            placeholder="Select your team size"
+            options={teamSizeOptions}
+            selectedValues={formState.teamSize ? [formState.teamSize] : []}
+            onChange={handleTeamSizeChange}
+            isRequired={true}
+            error={errors.teamSize}
+          />
 
-          {/* Business Annual Revenue */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Annual Revenue
-              <span className="text-red-500 ml-0.5">*</span>
-            </label>
-            <RadioGroup
-              value={formState.annualRevenue || ""}
-              onValueChange={(value) => {
-                onChange({
-                  ...formState,
-                  annualRevenue: value,
-                });
-              }}
-              className="grid grid-cols-2 gap-2"
-            >
-              {revenueOptions.map((option) => (
-                <div key={option} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={`revenue-${option}`} />
-                  <Label htmlFor={`revenue-${option}`} className="text-sm">
-                    {option}
-                  </Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+          {/* Business Annual Revenue - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Business Annual Revenue"
+            placeholder="Select your annual revenue"
+            options={revenueOptions}
+            selectedValues={formState.annualRevenue ? [formState.annualRevenue] : []}
+            onChange={handleRevenueChange}
+            isRequired={true}
+            error={errors.annualRevenue}
+          />
 
-          {/* Languages Spoken */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Languages Spoken (Optional)
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {languageOptions.map((language) => (
-                <div key={language} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`language-${language}`}
-                    checked={formState.languagesSpoken?.includes(language)}
-                    onCheckedChange={() => handleLanguageToggle(language)}
-                  />
-                  <label
-                    htmlFor={`language-${language}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {language}
-                  </label>
-                </div>
-              ))}
-              <div className="flex items-center space-x-2 col-span-2 mt-2">
-                <Checkbox
-                  id="language-other"
-                  checked={formState.otherLanguageSelected}
-                  onCheckedChange={(checked) => {
-                    onChange({
-                      ...formState,
-                      otherLanguageSelected: checked === true,
-                    });
-                  }}
-                />
-                <label
-                  htmlFor="language-other"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Other (please specify)
-                </label>
-              </div>
-              {formState.otherLanguageSelected && (
-                <div className="col-span-2 mt-2">
-                  <Input
-                    placeholder="Enter other languages"
-                    value={formState.otherLanguages || ""}
-                    onChange={(e) => {
-                      onChange({
-                        ...formState,
-                        otherLanguages: e.target.value,
-                      });
-                    }}
-                    className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Languages Spoken - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Languages Spoken"
+            placeholder="Select languages spoken"
+            options={languageOptions}
+            selectedValues={
+              formState.otherLanguageSelected
+                ? [...(formState.languagesSpoken || []), "Other"]
+                : formState.languagesSpoken || []
+            }
+            onChange={handleLanguagesChange}
+            isRequired={false}
+            error={errors.languagesSpoken}
+            allowCustomValues={true}
+            customValuesLabel="Add other languages:"
+            customValueCategory="Other"
+            customValues={customLanguages}
+            onCustomValuesChange={handleCustomLanguagesChange}
+          />
 
-          {/* Business Attributes */}
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Attributes (Optional)
-            </label>
-            <p className="text-sm text-muted-foreground">
-              Select all that apply:
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              {businessAttributeOptions.map((attribute) => (
-                <div key={attribute} className="flex items-start space-x-2">
-                  <Checkbox
-                    id={`attribute-${attribute}`}
-                    checked={formState.businessAttributes?.includes(attribute)}
-                    onCheckedChange={() => handleAttributeToggle(attribute)}
-                  />
-                  <label
-                    htmlFor={`attribute-${attribute}`}
-                    className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {attribute}
-                  </label>
-                </div>
-              ))}
-              <div className="flex items-center space-x-2 col-span-2 mt-2">
-                <Checkbox
-                  id="attribute-other"
-                  checked={formState.otherAttributeSelected}
-                  onCheckedChange={(checked) => {
-                    onChange({
-                      ...formState,
-                      otherAttributeSelected: checked === true,
-                    });
-                  }}
-                />
-                <label
-                  htmlFor="attribute-other"
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Other (please specify)
-                </label>
-              </div>
-              {formState.otherAttributeSelected && (
-                <div className="col-span-2 mt-2">
-                  <Input
-                    placeholder="Enter other attributes"
-                    value={formState.otherAttributes || ""}
-                    onChange={(e) => {
-                      onChange({
-                        ...formState,
-                        otherAttributes: e.target.value,
-                      });
-                    }}
-                    className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                  />
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Business Attributes - Using MultiSelectDropdown */}
+          <MultiSelectDropdown
+            label="Business Attributes"
+            placeholder="Select business attributes"
+            options={businessAttributeOptions}
+            selectedValues={
+              formState.otherAttributeSelected
+                ? [...(formState.businessAttributes || []), "Other"]
+                : formState.businessAttributes || []
+            }
+            onChange={handleAttributesChange}
+            isRequired={false}
+            error={errors.businessAttributes}
+            allowCustomValues={true}
+            customValuesLabel="Add other attributes:"
+            customValueCategory="Other"
+            customValues={customAttributes}
+            onCustomValuesChange={handleCustomAttributesChange}
+          />
         </div>
       </div>
 
-     
     </div>
-  );
-};
+  )
+}
 
-export default BusinessOverviewForm;
+export default BusinessOverviewForm
