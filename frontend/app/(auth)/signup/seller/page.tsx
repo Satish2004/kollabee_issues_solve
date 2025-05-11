@@ -21,7 +21,7 @@ import { BusinessType, CategoryEnum } from "@/types/api";
 
 export default function SignupSellerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(1);
+  const [currentStage, setCurrentStage] = useState(3);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
