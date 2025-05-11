@@ -96,11 +96,10 @@ export default function SignupSellerPage() {
     }
     setGenerateOTPLoading(true);
     try {
-      await authApi.generateOTP(formData.email);
+      setCountdown(35);
       setShowOTP(true);
-      setCountdown(30);
+      await authApi.generateOTP(formData.email);
       setIsResendDisabled(true);
-      toast.success("OTP sent successfully");
     } catch (error: any) {
       console.error("Error generating OTP:", error);
       toast.error(error.response?.data?.message || "Failed to send OTP");
@@ -439,6 +438,7 @@ export default function SignupSellerPage() {
           onResend={handleResendOTP}
           isResendDisabled={isResendDisabled}
           countdown={countdown}
+          setCountdown={setCountdown}
           isVerifying={verifyOTPLoading}
           error={otpError}
         />
