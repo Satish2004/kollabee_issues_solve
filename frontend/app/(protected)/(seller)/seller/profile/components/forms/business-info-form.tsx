@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { CategoryEnum, BusinessType } from "@/types/api";
 import InfoButton from "@/components/ui/IButton";
 import { Textarea } from "@/components/ui/textarea";
@@ -89,6 +88,13 @@ const BusinessInfoForm = ({
     });
   };
 
+  const getSelectedBusinessTypeLabels = () => {
+    return (formState.businessTypes || []).map((value: BusinessType) => {
+      const businessType = businessTypes.find((bt) => bt.value === value);
+      return businessType ? businessType.label : value;
+    });
+  };
+
   const handleBusinessCategoryChange = (selectedCategories: string[]) => {
     // Convert the display labels back to enum values
     const enumValues = selectedCategories.map((label) => {
@@ -172,37 +178,35 @@ const BusinessInfoForm = ({
             />
           </div>
 
-          <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Type{" "}
-              <InfoButton
-                text={
-                  "Match with the right buyers by selecting one or more categories that best describe your business."
-                }
-              />
-            </label>
-            <div className="flex flex-wrap gap-1 sm:gap-2">
-              {businessTypes.map(({ value, label }) => (
-                <Button
-                  key={value}
-                  variant={
-                    formState.businessTypes?.includes(value)
-                      ? "default"
-                      : "outline"
-                  }
-                  onClick={() => handleBusinessTypeClick(value)}
-                  className={`rounded-md h-8 sm:h-9 px-1 sm:px-2 text-[10px] sm:text-xs bg-[#fcfcfc] border-[#e5e5e5] placeholder:text-black/50 ${
-                    formState.businessTypes?.includes(value)
-                      ? "border-[#9e1171] bg-clip-text text-transparent bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-                      : "border-[#e5e5e5]"
-                  }`}
-                  size="sm"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-          </div>
+          <MultiSelectDropdown
+            label="Business Type"
+            placeholder="Select one or more business types"
+            options={businessTypes.map(({ label }) => label)}
+            selectedValues={
+              formState.businessTypes?.map((type: BusinessType) => {
+                const businessType = businessTypes.find(
+                  (bt) => bt.value === type
+                );
+                return businessType ? businessType.label : type;
+              }) || []
+            }
+            onChange={(selectedLabels) => {
+              // Convert the display labels back to enum values for the API
+              const enumValues = selectedLabels.map((label) => {
+                const businessType = businessTypes.find(
+                  (bt) => bt.label === label
+                );
+                return businessType ? businessType.value : label;
+              });
+
+              onChange({
+                ...formState,
+                businessTypes: enumValues,
+              });
+            }}
+            isRequired={true}
+            error={errors.businessTypes}
+          />
         </div>
 
         <div className="space-y-6">

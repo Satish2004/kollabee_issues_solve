@@ -486,7 +486,7 @@ const ComplianceCredentialsForm = ({
                       <div className=" flex items-center flex-col">
                         <Upload className="h-8 w-8 text-gray-400" />
                         <span className="text-xs text-gray-500 mt-1">
-                          Upload Document
+                          Upload File
                         </span>
                       </div>
                     </div>
@@ -653,7 +653,7 @@ const ComplianceCredentialsForm = ({
                     <>
                       <Upload className="h-6 w-6 text-gray-400" />
                       <span className="text-xs text-gray-500 mt-1">
-                        Upload Certificate
+                        Upload File
                       </span>
                     </>
                   )}
@@ -792,7 +792,7 @@ const ComplianceCredentialsForm = ({
                     <>
                       <Upload className="h-6 w-6 text-gray-400" />
                       <span className="text-xs text-gray-500 mt-1">
-                        Upload Image
+                        Upload File
                       </span>
                     </>
                   )}
