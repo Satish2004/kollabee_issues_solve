@@ -19,6 +19,7 @@ import {
   Plus,
   Package,
   Share,
+  NotebookPen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -120,16 +121,21 @@ export function SellerSidebar({ className }: SidebarProps) {
           href: "/seller/advertise",
           target: "advertise",
         },
+      ],
+    },
+    {
+      label: "OTHERS",
+      routes: [
         {
           label: "Invite",
           icon: Share,
           href: "/seller/invite",
         },
-        // {
-        //   label: "Profile Manage",
-        //   icon: UserCog,
-        //   href: "/profile/seller/profile-management",
-        // },
+        {
+          label: "Feedback",
+          icon: NotebookPen,
+          href: "/seller/contact",
+        },
       ],
     },
   ];
