@@ -18,6 +18,7 @@ import {
   Settings,
   Plus,
   Package,
+  Share,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -117,6 +118,12 @@ export function SellerSidebar({ className }: SidebarProps) {
           label: "Advertise",
           icon: Headphones,
           href: "/seller/advertise",
+          target: "advertise",
+        },
+        {
+          label: "Invite",
+          icon: Share,
+          href: "/seller/invite",
           target: "advertise",
         },
         // {
