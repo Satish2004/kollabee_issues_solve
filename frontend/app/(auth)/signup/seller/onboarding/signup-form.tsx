@@ -18,7 +18,6 @@ import {
   getCountryCode,
   getSpecialCaseCountryCode,
 } from "@/components/country-utils";
-import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 
 interface SignupFormProps {
   formData: {
@@ -269,9 +268,6 @@ export function SignupForm({
     role?: string;
   }>({});
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [customRole, setCustomRole] = useState<string>("");
-  const [customRoles, setCustomRoles] = useState<string[]>([]);
-
   const [search, setSearch] = useState("");
   const [filteredCountries, setFilteredCountries] = useState(countries);
   const [isSelecting, setIsSelecting] = useState(false);
@@ -409,36 +405,6 @@ export function SignupForm({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showCountryDropdown]);
-
-  // Handle role selection with MultiSelectDropdown
-  const handleRoleChange = (selectedRoles: string[]) => {
-    // Since we only want a single role, take the last selected one
-    const selectedRole =
-      selectedRoles.length > 0 ? selectedRoles[selectedRoles.length - 1] : "";
-
-    setFormData({
-      ...formData,
-      role: selectedRole,
-    });
-
-    // Clear role error if a role is selected
-    if (selectedRole) {
-      setErrors({ ...errors, role: undefined });
-    }
-  };
-
-  const handleCustomRoleChange = (newCustomRoles: string[]) => {
-    setCustomRoles(newCustomRoles);
-
-    // If there are custom roles, set the first one as the selected role
-    if (newCustomRoles.length > 0) {
-      setFormData({
-        ...formData,
-        role: newCustomRoles[0],
-      });
-      setErrors({ ...errors, role: undefined });
-    }
-  };
 
   return (
     <div className="space-y-8 font-futura font-normal">
@@ -586,27 +552,40 @@ export function SignupForm({
             </div>
           </div>
 
-          {/* Role Selection - Using MultiSelectDropdown */}
+          {/* Role Selection - Using Select Component */}
           <div className="space-y-2">
-            {/* <Label className="font-futura font-normal">
+            <Label className="font-futura font-normal">
               Describe your Role within the Company
               <span className="text-destructive">*</span>
-            </Label> */}
-            <MultiSelectDropdown
-              label=" Describe your Role within the Company"
-              placeholder="Select your role"
-              options={companyRoles}
-              selectedValues={formData.role ? [formData.role] : []}
-              onChange={handleRoleChange}
-              isRequired={true}
-              error={errors.role}
-              allowCustomValues={true}
-              customValuesLabel="Add your specific role:"
-              customValueCategory="Other"
-              customValues={customRoles}
-              onCustomValuesChange={handleCustomRoleChange}
-              className="mt-0"
-            />
+            </Label>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => {
+                setFormData({
+                  ...formData,
+                  role: value,
+                });
+                setErrors({ ...errors, role: undefined });
+              }}
+            >
+              <SelectTrigger
+                className={`w-full bg-[#fcfcfc] border ${
+                  errors.role ? "border-red-500" : "border-[#e5e5e5]"
+                } rounded-[6px]`}
+              >
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-10">
+                {companyRoles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.role && (
+              <p className="text-sm text-red-500 mt-1">{errors.role}</p>
+            )}
           </div>
 
           <div className="space-y-4"></div>
