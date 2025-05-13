@@ -11,6 +11,13 @@ import InfoButton from "@/components/ui/IButton";
 import { X, ImageIcon, Upload, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -49,7 +56,7 @@ const teamSizeOptions = [
 ];
 
 const revenueOptions = [
-  "Under $100K",
+  "0 - $100K",
   "$100K – $500K",
   "$500K – $1M",
   "$1M – $5M",
@@ -156,28 +163,6 @@ const BusinessOverviewForm = ({
     onChange({
       ...formState,
       customCategories: newCustomCategories,
-    });
-  };
-
-  const handleTeamSizeChange = (selectedSizes: string[]) => {
-    // For radio-like behavior, we only keep the last selected value
-    const teamSize =
-      selectedSizes.length > 0 ? selectedSizes[selectedSizes.length - 1] : "";
-    onChange({
-      ...formState,
-      teamSize,
-    });
-  };
-
-  const handleRevenueChange = (selectedRevenues: string[]) => {
-    // For radio-like behavior, we only keep the last selected value
-    const annualRevenue =
-      selectedRevenues.length > 0
-        ? selectedRevenues[selectedRevenues.length - 1]
-        : "";
-    onChange({
-      ...formState,
-      annualRevenue,
     });
   };
 
@@ -546,28 +531,67 @@ const BusinessOverviewForm = ({
           </div>
 
           {/* Business Team Size - Using MultiSelectDropdown */}
-          <MultiSelectDropdown
-            label="Business Team Size"
-            placeholder="Select your team size"
-            options={teamSizeOptions}
-            selectedValues={formState.teamSize ? [formState.teamSize] : []}
-            onChange={handleTeamSizeChange}
-            isRequired={true}
-            error={errors.teamSize}
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              Business Team Size<span className="text-red-500 ml-0.5">*</span>
+            </label>
+            <Select
+              value={formState.teamSize || ""}
+              onValueChange={(value) => {
+                onChange({
+                  ...formState,
+                  teamSize: value,
+                });
+              }}
+            >
+              <SelectTrigger className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50">
+                <SelectValue placeholder="Select your team size" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-2">
+                {teamSizeOptions.map((size) => (
+                  <SelectItem key={size} value={size}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.teamSize && (
+              <div className="text-sm text-red-500 mt-1">{errors.teamSize}</div>
+            )}
+          </div>
 
           {/* Business Annual Revenue - Using MultiSelectDropdown */}
-          <MultiSelectDropdown
-            label="Business Annual Revenue"
-            placeholder="Select your annual revenue"
-            options={revenueOptions}
-            selectedValues={
-              formState.annualRevenue ? [formState.annualRevenue] : []
-            }
-            onChange={handleRevenueChange}
-            isRequired={true}
-            error={errors.annualRevenue}
-          />
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              Business Annual Revenue
+              <span className="text-red-500 ml-0.5">*</span>
+            </label>
+            <Select
+              value={formState.annualRevenue || ""}
+              onValueChange={(value) => {
+                onChange({
+                  ...formState,
+                  annualRevenue: value,
+                });
+              }}
+            >
+              <SelectTrigger className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50">
+                <SelectValue placeholder="Select your annual revenue" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-2">
+                {revenueOptions.map((revenue) => (
+                  <SelectItem key={revenue} value={revenue}>
+                    {revenue}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.annualRevenue && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.annualRevenue}
+              </div>
+            )}
+          </div>
 
           {/* Languages Spoken - Using MultiSelectDropdown */}
           <MultiSelectDropdown
