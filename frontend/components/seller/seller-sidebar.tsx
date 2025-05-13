@@ -124,7 +124,6 @@ export function SellerSidebar({ className }: SidebarProps) {
           label: "Invite",
           icon: Share,
           href: "/seller/invite",
-          target: "advertise",
         },
         // {
         //   label: "Profile Manage",
