@@ -24,6 +24,7 @@ export async function middleware(request: NextRequest) {
   const isPublicPath = [
     "/",
     "/test",
+    "/contact",
     "/privacy-policy",
     "/terms-conditions",
     "/google",
@@ -55,8 +56,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  const common = ["/", "/terms-conditions", "/privacy-policy"];
+
   // If has token and trying to access login/signup pages, redirect to dashboard
-  if (token && isPublicPath && path !== "/") {
+  if (token && isPublicPath && !common.includes(path)) {
     // Verify token and get user role
     const payload = await verifyToken(token);
     // console.log("payload", payload);
