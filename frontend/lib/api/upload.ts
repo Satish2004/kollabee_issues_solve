@@ -36,4 +36,26 @@ export const uploadApi = {
       data: { cloudinaryLink: publicId },
     });
   },
+
+  uploadMultipleFiles: async (files: File[]) => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("files", file); // 'files' is the field name in form data
+    });
+    return api.post("/upload/multiple-files", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
+  uploadAnyFile: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file); // 'file' is the field name in form data
+    return api.post("/upload/any-file", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
 };

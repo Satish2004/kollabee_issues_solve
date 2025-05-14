@@ -10,6 +10,7 @@ import { chatApi } from "@/lib/api/chat";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { uploadApi } from "@/lib/api";
 
 export default function ChatModule() {
   const [activeTab, setActiveTab] = useState<"BUYER" | "SELLER" | "ADMIN">(
@@ -251,14 +252,19 @@ export default function ChatModule() {
       let uploadedFiles: string[] = [];
 
       if (attachments.length > 0) {
-        const uploadResponse = await chatApi.uploadFiles(attachments);
+        for (const file of attachments) {
+          // Use the `uploadAnyFile` API call for each file
+          const uploadResponse = await uploadApi.uploadAnyFile(file);
 
-        if (!uploadResponse.data.fileUrls) {
-          throw new Error("Failed to upload files");
+          if (!uploadResponse.data.url) {
+            throw new Error("Failed to upload file");
+          }
+
+          uploadedFiles.push(uploadResponse.data.url);
         }
-
-        uploadedFiles = uploadResponse.data.fileUrls;
       }
+
+      console.log("Uploaded files:", uploadedFiles);
 
       // Prepare message data
       const newMessage: Partial<Message> = {
