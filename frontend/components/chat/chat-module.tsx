@@ -256,11 +256,11 @@ export default function ChatModule() {
           // Use the `uploadAnyFile` API call for each file
           const uploadResponse = await uploadApi.uploadAnyFile(file);
 
-          if (!uploadResponse.data.url) {
+          if (!uploadResponse.url) {
             throw new Error("Failed to upload file");
           }
 
-          uploadedFiles.push(uploadResponse.data.url);
+          uploadedFiles.push(uploadResponse.url);
         }
       }
 
