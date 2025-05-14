@@ -208,7 +208,7 @@ export default function SellerLayoutHeader() {
 
             <div className="flex-1 overflow-y-auto px-6">
               <div className="grid grid-cols-2 gap-4 mb-8">
-                <Link
+                {/* <Link
                   href="/seller/add-product"
                   className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
                   onClick={() => setMobileMenuOpen(false)}
@@ -221,7 +221,7 @@ export default function SellerLayoutHeader() {
                     <Plus className="size-5 cursor-pointer" />
                   </Button>
                   <span className="text-xs font-medium">Add Product</span>
-                </Link>
+                </Link> */}
 
                 <Link
                   href="/seller/notifications"
@@ -294,7 +294,7 @@ export default function SellerLayoutHeader() {
         >
           Upgrade
         </Button>
-        <Link href="/seller/add-product">
+        {/* <Link href="/seller/add-product">
           <Button
             variant="outline"
             size="icon"
@@ -302,7 +302,7 @@ export default function SellerLayoutHeader() {
           >
             <Plus className="size-5 cursor-pointer" />
           </Button>
-        </Link>
+        </Link> */}
         <Link href="/seller/orders">
           <Button
             variant="outline"
