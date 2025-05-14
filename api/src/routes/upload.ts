@@ -4,6 +4,8 @@ import {
   uploadProductImage,
   uploadPDF,
   deleteImage,
+  uploadMultipleFiles,
+  uploadAnyFile,
 } from "../controllers/upload.controller";
 import { authMiddleware } from "../middleware/auth";
 import { upload } from "../utils/multer";
@@ -24,8 +26,21 @@ router.post(
   uploadProductImage
 );
 
-
 router.post("/product-doc", authMiddleware, upload.single("pdf"), uploadPDF);
+
+router.post(
+  "/multiple-files",
+  authMiddleware,
+  upload.array("files"), // 'files' is the field name in form data
+  uploadMultipleFiles
+);
+
+router.post(
+  "/any-file",
+  authMiddleware,
+  upload.single("file"), // 'file' is the field name in form data
+  uploadAnyFile
+);
 
 router.delete("/delete-image", authMiddleware, deleteImage);
 

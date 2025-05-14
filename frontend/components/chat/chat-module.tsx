@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef } from "react";
 import { io, type Socket } from "socket.io-client";
 import type { Message, Conversation, BlockedCommunication } from "./types/chat";
 import ChatWindow from "./chat-window";
@@ -10,6 +10,7 @@ import { chatApi } from "@/lib/api/chat";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import { uploadApi } from "@/lib/api";
 
 export default function ChatModule() {
   const [activeTab, setActiveTab] = useState<"BUYER" | "SELLER" | "ADMIN">(
@@ -31,6 +32,9 @@ export default function ChatModule() {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const tempMessageIdRef = useRef<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
+    {}
+  );
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -210,6 +214,7 @@ export default function ChatModule() {
   const fetchMessages = async (conversationId: string) => {
     try {
       setIsLoading(true);
+
       const response = await chatApi.getMessages(conversationId);
       console.log("Message", response.messages);
       if (response) {
@@ -248,19 +253,148 @@ export default function ChatModule() {
       return;
 
     try {
-      let uploadedFiles: string[] = [];
+      // Create a temporary message ID
+      const tempId = `temp-${Date.now()}`;
+      tempMessageIdRef.current = tempId;
 
+      // Create temporary URLs for attachments
+      const tempAttachmentUrls: string[] = [];
+      const tempAttachmentIds: string[] = [];
+
+      // Create optimistic message with temporary attachments
+      const optimisticMessage: Message = {
+        id: tempId,
+        conversationId: activeConversation,
+        content: content.trim(),
+        senderId: user?.id || "",
+        senderName: user?.name || "User",
+        senderType: user?.role || "buyer",
+        attachments: [],
+        createdAt: new Date().toISOString(),
+        status: "pending",
+        uploadProgress: {},
+      };
+
+      // Add temporary attachments with progress tracking
       if (attachments.length > 0) {
-        const uploadResponse = await chatApi.uploadFiles(attachments);
+        for (let i = 0; i < attachments.length; i++) {
+          const file = attachments[i];
+          const tempAttachmentId = `temp-attachment-${Date.now()}-${i}`;
+          const tempUrl = URL.createObjectURL(file);
 
-        if (!uploadResponse.data.fileUrls) {
-          throw new Error("Failed to upload files");
+          tempAttachmentUrls.push(tempUrl);
+          tempAttachmentIds.push(tempAttachmentId);
+
+          // Initialize progress for this attachment
+          setUploadProgress((prev) => ({
+            ...prev,
+            [tempAttachmentId]: 0,
+          }));
+
+          // Add to optimistic message
+          optimisticMessage.attachments.push(tempUrl);
+          if (!optimisticMessage.uploadProgress) {
+            optimisticMessage.uploadProgress = {};
+          }
+          optimisticMessage.uploadProgress[tempUrl] = 0;
         }
-
-        uploadedFiles = uploadResponse.data.fileUrls;
       }
 
-      // Prepare message data
+      // Add optimistic message to UI
+      setMessages((prev) => [...prev, optimisticMessage]);
+
+      // Upload files and track progress
+      const uploadedFiles: string[] = [];
+
+      if (attachments.length > 0) {
+        for (let i = 0; i < attachments.length; i++) {
+          const file = attachments[i];
+          const tempAttachmentId = tempAttachmentIds[i];
+          const tempUrl = tempAttachmentUrls[i];
+
+          try {
+            // Mock progress updates (replace with actual progress tracking if your API supports it)
+            const updateProgress = (progress: number) => {
+              setUploadProgress((prev) => ({
+                ...prev,
+                [tempAttachmentId]: progress,
+              }));
+
+              // Update the message with progress
+              setMessages((prev) =>
+                prev.map((msg) =>
+                  msg.id === tempId
+                    ? {
+                        ...msg,
+                        uploadProgress: {
+                          ...msg.uploadProgress,
+                          [tempUrl]: progress,
+                        },
+                      }
+                    : msg
+                )
+              );
+            };
+
+            // Simulate progress updates (replace with actual API progress tracking)
+            const progressInterval = setInterval(() => {
+              setUploadProgress((prev) => {
+                const currentProgress = prev[tempAttachmentId] || 0;
+                if (currentProgress < 90) {
+                  const newProgress = Math.min(
+                    currentProgress + Math.random() * 20,
+                    90
+                  );
+                  updateProgress(newProgress);
+                  return { ...prev, [tempAttachmentId]: newProgress };
+                }
+                return prev;
+              });
+            }, 300);
+
+            // Upload the file
+            const uploadResponse = await uploadApi.uploadAnyFile(file);
+
+            // Clear the interval
+            clearInterval(progressInterval);
+
+            // Set progress to 100%
+            updateProgress(100);
+
+            if (!uploadResponse.url) {
+              throw new Error("Failed to upload file");
+            }
+
+            uploadedFiles.push(uploadResponse.url);
+
+            // Replace the temporary URL with the actual URL in the message
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === tempId
+                  ? {
+                      ...msg,
+                      attachments: msg.attachments.map((url) =>
+                        url === tempUrl ? uploadResponse.url : url
+                      ),
+                    }
+                  : msg
+              )
+            );
+          } catch (error) {
+            console.error(`Failed to upload file ${file.name}:`, error);
+            toast({
+              title: "Upload Error",
+              description: `Failed to upload ${file.name}`,
+              variant: "destructive",
+            });
+          }
+        }
+      }
+
+      // Clean up temporary URLs
+      tempAttachmentUrls.forEach((url) => URL.revokeObjectURL(url));
+
+      // Prepare final message data
       const newMessage: Partial<Message> = {
         conversationId: activeConversation,
         content: content.trim(),
@@ -273,16 +407,6 @@ export default function ChatModule() {
 
       // Send message via socket
       socketRef.current.emit("send_message", newMessage);
-
-      // Optimistically add to UI
-      const tempId = `temp-${Date.now()}`;
-      const tempMessage: Message = {
-        id: tempId,
-        ...(newMessage as any),
-        status: "pending",
-      };
-      tempMessageIdRef.current = tempId;
-      setMessages((prev) => [...prev, tempMessage]);
     } catch (error) {
       console.error("Failed to send message:", error);
       toast({

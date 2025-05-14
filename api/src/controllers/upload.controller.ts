@@ -134,3 +134,70 @@ export const deleteImage = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to delete image" });
   }
 };
+
+export const uploadMultipleFiles = async (req: any, res: Response) => {
+  try {
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ error: "No files uploaded" });
+    }
+
+    const uploadResults = await Promise.all(
+      req.files.map((file: any) => {
+        const isImage = file.mimetype.startsWith("image/");
+        const resourceType = isImage ? "image" : "raw";
+        return uploadToCloudinary(file.buffer, "multi-files", {
+          resource_type: resourceType,
+        });
+      })
+    );
+
+    res.json({
+      files: uploadResults.map((result: any) => ({
+        url: result.secure_url,
+        public_id: result.public_id,
+      })),
+    });
+  } catch (error) {
+    console.error("Upload multiple files error:", error);
+    res.status(500).json({ error: "Failed to upload files" });
+  }
+};
+
+export const uploadAnyFile = async (req: any, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    const isImage = req.file.mimetype.startsWith("image/");
+    const isVideo = req.file.mimetype.startsWith("video/");
+    const isAudio = req.file.mimetype.startsWith("audio/");
+    const folder = isImage
+      ? "any-files/images"
+      : isVideo
+      ? "any-files/videos"
+      : isAudio
+      ? "any-files/audios"
+      : "any-files/others";
+
+    const resourceType = isImage
+      ? "image"
+      : isVideo
+      ? "video"
+      : isAudio
+      ? "audio"
+      : "raw";
+
+    const result: any = await uploadToCloudinary(req.file.buffer, folder, {
+      resource_type: resourceType,
+    });
+
+    res.json({
+      url: result.secure_url,
+      public_id: result.public_id,
+    });
+  } catch (error) {
+    console.error("Upload any file error:", error);
+    res.status(500).json({ error: "Failed to upload file" });
+  }
+};

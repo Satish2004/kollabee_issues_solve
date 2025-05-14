@@ -13,13 +13,21 @@ cloudinary.config({
 const storage = multer.memoryStorage();
 
 const fileFilter = (req: any, file: any, cb: any) => {
-  if (
-    !file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|pdf|PDF)$/)
-  ) {
-    req.fileValidationError = "Only image and PDF files are allowed!";
-    return cb(new Error("Only image and PDF files are allowed!"), false);
+  const allowedMimeTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "application/pdf",
+    "video/mp4",
+    "video/mpeg",
+    "video/quicktime",
+  ];
+
+  if (allowedMimeTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error("Only image, video, and PDF files are allowed!"), false);
   }
-  cb(null, true);
 };
 
 export const upload = multer({
@@ -44,6 +52,7 @@ export const uploadToCloudinary = async (
           resource_type:
             (options.resource_type as "image" | "raw" | "video" | "auto") ||
             "auto", // Default to "auto" if not specified
+          timeout: 120000, // Set timeout to 120 seconds (2 minutes)
         },
         (error, result) => {
           if (error) reject(error);
