@@ -1372,22 +1372,12 @@ export default function ChatWindow({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Tabs defaultValue="recent">
+                  <Tabs defaultValue="all">
                     <TabsList className="grid grid-cols-3">
-                      <TabsTrigger value="recent">Recent</TabsTrigger>
-                      <TabsTrigger value="quick">Quick</TabsTrigger>
+                    
                       <TabsTrigger value="full">All</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="recent">
-                      <RecentEmojis
-                        onEmojiSelect={(emoji) => handleEmojiSelect(emoji)}
-                      />
-                    </TabsContent>
-                    <TabsContent value="quick">
-                      <EmojiQuickPicker
-                        onEmojiSelect={(emoji) => handleEmojiSelect(emoji)}
-                      />
-                    </TabsContent>
+                    
                     <TabsContent value="full">
                       <Picker data={data} onEmojiSelect={handleEmojiSelect} />
                     </TabsContent>
