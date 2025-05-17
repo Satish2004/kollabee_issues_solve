@@ -21,6 +21,7 @@ import {
   Share,
   NotebookPen,
   Bot,
+  Calendar,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -136,6 +137,11 @@ export function SellerSidebar({ className }: SidebarProps) {
           label: "Invite",
           icon: Share,
           href: "/seller/invite",
+        },
+        {
+          label: "Calendar",
+          icon: Calendar,
+          href: "/seller/appointment",
         },
         {
           label: "Feedback",
