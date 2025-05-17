@@ -25,6 +25,7 @@ import {
   NotebookPen,
   Bot,
   Calendar,
+  MessageCircleQuestion,
 } from "lucide-react";
 import { BsFillCartCheckFill } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
@@ -163,6 +164,11 @@ export function BuyerSidebar({ className }: SidebarProps) {
           label: "Feedback",
           icon: NotebookPen,
           href: "/buyer/contact",
+        },
+        {
+          label: "FAQ",
+          icon: MessageCircleQuestion,
+          href: "/buyer/faq",
         },
       ],
     },
