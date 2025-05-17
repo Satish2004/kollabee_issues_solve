@@ -127,13 +127,15 @@ const FeedbackPage = () => {
                   )}
                 />
 
-                <Button
-                  type="submit"
-                  className="gradient-border button-bg text-white w-full py-6 text-lg"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Submitting..." : "Submit Feedback"}
-                </Button>
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    className="gradient-border button-bg text-white  py-6 text-lg"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit Feedback"}
+                  </Button>
+                </div>
               </form>
             </Form>
           </div>
@@ -197,29 +199,6 @@ const FeedbackPage = () => {
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-            </div>
-
-            {/* Success stories */}
-            <div className="bg-white p-6 rounded-lg shadow-sm">
-              <h3 className="text-xl font-semibold mb-4 flex items-center">
-                <MessageSquare className="h-5 w-5 mr-2 text-gray-700" />
-                Feedback Success Stories
-              </h3>
-              <div className="space-y-4">
-                <div className="border-l-4 border-gray-500 pl-4 py-2">
-                  <p className="italic text-gray-600">
-                    "Based on user feedback, we implemented the dark mode
-                    feature that is now used by over 70% of our users."
-                  </p>
-                </div>
-                <div className="border-l-4 border-gray-400 pl-4 py-2">
-                  <p className="italic text-gray-600">
-                    "Multiple users suggested improvements to our navigation
-                    system, leading to a complete redesign that reduced support
-                    tickets by 35%."
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -101,7 +101,7 @@ export default function ChatbotPage() {
         <div className="w-full ">
           <Card className="w-full shadow-lg overflow-hidden">
             {/* Chatbot Header */}
-            <div className="bg-indigo-600 text-white p-3 sm:p-4 flex items-center">
+            <div className="button-bg text-white p-3 sm:p-4 flex items-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="20"
@@ -125,7 +125,7 @@ export default function ChatbotPage() {
             <div className="h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px] overflow-y-auto p-3 sm:p-4 bg-gray-50">
               {loading && questions.length === 0 ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-indigo-600"></div>
+                  <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 button-bg"></div>
                 </div>
               ) : error ? (
                 <div className="flex items-center justify-center h-full text-red-500 p-3 sm:p-4 text-center text-sm sm:text-base">
@@ -145,7 +145,7 @@ export default function ChatbotPage() {
                       <div
                         className={`max-w-[85%] sm:max-w-[80%] rounded-lg px-3 py-2 sm:px-4 sm:py-2 text-sm sm:text-base ${
                           message.type === "user"
-                            ? "bg-indigo-600 text-white"
+                            ? "button-bg text-white"
                             : "bg-white text-gray-800 border border-gray-200"
                         }`}
                       >

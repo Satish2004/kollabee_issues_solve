@@ -99,177 +99,185 @@ const InvitePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white py-12 border-b">
-        <div className="  px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div className="mb-8 md:mb-0">
-              <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Users className="h-7 w-7" />
-                Invite Collaborators
-              </h1>
-              <p className="mt-2 text-gray-600 max-w-xl">
-                Share access with your team members, clients, or friends to
-                collaborate on this project.
-              </p>
+    <div className="md:px-6 rounded-lg">
+      <div className="min-h-screen rounded-lg bg-gray-50">
+        {/* Header */}
+        <header className="bg-white rounded-lg py-12 border-b">
+          <div className="  px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+              <div className="mb-8 md:mb-0">
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                  <Users className="h-7 w-7" />
+                  Invite Collaborators
+                </h1>
+                <p className="mt-2 text-gray-600 max-w-xl">
+                  Share access with your team members, clients, or friends to
+                  collaborate on this project.
+                </p>
+              </div>
+              <Button
+                className="flex items-center gap-2"
+                onClick={copyToClipboard}
+              >
+                <Share2 className="h-4 w-4" />
+                {copied ? "Copied!" : "Share Link"}
+              </Button>
             </div>
-            <Button
-              className="flex items-center gap-2"
-              onClick={copyToClipboard}
-            >
-              <Share2 className="h-4 w-4" />
-              {copied ? "Copied!" : "Share Link"}
-            </Button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main content */}
-      <main className="  py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-          {/* Left column - Sharing options */}
-          <div className="lg:col-span-2">
-            <Tabs defaultValue="link" className="w-full">
-              <TabsList className="grid grid-cols-2 mb-8">
-                <TabsTrigger value="link" className="flex items-center gap-2">
-                  <Copy className="h-4 w-4" />
-                  Share Link
-                </TabsTrigger>
-                <TabsTrigger value="email" className="flex items-center gap-2">
-                  <Mail className="h-4 w-4" />
-                  Email Invite
-                </TabsTrigger>
-              </TabsList>
+        {/* Main content */}
+        <main className="  py-12 px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Left column - Sharing options */}
+            <div className="lg:col-span-2">
+              <Tabs defaultValue="link" className="w-full">
+                <TabsList className="grid grid-cols-2 mb-8">
+                  <TabsTrigger value="link" className="flex items-center gap-2">
+                    <Copy className="h-4 w-4" />
+                    Share Link
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="email"
+                    className="flex items-center gap-2"
+                  >
+                    <Mail className="h-4 w-4" />
+                    Email Invite
+                  </TabsTrigger>
+                </TabsList>
 
-              <TabsContent value="link">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Copy className="h-5 w-5" />
-                      Share via Link
-                    </CardTitle>
-                    <CardDescription>
-                      Copy this unique link to share access with anyone
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center space-x-2">
-                      <Input
-                        readOnly
-                        value={shareableUrl}
-                        className="font-mono text-sm"
-                      />
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={copyToClipboard}
-                        className="flex-shrink-0"
-                      >
-                        {copied ? (
-                          <Check className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <Copy className="h-4 w-4" />
-                        )}
-                        <span className="sr-only">Copy link</span>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="email">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Mail className="h-5 w-5" />
-                      Invite via Email
-                    </CardTitle>
-                    <CardDescription>
-                      Send an email invitation directly to your collaborators
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form onSubmit={sendInvite} className="space-y-4">
-                      <div className="space-y-2">
-                        <label htmlFor="email" className="text-sm font-medium">
-                          Email address
-                        </label>
-                        <div className="flex flex-col gap-2">
-                          <Input
-                            id="email"
-                            type="text"
-                            placeholder="colleague@example.com"
-                            value={email}
-                            onChange={handleInputChange}
-                            required
-                          />
-                          {error && (
-                            <p className="text-sm text-red-500">{error}</p>
+                <TabsContent value="link">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Copy className="h-5 w-5" />
+                        Share via Link
+                      </CardTitle>
+                      <CardDescription>
+                        Copy this unique link to share access with anyone
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          readOnly
+                          value={shareableUrl}
+                          className="font-mono text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={copyToClipboard}
+                          className="flex-shrink-0"
+                        >
+                          {copied ? (
+                            <Check className="h-4 w-4 text-green-500" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
                           )}
-                        </div>
-                        <Button disabled={isLoading} type="submit">
-                          Send
+                          <span className="sr-only">Copy link</span>
                         </Button>
                       </div>
-                      <div className="text-sm text-gray-500">
-                        Separate multiple emails with commas
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-            </Tabs>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="email">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Mail className="h-5 w-5" />
+                        Invite via Email
+                      </CardTitle>
+                      <CardDescription>
+                        Send an email invitation directly to your collaborators
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <form onSubmit={sendInvite} className="space-y-4">
+                        <div className="space-y-2">
+                          <label
+                            htmlFor="email"
+                            className="text-sm font-medium"
+                          >
+                            Email address
+                          </label>
+                          <div className="flex flex-col gap-2">
+                            <Input
+                              id="email"
+                              type="text"
+                              placeholder="colleague@example.com"
+                              value={email}
+                              onChange={handleInputChange}
+                              required
+                            />
+                            {error && (
+                              <p className="text-sm text-red-500">{error}</p>
+                            )}
+                          </div>
+                          <Button disabled={isLoading} type="submit">
+                            Send
+                          </Button>
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Separate multiple emails with commas
+                        </div>
+                      </form>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            {/* Right column - Benefits and info */}
+            <div className="space-y-8">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Why Invite Others?</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-3">
+                    <div className="bg-gray-100 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                      <Users className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Connect the Ecosystem</h4>
+                      <p className="text-sm text-gray-600">
+                        Bring your buyers and suppliers together in one platform
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <div className="bg-gray-100 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                      <MessageSquare className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Better Products</h4>
+                      <p className="text-sm text-gray-600">
+                        Create greater futuristic products through collaboration
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <div className="bg-gray-100 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
+                      <ArrowRight className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium">Maximize Value</h4>
+                      <p className="text-sm text-gray-600">
+                        Help everyone get the best out of their business
+                        relationships
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
-
-          {/* Right column - Benefits and info */}
-          <div className="space-y-8">
-            <Card>
-              <CardHeader>
-                <CardTitle>Why Invite Others?</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-3">
-                  <div className="bg-gray-100 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                    <Users className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Connect the Ecosystem</h4>
-                    <p className="text-sm text-gray-600">
-                      Bring your buyers and suppliers together in one platform
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="bg-gray-100 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                    <MessageSquare className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Better Products</h4>
-                    <p className="text-sm text-gray-600">
-                      Create greater futuristic products through collaboration
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-3">
-                  <div className="bg-gray-100 p-2 rounded-full h-8 w-8 flex items-center justify-center flex-shrink-0">
-                    <ArrowRight className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Maximize Value</h4>
-                    <p className="text-sm text-gray-600">
-                      Help everyone get the best out of their business
-                      relationships
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };
