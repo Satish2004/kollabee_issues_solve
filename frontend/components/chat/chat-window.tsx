@@ -33,12 +33,10 @@ import { useToast } from "@/hooks/use-toast";
 import { chatApi } from "@/lib/api/chat";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import BlockedCommunicationNotice from "./blocked-communication-notice";
-import RecentEmojis, { useRecentEmojis } from "./recent-emojis";
+import { useRecentEmojis } from "./recent-emojis";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import EmojiQuickPicker from "./emoji-quick-picker";
 import MediaViewer from "./media-viewer";
 import { Progress } from "@/components/ui/progress";
-import { uploadApi } from "@/lib/api";
 
 interface ChatWindowProps {
   messages: Message[];
@@ -299,7 +297,7 @@ export default function ChatWindow({
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4">
+        <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-180px)]">
           {messages.length > 0 ? (
             <>
               {/* Group messages by date */}
@@ -332,6 +330,7 @@ export default function ChatWindow({
                                 <AvatarImage
                                   src={
                                     conversation.participantAvatar ||
+                                    "/placeholder.svg" ||
                                     "/placeholder.svg" ||
                                     "/placeholder.svg"
                                   }
@@ -780,7 +779,7 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex-1 flex flex-col  bg-white">
+    <div className="flex-1 flex flex-col h-screen bg-white">
       {/* Conversation Header */}
       <div className="p-4 border-b flex justify-between items-center">
         <div className="flex items-center">
@@ -823,7 +822,7 @@ export default function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-180px)]">
         {messages.length > 0 ? (
           <>
             {/* Group messages by date */}
@@ -856,6 +855,7 @@ export default function ChatWindow({
                               <AvatarImage
                                 src={
                                   conversation.participantAvatar ||
+                                  "/placeholder.svg" ||
                                   "/placeholder.svg" ||
                                   "/placeholder.svg"
                                 }
