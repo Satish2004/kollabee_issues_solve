@@ -1374,10 +1374,9 @@ export default function ChatWindow({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Tabs defaultValue="all">
                     <TabsList className="grid grid-cols-3">
-                    
                       <TabsTrigger value="full">All</TabsTrigger>
                     </TabsList>
-                    
+
                     <TabsContent value="full">
                       <Picker data={data} onEmojiSelect={handleEmojiSelect} />
                     </TabsContent>
