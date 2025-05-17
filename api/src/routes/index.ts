@@ -19,6 +19,9 @@ import conversationRoutes from "./conversation";
 import messagesRoutes from "./messages";
 import projectRoutes from "./project";
 import adminRoutes from "./admin";
+import inviteRoute from "./invite";
+import chatBotRoute from "./chatbot";
+
 export const setupRoutes = (app: Application) => {
   // API Routes
   app.use("/api/auth", authRoutes);
@@ -41,6 +44,8 @@ export const setupRoutes = (app: Application) => {
   app.use("/api/messages", messagesRoutes);
   app.use("/api/projects", projectRoutes);
   app.use("/api/admin", adminRoutes);
+  app.use("/api/invite", inviteRoute);
+  app.use("/api/chatbot", chatBotRoute);
 
   // Health check route
   app.get("/health", (req, res) => {

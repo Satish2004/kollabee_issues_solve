@@ -20,6 +20,7 @@ import {
   Package,
   Share,
   NotebookPen,
+  Bot,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -126,6 +127,11 @@ export function SellerSidebar({ className }: SidebarProps) {
     {
       label: "OTHERS",
       routes: [
+        {
+          label: "Help",
+          icon: Bot,
+          href: "/seller/chatbot",
+        },
         {
           label: "Invite",
           icon: Share,

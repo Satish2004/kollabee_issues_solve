@@ -1,6 +1,6 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import prisma from "../db";
-import { conversationStatus } from "@prisma/client";
+import type { conversationStatus } from "@prisma/client";
 
 export const conversationController = {
   // Get all conversations for a user
@@ -8,6 +8,8 @@ export const conversationController = {
     try {
       const { type, status } = req.query;
       const { userId, role } = req.user;
+
+      const assistentID = process.env.ASSISTANT_ID;
 
       // Fetch conversations where the user is a participant
       const conversations = await prisma.conversation.findMany({
@@ -42,22 +44,28 @@ export const conversationController = {
         },
       });
 
-      // If the user is a buyer or seller, ensure a conversation with an admin exists
+      console.log("Conversations:", conversations);
+
+      // If the user is a buyer or seller and type is ADMIN, ensure a conversation with an admin exists
       if (role === "BUYER" || role === "SELLER") {
         const admin = await prisma.user.findFirst({
-          where: { role: "ADMIN" },
+          where: {
+            email: "surajjbhardwaj@gmail.com",
+          },
         });
+
+        console.log("Admin user:", admin);
 
         if (admin) {
           const adminConversation = conversations.find((conv) =>
-            conv.participants.some((p: any) => p.userId === admin.id)
+            conv.participants.some((p: any) => p.user.id === admin.id)
           );
 
           if (!adminConversation) {
             // Create a conversation with the admin
             const newConversation = await prisma.conversation.create({
               data: {
-                status: "ACCEPTED",
+                status: "ACCEPTED", // Auto-accept admin conversations
                 initiatedBy: userId,
                 participants: {
                   create: [{ userId: userId }, { userId: admin.id }],
@@ -80,9 +88,19 @@ export const conversationController = {
       // Format conversations for the frontend
       const formattedConversations = conversations
         .map((conversation) => {
-          const otherParticipant = conversation.participants.find(
-            (p: any) => p.userId !== userId
-          );
+          // For ADMIN tab, show the admin participant
+          let otherParticipant;
+          if (type === "ADMIN" && (role === "BUYER" || role === "SELLER")) {
+            otherParticipant = conversation.participants.find(
+              (p: any) => p.user.role === "ADMIN"
+            );
+          } else {
+            otherParticipant = conversation.participants.find(
+              (p: any) => p.userId !== userId
+            );
+          }
+
+          if (!otherParticipant) return null;
 
           const unreadCount = conversation.messages.filter(
             (m: any) => m.senderId !== userId && !m.isRead
@@ -226,10 +244,14 @@ export const conversationController = {
         });
       }
 
+      // Set status to ACCEPTED for admin conversations
+      const conversationStatus =
+        participant.role === "ADMIN" ? "ACCEPTED" : "PENDING";
+
       const result = await prisma.$transaction(async (tx) => {
         const newConversation = await tx.conversation.create({
           data: {
-            status: "PENDING", // Set status to PENDING for admin conversations
+            status: conversationStatus,
             initiatedBy: userId,
             participants: {
               create: [{ userId: userId }, { userId: targetParticipantId }],
@@ -270,7 +292,7 @@ export const conversationController = {
           participantType: otherParticipant?.user.role || "BUYER",
           participantAvatar: otherParticipant?.user.imageUrl || undefined,
           isOnline: otherParticipant?.isOnline || false,
-          status: "PENDING", // Status remains PENDING until admin accepts
+          status: conversationStatus,
           initiatedBy: userId,
         },
       });

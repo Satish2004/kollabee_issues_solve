@@ -491,6 +491,25 @@ export default function ChatModule() {
     }
   };
 
+  useEffect(() => {
+    // Auto-select first conversation when activeTab is ADMIN and user is BUYER or SELLER
+    if (
+      activeTab === "ADMIN" &&
+      (user?.role === "BUYER" || user?.role === "SELLER")
+    ) {
+      const filteredConvs = conversations.filter(
+        (c) =>
+          c.participantType === activeTab &&
+          c.participantId !== "973f9c85-9c5c-4849-962b-c8d7051d4bbb"
+      );
+      if (filteredConvs.length > 0 && !activeConversation) {
+        const firstConversationId = filteredConvs[0].id;
+        setActiveConversation(firstConversationId);
+        fetchMessages(firstConversationId);
+      }
+    }
+  }, [activeTab, user?.role, conversations, activeConversation]);
+
   return (
     <div className="flex flex-col rounded-lg shadow-sm overflow-hidden min-h-[560px]">
       <div className="flex justify-between rounded-xl px-6 py-4 bg-white mb-6 ">
@@ -523,24 +542,46 @@ export default function ChatModule() {
         )}
       </div>
 
-      <div className="flex-1 flex  space-x-6">
-        <ContactList
-          conversations={conversations.filter(
-            (c) => c.participantType === activeTab
-          )}
-          activeConversationId={activeConversation}
-          onSelectConversation={handleConversationChange}
-          isLoading={isLoading}
-          currentUserId={user?.id || ""}
-        />
+      <div className="flex-1 flex space-x-6">
+        {!(
+          activeTab === "ADMIN" &&
+          (user?.role === "BUYER" || user?.role === "SELLER")
+        ) && (
+          <ContactList
+            conversations={conversations.filter(
+              (c) => c.participantType === activeTab
+            )}
+            activeConversationId={activeConversation}
+            onSelectConversation={handleConversationChange}
+            isLoading={isLoading}
+            currentUserId={user?.id || ""}
+          />
+        )}
 
         <ChatWindow
           messages={messages}
-          activeConversationId={activeConversation}
+          activeConversationId={
+            activeConversation ||
+            (!(
+              activeTab === "ADMIN" &&
+              (user?.role === "BUYER" || user?.role === "SELLER")
+            )
+              ? null
+              : conversations.filter((c) => c.participantType === activeTab)[0]
+                  ?.id || null)
+          }
           onSendMessage={sendMessage}
           currentUser={user}
           isLoading={isLoading}
-          conversation={conversations.find((c) => c.id === activeConversation)}
+          conversation={
+            conversations.find((c) => c.id === activeConversation) ||
+            (!(
+              activeTab === "ADMIN" &&
+              (user?.role === "BUYER" || user?.role === "SELLER")
+            )
+              ? undefined
+              : conversations.filter((c) => c.participantType === activeTab)[0])
+          }
           isBlocked={blockedCommunications.some(
             (comm) => comm.initiatorId === user?.id
           )}
@@ -549,5 +590,3 @@ export default function ChatModule() {
     </div>
   );
 }
-
-
