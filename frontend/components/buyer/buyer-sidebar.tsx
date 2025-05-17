@@ -23,6 +23,7 @@ import {
   MessagesSquare,
   Share,
   NotebookPen,
+  Bot,
 } from "lucide-react";
 import { BsFillCartCheckFill } from "react-icons/bs";
 import { Button } from "@/components/ui/button";
@@ -141,7 +142,12 @@ export function BuyerSidebar({ className }: SidebarProps) {
     {
       label: "OTHERS",
       routes: [
-      
+        {
+          label: "Help",
+          icon: Bot,
+          href: "/buyer/chatbot",
+        },
+
         {
           label: "Invite",
           icon: Share,

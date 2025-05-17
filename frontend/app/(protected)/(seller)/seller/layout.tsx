@@ -1,9 +1,11 @@
 "use client";
-import React, { use, useEffect } from "react";
+import React, { Suspense, use, useEffect } from "react";
 import { SellerSidebar } from "@/components/seller/seller-sidebar";
 import SellerLayoutHeader from "@/components/seller/layout-header";
 import { useRouter } from "next/navigation";
 import { IntroTour } from "@/components/tour/IntroTour";
+import ChatbotContainer from "./chatbot/page";
+import ChatbotWidget from "./chatbot/_component/ChatbotWidget";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -30,6 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
         <main className="flex-1 px-2 md:px-10 py-3 bg-gray-100">
           {children}
+         
         </main>
       </div>
 
