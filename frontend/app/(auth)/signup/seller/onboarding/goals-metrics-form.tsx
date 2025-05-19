@@ -70,7 +70,7 @@ export function GoalsMetricsForm({
       ...prev,
       selectedChallenges: prev.selectedChallenges.includes(challenge)
         ? prev.selectedChallenges.filter((c) => c !== challenge)
-        : [...prev.selectedChallenges, challenge].slice(0, 3),
+        : [...prev.selectedChallenges, challenge],
     }));
   };
 
@@ -106,7 +106,7 @@ export function GoalsMetricsForm({
       <div className="space-y-8">
         <div className="">
           <h3 className="font-bold">
-            What are your main goals on KollaBee? (Choose up to 3)
+            1. What are your main goals on KollaBee? (Choose up to 3)
           </h3>
           <p className="text-sm font-futura italic">
             Select up to 3 goals that best reflect what you're hoping to achieve
@@ -137,7 +137,7 @@ export function GoalsMetricsForm({
 
         <div className="">
           <h3 className="font-bold">
-            What Challenges Are You Looking to Overcome? (Select all that apply)
+            2. What Challenges Are You Looking to Overcome? (Select all that apply)
             <span className="text-destructive text-red-500">*</span>
           </h3>
           <p className="text-sm font-futura italic">
@@ -151,10 +151,6 @@ export function GoalsMetricsForm({
                   id={`challenge-${challenge}`}
                   checked={formData.selectedChallenges.includes(challenge)}
                   onCheckedChange={() => handleChallengeToggle(challenge)}
-                  disabled={
-                    !formData.selectedChallenges.includes(challenge) &&
-                    formData.selectedChallenges.length >= 3
-                  }
                 />
                 <label
                   htmlFor={`challenge-${challenge}`}
@@ -169,7 +165,7 @@ export function GoalsMetricsForm({
 
         <div className="">
           <h3 className="font-bold">
-            What Success Metrics Matter Most to You? (Select your top 3)
+            3. What Success Metrics Matter Most to You? (Select your top 3)
             <span className="text-destructive text-red-500">*</span>
           </h3>
           <p className="text-sm font-futura italic">
@@ -254,8 +250,9 @@ export function GoalsMetricsForm({
               htmlFor="agreement2"
               className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              I give Kollabee permission to store my contact details and share
-              updates about relevant buyers and market opportunities.
+              I give KollaBee permission to store my business information and
+              send updates about relevant buyers, opportunities, and platform
+              features.
             </label>
           </div>
         </div>
