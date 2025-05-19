@@ -637,7 +637,7 @@ const Settings: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Company Email Address*
+                Business Email Address*
               </label>
               <input
                 type="email"
@@ -645,14 +645,14 @@ const Settings: React.FC = () => {
                 value={formData.email}
                 readOnly
                 onChange={handleInputChange}
-                placeholder="Re-enter your Company Email Address"
+                placeholder="Re-enter your Business Email Address"
                 className="w-full px-3 py-2 border rounded-lg"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Office Address*
+                Business Address*
               </label>
               <input
                 type="text"
@@ -1180,7 +1180,7 @@ const Settings: React.FC = () => {
         {activeTab === "account" && renderAccountSettings()}
         {activeTab === "password" && forgotPassoword
           ? renderForgotPassword()
-          : renderPasswordManagement()}
+          : activeTab === "password" && renderPasswordManagement()}
         {activeTab === "payment" && renderPaymentMethod()}
       </div>
     </div>
