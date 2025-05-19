@@ -8,6 +8,7 @@ import { CategoryEnum, BusinessType } from "@/types/api";
 import InfoButton from "@/components/ui/IButton";
 import { Textarea } from "@/components/ui/textarea";
 import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import Star from "./Star";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -17,13 +18,25 @@ const businessTypes = Object.values(BusinessType).map((type) => ({
     .join(" "),
 }));
 
-const businessCategories = Object.values(CategoryEnum).map((category) => ({
+const newBusinesCat = Object.values(CategoryEnum).map((category) => ({
   value: category,
   label: category
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(" "),
 }));
+
+const businessCategories = newBusinesCat.map((b) => {
+  return {
+    value: b.value,
+    label: b.label
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" "),
+  };
+});
+
+console.log("newBusinesCat : ", newBusinesCat);
 
 // Convert business types to string array for the dropdown
 const businessTypeOptions = businessTypes.map(({ label }) => label);
@@ -155,7 +168,10 @@ export function BusinessInfoForm({
       <div className="space-y-6">
         <div className="space-y-2">
           <label className="text-sm font-medium flex items-center gap-1">
-            Business Name{" "}
+            <p>
+              Business Name
+              <Star />
+            </p>
             <InfoButton
               text={
                 "Enter the official name of your business as it appears on legal documents and branding materials. This name will be visible to customers"
@@ -182,7 +198,10 @@ export function BusinessInfoForm({
         {/* Business Description - Full Width */}
         <div className="space-y-2">
           <label className="text-sm font-medium flex items-center gap-1">
-            Business Description{" "}
+            <p>
+              Business Description
+              <Star />
+            </p>
             <InfoButton
               text={
                 "Enter your business description to help customers understand what you offer. This description will be visible to customers."

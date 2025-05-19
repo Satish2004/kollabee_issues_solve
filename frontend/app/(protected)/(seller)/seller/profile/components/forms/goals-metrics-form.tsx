@@ -45,12 +45,13 @@ const GoalsMetricsForm = ({
   hasChanges,
   isSaving,
 }: GoalsMetricsFormProps) => {
+  console.log("formState : ", formState);
   const handleObjectiveToggle = (objective: string) => {
     onChange({
       ...formState,
       selectedObjectives: formState.selectedObjectives?.includes(objective)
         ? formState.selectedObjectives.filter((o: string) => o !== objective)
-        : [...(formState.selectedObjectives || []), objective].slice(0, 3),
+        : [...(formState.selectedObjectives || []), objective],
     });
   };
 
@@ -59,7 +60,7 @@ const GoalsMetricsForm = ({
       ...formState,
       selectedChallenges: formState.selectedChallenges?.includes(challenge)
         ? formState.selectedChallenges.filter((c: string) => c !== challenge)
-        : [...(formState.selectedChallenges || []), challenge].slice(0, 3),
+        : [...(formState.selectedChallenges || []), challenge],
     });
   };
 
@@ -68,7 +69,7 @@ const GoalsMetricsForm = ({
       ...formState,
       selectedMetrics: formState.selectedMetrics?.includes(metric)
         ? formState.selectedMetrics.filter((m: string) => m !== metric)
-        : [...(formState.selectedMetrics || []), metric].slice(0, 3),
+        : [...(formState.selectedMetrics || []), metric],
     });
   };
 
@@ -122,10 +123,6 @@ const GoalsMetricsForm = ({
                   id={`challenge-${challenge}`}
                   checked={formState.selectedChallenges?.includes(challenge)}
                   onCheckedChange={() => handleChallengeToggle(challenge)}
-                  disabled={
-                    !formState.selectedChallenges?.includes(challenge) &&
-                    (formState.selectedChallenges?.length || 0) >= 3
-                  }
                 />
                 <label
                   htmlFor={`challenge-${challenge}`}
@@ -138,16 +135,16 @@ const GoalsMetricsForm = ({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
             3. What success metrics matter most to you? (Select your top 3){" "}
             <span className="text-red-500">*</span>
           </h3>
-          <p className="text-sm text-muted-foreground">
-            Select the metrics you value the most in evaluating KollaBee's
-            impact.
+          <p className="text-sm text-muted-foreground font-futura italic">
+            Select the metrics you value the most to evaluate your success on
+            KollaBee.
           </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
             {metrics.map((metric) => (
               <div key={metric} className="flex items-start space-x-3">
                 <Checkbox
@@ -224,8 +221,9 @@ const GoalsMetricsForm = ({
               htmlFor="agreement"
               className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              I give Kollabee permission to store my contact details and share
-              updates about relevant buyers and market opportunities.
+              I give KollaBee permission to store my business information and
+              send updates about relevant buyers, opportunities, and platform
+              features.
             </label>
           </div>
         </div>

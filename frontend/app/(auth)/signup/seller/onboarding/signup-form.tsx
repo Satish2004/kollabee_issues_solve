@@ -421,7 +421,7 @@ export function SignupForm({
           <div className="space-y-2">
             <Label className="font-futura font-normal">
               {" "}
-              First Name<span className="text-destructive">*</span>
+              First Name<span className="text-destructive text-red-500">*</span>
             </Label>
             <Input
               placeholder="Enter your First Name"
@@ -442,7 +442,7 @@ export function SignupForm({
 
           <div className="space-y-2">
             <Label className="font-futura font-normal">
-              Password<span className="text-destructive">*</span>
+              Password<span className="text-destructive text-red-500">*</span>
             </Label>
             <Input
               id="password"
@@ -509,7 +509,10 @@ export function SignupForm({
               htmlFor="email"
               className="flex font-normal items-center gap-2"
             >
-              Business Email<span className="text-destructive">*</span>
+              <p>
+                Business Email
+                <span className="text-destructive text-red-500">*</span>
+              </p>
               <InfoButton
                 text={
                   "Enter your business email address. This email will be used to send you OTP for verification"
@@ -556,7 +559,7 @@ export function SignupForm({
           <div className="space-y-2">
             <Label className="font-futura font-normal">
               Describe your Role within the Company
-              <span className="text-destructive">*</span>
+              <span className="text-destructive text-red-500">*</span>
             </Label>
             <Select
               value={formData.role}
@@ -594,7 +597,7 @@ export function SignupForm({
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="font-futura font-normal">
-              Last Name<span className="text-destructive">*</span>
+              Last Name<span className="text-destructive text-red-500">*</span>
             </Label>
             <Input
               placeholder="Enter your Last Name"
@@ -615,7 +618,8 @@ export function SignupForm({
           <div className="space-y-4 md:space-y-10">
             <div className="space-y-2 relative">
               <Label className="font-futura font-normal">
-                Confirm Password<span className="text-destructive">*</span>
+                Confirm Password
+                <span className="text-destructive text-red-500">*</span>
               </Label>
               <Input
                 type="password"
@@ -642,7 +646,8 @@ export function SignupForm({
 
             <div className="flex flex-col items-start  gap-2">
               <Label className="font-futura font-normal">
-                Phone Number<span className="text-destructive">*</span>
+                Phone Number
+                <span className="text-destructive text-red-500">*</span>
               </Label>
               <div className="w-full flex">
                 {/* Country Code Select */}

@@ -145,12 +145,6 @@ export function BuyerSidebar({ className }: SidebarProps) {
       label: "OTHERS",
       routes: [
         {
-          label: "Help",
-          icon: Bot,
-          href: "/buyer/chatbot",
-        },
-
-        {
           label: "Invite",
           icon: Share,
           href: "/buyer/invite",
@@ -245,7 +239,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
 
         <div className="flex flex-col gap-2 border-t pt-4">
           <Link
-            href="/help"
+            href="/buyer/chatbot"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent"
           >
             <HelpCircle className="h-4 w-4" />
