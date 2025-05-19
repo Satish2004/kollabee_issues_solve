@@ -138,7 +138,7 @@ export function GoalsMetricsForm({
         <div className="">
           <h3 className="font-bold">
             What Challenges Are You Looking to Overcome? (Select all that apply)
-            <span className="text-destructive">*</span>
+            <span className="text-destructive text-red-500">*</span>
           </h3>
           <p className="text-sm font-futura italic">
             Select the most relevant challenges you face in your current
@@ -170,7 +170,7 @@ export function GoalsMetricsForm({
         <div className="">
           <h3 className="font-bold">
             What Success Metrics Matter Most to You? (Select your top 3)
-            <span className="text-destructive">*</span>
+            <span className="text-destructive text-red-500">*</span>
           </h3>
           <p className="text-sm font-futura italic">
             Select the metrics you value the most to evaluate your success on
@@ -201,7 +201,8 @@ export function GoalsMetricsForm({
 
         <div className="space-y-3">
           <h3 className="font-bold">
-            Agreement Statement: <span className="text-destructive">*</span>
+            Agreement Statement:{" "}
+            <span className="text-destructive text-red-500">*</span>
           </h3>
           <div className="flex items-start space-x-3">
             <Checkbox
