@@ -83,18 +83,18 @@ export const getAnswer = async (req: any, res: Response) => {
     }
 
     // If user is authenticated, save this interaction to chat history
-    if (req.user && req.user.userId) {
-      try {
-        await saveChatHistory(
-          req.user.userId,
-          faqItem.question,
-          faqItem.answer
-        );
-      } catch (err) {
-        console.error("Error saving chat history:", err);
-        // Continue even if saving history fails
-      }
-    }
+    // if (req.user && req.user.userId) {
+    //   try {
+    //     await saveChatHistory(
+    //       req.user.userId,
+    //       faqItem.question,
+    //       faqItem.answer
+    //     );
+    //   } catch (err) {
+    //     console.error("Error saving chat history:", err);
+    //     // Continue even if saving history fails
+    //   }
+    // }
 
     return res.status(200).json({ success: true, data: faqItem });
   } catch (error) {
@@ -170,55 +170,57 @@ export const saveChatHistory = async (
 // Get chat history for a user
 export const getChatHistory = async (req: any, res: Response) => {
   try {
-    if (!req.user || !req.user.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized" });
-    }
+    return res.status(200).json({ success: true, data: [] });
 
-    const userId = req.user.userId;
+    // if (!req.user || !req.user.userId) {
+    //   return res.status(401).json({ success: false, message: "Unauthorized" });
+    // }
 
-    // Ensure chatbot user exists
-    const chatbotUser = await prisma.user.findFirst({
-      where: { email: "chatbot@kollabee.com" },
-    });
+    // const userId = req.user.userId;
 
-    if (!chatbotUser) {
-      return res.status(500).json({
-        success: false,
-        message: "Chatbot user not found. Please ensure it is created.",
-      });
-    }
+    // // Ensure chatbot user exists
+    // const chatbotUser = await prisma.user.findFirst({
+    //   where: { email: "chatbot@kollabee.com" },
+    // });
 
-    // Find the most recent conversation between the user and the chatbot
-    const conversation = await prisma.conversation.findFirst({
-      where: {
-        participants: {
-          every: {
-            OR: [{ userId }, { userId: chatbotUser.id }],
-          },
-        },
-      },
-      orderBy: { createdAt: "desc" },
-      include: {
-        messages: {
-          orderBy: { createdAt: "asc" },
-          include: { sender: true },
-        },
-      },
-    });
+    // if (!chatbotUser) {
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Chatbot user not found. Please ensure it is created.",
+    //   });
+    // }
 
-    if (!conversation) {
-      return res.status(200).json({ success: true, data: [] });
-    }
+    // // Find the most recent conversation between the user and the chatbot
+    // const conversation = await prisma.conversation.findFirst({
+    //   where: {
+    //     participants: {
+    //       every: {
+    //         OR: [{ userId }, { userId: chatbotUser.id }],
+    //       },
+    //     },
+    //   },
+    //   orderBy: { createdAt: "desc" },
+    //   include: {
+    //     messages: {
+    //       orderBy: { createdAt: "asc" },
+    //       include: { sender: true },
+    //     },
+    //   },
+    // });
 
-    // Transform messages for frontend
-    const chatMessages = conversation.messages.map((message) => ({
-      id: message.id,
-      type: message.senderId === userId ? "user" : "bot",
-      content: message.content,
-      timestamp: message.createdAt,
-    }));
+    // if (!conversation) {
+    //   return res.status(200).json({ success: true, data: [] });
+    // }
 
-    return res.status(200).json({ success: true, data: chatMessages });
+    // // Transform messages for frontend
+    // const chatMessages = conversation.messages.map((message) => ({
+    //   id: message.id,
+    //   type: message.senderId === userId ? "user" : "bot",
+    //   content: message.content,
+    //   timestamp: message.createdAt,
+    // }));
+
+    // return res.status(200).json({ success: true, data: chatMessages });
   } catch (error) {
     console.error("Error fetching chat history:", error);
     return res.status(500).json({
