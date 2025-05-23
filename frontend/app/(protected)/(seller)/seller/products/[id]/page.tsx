@@ -105,7 +105,7 @@ export default function EditProductPage() {
     product.price - product.price * (product.discount / 100);
 
   return (
-    <div className="container mx-auto px-4 py-4 sm:py-8 max-w-7xl">
+    <div className="bg-white rounded-lg p-4">
       {/* Back button - mobile friendly */}
       <button
         onClick={() => router.back()}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useParams } from "next/navigation";
-import { productsApi } from "@/lib/api/products";
 import ProductForm from "../../add-product";
+import { productsApi } from "@/lib/api/products";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
 export default function EditProductPage() {
