@@ -182,6 +182,11 @@ export default function SignupBuyerPage() {
           formData.role === "other" ? formData.otherRole : formData.role,
       });
 
+      if (response?.error) {
+        toast.error(response?.error);
+        return;
+      }
+
       setCurrentStage(4); // Move to success screen
       toast.success("Account created successfully!");
     } catch (error: any) {

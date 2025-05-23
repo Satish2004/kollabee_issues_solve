@@ -19,7 +19,7 @@ import type { BusinessType, CategoryEnum } from "@/types/api";
 
 export default function SignupSellerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(2);
+  const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -200,13 +200,19 @@ export default function SignupSellerPage() {
         agreement1: formData.agreement1,
         agreement2: formData.agreement2,
       });
+
+      if (response?.error) {
+        toast.error(response?.error);
+        return;
+      }
       toast.success(response?.message);
       router.push("/seller");
 
       // Token is automatically set by authApi.signup
       toast.success("Account created successfully!");
     } catch (error: any) {
-      toast.error("Failed to create account");
+      console.error("Error creating account:", error);
+      toast.error("Failed to create account" + response?.error);
     } finally {
       setSubmitLoading(false);
     }

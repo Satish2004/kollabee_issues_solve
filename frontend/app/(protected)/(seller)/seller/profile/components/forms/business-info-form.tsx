@@ -372,25 +372,6 @@ export default function BusinessInfoForm({
           </div>
         </div>
       </div>
-
-      <div className="flex justify-between mt-10">
-        <Button
-          onClick={() => onChange({ ...formState })}
-          variant="ghost"
-          size="sm"
-          className="text-primary -ml-4"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
-        </Button>
-        <Button
-          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
-          onClick={onSave}
-          disabled={!hasChanges || isSaving}
-        >
-          {isSaving ? "Saving..." : "Continue"}
-        </Button>
-      </div>
     </div>
   );
 }
