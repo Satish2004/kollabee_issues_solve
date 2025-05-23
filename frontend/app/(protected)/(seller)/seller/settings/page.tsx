@@ -12,6 +12,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ReactCountryFlag from "react-country-flag";
 import { toast } from "sonner";
 
+
 // Utility functions for country codes
 const getCountryCode = (dialCode: string): string => {
   // Convert dial code to ISO country code for ReactCountryFlag
@@ -538,13 +539,15 @@ const Settings: React.FC = () => {
   // Replace the State select with a memoized version
   const stateOptions = useMemo(() => {
     // Find the country object from the Country library based on selected country name
-    const selectedCountryObj = Country.getAllCountries().find((c) => c.name === formData.country)
+    const selectedCountryObj = Country.getAllCountries().find(
+      (c) => c.name === formData.country
+    );
 
     // Get the ISO code for the selected country
-    const countryCode = selectedCountryObj?.isoCode
+    const countryCode = selectedCountryObj?.isoCode;
 
     // If we have a valid country code, get states for that country
-    const states = countryCode ? State.getStatesOfCountry(countryCode) : []
+    const states = countryCode ? State.getStatesOfCountry(countryCode) : [];
 
     return [
       <option key="none" value="">
@@ -555,8 +558,8 @@ const Settings: React.FC = () => {
           {state.name}
         </option>
       )),
-    ]
-  }, [formData.country]) // Re-compute when country changes
+    ];
+  }, [formData.country]); // Re-compute when country changes
 
   const renderAccountSettings = useCallback(() => {
     return (
@@ -619,7 +622,7 @@ const Settings: React.FC = () => {
             <div className="w-full flex gap-4 items-center">
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  First Name*
+                  First Name<Star />
                 </label>
                 <input
                   type="text"
@@ -633,7 +636,7 @@ const Settings: React.FC = () => {
 
               <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Last Name*
+                  Last Name<Star />
                 </label>
                 <input
                   type="text"
@@ -665,7 +668,8 @@ const Settings: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Business Address*
+                Business Address
+                <Star />
               </label>
               <input
                 type="text"
@@ -679,7 +683,7 @@ const Settings: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phone Number*
+                Phone Number<Star />
               </label>
               <div className="flex">
                 <div className="relative country-dropdown-container">
@@ -796,7 +800,7 @@ const Settings: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700  mb-1">
-                Country / Region*
+                Country / Region<Star />
               </label>
               <select
                 name="country"
@@ -811,7 +815,7 @@ const Settings: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  States*
+                  States<Star />
                 </label>
                 <select
                   name="state"
@@ -824,7 +828,7 @@ const Settings: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Zip Code*
+                  Zip Code<Star />
                 </label>
                 <input
                   type="text"
@@ -868,7 +872,8 @@ const Settings: React.FC = () => {
           {/* Current Password */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Current Password*
+              Current Password
+              <Star />
             </label>
             <div className="relative">
               <input
@@ -903,7 +908,8 @@ const Settings: React.FC = () => {
             {/* New Password */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                New Password*
+                New Password
+                <Star />
               </label>
               <div className="relative">
                 <input
@@ -931,7 +937,8 @@ const Settings: React.FC = () => {
             {/* Confirm Password */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Confirm Password*
+                Confirm Password
+                <Star />
               </label>
               <div className="relative">
                 <input
@@ -977,7 +984,8 @@ const Settings: React.FC = () => {
           <div className="w-full flex gap-4 items-center">
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name*
+                Full Name
+                <Star />
               </label>
               <input
                 type="text"
@@ -1004,7 +1012,8 @@ const Settings: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Bank*
+              Select Bank
+              <Star />
             </label>
             <input
               type="text"
@@ -1017,7 +1026,8 @@ const Settings: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Bank Type*
+              Bank Type
+              <Star />
             </label>
             <select
               name="bankType"
@@ -1038,7 +1048,8 @@ const Settings: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              CV Code*
+              CV Code
+              <Star />
             </label>
             <input
               type="text"
@@ -1051,7 +1062,8 @@ const Settings: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Zip Code*
+              Zip Code
+              <Star />
             </label>
             <input
               type="text"
@@ -1064,7 +1076,8 @@ const Settings: React.FC = () => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Account Number*
+              Account Number
+              <Star />
             </label>
             <input
               type="text"
@@ -1120,7 +1133,7 @@ const Settings: React.FC = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address*
+                Email Address<Star />
               </label>
               <input
                 type="email"

@@ -1,14 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Info } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
-import InfoButton from "@/components/ui/IButton";
 import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft } from "lucide-react";
+import { useState } from "react";
 
 interface AboutYouFormProps {
   formData: {
@@ -33,7 +31,7 @@ export function AboutYouForm({
     businessDescription: "",
     businessType: "",
     otherBusinessType: "",
-  })
+  });
 
   const handleNext = () => {
     if (validateForm()) {
@@ -90,18 +88,19 @@ export function AboutYouForm({
 
       <div className="space-y-4 sm:space-y-6">
         <div className="space-y-3 sm:space-y-4">
-          <div className="flex items-start gap-2">
-            <Label
-              htmlFor="businessType"
-              className="text-sm sm:text-base font-medium"
-            >
-              Who Are You?
-            </Label>
-            <InfoButton
-              text={
-                " Select the option that best describes your role in the business. This helps us tailor the experience based on your business type"
-              }
-            />
+          <div className="space-y-1">
+            <div className="flex items-start gap-2">
+              <Label
+                htmlFor="businessType"
+                className="text-sm sm:text-base font-medium"
+              >
+                Who Are You?
+              </Label>
+            </div>
+            <p className="text-sm font-futura italic">
+              Select the option that best describes your role in the business.
+              This helps us tailor the experience based on your business type
+            </p>
           </div>
 
           <RadioGroup
@@ -134,8 +133,7 @@ export function AboutYouForm({
                 onChange={(e) => {
                   handleChange("otherBusinessType", e.target.value);
                   validateForm();
-                }
-                }
+                }}
                 className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md text-sm sm:text-base h-9 sm:h-10"
               />
               {errors.otherBusinessType && (
@@ -154,26 +152,28 @@ export function AboutYouForm({
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label
-              htmlFor="businessName"
-              className="text-sm sm:text-base font-medium"
-            >
-              Business Name{" "}
-              <InfoButton
-                text={
-                  "  Enter the official name of your business as registered. If you don't have a registered business name, enter the name you operate under."
-                }
-              />
-            </Label>
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <Label
+                htmlFor="businessName"
+                className="text-sm sm:text-base font-medium"
+              >
+                Business Name{" "}
+              </Label>
+            </div>
+            <p className="text-sm font-futura italic">
+              Enter the official name of your business as registered. If you
+              don't have a registered business name, enter the name you operate
+              under.
+            </p>
           </div>
           <Input
             id="businessName"
             placeholder="Enter your Business Name"
             value={formData.businessName}
             onChange={(e) => {
-              handleChange("businessName", e.target.value)
-              validateForm()
+              handleChange("businessName", e.target.value);
+              validateForm();
             }}
             className="bg-[#fcfcfc] border border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] max-w-md text-sm sm:text-base h-9 sm:h-10"
           />
@@ -185,22 +185,22 @@ export function AboutYouForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-1">
-            Business Description{" "}
-            <InfoButton
-              text={
-                "Enter your bussiness description to help customers understand what you offer. This description will be visible to customers."
-              }
-            />
-          </label>
+          <div className="space-y-1">
+            <label className="text-sm font-medium flex items-center gap-1">
+              Business Description{" "}
+            </label>
+            <p className="text-sm font-futura italic">
+              Enter your bussiness description to help customers understand what
+              you offer. This description will be visible to customers.
+            </p>
+          </div>
           <Textarea
             placeholder="Enter your Business description"
             value={formData.businessDescription}
             onChange={(e) => {
-              handleChange("businessDescription", e.target.value)
-              validateForm()
-            }
-            }
+              handleChange("businessDescription", e.target.value);
+              validateForm();
+            }}
             className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
           />
           {errors.businessDescription && (

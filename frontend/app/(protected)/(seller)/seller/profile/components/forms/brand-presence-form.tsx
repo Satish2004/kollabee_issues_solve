@@ -1,13 +1,9 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import InfoButton from "@/components/ui/IButton";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Upload,
   X,
@@ -18,6 +14,8 @@ import {
   Linkedin,
   Instagram,
 } from "lucide-react";
+import type React from "react";
+import { useState, useRef } from "react";
 
 type BrandPresenceFormProps = {
   formState: any;
@@ -272,11 +270,15 @@ const BrandPresenceForm = ({
         <div className="space-y-6">
           {/* Project Images */}
           <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Project/Product Images
-              <span className="text-red-500 ml-0.5">*</span>
-              <InfoButton text="Upload images of your products or completed projects" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Project/Product Images
+                <span className="text-red-500 ml-0.5">*</span>
+              </label>
+              <p className="text-sm font-futura italic">
+                Upload images of your products or completed projects
+              </p>
+            </div>
             <div className="grid grid-cols-3 gap-3">
               {/* Existing project images */}
               {formState.projectImages?.map(
@@ -392,10 +394,14 @@ const BrandPresenceForm = ({
 
           {/* Brand Video */}
           <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Brand/Product Video (Optional)
-              <InfoButton text="Upload a video showcasing your brand or products" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Brand/Product Video (Optional)
+              </label>
+              <p className="text-sm font-futura italic">
+                Upload a video showcasing your brand or products
+              </p>
+            </div>
             <div className="flex items-start gap-4">
               <input
                 type="file"
@@ -489,10 +495,14 @@ const BrandPresenceForm = ({
         <div className="space-y-6">
           {/* Social Media Links */}
           <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Social Media Links (Optional)
-              <InfoButton text="Connect with your audience and show your brand's online presence" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Social Media Links (Optional)
+              </label>
+              <p className="text-sm font-futura italic">
+                Connect with your audience and show your brand's online presence
+              </p>
+            </div>
 
             <div className="space-y-4">
               <div className="flex items-center space-x-2">
@@ -535,10 +545,14 @@ const BrandPresenceForm = ({
 
           {/* Additional Notes */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Additional Notes (Optional)
-              <InfoButton text="Add any other information you'd like buyers to know" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Additional Notes (Optional)
+              </label>
+              <p className="text-sm font-futura italic">
+                Add any other information you'd like buyers to know
+              </p>
+            </div>
             <Textarea
               placeholder="Share any additional information about your brand, products, or services that would be valuable for potential buyers"
               value={formState.additionalNotes || ""}
