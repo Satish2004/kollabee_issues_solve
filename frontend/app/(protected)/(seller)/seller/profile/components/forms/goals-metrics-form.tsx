@@ -98,7 +98,7 @@ const GoalsMetricsForm = ({
                 />
                 <label
                   htmlFor={`objective-${objective}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {objective}
                 </label>
@@ -126,7 +126,7 @@ const GoalsMetricsForm = ({
                 />
                 <label
                   htmlFor={`challenge-${challenge}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {challenge}
                 </label>
@@ -158,7 +158,7 @@ const GoalsMetricsForm = ({
                 />
                 <label
                   htmlFor={`metric-${metric}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {metric}
                 </label>
@@ -184,7 +184,7 @@ const GoalsMetricsForm = ({
             />
             <label
               htmlFor="agreement1"
-              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               I agree to KollaBee’s{" "}
               <a
@@ -219,7 +219,7 @@ const GoalsMetricsForm = ({
             />
             <label
               htmlFor="agreement"
-              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               I give KollaBee permission to store my business information and
               send updates about relevant buyers, opportunities, and platform

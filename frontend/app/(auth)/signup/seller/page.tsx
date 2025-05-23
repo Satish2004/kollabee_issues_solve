@@ -1,25 +1,24 @@
 "use client";
 
-import type React from "react";
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-
-import { toast } from "sonner";
-import Image from "next/image";
-import { ProgressStepper } from "@/components/onboarding/progress-stepper";
-import { SignupForm } from "./onboarding/signup-form";
 import { BusinessInfoForm } from "./onboarding/business-info-form";
 import { GoalsMetricsForm } from "./onboarding/goals-metrics-form";
-import { SuccessMessage } from "./onboarding/success-message";
 import { OTPModal } from "./onboarding/otp-modal";
-import { ErrorBoundary } from "react-error-boundary";
+import { SignupForm } from "./onboarding/signup-form";
+import { SuccessMessage } from "./onboarding/success-message";
+import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { Card } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
-import { useRouter } from "next/navigation";
 import type { BusinessType, CategoryEnum } from "@/types/api";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "sonner";
 
 export default function SignupSellerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(2);
+  const [currentStage, setCurrentStage] = useState(1);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
