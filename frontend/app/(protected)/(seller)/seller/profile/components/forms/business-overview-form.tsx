@@ -1,16 +1,8 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
-import { CategoryEnum, BusinessType } from "@/types/api";
-import InfoButton from "@/components/ui/IButton";
-import { X, ImageIcon, Upload, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
 import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -18,6 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { CategoryEnum, BusinessType } from "@/types/api";
+import { X, ImageIcon, Upload, AlertCircle } from "lucide-react";
+import type React from "react";
+import { useState, useRef } from "react";
+import { toast } from "sonner";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -309,14 +307,18 @@ const BusinessOverviewForm = ({
 
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md: 2">
         <div className="space-y-6">
           {/* Business Logo Upload */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Logo (Optional)
-              <InfoButton text="Upload your company logo to enhance your brand presence" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Logo (Optional)
+              </label>
+              <p className="text-sm font-futura italic">
+                Upload your company logo to enhance your brand presence
+              </p>
+            </div>
             <div className="flex items-center gap-4">
               <input
                 type="file"
@@ -383,7 +385,7 @@ const BusinessOverviewForm = ({
             )}
 
             {errors.logo && (
-              <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+              <div className="flex items-center   text-red-500 text-sm mt-1">
                 <AlertCircle className="h-4 w-4" />
                 <span>{errors.logo}</span>
               </div>
@@ -392,9 +394,11 @@ const BusinessOverviewForm = ({
 
           {/* Pre-filled fields */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Name<span className="text-red-500 ml-0.5">*</span>
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Name<span className="text-red-500 ml-0.5">*</span>
+              </label>
+            </div>
             <Input
               placeholder="Enter your Business Name"
               value={formState.businessName || ""}
@@ -409,9 +413,12 @@ const BusinessOverviewForm = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Description<span className="text-red-500 ml-0.5">*</span>
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Description
+                <span className="text-red-500 ml-0.5">*</span>
+              </label>
+            </div>
             <Textarea
               placeholder="Enter your Business description"
               value={formState.businessDescription || ""}
@@ -426,9 +433,11 @@ const BusinessOverviewForm = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Website Link<span className="text-red-500 ml-0.5">*</span>
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Website Link<span className="text-red-500 ml-0.5">*</span>
+              </label>
+            </div>
             <Input
               placeholder="Enter your Website Link"
               value={formState.websiteLink || ""}
@@ -443,9 +452,11 @@ const BusinessOverviewForm = ({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Address<span className="text-red-500 ml-0.5">*</span>
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Address<span className="text-red-500 ml-0.5">*</span>
+              </label>
+            </div>
             <Input
               placeholder="Enter your Business Address"
               value={formState.businessAddress || ""}
@@ -510,10 +521,12 @@ const BusinessOverviewForm = ({
         <div className="space-y-6">
           {/* Business Year Founded */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Year Founded
-              <span className="text-red-500 ml-0.5">*</span>
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Year Founded
+                <span className="text-red-500 ml-0.5">*</span>
+              </label>
+            </div>
             <Input
               type="number"
               placeholder="e.g., 2010"
@@ -532,9 +545,11 @@ const BusinessOverviewForm = ({
 
           {/* Business Team Size - Using MultiSelectDropdown */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Team Size<span className="text-red-500 ml-0.5">*</span>
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Team Size<span className="text-red-500 ml-0.5">*</span>
+              </label>
+            </div>
             <Select
               value={formState.teamSize || ""}
               onValueChange={(value) => {
@@ -562,10 +577,12 @@ const BusinessOverviewForm = ({
 
           {/* Business Annual Revenue - Using MultiSelectDropdown */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Annual Revenue
-              <span className="text-red-500 ml-0.5">*</span>
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Annual Revenue
+                <span className="text-red-500 ml-0.5">*</span>
+              </label>
+            </div>
             <Select
               value={formState.annualRevenue || ""}
               onValueChange={(value) => {

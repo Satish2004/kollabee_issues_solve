@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft } from "lucide-react";
 
 const objectives = [
   "Expand into new markets",
@@ -114,7 +114,7 @@ export function GoalsMetricsForm({
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 mt-3 gap-3">
             {objectives.map((objective) => (
-              <div key={objective} className="flex items-start space-x-3">
+              <div key={objective} className="flex items-start space-x-3 ">
                 <Checkbox
                   id={`objective-${objective}`}
                   checked={formData.selectedObjectives.includes(objective)}
@@ -126,7 +126,7 @@ export function GoalsMetricsForm({
                 />
                 <label
                   htmlFor={`objective-${objective}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {objective}
                 </label>
@@ -137,7 +137,8 @@ export function GoalsMetricsForm({
 
         <div className="">
           <h3 className="font-bold">
-            2. What Challenges Are You Looking to Overcome? (Select all that apply)
+            2. What Challenges Are You Looking to Overcome? (Select all that
+            apply)
             <span className="text-destructive text-red-500">*</span>
           </h3>
           <p className="text-sm font-futura italic">
@@ -154,7 +155,7 @@ export function GoalsMetricsForm({
                 />
                 <label
                   htmlFor={`challenge-${challenge}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {challenge}
                 </label>
@@ -186,7 +187,7 @@ export function GoalsMetricsForm({
                 />
                 <label
                   htmlFor={`metric-${metric}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {metric}
                 </label>
@@ -213,7 +214,7 @@ export function GoalsMetricsForm({
             />
             <label
               htmlFor="agreement1"
-              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               I agree to KollaBee’s{" "}
               <a
@@ -248,7 +249,7 @@ export function GoalsMetricsForm({
             />
             <label
               htmlFor="agreement2"
-              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               I give KollaBee permission to store my business information and
               send updates about relevant buyers, opportunities, and platform

@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { CategoryEnum, BusinessType } from "@/types/api";
-import InfoButton from "@/components/ui/IButton";
-import { Textarea } from "@/components/ui/textarea";
-import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 import Star from "./Star";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import { Textarea } from "@/components/ui/textarea";
+import { CategoryEnum, BusinessType } from "@/types/api";
+import { ArrowLeft } from "lucide-react";
+import { useState, useEffect } from "react";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -185,17 +184,19 @@ export function BusinessInfoForm({
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-1">
-            <p>
-              Business Name
-              <Star />
+          <div className="space-y-1">
+            <label className="text-sm font-medium flex items-center gap-1">
+              <p>
+                Business Name
+                <Star />
+              </p>
+            </label>
+            <p className="text-sm font-futura italic">
+              Enter the official name of your business as it appears on legal
+              documents and branding materials. This name will be visible to
+              customers
             </p>
-            <InfoButton
-              text={
-                "Enter the official name of your business as it appears on legal documents and branding materials. This name will be visible to customers"
-              }
-            />
-          </label>
+          </div>
           <Input
             placeholder="Enter your Business Name"
             value={formData.businessName}
@@ -214,17 +215,18 @@ export function BusinessInfoForm({
 
         {/* Business Description - Full Width */}
         <div className="space-y-2">
-          <label className="text-sm font-medium flex items-center gap-1">
-            <p>
-              Business Description
-              <Star />
+          <div className="space-y-1">
+            <label className="text-sm font-medium flex items-center gap-1">
+              <p>
+                Business Description
+                <Star />
+              </p>
+            </label>
+            <p className="text-sm font-futura italic">
+              Enter your business description to help customers understand what
+              you offer. This description will be visible to customers.
             </p>
-            <InfoButton
-              text={
-                "Enter your business description to help customers understand what you offer. This description will be visible to customers."
-              }
-            />
-          </label>
+          </div>
           <Textarea
             placeholder="Enter your Business description"
             value={formData.businessDescription}
@@ -247,14 +249,16 @@ export function BusinessInfoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Website/Instagram
-              <InfoButton
-                text={
-                  "Enter the complete URL of your business website (e.g., https://yourbusiness.com). Ensure the link is valid and accessible to customers."
-                }
-              />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Business Website/Instagram
+              </label>
+              <p className="text-sm font-futura italic">
+                Enter the complete URL of your business website (e.g.,
+                https://yourbusiness.com). Ensure the link is valid and
+                accessible to customers.
+              </p>
+            </div>
             <Input
               placeholder="Enter your Website Link"
               value={formData.websiteLink}
@@ -310,14 +314,17 @@ export function BusinessInfoForm({
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Address{" "}
-              <InfoButton
-                text={
-                  "Provide the full physical address of your business location, including street, city, state, and ZIP code. This helps customers find your business."
-                }
-              />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Business Address{" "}
+              
+              </label>
+              <p className="text-sm font-futura italic">
+                Provide the full physical address of your business location,
+                including street, city, state, and ZIP code. This helps
+                customers find your business.
+              </p>
+            </div>
             <Input
               placeholder="Enter your Business Address"
               value={formData.businessAddress}

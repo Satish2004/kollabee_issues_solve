@@ -1,11 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import {
+  getCountryCode,
+  getSpecialCaseCountryCode,
+} from "@/components/country-utils";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Circle, ArrowLeft } from "lucide-react";
-import { useRouter } from "next/navigation";
-import InfoButton from "@/components/ui/IButton";
 import {
   Select,
   SelectTrigger,
@@ -13,12 +14,10 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
+import { Circle, ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import ReactCountryFlag from "react-country-flag";
-import {
-  getCountryCode,
-  getSpecialCaseCountryCode,
-} from "@/components/country-utils";
-import { set } from "date-fns";
 
 interface SignupFormProps {
   formData: {
@@ -510,20 +509,22 @@ export function SignupForm({
           </div>
 
           <div className="space-y-2 ">
-            <Label
-              htmlFor="email"
-              className="flex font-normal items-center gap-2"
-            >
-              <p>
-                Business Email
-                <span className="text-destructive text-red-500">*</span>
+            <div className="space-y-1">
+              <Label
+                htmlFor="email"
+                className="flex font-normal items-center gap-2"
+              >
+                <p>
+                  Business Email
+                  <span className="text-destructive text-red-500">*</span>
+                </p>
+              
+              </Label>
+              <p className="text-sm font-futura italic">
+                Enter your business email address. This email will be used to
+                send you OTP for verification
               </p>
-              <InfoButton
-                text={
-                  "Enter your business email address. This email will be used to send you OTP for verification"
-                }
-              />
-            </Label>
+            </div>
             <div className="relative">
               <Input
                 id="email"
@@ -673,10 +674,15 @@ export function SignupForm({
             </div>
 
             <div className="flex flex-col items-start  gap-2">
-              <Label className="font-futura font-normal">
-                Phone Number
-                <span className="text-destructive text-red-500">*</span>
-              </Label>
+              <div className="space-y-1">
+                <Label className="font-futura font-normal">
+                  Phone Number
+                  <span className="text-destructive text-red-500">*</span>
+                </Label>
+                <p className="text-sm font-futura italic">
+                  Please enter a valid phone number
+                </p>
+              </div>
               <div className="w-full flex">
                 {/* Country Code Select */}
                 <Select

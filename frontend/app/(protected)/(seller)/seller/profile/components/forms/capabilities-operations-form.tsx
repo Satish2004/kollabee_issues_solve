@@ -1,17 +1,15 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { Progress } from "@/components/ui/progress";
-import InfoButton from "@/components/ui/IButton";
-import { Upload, X, Trash2, AlertCircle } from "lucide-react";
-import { toast } from "sonner";
-import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 import { countries } from "@/app/(auth)/signup/seller/onboarding/signup-form";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import { Progress } from "@/components/ui/progress";
+import { Switch } from "@/components/ui/switch";
+import { Upload, X, Trash2, AlertCircle } from "lucide-react";
+import type React from "react";
+import { useState, useRef } from "react";
+import { toast } from "sonner";
 
 const servicesOptions = [
   "White Label Products",
@@ -295,11 +293,16 @@ const CapabilitiesOperationsForm = ({
 
           {/* Minimum Order Quantity (MOQ) */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Minimum Order Quantity (MOQ)
-              <span className="text-red-500 ml-0.5">*</span>
-              <InfoButton text="Enter the minimum quantity a buyer must order" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Minimum Order Quantity (MOQ)
+                <span className="text-red-500 ml-0.5">*</span>
+               
+              </label>
+              <p className="text-sm font-futura italic">
+                Enter the minimum quantity a buyer must order
+              </p>
+            </div>
             <Input
               placeholder="Enter numeric value or range"
               value={formState.minimumOrderQuantity || ""}
@@ -316,10 +319,15 @@ const CapabilitiesOperationsForm = ({
           {/* MOQ Flexibility */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium flex items-center gap-1">
-                MOQ Flexibility
-                <InfoButton text="Indicate if you're willing to work with lower order quantities" />
-              </label>
+              <div className="space-y-1">
+                <label className="text-sm font-medium flex items-center gap-1">
+                  MOQ Flexibility
+                  
+                </label>
+                <p className="text-sm font-futura italic">
+                  Indicate if you're willing to work with lower order quantities
+                </p>
+              </div>
               <Switch
                 checked={formState.lowMoqFlexibility || false}
                 onCheckedChange={(checked) => {
@@ -374,10 +382,14 @@ const CapabilitiesOperationsForm = ({
           {/* Sample & Production Timelines */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium flex items-center gap-1">
-                Do you provide samples?
-                <InfoButton text="Indicate if you provide product samples to potential buyers" />
-              </label>
+              <div className="space-y-1">
+                <label className="text-sm font-medium flex items-center gap-1">
+                  Do you provide samples?
+                </label>
+                <p className="text-sm font-futura italic">
+                  Indicate if you provide product samples to potential buyers
+                </p>
+              </div>
               <Switch
                 checked={formState.providesSamples || false}
                 onCheckedChange={(checked) => {

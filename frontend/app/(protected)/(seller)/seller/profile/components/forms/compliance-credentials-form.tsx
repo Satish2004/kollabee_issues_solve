@@ -1,14 +1,12 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
-import InfoButton from "@/components/ui/IButton";
-import { Upload, X, Trash2, AlertCircle, FileText, File } from "lucide-react";
 import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import { Progress } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload, X, Trash2, AlertCircle, FileText, File } from "lucide-react";
+import type React from "react";
+import { useState, useRef } from "react";
 
 const certificationOptions = [
   "ISO 9001",
@@ -437,11 +435,15 @@ const ComplianceCredentialsForm = ({
         <div className="space-y-6">
           {/* Business Registration */}
           <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Business Registration Document
-              <span className="text-red-500 ml-0.5">*</span>
-              <InfoButton text="Upload your business registration certificate or license" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center  ">
+                Business Registration Document
+                <span className="text-red-500 ml-0.5">*</span>
+              </label>
+              <p className="text-sm font-futura italic">
+                Upload your business registration certificate or license
+              </p>
+            </div>
             <div className="flex flex-col items-start gap-4 w-full">
               <input
                 type="file"
@@ -547,10 +549,14 @@ const ComplianceCredentialsForm = ({
 
           {/* Certification Documents */}
           <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Certification Documents (Optional)
-              <InfoButton text="Upload documents proving your certifications" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Certification Documents (Optional)
+              </label>
+              <p className="text-sm font-futura italic">
+                Upload documents proving your certifications
+              </p>
+            </div>
             <div className="grid grid-cols-3 gap-3">
               {/* Existing certifications */}
               {formState.certifications?.map(
@@ -691,10 +697,14 @@ const ComplianceCredentialsForm = ({
         <div className="space-y-6">
           {/* Notable Clients */}
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Notable Clients (Optional)
-              <InfoButton text="List your most significant clients or brands you've worked with" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Notable Clients (Optional)
+              </label>
+              <p className="text-sm font-futura italic">
+                List your most significant clients or brands you've worked with
+              </p>
+            </div>
             <Textarea
               placeholder="Enter names of notable clients or brands you've worked with"
               value={formState.notableClients || ""}
@@ -713,10 +723,14 @@ const ComplianceCredentialsForm = ({
 
           {/* Client Logos */}
           <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
-              Client Logos (Optional)
-              <InfoButton text="Upload logos of your notable clients (with permission)" />
-            </label>
+            <div className="space-y-1">
+              <label className="text-sm font-medium flex items-center gap-1">
+                Client Logos (Optional)
+              </label>
+              <p className="text-sm font-futura italic">
+                Upload logos of your notable clients (with permission)
+              </p>
+            </div>
             <div className="grid grid-cols-3 gap-3">
               {/* Existing client logos */}
               {formState.clientLogos?.map((imageUrl: string, index: number) => (

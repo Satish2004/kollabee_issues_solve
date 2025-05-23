@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useProfileSections } from "@/hooks/use-profile-sections";
-import useProfileFormState from "@/hooks/use-profile-form-state";
-import { useProfileData } from "./hooks/use-profile-data";
-import { useStepNavigation } from "./hooks/use-step-navigation";
+import CertificateModal from "./components/certificate-modal";
+import ProfileStepper from "./components/profile-stepper";
+import { ProfileFormContent } from "./components/profile/profile-form-content";
+import { ProfileHeader } from "./components/profile/profile-header";
 import { useCertificateManagement } from "./hooks/use-certificate-management";
-import { useProfileApproval } from "./hooks/use-profile-approval";
 import { useEnhancedSectionUpdate } from "./hooks/use-enhanced-section-update";
 import { useFileManagement } from "./hooks/use-file-management";
-import { ProfileHeader } from "./components/profile/profile-header";
-import { ProfileFormContent } from "./components/profile/profile-form-content";
-import ProfileStepper from "./components/profile-stepper";
-import CertificateModal from "./components/certificate-modal";
+import { useProfileApproval } from "./hooks/use-profile-approval";
+import { useProfileData } from "./hooks/use-profile-data";
+import { useStepNavigation } from "./hooks/use-step-navigation";
+import useProfileFormState from "@/hooks/use-profile-form-state";
+import { useProfileSections } from "@/hooks/use-profile-sections";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const KollaBeeProfile = () => {
   // Get steps and sections
@@ -127,10 +127,11 @@ const KollaBeeProfile = () => {
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col rounded-lg">
       {/* Profile header with approval status */}
       <ProfileHeader
         profileData={profileData}
+        setActiveStep={setActiveStep}
         isLoading={isLoading}
         stepsToBeCompleted={stepsToBeCompleted}
         approvalStatus={approvalStatus}
