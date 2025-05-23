@@ -30,6 +30,7 @@ export default function SignupBuyerPage() {
     role: "",
     businessName: "",
     businessDescription: "",
+    otherRole: "",
     businessType: "", // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
     otherBusinessType: "",
     lookingFor: [] as string[], // What the buyer is looking for
@@ -177,8 +178,14 @@ export default function SignupBuyerPage() {
         businessType: formData.businessType,
         otherBusinessType: formData.otherBusinessType,
         lookingFor: formData.lookingFor,
-        roleInCompany: formData.role,
+        roleInCompany:
+          formData.role === "other" ? formData.otherRole : formData.role,
       });
+
+      if (response?.error) {
+        toast.error(response?.error);
+        return;
+      }
 
       setCurrentStage(4); // Move to success screen
       toast.success("Account created successfully!");

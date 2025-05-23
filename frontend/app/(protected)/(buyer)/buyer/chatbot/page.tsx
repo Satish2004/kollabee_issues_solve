@@ -95,6 +95,12 @@ export default function ChatbotPage() {
     }
   };
 
+  const loadPreviousQuestions = async () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
   return (
     <div className="md:px-6">
       <main className="flex flex-col items-center justify-between bg-white rounded-xl ">
@@ -252,6 +258,16 @@ export default function ChatbotPage() {
                             </span>
                           </span>
                         )}
+                      </button>
+                    )}
+
+                    {currentPage > 1 && (
+                      <button
+                        onClick={loadPreviousQuestions}
+                        disabled={isTyping || loading}
+                        className="text-left text-xs sm:text-sm p-2 sm:p-3 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 col-span-full flex items-center justify-center"
+                      >
+                        Previous Questions
                       </button>
                     )}
                   </>

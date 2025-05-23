@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -77,6 +77,28 @@ export function BusinessInfoForm({
     businessCategories: "",
   });
 
+  // Add state for custom business types
+  const [customBusinessTypes, setCustomBusinessTypes] = useState<string[]>([]);
+
+  useEffect(() => {
+    const handleResetValidation = () => {
+      setErrors({
+        businessName: "",
+        businessDescription: "",
+        websiteLink: "",
+        businessAddress: "",
+        businessTypes: "",
+        businessCategories: "",
+      });
+    };
+
+    document.addEventListener("reset-validation", handleResetValidation);
+    return () => {
+      document.removeEventListener("reset-validation", handleResetValidation);
+    };
+  }, []);
+
+  // Update the handleBusinessTypeChange function to handle the "Other" option:
   const handleBusinessTypeChange = (selectedTypes: string[]) => {
     // Convert the display labels back to enum values for the API
     const enumValues = selectedTypes.map((label) => {
@@ -88,8 +110,6 @@ export function BusinessInfoForm({
       ...prev,
       businessTypes: enumValues as BusinessType[],
     }));
-
-    validateForm();
   };
 
   const handleBusinessCategoryChange = (selectedCategories: string[]) => {
@@ -103,8 +123,6 @@ export function BusinessInfoForm({
       ...prev,
       businessCategories: enumValues as CategoryEnum[],
     }));
-
-    validateForm();
   };
 
   const validateForm = () => {
@@ -156,7 +174,7 @@ export function BusinessInfoForm({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" id="business-info-form">
       <div className="text-start space-y-2">
         <h2 className="text-2xl font-bold">Business Information</h2>
         <p className="text-muted-foreground">
@@ -186,7 +204,6 @@ export function BusinessInfoForm({
                 ...prev,
                 businessName: e.target.value,
               }));
-              validateForm();
             }}
             className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
           />
@@ -216,7 +233,6 @@ export function BusinessInfoForm({
                 ...prev,
                 businessDescription: e.target.value,
               }));
-              validateForm();
             }}
             className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
           />
@@ -247,7 +263,6 @@ export function BusinessInfoForm({
                   ...prev,
                   websiteLink: e.target.value,
                 }));
-                validateForm();
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />
@@ -266,6 +281,30 @@ export function BusinessInfoForm({
             isRequired={true}
             error={errors.businessTypes}
             infoText="Match with the right buyers by selecting one or more categories that best describe your business."
+            allowCustomValues={true}
+            customValueCategory="Other"
+            customValues={customBusinessTypes}
+            onCustomValuesChange={(values) => {
+              setCustomBusinessTypes(values);
+
+              // Update the form data with custom business types
+              setFormData((prev) => {
+                // Get existing business types excluding any custom ones
+                const standardTypes = prev.businessTypes.filter(
+                  (type) =>
+                    !customBusinessTypes.includes(type as unknown as string)
+                );
+
+                // Add the new custom values as business types
+                return {
+                  ...prev,
+                  businessTypes: [
+                    ...standardTypes,
+                    ...values.map((value) => value as unknown as BusinessType),
+                  ],
+                };
+              });
+            }}
           />
         </div>
 
@@ -287,7 +326,6 @@ export function BusinessInfoForm({
                   ...prev,
                   businessAddress: e.target.value,
                 }));
-                validateForm();
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
             />

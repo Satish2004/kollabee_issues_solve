@@ -1,8 +1,9 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import { AppleLogin } from "./AppleLoginButton";
+import { GoogleLoginButton } from "./GoogleLoginButton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,20 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { authApi } from "@/lib/api/auth";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
-import { GoogleLoginButton } from "./GoogleLoginButton";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { AppleLogin } from "./AppleLoginButton";
+import { authApi } from "@/lib/api/auth";
+import { cn } from "@/lib/utils";
+import { Info } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface LoginError {
   message: string;
@@ -188,7 +187,7 @@ export function LoginForm({
                 name="password"
                 type="password"
                 required
-                placeholder="Create your Password"
+                placeholder="Enter your Password"
                 className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               />
             </div>

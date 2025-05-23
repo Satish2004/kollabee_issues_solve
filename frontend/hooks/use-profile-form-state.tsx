@@ -66,6 +66,7 @@ const useProfileFormState = ({
           businessDescription: "",
           websiteLink: "",
           businessAddress: "",
+          roleInCompany: "",
           businessTypes: [],
           businessCategories: [],
         };
@@ -443,6 +444,7 @@ const useProfileFormState = ({
           !!data.businessDescription &&
           !!data.websiteLink &&
           !!data.businessAddress &&
+          !!data.roleInCompany &&
           data.businessTypes?.length > 0 &&
           data.businessCategories?.length > 0
         );

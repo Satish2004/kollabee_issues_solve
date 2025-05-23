@@ -226,7 +226,7 @@ export function SellerSidebar({ className }: SidebarProps) {
 
         <div className="flex flex-col gap-2 border-t pt-4">
           <Link
-            href="/seller/chatbot"
+            href="#"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent"
           >
             <HelpCircle className="h-4 w-4" />

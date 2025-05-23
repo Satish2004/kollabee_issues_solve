@@ -18,6 +18,7 @@ import {
   getCountryCode,
   getSpecialCaseCountryCode,
 } from "@/components/country-utils";
+import { set } from "date-fns";
 
 interface SignupFormProps {
   formData: {
@@ -26,6 +27,7 @@ interface SignupFormProps {
     email: string;
     phone: string;
     password: string;
+    otherRole: string;
     confirmPassword: string;
     role: string;
     countryCode: string;
@@ -271,6 +273,7 @@ export function SignupForm({
   const [search, setSearch] = useState("");
   const [filteredCountries, setFilteredCountries] = useState(countries);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [otherRole, setOtherROle] = useState("");
 
   useEffect(() => {
     setFilteredCountries(
@@ -373,6 +376,8 @@ export function SignupForm({
 
     if (!formData.role) {
       newErrors.role = "Please let us know your role";
+    } else if (formData.role === "Other" && !formData.otherRole) {
+      newErrors.role = "Please specify your role";
     }
 
     setErrors(newErrors);
@@ -568,6 +573,7 @@ export function SignupForm({
                   ...formData,
                   role: value,
                 });
+                setOtherROle("");
                 setErrors({ ...errors, role: undefined });
               }}
             >
@@ -586,6 +592,28 @@ export function SignupForm({
                 ))}
               </SelectContent>
             </Select>
+
+            {formData.role === "Other" && (
+              <>
+                <Label className="font-futura font-normal">
+                  Please specify your role
+                </Label>
+                <Input
+                  placeholder="example: Director, Chief, etc."
+                  value={formData.otherRole}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      otherRole: e.target.value,
+                    });
+                    setErrors({ ...errors, role: undefined });
+                  }}
+                  className={`bg-[#fcfcfc] border ${
+                    errors.role ? "border-red-500" : "border-[#e5e5e5]"
+                  } rounded-[6px] placeholder:text-[#bababb]`}
+                />
+              </>
+            )}
             {errors.role && (
               <p className="text-sm text-red-500 mt-1">{errors.role}</p>
             )}

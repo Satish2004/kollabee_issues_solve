@@ -1,14 +1,16 @@
 "use client";
-import type React from "react";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Eye, EyeOff } from "lucide-react";
+
+import Star from "@/app/(auth)/signup/seller/onboarding/Star";
+import { authApi } from "@/lib/api/auth";
 import { profileApi } from "@/lib/api/profile";
 import { Country, State } from "country-state-city";
-import { toast } from "sonner";
+import { Eye, EyeOff } from "lucide-react";
 import { User } from "lucide-react";
 import { Loader2 } from "lucide-react";
-import { authApi } from "@/lib/api/auth";
+import type React from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ReactCountryFlag from "react-country-flag";
+import { toast } from "sonner";
 
 // Utility functions for country codes
 const getCountryCode = (dialCode: string): string => {
@@ -535,17 +537,26 @@ const Settings: React.FC = () => {
 
   // Replace the State select with a memoized version
   const stateOptions = useMemo(() => {
+    // Find the country object from the Country library based on selected country name
+    const selectedCountryObj = Country.getAllCountries().find((c) => c.name === formData.country)
+
+    // Get the ISO code for the selected country
+    const countryCode = selectedCountryObj?.isoCode
+
+    // If we have a valid country code, get states for that country
+    const states = countryCode ? State.getStatesOfCountry(countryCode) : []
+
     return [
       <option key="none" value="">
         Select State
       </option>,
-      ...State.getAllStates().map((state, index) => (
+      ...states.map((state, index) => (
         <option key={index} value={state.name}>
           {state.name}
         </option>
       )),
-    ];
-  }, []);
+    ]
+  }, [formData.country]) // Re-compute when country changes
 
   const renderAccountSettings = useCallback(() => {
     return (
@@ -637,15 +648,17 @@ const Settings: React.FC = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Business Email Address*
+                <p>
+                  Business Email
+                  <Star />
+                </p>
               </label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
-                readOnly
                 onChange={handleInputChange}
-                placeholder="Re-enter your Business Email Address"
+                placeholder="Re-enter your Business Email"
                 className="w-full px-3 py-2 border rounded-lg"
               />
             </div>

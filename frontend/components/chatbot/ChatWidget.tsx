@@ -9,10 +9,12 @@ import {
   type ChatMessage,
   type Question,
 } from "@/lib/api/chatbot";
+import { Card } from "@/components/ui/card";
+import { MessageCircle, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-import { Card, CardContent } from "@/components/ui/card";
-
-export default function ChatbotPage() {
+export function ChatbotWidget() {
+  const [isOpen, setIsOpen] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
@@ -24,57 +26,67 @@ export default function ChatbotPage() {
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch questions on component mount
-  useEffect(() => {
-    const loadQuestions = async () => {
+  const toggleWidget = () => {
+    setIsOpen(!isOpen);
+    if (!isOpen && !historyLoaded) {
+      // Load data when opening for the first time
+      loadQuestions();
+    }
+  };
+
+  // Fetch questions when widget is opened
+  const loadQuestions = async () => {
+    try {
+      setLoading(true);
+      let paginatedQuestions;
+
       try {
-        setLoading(true);
-        let paginatedQuestions;
+        paginatedQuestions = await fetchChatbotQuestions(currentPage, 3);
+      } catch (err) {
+        console.error("Error fetching questions from API:", err);
+        throw err;
+      }
 
+      setQuestions(paginatedQuestions.data);
+      setTotalPages(paginatedQuestions.totalPages);
+      setHasMore(paginatedQuestions.hasMore);
+
+      // Only add welcome message if no history and first page
+      if (!historyLoaded && currentPage === 1) {
         try {
-          paginatedQuestions = await fetchChatbotQuestions(currentPage, 5);
-        } catch (err) {
-          console.error("Error fetching questions from API:", err);
-          // Use dummy data as fallback
-        }
-
-        setQuestions(paginatedQuestions.data);
-        setTotalPages(paginatedQuestions.totalPages);
-        setHasMore(paginatedQuestions.hasMore);
-
-        // Only add welcome message if no history and first page
-        if (!historyLoaded && currentPage === 1) {
-          try {
-            // Try to load chat history
-            const history = await fetchChatHistory();
-            if (history && history.length > 0) {
-              setMessages(history);
-              setHistoryLoaded(true);
-            } else {
-              // If no history, show welcome message
-              setMessages([createWelcomeMessage()]);
-            }
-          } catch (err) {
-            console.error("Error loading chat history:", err);
+          // Try to load chat history
+          const history = await fetchChatHistory();
+          if (history && history.length > 0) {
+            setMessages(history);
+            setHistoryLoaded(true);
+          } else {
+            // If no history, show welcome message
             setMessages([createWelcomeMessage()]);
           }
-        }
-      } catch (err) {
-        console.error("Error in loadQuestions:", err);
-        setError("Failed to load chatbot questions. Please try again later.");
-
-        // Set fallback questions even on error
-
-        if (!historyLoaded) {
+        } catch (err) {
+          console.error("Error loading chat history:", err);
           setMessages([createWelcomeMessage()]);
         }
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error("Error in loadQuestions:", err);
+      setError("Failed to load chatbot questions. Please try again later.");
 
-    loadQuestions();
-  }, [currentPage, historyLoaded]);
+      // Set fallback questions even on error
+      if (!historyLoaded) {
+        setMessages([createWelcomeMessage()]);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Load questions when page changes (both next and previous)
+  useEffect(() => {
+    if (isOpen) {
+      loadQuestions();
+    }
+  }, [currentPage, isOpen]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -95,9 +107,35 @@ export default function ChatbotPage() {
     }
   };
 
+  const loadPreviousQuestions = async () => {
+    if (currentPage > 1) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  if (!isOpen) {
+    return (
+      <Button
+        onClick={toggleWidget}
+        className="fixed right-4 bottom-4 rounded-full w-12 h-12 shadow-lg flex items-center justify-center z-50 button-bg"
+        size="icon"
+      >
+        <MessageCircle className="h-5 w-5 text-white" />
+      </Button>
+    );
+  }
+
   return (
-    <main className="flex flex-col items-center justify-between bg-white rounded-xl ">
-      <div className="w-full ">
+    <>
+      <Button
+        onClick={toggleWidget}
+        className="fixed right-4 bottom-4 rounded-full w-12 h-12 shadow-lg flex items-center justify-center z-50 button-bg"
+        size="icon"
+      >
+        <X className="h-5 w-5 text-white" />
+      </Button>
+
+      <div className="fixed right-4 bottom-20 w-80 sm:w-96 z-40">
         <Card className="w-full shadow-lg overflow-hidden">
           {/* Chatbot Header */}
           <div className="button-bg text-white p-3 sm:p-4 flex items-center">
@@ -121,7 +159,7 @@ export default function ChatbotPage() {
           </div>
 
           {/* Chat Messages */}
-          <div className="h-[350px] sm:h-[400px] md:h-[450px] lg:h-[500px] overflow-y-auto p-3 sm:p-4 bg-gray-50">
+          <div className="h-[350px] overflow-y-auto p-3 sm:p-4 bg-gray-50">
             {loading && questions.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 button-bg"></div>
@@ -182,9 +220,18 @@ export default function ChatbotPage() {
             <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
               Frequently Asked Questions:
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="grid grid-cols-1 gap-2">
               {questions && questions.length > 0 && (
                 <>
+                  {currentPage > 1 && (
+                    <button
+                      onClick={loadPreviousQuestions}
+                      disabled={isTyping || loading}
+                      className="text-left text-xs sm:text-sm p-2 sm:p-3 rounded-md hover:bg-gray-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border border-gray-200 col-span-full flex items-center justify-center"
+                    >
+                      Previous Questions
+                    </button>
+                  )}
                   {questions.map((question) => (
                     <button
                       key={question.id}
@@ -227,7 +274,7 @@ export default function ChatbotPage() {
                           <span className="text-xs sm:text-sm">Loading...</span>
                         </span>
                       ) : (
-                        <span className="flex items-center ">
+                        <span className="flex items-center">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             className="h-3 w-3 sm:h-4 sm:w-4 mr-1"
@@ -255,6 +302,6 @@ export default function ChatbotPage() {
           </div>
         </Card>
       </div>
-    </main>
+    </>
   );
 }

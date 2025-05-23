@@ -5,6 +5,7 @@ import { IntroTour } from "@/components/tour/IntroTour";
 import { BuyerSidebar } from "../../../../components/buyer/buyer-sidebar";
 import BuyerLayoutHeader from "../../../../components/buyer/buyer-layout-header";
 import { CheckoutProvider } from "@/contexts/checkout-context";
+import { ChatbotWidget } from "../../../../components/chatbot/ChatWidget";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -29,7 +30,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <BuyerLayoutHeader />
           </div>
 
-          <main className="flex-1 px-4 py-3 bg-gray-100">{children}</main>
+          <main className="flex-1 px-4 py-3 bg-gray-100">
+            {children}
+            <ChatbotWidget />
+          </main>
         </CheckoutProvider>
       </div>
 

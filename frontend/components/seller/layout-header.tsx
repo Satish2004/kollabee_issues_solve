@@ -1,6 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+
+import { Button } from "../ui/button";
+import { UserDropdown } from "./user-dropdown";
+import { authApi } from "@/lib/api/auth";
 import {
   Home,
   Store,
@@ -18,10 +20,9 @@ import {
   Menu,
   X,
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { UserDropdown } from "./user-dropdown";
-import { authApi } from "@/lib/api/auth";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 export default function SellerLayoutHeader() {
   const pathname = usePathname();
@@ -146,6 +147,13 @@ export default function SellerLayoutHeader() {
       label: "Update Product",
       icon: PenTool,
       href: "/seller/update-product",
+    };
+  }
+  if (!currentRoute && pathname.startsWith("/seller/products/")) {
+    currentRoute = {
+      label: "Product",
+      icon: Store,
+      href: "/seller/products",
     };
   }
 
