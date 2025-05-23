@@ -1,12 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import type React from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 
 import { toast } from "sonner";
-import Link from "next/link";
 import Image from "next/image";
-import { Info } from "lucide-react";
 import { ProgressStepper } from "@/components/onboarding/progress-stepper";
 import { SignupForm } from "./onboarding/signup-form";
 import { BusinessInfoForm } from "./onboarding/business-info-form";
@@ -15,13 +14,12 @@ import { SuccessMessage } from "./onboarding/success-message";
 import { OTPModal } from "./onboarding/otp-modal";
 import { ErrorBoundary } from "react-error-boundary";
 import { authApi } from "@/lib/api/auth";
-import { sellerApi } from "@/lib/api/seller";
 import { useRouter } from "next/navigation";
-import { BusinessType, CategoryEnum } from "@/types/api";
+import type { BusinessType, CategoryEnum } from "@/types/api";
 
 export default function SignupSellerPage() {
   const router = useRouter();
-  const [currentStage, setCurrentStage] = useState(1);
+  const [currentStage, setCurrentStage] = useState(2);
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -37,6 +35,7 @@ export default function SignupSellerPage() {
     businessDescription: "",
     businessAddress: "",
     websiteLink: "",
+    otherRole: "",
     businessTypes: [] as BusinessType[],
     businessCategories: [] as CategoryEnum[],
     selectedObjectives: [] as string[],
@@ -193,7 +192,8 @@ export default function SignupSellerPage() {
         websiteLink: formData.websiteLink,
         businessTypes: formData.businessTypes,
         businessCategories: formData.businessCategories,
-        roleInCompany: formData.role,
+        roleInCompany:
+          formData.role === "other" ? formData.otherRole : formData.role,
         selectedObjectives: formData.selectedObjectives,
         selectedChallenges: formData.selectedChallenges,
         selectedMetrics: formData.selectedMetrics,
@@ -244,17 +244,35 @@ export default function SignupSellerPage() {
       websiteLink,
       businessCategories,
     } = formData;
-    if (
-      !businessName ||
-      !businessDescription ||
-      businessTypes.length === 0 ||
-      !businessAddress ||
-      !websiteLink ||
-      businessCategories.length === 0
-    ) {
-      toast.error("Please fill all required fields");
+
+    let isValid = true;
+    let errorMessage = "";
+
+    if (!businessName.trim()) {
+      errorMessage = "Business name is required";
+      isValid = false;
+    } else if (!businessDescription.trim()) {
+      errorMessage = "Business description is required";
+      isValid = false;
+    } else if (businessTypes.length === 0) {
+      errorMessage = "Please select at least one business type";
+      isValid = false;
+    } else if (!businessAddress.trim()) {
+      errorMessage = "Business address is required";
+      isValid = false;
+    } else if (!websiteLink.trim()) {
+      errorMessage = "Website link is required";
+      isValid = false;
+    } else if (businessCategories.length === 0) {
+      errorMessage = "Please select at least one business category";
+      isValid = false;
+    }
+
+    if (!isValid) {
+      toast.error(errorMessage);
       return false;
     }
+
     return true;
   };
 
@@ -310,6 +328,20 @@ export default function SignupSellerPage() {
       console.error("Signup failed:", error);
     }
   };
+
+  // Add this after the other useEffect hooks
+  useEffect(() => {
+    // Reset any validation errors when form data changes
+    if (currentStage === 2) {
+      const businessInfoForm = document.getElementById("business-info-form");
+      if (businessInfoForm) {
+        // This will trigger a re-render of the BusinessInfoForm component
+        businessInfoForm.dispatchEvent(
+          new Event("reset-validation", { bubbles: true })
+        );
+      }
+    }
+  }, [formData, currentStage]);
 
   return (
     <ErrorBoundary

@@ -1,11 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 import { CategoryEnum, BusinessType } from "@/types/api";
 import InfoButton from "@/components/ui/IButton";
 import { Textarea } from "@/components/ui/textarea";
 import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
+import Star from "@/app/(auth)/signup/seller/onboarding/Star";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -23,6 +33,17 @@ const businessCategories = Object.values(CategoryEnum).map((category) => ({
     .join(" "),
 }));
 
+const companyRoles = [
+  "Founder/CEO",
+  "Executive/Leadership",
+  "Manager",
+  "Team Member",
+  "Intern",
+  "Sales Manager",
+  "Export Manager",
+  "Other",
+];
+
 type BusinessInfoFormProps = {
   formState: any;
   onChange: (newValue: any) => void;
@@ -31,13 +52,13 @@ type BusinessInfoFormProps = {
   isSaving: boolean;
 };
 
-const BusinessInfoForm = ({
+export default function BusinessInfoForm({
   formState,
   onChange,
   onSave,
   hasChanges,
   isSaving,
-}: BusinessInfoFormProps) => {
+}: BusinessInfoFormProps) {
   const [errors, setErrors] = useState({
     businessName: "",
     businessDescription: "",
@@ -45,17 +66,49 @@ const BusinessInfoForm = ({
     businessAddress: "",
     businessTypes: "",
     businessCategories: "",
+    rolesInCompany: "",
   });
 
   const [customCategories, setCustomCategories] = useState<string[]>(
     formState.customCategories || []
   );
 
+  // Add state for custom business types
+  const [customBusinessTypes, setCustomBusinessTypes] = useState<string[]>(
+    formState.customBusinessTypes || []
+  );
+
+  useEffect(() => {
+    // Check if the role exists and is not in the predefined company roles
+    if (
+      formState.roleInCompany &&
+      !companyRoles.includes(formState.roleInCompany)
+    ) {
+      // Set the role to "Other" and save the original role as otherRole
+      onChange({
+        ...formState,
+        otherRole: formState.roleInCompany,
+        roleInCompany: "Other",
+      });
+    }
+  }, []);
+
   const handleCustomCategoriesChange = (newCustomCategories: string[]) => {
     setCustomCategories(newCustomCategories);
     onChange({
       ...formState,
       customCategories: newCustomCategories,
+    });
+  };
+
+  // Add handler for custom business types
+  const handleCustomBusinessTypesChange = (
+    newCustomBusinessTypes: string[]
+  ) => {
+    setCustomBusinessTypes(newCustomBusinessTypes);
+    onChange({
+      ...formState,
+      customBusinessTypes: newCustomBusinessTypes,
     });
   };
 
@@ -109,12 +162,23 @@ const BusinessInfoForm = ({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8" id="business-info-form">
+      <div className="text-start space-y-2">
+        <h2 className="text-2xl font-bold">Business Information</h2>
+        <p className="text-muted-foreground">
+          Tell us about your business to unlock opportunities with the right
+          buyers.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Name{" "}
+              <p>
+                Business Name
+                <Star />
+              </p>
               <InfoButton
                 text={
                   "Enter the official name of your business as it appears on legal documents and branding materials. This name will be visible to customers"
@@ -158,7 +222,7 @@ const BusinessInfoForm = ({
 
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Website Link
+              Business Website/Instagram
               <InfoButton
                 text={
                   "Enter the complete URL of your business website (e.g., https://yourbusiness.com). Ensure the link is valid and accessible to customers."
@@ -182,14 +246,7 @@ const BusinessInfoForm = ({
             label="Business Type"
             placeholder="Select one or more business types"
             options={businessTypes.map(({ label }) => label)}
-            selectedValues={
-              formState.businessTypes?.map((type: BusinessType) => {
-                const businessType = businessTypes.find(
-                  (bt) => bt.value === type
-                );
-                return businessType ? businessType.label : type;
-              }) || []
-            }
+            selectedValues={getSelectedBusinessTypeLabels()}
             onChange={(selectedLabels) => {
               // Convert the display labels back to enum values for the API
               const enumValues = selectedLabels.map((label) => {
@@ -206,6 +263,11 @@ const BusinessInfoForm = ({
             }}
             isRequired={true}
             error={errors.businessTypes}
+            allowCustomValues={true}
+            customValuesLabel="Add custom business types:"
+            customValueCategory="Other"
+            customValues={customBusinessTypes}
+            onCustomValuesChange={handleCustomBusinessTypesChange}
           />
         </div>
 
@@ -246,10 +308,89 @@ const BusinessInfoForm = ({
             customValues={customCategories}
             onCustomValuesChange={handleCustomCategoriesChange}
           />
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium flex items-center gap-1">
+              Describe your Role within the Company
+              <span className="text-destructive text-red-500">*</span>
+            </label>
+            <Select
+              value={formState.roleInCompany || ""}
+              onValueChange={(value) => {
+                onChange({
+                  ...formState,
+                  roleInCompany: value,
+                  otherRole: value !== "Other" ? "" : formState.otherRole,
+                });
+                setErrors({ ...errors, rolesInCompany: "" });
+              }}
+            >
+              <SelectTrigger
+                className={`w-full bg-[#fcfcfc] border ${
+                  errors.rolesInCompany ? "border-red-500" : "border-[#e5e5e5]"
+                } rounded-[6px]`}
+              >
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-10">
+                {companyRoles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {formState.roleInCompany === "Other" && (
+              <>
+                <label className="text-sm font-medium">
+                  Please specify your role
+                </label>
+                <Input
+                  placeholder="example: Director, Chief, etc."
+                  value={formState.otherRole || ""}
+                  onChange={(e) => {
+                    onChange({
+                      ...formState,
+                      otherRole: e.target.value,
+                    });
+                    setErrors({ ...errors, rolesInCompany: "" });
+                  }}
+                  className={`bg-[#fcfcfc] border ${
+                    errors.rolesInCompany
+                      ? "border-red-500"
+                      : "border-[#e5e5e5]"
+                  } rounded-[6px] placeholder:text-black/50`}
+                />
+              </>
+            )}
+            {errors.rolesInCompany && (
+              <p className="text-sm text-red-500 mt-1">
+                {errors.rolesInCompany}
+              </p>
+            )}
+          </div>
         </div>
+      </div>
+
+      <div className="flex justify-between mt-10">
+        <Button
+          onClick={() => onChange({ ...formState })}
+          variant="ghost"
+          size="sm"
+          className="text-primary -ml-4"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back
+        </Button>
+        <Button
+          className="rounded-[6px] text-white px-8 py-2 bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
+          onClick={onSave}
+          disabled={!hasChanges || isSaving}
+        >
+          {isSaving ? "Saving..." : "Continue"}
+        </Button>
       </div>
     </div>
   );
-};
-
-export default BusinessInfoForm;
+}

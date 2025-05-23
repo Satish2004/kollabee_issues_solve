@@ -139,6 +139,7 @@ export const updateBusinessInfo = async (req: any, res: Response) => {
       websiteLink,
       businessTypes,
       businessCategories,
+      roleInCompany,
     } = req.body;
 
     const seller = await prisma.seller.update({
@@ -149,6 +150,7 @@ export const updateBusinessInfo = async (req: any, res: Response) => {
         websiteLink,
         businessTypes,
         businessCategories,
+        roleInCompany,
       },
     });
 
@@ -164,6 +166,11 @@ export const getBusinessInfo = async (req: any, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
+    const roleInCompany = await prisma.seller.findUnique({
+      where: { id: req.user.sellerId },
+      select: { roleInCompany: true },
+    });
+
     const businessInfo = await prisma.seller.findUnique({
       where: { id: req.user.sellerId },
       include: {
@@ -172,6 +179,7 @@ export const getBusinessInfo = async (req: any, res: Response) => {
             name: true,
             email: true,
             companyName: true,
+            role: true,
             phoneNumber: true,
             country: true,
             state: true,
@@ -186,7 +194,12 @@ export const getBusinessInfo = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Business info not found" });
     }
 
-    res.json(businessInfo);
+    const newBusinessInfo = {
+      ...businessInfo,
+      roleInCompany: roleInCompany?.roleInCompany || "",
+    };
+
+    res.json(newBusinessInfo);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch business info" });
   }
@@ -495,6 +508,7 @@ export const getSellerBusinessInfo = async (req: any, res: Response) => {
         websiteLink: true,
         businessTypes: true,
         businessCategories: true,
+        roleInCompany: true,
       },
     });
 
@@ -523,6 +537,8 @@ export const updateSellerBussinessInfo = async function (
       websiteLink,
       businessTypes,
       businessCategories,
+      roleInCompany,
+      otherRole,
     } = req.body;
 
     const seller = await prisma.seller.findUnique({
@@ -540,8 +556,11 @@ export const updateSellerBussinessInfo = async function (
       businessDescription &&
       businessAddress &&
       websiteLink &&
-      businessTypes?.length > 0 &&
-      businessCategories?.length > 0;
+      roleInCompany === "Other"
+        ? otherRole
+        : roleInCompany &&
+          businessTypes?.length > 0 &&
+          businessCategories?.length > 0;
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasData
@@ -558,6 +577,7 @@ export const updateSellerBussinessInfo = async function (
         businessTypes,
         businessCategories,
         profileCompletion: newCompletion,
+        roleInCompany: roleInCompany === "Other" ? otherRole : roleInCompany,
       },
     });
 
