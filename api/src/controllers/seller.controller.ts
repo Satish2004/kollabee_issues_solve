@@ -1748,6 +1748,10 @@ export const requestApproval = async (req: any, res: Response) => {
         .json({ message: "Already requested for approval" });
     }
 
+    const currentCompletion = seller.profileCompletion || [];
+    if (!currentCompletion.find((step) => step === 7)) {
+      currentCompletion.push(7);
+    }
     // Create a new approval request
 
     const reqApproval = await prisma.seller.update({
@@ -1757,8 +1761,11 @@ export const requestApproval = async (req: any, res: Response) => {
       data: {
         approvalRequested: true,
         approvalReqestAt: new Date(Date.now()),
+        profileCompletion: currentCompletion,
       },
     });
+
+    // Check if we have valid data to mark this step as complete
 
     return res
       .status(200)
@@ -1966,8 +1973,8 @@ export const updateCapabilitiesOperations = async (req: any, res: Response) => {
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasRequiredData
-      ? [...new Set([...currentCompletion, 5])]
-      : currentCompletion.filter((step) => step !== 5);
+      ? [...new Set([...currentCompletion, 4])]
+      : currentCompletion.filter((step) => step !== 4);
 
     // Merge existing factory images with new ones if any
     const updatedFactoryImages = factoryImages
@@ -2087,8 +2094,8 @@ export const updateComplianceCredentials = async (req: any, res: Response) => {
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasRequiredData
-      ? [...new Set([...currentCompletion, 6])]
-      : currentCompletion.filter((step) => step !== 6);
+      ? [...new Set([...currentCompletion, 5])]
+      : currentCompletion.filter((step) => step !== 5);
 
     // Merge existing certifications and logos with new ones if any
     const updatedCertifications = uploads.certifications
@@ -2206,8 +2213,8 @@ export const updateBrandPresence = async (req: any, res: Response) => {
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasRequiredData
-      ? [...new Set([...currentCompletion, 7])]
-      : currentCompletion.filter((step) => step !== 7);
+      ? [...new Set([...currentCompletion, 6])]
+      : currentCompletion.filter((step) => step !== 6);
 
     // Merge existing project images with new ones
     const updatedProjectImages = uploads.projectImages
