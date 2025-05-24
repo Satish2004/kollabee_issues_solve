@@ -116,7 +116,7 @@ const KollaBeeRequestDetails = () => {
                 <div>
                   <p className="text-xs text-gray-500 mb-1">Country</p>
                   <p className="font-medium text-sm">
-                    {orderData.shippingAddress?.country ?? "Not available"}
+                    {orderData.shippingAddress?.country ?? "India"}
                   </p>
                 </div>
                 <div>

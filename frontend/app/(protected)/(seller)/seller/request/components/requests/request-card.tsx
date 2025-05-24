@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
-import { ChevronRight } from 'lucide-react';
-import { useRouter } from "next/navigation";
-import ReactCountryFlag from "react-country-flag";
 import { countries } from "@/app/(auth)/signup/seller/onboarding/signup-form";
 import type { Order } from "@/types/requests";
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import ReactCountryFlag from "react-country-flag";
 
 // Utility functions for country codes
 const getCountryCode = (dialCode: string): string => {
@@ -89,7 +89,7 @@ export const RequestCard = ({ request }: RequestCardProps) => {
   const buyerCountry =
     buyer?.user?.country || request.shippingAddress?.country || "India";
   const countryData = countries.find((c) => c.name === buyerCountry);
-  const countryCode = countryData 
+  const countryCode = countryData
     ? getSpecialCaseCountryCode(countryData.code, countryData.name)
     : "US"; // Default to US if no match
 
