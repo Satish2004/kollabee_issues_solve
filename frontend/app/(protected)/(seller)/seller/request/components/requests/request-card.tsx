@@ -1,10 +1,72 @@
 "use client";
 
-import Image from "next/image";
-import { ChevronRight } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { countries } from "@/app/(auth)/signup/seller/onboarding/signup-form";
 import type { Order } from "@/types/requests";
+import { ChevronRight } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import ReactCountryFlag from "react-country-flag";
+
+// Utility functions for country codes
+const getCountryCode = (dialCode: string): string => {
+  // Convert dial code to ISO country code for ReactCountryFlag
+  // This handles special cases and defaults
+  const codeMap: Record<string, string> = {
+    "+1": "US", // United States/Canada
+    "+44": "GB", // United Kingdom
+    "+91": "IN", // India
+    "+86": "CN", // China
+    "+7": "RU", // Russia
+    "+81": "JP", // Japan
+    "+49": "DE", // Germany
+    "+33": "FR", // France
+    "+39": "IT", // Italy
+    "+34": "ES", // Spain
+  };
+
+  // Extract just the country code without the plus sign
+  const code = dialCode.replace("+", "");
+
+  // Return the mapped code or try to derive it
+  return (
+    codeMap[dialCode] ||
+    // Try to find a matching country
+    countries
+      .find((c) => c.code === dialCode)
+      ?.name.substring(0, 2)
+      .toUpperCase() ||
+    "US"
+  ); // Default to US if no match
+};
+
+const getSpecialCaseCountryCode = (
+  dialCode: string,
+  countryName: string
+): string => {
+  // Handle special cases where the country code doesn't match the first two letters
+  const specialCases: Record<string, string> = {
+    "United Kingdom": "GB",
+    "United States": "US",
+    "South Korea": "KR",
+    "North Korea": "KP",
+    "South Africa": "ZA",
+  };
+
+  if (specialCases[countryName]) {
+    return specialCases[countryName];
+  }
+
+  // For countries with dial code +1 (US, Canada, and some Caribbean nations)
+  if (dialCode === "+1") {
+    if (countryName === "Canada") return "CA";
+    if (countryName === "United States") return "US";
+    // For other +1 countries, try to derive from name
+    return countryName.substring(0, 2).toUpperCase();
+  }
+
+  // Default: try to derive from country name
+  return countryName.substring(0, 2).toUpperCase();
+};
 
 interface RequestCardProps {
   request: Order;
@@ -23,11 +85,13 @@ export const RequestCard = ({ request }: RequestCardProps) => {
       ? product.images[0]
       : "/placeholder.svg?height=400&width=400";
 
-  // Find the country flag
+  // Find the country data and get proper country code
   const buyerCountry =
     buyer?.user?.country || request.shippingAddress?.country || "India";
   const countryData = countries.find((c) => c.name === buyerCountry);
-  const countryFlag = countryData?.flag || "🌍";
+  const countryCode = countryData
+    ? getSpecialCaseCountryCode(countryData.code, countryData.name)
+    : "US"; // Default to US if no match
 
   return (
     <div
@@ -45,7 +109,15 @@ export const RequestCard = ({ request }: RequestCardProps) => {
           {buyer?.user?.name || "Unknown Buyer"}
         </div>
         <div className="flex items-center gap-1 ml-auto">
-          <span className="text-lg sm:text-xl">{countryFlag}</span>
+          <ReactCountryFlag
+            countryCode={countryCode}
+            svg
+            style={{
+              width: "1.5em",
+              height: "1.5em",
+            }}
+            title={buyerCountry}
+          />
           <span className="text-gray-700 text-xs sm:text-sm">
             {buyerCountry.substring(0, 2).toUpperCase()}
           </span>
@@ -109,7 +181,15 @@ export const RequestCard = ({ request }: RequestCardProps) => {
               <div className="bg-gray-50 p-2 rounded">
                 <div className="text-xs text-gray-500">Country</div>
                 <div className="font-medium flex items-center gap-1">
-                  <span>{countryFlag}</span>
+                  <ReactCountryFlag
+                    countryCode={countryCode}
+                    svg
+                    style={{
+                      width: "1em",
+                      height: "1em",
+                    }}
+                    title={buyerCountry}
+                  />
                   <span className="truncate">{buyerCountry}</span>
                 </div>
               </div>
@@ -159,9 +239,15 @@ export const RequestCard = ({ request }: RequestCardProps) => {
                   </td>
                   <td className="p-2 sm:p-3 text-gray-800 text-xs sm:text-sm">
                     <div className="flex items-center gap-1">
-                      <span className="text-base sm:text-lg">
-                        {countryFlag}
-                      </span>
+                      <ReactCountryFlag
+                        countryCode={countryCode}
+                        svg
+                        style={{
+                          width: "1.5em",
+                          height: "1.5em",
+                        }}
+                        title={buyerCountry}
+                      />
                       <span className="truncate max-w-[60px] sm:max-w-none">
                         {buyerCountry}
                       </span>

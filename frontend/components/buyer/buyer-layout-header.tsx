@@ -1,6 +1,10 @@
 "use client";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+
+import { Button } from "../ui/button";
+import IconRenderer from "./icon-render";
+import { UserDropdown } from "./user-dropdown";
+import { useCheckout } from "@/contexts/checkout-context";
+import { authApi } from "@/lib/api/auth";
 import {
   Home,
   Store,
@@ -18,15 +22,18 @@ import {
   ShoppingCartIcon,
   Menu,
   X,
+  Calendar,
+  NotebookPen,
+  MessageCircleQuestion,
+  Share,
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { UserDropdown } from "./user-dropdown";
-import { authApi } from "@/lib/api/auth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { User2 } from "lucide-react";
 import Link from "next/link";
-import IconRenderer from "./icon-render";
-import { useCheckout } from "@/contexts/checkout-context";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
+import { HiChatBubbleLeftRight } from "react-icons/hi2";
+import { IoStorefront } from "react-icons/io5";
 
 export default function BuyerLayoutHeader() {
   const pathname = usePathname();
@@ -35,106 +42,249 @@ export default function BuyerLayoutHeader() {
   const [user, setUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await authApi.getCurrentUser();
-        setUser(user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
+  // Comprehensive routes array with proper ordering (most specific first)
+  const routes = useMemo(
+    () => [
+      // Buyer routes (most specific first)
+      {
+        label: "Update Product",
+        icon: PenTool,
+        href: "/seller/update-product",
+        patterns: ["/seller/update-product/", "/seller/products/edit/"],
+      },
+      {
+        label: "Add Product",
+        icon: StoreIcon,
+        href: "/seller/add-product",
+        patterns: ["/seller/add-product"],
+      },
+      {
+        label: "Profile Management",
+        icon: UserCog,
+        href: "/seller/profile",
+        patterns: ["/seller/profile/"],
+      },
+      {
+        label: "Projects",
+        icon: "custom",
+        href: "/buyer/projects",
+        patterns: ["/buyer/projects/", "/buyer/project/"],
+      },
+      {
+        label: "Marketplace",
+        icon: IoStorefront,
+        href: "/buyer/marketplace",
+        patterns: ["/buyer/marketplace/"],
+      },
+      {
+        label: "My Suppliers",
+        icon: User2,
+        href: "/buyer/my-suppliers",
+        patterns: ["/buyer/my-suppliers/", "/buyer/suppliers/"],
+      },
+      {
+        label: "Messages",
+        icon: HiChatBubbleLeftRight,
+        href: "/buyer/chat",
+        patterns: ["/buyer/chat/", "/buyer/messages/"],
+      },
+      {
+        label: "Orders",
+        icon: ShoppingCart,
+        href: "/buyer/orders",
+        patterns: ["/buyer/orders/", "/buyer/order/"],
+      },
+      {
+        label: "Cart",
+        icon: ShoppingCartIcon,
+        href: "/buyer/cart",
+        patterns: ["/buyer/cart/"],
+      },
+      {
+        label: "Wishlist",
+        icon: Heart,
+        href: "/buyer/wishlist",
+        patterns: ["/buyer/wishlist/"],
+      },
+      {
+        label: "Invite",
+        icon: Share,
+        href: "/buyer/invite",
+        patterns: ["/buyer/invite/"],
+      },
+      {
+        label: "Calendar",
+        icon: Calendar,
+        href: "/buyer/appointment",
+        patterns: ["/buyer/appointment/", "/buyer/calendar/"],
+      },
+      {
+        label: "Feedback",
+        icon: NotebookPen,
+        href: "/buyer/contact",
+        patterns: ["/buyer/contact/", "/buyer/feedback/"],
+      },
+      {
+        label: "FAQ",
+        icon: MessageCircleQuestion,
+        href: "/buyer/faq",
+        patterns: ["/buyer/faq/"],
+      },
+      {
+        label: "Support",
+        icon: Headphones,
+        href: "/buyer/support",
+        patterns: ["/buyer/support/"],
+      },
+      {
+        label: "Settings",
+        icon: Settings,
+        href: "/buyer/settings",
+        patterns: ["/buyer/settings/"],
+      },
+      {
+        label: "Notifications",
+        icon: Bell,
+        href: "/buyer/notifications",
+        patterns: ["/buyer/notifications/"],
+      },
+      // Seller routes
+      {
+        label: "Your Products",
+        icon: Store,
+        href: "/seller/products",
+        patterns: ["/seller/products/"],
+      },
+      {
+        label: "Customers",
+        icon: Users,
+        href: "/seller/customers",
+        patterns: ["/seller/customers/"],
+      },
+      {
+        label: "Seller Messages",
+        icon: MessageSquare,
+        href: "/seller/messages",
+        patterns: ["/seller/messages/"],
+      },
+      {
+        label: "Seller Orders",
+        icon: ShoppingCart,
+        href: "/seller/orders",
+        patterns: ["/seller/orders/"],
+      },
+      {
+        label: "Requests",
+        icon: Store,
+        href: "/seller/request",
+        patterns: ["/seller/request/", "/seller/requests/"],
+      },
+      {
+        label: "Advertise",
+        icon: Headphones,
+        href: "/seller/advertise",
+        patterns: ["/seller/advertise/"],
+      },
+      {
+        label: "Seller Chat",
+        icon: MessageSquare,
+        href: "/seller/chat",
+        patterns: ["/seller/chat/"],
+      },
+      {
+        label: "Seller Notifications",
+        icon: Bell,
+        href: "/seller/notifications",
+        patterns: ["/seller/notifications/"],
+      },
+      {
+        label: "Seller Settings",
+        icon: Settings,
+        href: "/seller/settings",
+        patterns: ["/seller/settings/"],
+      },
+      // Dashboard routes (least specific, should be last)
+      {
+        label: "Seller Dashboard",
+        icon: Home,
+        href: "/seller",
+        patterns: ["/seller"],
+        exact: true,
+      },
+      {
+        label: "Dashboard",
+        icon: Home,
+        href: "/buyer",
+        patterns: ["/buyer"],
+        exact: true,
+      },
+    ],
+    []
+  );
+
+  // Enhanced route detection function
+  const getCurrentRoute = useMemo(() => {
+    // First, try to find exact matches
+    const exactMatch = routes.find((route) => {
+      if (route.exact) {
+        return pathname === route.href;
       }
-    };
+      return false;
+    });
 
-    fetchUser();
-  }, []);
+    if (exactMatch) return exactMatch;
 
-  const numberOfCartItems = products.length;
-  const routes = [
-    {
+    // Then try pattern matching (most specific first)
+    const patternMatch = routes.find((route) => {
+      if (route.patterns) {
+        return route.patterns.some((pattern) => {
+          if (pattern.endsWith("/")) {
+            return (
+              pathname.startsWith(pattern) || pathname === pattern.slice(0, -1)
+            );
+          }
+          return pathname.startsWith(pattern);
+        });
+      }
+      return false;
+    });
+
+    if (patternMatch) return patternMatch;
+
+    // Fallback to basic startsWith matching
+    const basicMatch = routes.find((route) => {
+      if (route.exact) return false;
+      return pathname.startsWith(route.href) && pathname !== route.href;
+    });
+
+    if (basicMatch) return basicMatch;
+
+    // Default fallback based on path structure
+    if (pathname.startsWith("/buyer")) {
+      return {
+        label: "Dashboard",
+        icon: Home,
+        href: "/buyer",
+      };
+    }
+
+    if (pathname.startsWith("/seller")) {
+      return {
+        label: "Seller Dashboard",
+        icon: Home,
+        href: "/seller",
+      };
+    }
+
+    // Ultimate fallback
+    return {
       label: "Dashboard",
       icon: Home,
-      href: "/seller",
-      color: "text-gray-800",
-      fontWeight: "font-bold",
-    },
-    {
-      label: "Your Products",
-      icon: Store,
-      href: "/seller/products",
-    },
-    {
-      label: "Customers",
-      icon: Users,
-      href: "/seller/customers",
-    },
-    {
-      label: "Messages",
-      icon: MessageSquare,
-      href: "/seller/messages",
-    },
-    {
-      label: "Orders",
-      icon: ShoppingCart,
-      href: "/seller/orders",
-    },
-    {
-      label: "Requests",
-      icon: Store,
-      href: "/seller/request",
-    },
-    {
-      label: "Advertise",
-      icon: Headphones,
-      href: "/seller/advertise",
-    },
-    {
-      label: "Profile Manage",
-      icon: UserCog,
-      href: "/seller/profile/seller",
-    },
-    {
-      label: "Post New Product",
-      icon: StoreIcon,
-      href: "/seller/add-product",
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/seller/settings",
-    },
-    {
-      label: "Chat",
-      icon: MessageSquare,
-      href: "/seller/chat",
-    },
-    {
-      label: "Notifications",
-      icon: Bell,
-      href: "/seller/notifications",
-    },
-    {
-      label: "Projects",
-      icon: "custom",
-      href: "/buyer/projects",
-    },
-  ];
-
-  let currentRoute = routes.find((route) => pathname === route.href);
-  if (!currentRoute && pathname.startsWith("/seller/update-product/")) {
-    currentRoute = {
-      label: "Update Product",
-      icon: PenTool,
-      href: "/seller/update-product",
+      href: "/",
     };
-  }
+  }, [pathname, routes]);
 
-  if (!currentRoute && pathname.startsWith("/buyer/projects/")) {
-    currentRoute = {
-      label: "Projects",
-      icon: "custom",
-      href: "/buyer/projects",
-    };
-  }
+  const currentRoute = getCurrentRoute;
 
   const handleLogout = async () => {
     try {
@@ -147,20 +297,29 @@ export default function BuyerLayoutHeader() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response: any = await authApi.getCurrentUser();
-      setUser(response);
+      try {
+        const response = await authApi.getCurrentUser();
+        setUser(response);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
     };
     fetchUser();
   }, []);
 
+  const numberOfCartItems = products.length;
+
+  console.log("Current route:", currentRoute, "Pathname:", pathname);
+
   return (
-    <div className="w-[95%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6 ">
+    <div className="w-[95%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6">
       <div className="flex items-center justify-between gap-2">
         {currentRoute && (
           <IconRenderer icon={currentRoute.icon} className="w-5 h-5" />
         )}
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
+
       {/* Mobile menu button */}
       <div className="md:hidden">
         <Button
@@ -169,12 +328,7 @@ export default function BuyerLayoutHeader() {
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           className="relative z-50"
         >
-          {mobileMenuOpen ? (
-            ""
-          ) : (
-            // <X className="h-6 w-6" />
-            <Menu className="h-6 w-6" />
-          )}
+          {mobileMenuOpen ? "" : <Menu className="h-6 w-6" />}
         </Button>
       </div>
 
@@ -252,7 +406,7 @@ export default function BuyerLayoutHeader() {
                 </Link>
 
                 <Link
-                  href="/seller/notifications"
+                  href="/buyer/notifications"
                   className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
                 >
                   <Button
@@ -310,7 +464,6 @@ export default function BuyerLayoutHeader() {
             variant="outline"
             size="icon"
             className="size-8 rounded-full border-neutral-300"
-            onClick={() => router.push("/seller/notifications")}
           >
             <Heart className="size-7 cursor-pointer" />
           </Button>
@@ -324,7 +477,6 @@ export default function BuyerLayoutHeader() {
                 ? "border-red-500 border-2"
                 : "border-neutral-300"
             } relative`}
-            onClick={() => router.push("/seller/notifications")}
           >
             <ShoppingCartIcon className="size-8 cursor-pointer" />
             {numberOfCartItems > 0 && (
@@ -346,7 +498,7 @@ export default function BuyerLayoutHeader() {
           variant="outline"
           size="icon"
           className="size-8 rounded-full border-neutral-300"
-          onClick={() => router.push("/seller/notifications")}
+          onClick={() => router.push("/buyer/notifications")}
         >
           <Bell className="size-7 cursor-pointer" fill={"currentColor"} />
         </Button>
@@ -355,7 +507,6 @@ export default function BuyerLayoutHeader() {
             variant="outline"
             size="icon"
             className="size-8 rounded-full border-neutral-300"
-            onClick={() => router.push("/seller/chat")}
           >
             <Mail
               className="h-4 w-4 cursor-pointer"

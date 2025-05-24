@@ -1,39 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { authApi } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
 import {
   Home,
-  Store,
-  Users,
-  MessageSquare,
-  ShoppingCart,
   Headphones,
-  UserCog,
   HelpCircle,
   LogOut,
   ChevronLeft,
-  User,
-  Settings,
-  Plus,
   Package,
   User2,
-  Users2,
-  MessagesSquare,
   Share,
   NotebookPen,
-  Bot,
   Calendar,
   MessageCircleQuestion,
 } from "lucide-react";
-import { BsFillCartCheckFill } from "react-icons/bs";
-import { Button } from "@/components/ui/button";
-import React, { useState, useEffect, ElementType } from "react";
 import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { authApi } from "@/lib/api/auth";
-import { removeToken } from "@/lib/utils/token";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, type ElementType } from "react";
+import { BsFillCartCheckFill } from "react-icons/bs";
 import { HiChatBubbleLeftRight } from "react-icons/hi2";
 import { IoStorefront } from "react-icons/io5";
 
@@ -91,6 +78,21 @@ export function BuyerSidebar({ className }: SidebarProps) {
     }
   };
 
+  // Function to check if a route is active
+  const isRouteActive = (routeHref: string) => {
+    // Exact match for dashboard
+    if (routeHref === "/buyer" && pathname === "/buyer") {
+      return true;
+    }
+
+    // For other routes, check if pathname starts with the route href
+    if (routeHref !== "/buyer" && pathname.startsWith(routeHref)) {
+      return true;
+    }
+
+    return false;
+  };
+
   const routes = [
     {
       routes: [
@@ -137,7 +139,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
         {
           label: "Support",
           icon: Headphones,
-          href: "/seller/support",
+          href: "/buyer/support",
         },
       ],
     },
@@ -168,7 +170,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
     },
   ];
 
-  const menuItems: string = [
+  const menuItems = [
     { title: "Dashboard", icon: Home },
     { title: "Products", icon: Package },
   ];
@@ -219,19 +221,22 @@ export function BuyerSidebar({ className }: SidebarProps) {
                 </span>
               )}
               <div className="flex flex-col gap-1">
-                {group.routes.map((route, routeIndex) => (
-                  <Link
-                    key={routeIndex}
-                    href={route.href}
-                    className={`${cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent text-[#78787A]",
-                      pathname === route.href && "bg-[#FDECED] text-[#363638]"
-                    )} `}
-                  >
-                    <IconRenderer icon={route.icon} />
-                    {!isCollapsed && <span>{route.label}</span>}
-                  </Link>
-                ))}
+                {group.routes.map((route, routeIndex) => {
+                  const isActive = isRouteActive(route.href);
+                  return (
+                    <Link
+                      key={routeIndex}
+                      href={route.href}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent text-[#78787A]",
+                        isActive && "bg-[#FDECED] text-[#363638] font-medium"
+                      )}
+                    >
+                      <IconRenderer icon={route.icon} />
+                      {!isCollapsed && <span>{route.label}</span>}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}
