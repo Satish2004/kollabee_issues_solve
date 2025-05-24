@@ -1,8 +1,9 @@
 "use client";
-import React, { useState, useEffect } from "react";
+
+import { ordersApi } from "@/lib/api/orders";
 import { ChevronLeft, X, Check } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
-import { ordersApi } from "@/lib/api/orders";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface OrderData {
@@ -99,18 +100,6 @@ const KollaBeeRequestDetails = () => {
 
           <div className="border rounded-md mb-6">
             <div className="p-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center mb-4">
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                <span className="font-medium text-lg sm:text-base">
-                  {orderData.shippingAddress?.fullName}
-                </span>
-                <div className="flex items-center ml-0 sm:ml-2 mt-2 sm:mt-0">
-                  <div className="w-5 h-3 bg-red-600 flex items-center justify-center text-[8px] text-white font-bold">
-                    {orderData.shippingAddress?.country}
-                  </div>
-                </div>
-              </div>
-
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
                 <h2 className="text-xl font-semibold mb-2 sm:mb-0">
                   {orderData.items[0]?.product.name}
@@ -156,8 +145,6 @@ const KollaBeeRequestDetails = () => {
               </div>
             </div>
           </div>
-
-      
         </div>
       </div>
     </div>
