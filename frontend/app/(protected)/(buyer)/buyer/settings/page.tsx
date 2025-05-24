@@ -1040,7 +1040,9 @@ const Settings: React.FC = () => {
               onChange={handleBankDetailsChange}
               className="w-full px-3 py-2 border rounded-lg"
             >
-              <option value="">Select Type</option>
+              <option value="" disabled>
+                Select Type
+              </option>
               {[
                 { name: "Savings", value: "SAVINGS" },
                 { name: "Current", value: "CURRENT" },
