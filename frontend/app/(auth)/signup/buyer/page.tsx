@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
-import Image from "next/image";
-import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { OTPModal } from "../seller/onboarding/otp-modal";
 import { SignupForm } from "../seller/onboarding/signup-form";
 import { AboutYouForm } from "./onboarding/AboutYouForm";
 import { LookingForForm } from "./onboarding/looking-for-form";
 import { SuccessMessage } from "./onboarding/success-message";
-import { OTPModal } from "../seller/onboarding/otp-modal";
-import { ErrorBoundary } from "react-error-boundary";
+import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { Card } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "sonner";
+
 // import { ProgressStepper } from "./onboarding/ProgressStepper";
 
 export default function SignupBuyerPage() {
@@ -95,6 +96,7 @@ export default function SignupBuyerPage() {
     } catch (error: any) {
       console.error("Error generating OTP:", error);
       toast.error(error.response?.data?.message || "Failed to send OTP");
+      setShowOTP(false);
     } finally {
       setGenerateOTPLoading(false);
     }
@@ -213,6 +215,40 @@ export default function SignupBuyerPage() {
       return false;
     }
 
+    if (!/^[a-zA-Z]+$/.test(firstName) || !/^[a-zA-Z]+$/.test(lastName)) {
+      toast.error("First and last name should only contain alphabets");
+      return false;
+    }
+
+    if (
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ||
+      !email.endsWith("@example.com") // Example: restrict to specific domains
+    ) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+
+    if (!/^\d{10}$/.test(phone)) {
+      toast.error("Phone number should be a valid 10-digit number");
+      return false;
+    }
+
+    if (password.length < 8) {
+      toast.error("Password should be at least 8 characters long");
+      return false;
+    }
+
+    if (
+      !/[A-Z]/.test(password) ||
+      !/[a-z]/.test(password) ||
+      !/\d/.test(password)
+    ) {
+      toast.error(
+        "Password should contain at least one uppercase letter, one lowercase letter, and one number"
+      );
+      return false;
+    }
+
     if (password !== confirmPassword) {
       toast.error("Password and confirm password do not match");
       return false;
@@ -239,8 +275,35 @@ export default function SignupBuyerPage() {
       return false;
     }
 
+    if (businessName.length < 3) {
+      toast.error("Business name should be at least 3 characters long");
+      return false;
+    }
+
+    if (/^\d+$/.test(businessName)) {
+      toast.error("Business name should not be only numbers");
+      return false;
+    }
+
+    if (/^[^a-zA-Z0-9]+$/.test(businessName)) {
+      toast.error("Business name should not be only special characters");
+      return false;
+    }
+
+    if (businessDescription.length < 10) {
+      toast.error("Business description should be at least 10 characters long");
+      return false;
+    }
+
     if (businessType === "Other" && !otherBusinessType) {
       toast.error("Please specify your business type");
+      return false;
+    }
+
+    if (businessType === "Startup" && businessDescription.length < 50) {
+      toast.error(
+        "Startups should provide a detailed description of at least 50 characters"
+      );
       return false;
     }
 
@@ -254,6 +317,20 @@ export default function SignupBuyerPage() {
       toast.error("Please select at least one option");
       return false;
     }
+
+    // const validOptions = ["Option1", "Option2", "Option3"]; // Replace with actual valid options
+    // const invalidSelections = lookingFor.filter(
+    //   (item) => !validOptions.includes(item)
+    // );
+
+    // if (invalidSelections.length > 0) {
+    //   toast.error(
+    //     `Invalid selections: ${invalidSelections.join(
+    //       ", "
+    //     )}. Please select valid options`
+    //   );
+    //   return false;
+    // }
 
     return true;
   };

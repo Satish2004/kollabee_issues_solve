@@ -303,7 +303,7 @@ export function SignupForm({
   }, [isSelecting]);
 
   const isPasswordValid = {
-    hasMinLength: formData.password.length >= 12,
+    hasMinLength: formData.password.length >= 8,
     hasNumber: /\d/.test(formData.password),
     hasCapital: /[A-Z]/.test(formData.password),
   };
@@ -315,7 +315,27 @@ export function SignupForm({
       setShowPasswordError(false);
     }
   };
+  const isNameValid = (name: string) => name.trim().length >= 3;
 
+  useEffect(() => {
+    if (formData.firstName && !isNameValid(formData.firstName)) {
+      setErrors((prev) => ({
+        ...prev,
+        firstName: "First name must be at least 3 characters long",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, firstName: undefined }));
+    }
+
+    if (formData.lastName && !isNameValid(formData.lastName)) {
+      setErrors((prev) => ({
+        ...prev,
+        lastName: "Last name must be at least 3 characters long",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, lastName: undefined }));
+    }
+  }, [formData.firstName, formData.lastName]);
   const validateForm = () => {
     const newErrors: any = {};
 
@@ -337,31 +357,45 @@ export function SignupForm({
       }
     });
 
+    // Name validation
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (formData.firstName && !nameRegex.test(formData.firstName)) {
+      newErrors.firstName =
+        "First name should only contain alphabets and spaces";
+    }
+    if (formData.lastName && !nameRegex.test(formData.lastName)) {
+      newErrors.lastName = "Last name should only contain alphabets and spaces";
+    }
+
     // Additional validations if fields are not empty
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+      newErrors.email = "Please enter a valid email address";
     }
 
     const phoneRegex = /^\d{6,15}$/;
     if (formData.phone && !phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number";
+      newErrors.phone = "Please enter a valid phone number (6-15 digits)";
     }
 
     if (formData.password) {
-      if (!formData.password) {
-        newErrors.password = "Password is required";
-      }
-
       if (formData.password.length < 12) {
-        newErrors.password = "Password must be at least 12 characters";
+        newErrors.password = "Password must be at least 12 characters long";
       }
       if (!/\d/.test(formData.password)) {
         newErrors.password = "Password must contain at least one number";
       }
       if (!/[A-Z]/.test(formData.password)) {
         newErrors.password =
-          "Password must contain at least one capital letter";
+          "Password must contain at least one uppercase letter";
+      }
+      if (!/[a-z]/.test(formData.password)) {
+        newErrors.password =
+          "Password must contain at least one lowercase letter";
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
+        newErrors.password =
+          "Password must contain at least one special character";
       }
     }
 
@@ -370,12 +404,12 @@ export function SignupForm({
     }
 
     if (!otpVerified) {
-      newErrors.email = "Please verify your email";
+      newErrors.email = "Please verify your email before proceeding";
     }
 
     if (!formData.role) {
-      newErrors.role = "Please let us know your role";
-    } else if (formData.role === "Other" && !formData.otherRole) {
+      newErrors.role = "Please select your role within the company";
+    } else if (formData.role === "Other" && !formData.otherRole.trim()) {
       newErrors.role = "Please specify your role";
     }
 
@@ -475,7 +509,7 @@ export function SignupForm({
                       : "fill-current"
                   }`}
                 />
-                Min. 12 Characters
+                Min. 8 Characters
               </div>
               <div
                 className={`flex items-center gap-2 ${
@@ -518,7 +552,6 @@ export function SignupForm({
                   Business Email
                   <span className="text-destructive text-red-500">*</span>
                 </p>
-              
               </Label>
               <p className="text-sm font-futura italic">
                 Enter your business email address. This email will be used to
