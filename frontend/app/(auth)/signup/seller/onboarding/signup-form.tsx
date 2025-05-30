@@ -14,7 +14,7 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { Circle, ArrowLeft } from "lucide-react";
+import { Circle, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReactCountryFlag from "react-country-flag";
@@ -273,6 +273,8 @@ export function SignupForm({
   const [filteredCountries, setFilteredCountries] = useState(countries);
   const [isSelecting, setIsSelecting] = useState(false);
   const [otherRole, setOtherROle] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     setFilteredCountries(
@@ -315,7 +317,61 @@ export function SignupForm({
       setShowPasswordError(false);
     }
   };
-  const isNameValid = (name: string) => name.trim().length >= 3;
+  const isNameValid = (name: string) => {
+    // Check minimum length
+    if (name.trim().length < 2) return false;
+
+    // Check if it contains only single characters (like "a" or "ab")
+    if (name.trim().length < 3) return false;
+
+    // Check if it contains numbers or special characters
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(name)) return false;
+
+    // Check if it's not just repeated characters
+    const trimmedName = name.trim().replace(/\s+/g, "");
+    const uniqueChars = new Set(trimmedName.toLowerCase()).size;
+    if (uniqueChars < 2) return false;
+
+    return true;
+  };
+
+  const isPhoneValid = (phone: string) => {
+    // Basic length and digit check
+    if (!/^\d{6,15}$/.test(phone)) return false;
+
+    // Check for invalid patterns like all same digits
+    const uniqueDigits = new Set(phone).size;
+    if (uniqueDigits < 2) return false;
+
+    // Check for sequential patterns (like 123456 or 987654)
+    let isSequential = true;
+    for (let i = 1; i < phone.length; i++) {
+      const diff = Number.parseInt(phone[i]) - Number.parseInt(phone[i - 1]);
+      if (Math.abs(diff) !== 1) {
+        isSequential = false;
+        break;
+      }
+    }
+    if (isSequential && phone.length > 4) return false;
+
+    // Check for obvious fake numbers
+    const invalidPatterns = [
+      /^0+$/, // All zeros
+      /^1+$/, // All ones
+      /^2+$/, // All twos
+      /^3+$/, // All threes
+      /^4+$/, // All fours
+      /^5+$/, // All fives
+      /^6+$/, // All sixes
+      /^7+$/, // All sevens
+      /^8+$/, // All eights
+      /^9+$/, // All nines
+      /^(0123456789|9876543210)/, // Sequential
+    ];
+
+    return !invalidPatterns.some((pattern) => pattern.test(phone));
+  };
 
   useEffect(() => {
     if (formData.firstName && !isNameValid(formData.firstName)) {
@@ -357,14 +413,14 @@ export function SignupForm({
       }
     });
 
-    // Name validation
-    const nameRegex = /^[a-zA-Z\s]+$/;
-    if (formData.firstName && !nameRegex.test(formData.firstName)) {
+    // Enhanced name validation
+    if (formData.firstName && !isNameValid(formData.firstName)) {
       newErrors.firstName =
-        "First name should only contain alphabets and spaces";
+        "Please enter a valid first name (at least 2 different characters, letters only)";
     }
-    if (formData.lastName && !nameRegex.test(formData.lastName)) {
-      newErrors.lastName = "Last name should only contain alphabets and spaces";
+    if (formData.lastName && !isNameValid(formData.lastName)) {
+      newErrors.lastName =
+        "Please enter a valid last name (at least 2 different characters, letters only)";
     }
 
     // Additional validations if fields are not empty
@@ -373,9 +429,10 @@ export function SignupForm({
       newErrors.email = "Please enter a valid email address";
     }
 
-    const phoneRegex = /^\d{6,15}$/;
-    if (formData.phone && !phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number (6-15 digits)";
+    // Enhanced phone validation
+    if (formData.phone && !isPhoneValid(formData.phone)) {
+      newErrors.phone =
+        "Please enter a valid phone number (no repeated digits or obvious fake numbers)";
     }
 
     if (formData.password) {
@@ -482,17 +539,32 @@ export function SignupForm({
             <Label className="font-futura font-normal">
               Password<span className="text-destructive text-red-500">*</span>
             </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Create your Password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className="bg-[#fcfcfc] border font-futura font-normal border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
-              tabIndex={3}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create your Password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="bg-[#fcfcfc] border font-futura font-normal border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] pr-10"
+                tabIndex={3}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+              </Button>
+            </div>
             {errors.password && (
               <p className="text-sm text-red-500 mt-1">{errors.password}</p>
             )}
@@ -573,7 +645,12 @@ export function SignupForm({
               />
               <Button
                 onClick={onVerifyEmail}
-                disabled={!formData.email || generateOTPLoading || otpVerified}
+                disabled={
+                  !formData.email ||
+                  !errors.email ||
+                  generateOTPLoading ||
+                  otpVerified
+                }
                 variant={otpVerified ? "outline" : "default"}
                 className={`absolute  right-0 top-0 h-6  w-20 mt-[6px] mr-2 text-[12px] ${
                   otpVerified
@@ -683,22 +760,39 @@ export function SignupForm({
                 Confirm Password
                 <span className="text-destructive text-red-500">*</span>
               </Label>
-              <Input
-                type="password"
-                placeholder="Re-enter your Password"
-                required
-                value={formData.confirmPassword}
-                onChange={(e) => {
-                  setFormData({ ...formData, confirmPassword: e.target.value });
-                  checkPasswordMatch(e.target.value);
-                  setErrors({ ...errors, confirmPassword: undefined });
-                }}
-                className={`bg-[#fcfcfc] border ${
-                  showPasswordError ? "border-red-500" : "border-[#e5e5e5]"
-                } rounded-[6px] placeholder:text-[#bababb]`}
-                tabIndex={4}
-              />
-
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Re-enter your Password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    });
+                    checkPasswordMatch(e.target.value);
+                    setErrors({ ...errors, confirmPassword: undefined });
+                  }}
+                  className={`bg-[#fcfcfc] border ${
+                    showPasswordError ? "border-red-500" : "border-[#e5e5e5]"
+                  } rounded-[6px] placeholder:text-[#bababb] pr-10`}
+                  tabIndex={4}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
+              </div>
               {showPasswordError && (
                 <div className="absolute -bottom-6 left-0 text-xs text-red-500 bg-white px-2 py-1 rounded shadow-sm border border-red-100">
                   Passwords do not match
