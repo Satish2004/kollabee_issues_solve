@@ -1,18 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
-import Image from "next/image";
-import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { OTPModal } from "../seller/onboarding/otp-modal";
 import { SignupForm } from "../seller/onboarding/signup-form";
 import { AboutYouForm } from "./onboarding/AboutYouForm";
 import { LookingForForm } from "./onboarding/looking-for-form";
 import { SuccessMessage } from "./onboarding/success-message";
-import { OTPModal } from "../seller/onboarding/otp-modal";
-import { ErrorBoundary } from "react-error-boundary";
+import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { Card } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "sonner";
+
 // import { ProgressStepper } from "./onboarding/ProgressStepper";
 
 export default function SignupBuyerPage() {

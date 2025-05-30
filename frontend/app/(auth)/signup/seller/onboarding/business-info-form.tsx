@@ -125,15 +125,25 @@ export function BusinessInfoForm({
   };
 
   const validateForm = () => {
+    const nameRegex = /^[a-zA-Z0-9][a-zA-Z0-9\s]*$/; // At least one alphanumeric character, no leading spaces
+    const websiteRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-]*)*$/; // Valid URL format
+
     const newErrors = {
       businessName:
-        formData.businessName.trim() === "" ? "Business Name is required" : "",
+        formData.businessName.trim().length < 3 ||
+        !nameRegex.test(formData.businessName)
+          ? "Business Name must be at least 3 characters long and cannot contain only numbers or special characters"
+          : "",
       businessDescription:
-        formData.businessDescription.trim() === ""
-          ? "Business Description is required"
+        formData.businessDescription.trim().length < 10 ||
+        !nameRegex.test(formData.businessDescription)
+          ? "Business Description must be at least 10 characters long and cannot contain only numbers or special characters"
           : "",
       websiteLink:
-        formData.websiteLink.trim() === "" ? "Website Link is required" : "",
+        formData.websiteLink.trim() === "" ||
+        !websiteRegex.test(formData.websiteLink)
+          ? "Please enter a valid Website/Instagram link"
+          : "",
       businessAddress:
         formData.businessAddress.trim() === ""
           ? "Business Address is required"
@@ -147,6 +157,7 @@ export function BusinessInfoForm({
           ? "Select at least one Business Category"
           : "",
     };
+
     setErrors(newErrors);
     return Object.values(newErrors).every((error) => error === "");
   };

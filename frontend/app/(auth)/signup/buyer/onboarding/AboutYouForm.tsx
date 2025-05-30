@@ -42,25 +42,33 @@ export function AboutYouForm({
   const validateForm = () => {
     const newErrors = {
       businessName:
-        formData.businessName.trim() === "" ? "Business Name is required" : "",
+        formData.businessName.trim() === ""
+          ? "Business Name is required"
+          : formData.businessName.length < 3
+          ? "Business name should be at least 3 characters long"
+          : /^\d+$/.test(formData.businessName)
+          ? "Business name should not be only numbers"
+          : /^[^a-zA-Z0-9]+$/.test(formData.businessName)
+          ? "Business name should not be only special characters"
+          : "",
       businessDescription:
         formData.businessDescription.trim() === ""
           ? "Business Description is required"
+          : formData.businessDescription.length < 10
+          ? "Business description should be at least 10 characters long"
+          : formData.businessType === "Startup" &&
+            formData.businessDescription.length < 50
+          ? "Startups should provide a detailed description of at least 50 characters"
           : "",
       otherBusinessType:
         formData.businessType === "Other" && !formData.otherBusinessType
           ? "Specify your Business Type"
           : "",
-
       businessType:
-        formData.businessType.trim() === ""
-          ? "Select one one Business Type"
-          : "",
+        formData.businessType.trim() === "" ? "Select one Business Type" : "",
     };
 
     setErrors(newErrors);
-
-    console.log("Form Errors:", newErrors);
 
     return Object.values(newErrors).every((error) => error === "");
   };
