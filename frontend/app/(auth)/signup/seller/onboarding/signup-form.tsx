@@ -45,8 +45,6 @@ const companyRoles = [
   "Manager",
   "Team Member",
   "Intern",
-  "Sales Manager",
-  "Export Manager",
   "Other",
 ];
 
