@@ -251,7 +251,10 @@ export function BusinessInfoForm({
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center gap-1">
-                Business Website/Instagram
+                <span>
+                  Business Website/Instagram
+                  <Star />
+                </span>
               </label>
               <p className="text-sm font-futura italic">
                 Enter the complete URL of your business website (e.g.,
@@ -316,8 +319,10 @@ export function BusinessInfoForm({
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center gap-1">
-                Business Address{" "}
-              
+                <span>
+                  Business Address
+                  <Star />
+                </span>
               </label>
               <p className="text-sm font-futura italic">
                 Provide the full physical address of your business location,
