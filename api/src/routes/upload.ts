@@ -8,7 +8,7 @@ import {
   uploadAnyFile,
 } from "../controllers/upload.controller";
 import { authMiddleware } from "../middleware/auth";
-import { upload } from "../utils/multer";
+import { upload, videoUpload } from "../utils/multer";
 
 const router = express.Router();
 
@@ -38,7 +38,7 @@ router.post(
 router.post(
   "/any-file",
   authMiddleware,
-  upload.single("file"), // 'file' is the field name in form data
+  videoUpload.single("file"), // 'file' is the field name in form data
   uploadAnyFile
 );
 

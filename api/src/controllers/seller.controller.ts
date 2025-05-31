@@ -2085,7 +2085,6 @@ export const updateComplianceCredentials = async (req: any, res: Response) => {
     const hasRequiredData =
       businessRegistration || seller.bussinessRegistration;
 
-
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasRequiredData
       ? [...new Set([...currentCompletion, 5])]
@@ -2166,35 +2165,20 @@ export const getBrandPresence = async (req: any, res: Response) => {
 export const updateBrandPresence = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { socialMediaLinks, additionalNotes } = req.body;
+    const { socialMediaLinks, additionalNotes, projectImages, brandVideo } =
+      req.body;
 
     // Handle file uploads
     const uploads: Record<string, any> = {};
 
-    if (req.files) {
-      // Project images
-      if (req.files.projectImages) {
-        const imageUploadPromises = req.files.projectImages.map((file: any) =>
-          uploadToCloudinary(file.buffer, "project-images")
-        );
-        const imageResults = await Promise.all(imageUploadPromises);
-        uploads.projectImages = imageResults.map(
-          (result: any) => result.secure_url
-        );
-      }
-
-      // Brand video
-      if (req.files.brandVideo) {
-        const videoResult = (await uploadToCloudinary(
-          req.files.brandVideo[0].buffer,
-          "brand-videos",
-          {
-            resource_type: "video",
-          }
-        )) as any;
-        uploads.brandVideo = videoResult.secure_url;
-      }
-    }
+    // {
+    //   {
+    //     "projectImages": ["https://res.cloudinary.com/dtggaphek/image/upload/v1748689128/product-images/q6yg9nzs5mjugocrvmc1.jpg"],
+    //       "brandVideo": null,
+    //         "socialMediaLinks": "{\"instagram\":\"\",\"linkedin\":\"\",\"website\":\"\"}",
+    //       "additionalNotes": null
+    //   }
+    // }
 
     const seller = await prisma.seller.findUnique({
       where: { userId },
@@ -2211,7 +2195,7 @@ export const updateBrandPresence = async (req: any, res: Response) => {
 
     // Check if we have valid data to mark this step as complete
     const existingImages = seller.projectImages || [];
-    const newImages = uploads.projectImages || [];
+    const newImages = projectImages || [];
     const hasRequiredData = existingImages.length + newImages.length >= 2;
 
     const currentCompletion = seller.profileCompletion || [];
@@ -2219,19 +2203,20 @@ export const updateBrandPresence = async (req: any, res: Response) => {
       ? [...new Set([...currentCompletion, 6])]
       : currentCompletion.filter((step) => step !== 6);
 
-    // Merge existing project images with new ones
-    const updatedProjectImages = uploads.projectImages
-      ? [...existingImages, ...uploads.projectImages]
-      : existingImages;
-
     const updatedSeller = await prisma.seller.update({
       where: { userId },
       data: {
-        projectImages: updatedProjectImages,
-        ...(uploads.brandVideo && { brandVideo: uploads.brandVideo }),
+        projectImages: projectImages,
+        brandVideo: brandVideo,
         socialMediaLinks,
         additionalNotes,
         profileCompletion: newCompletion,
+      },
+      select: {
+        projectImages: true,
+        brandVideo: true,
+        socialMediaLinks: true,
+        additionalNotes: true,
       },
     });
 

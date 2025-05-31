@@ -72,6 +72,7 @@ export const useFileManagement = () => {
           return null;
         }
       } else if (field === "brandVideo") {
+        console.log("Validating video type:", file.type);
         isValidType = validVideoTypes.includes(file.type);
         if (!isValidType) {
           toast.error("Please upload a valid video file (MP4, MOV, AVI)");
@@ -112,7 +113,7 @@ export const useFileManagement = () => {
         response = await uploadApi.uploadPDF(file);
       } else if (field === "brandVideo") {
         // For video uploads, we'll use the PDF upload endpoint as a placeholder
-        response = await uploadApi.uploadPDF(file);
+        response = await uploadApi.uploadAnyFile(file);
       }
 
       console.log("Upload response:", response);
