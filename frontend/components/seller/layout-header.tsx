@@ -99,11 +99,7 @@ export default function SellerLayoutHeader() {
       icon: MessageSquare,
       href: "/seller/messages",
     },
-    {
-      label: "Orders",
-      icon: ShoppingCart,
-      href: "/seller/orders",
-    },
+    
     {
       label: "Requests",
       icon: Store,
@@ -249,20 +245,7 @@ export default function SellerLayoutHeader() {
                   <span className="text-xs font-medium">Notifications</span>
                 </Link>
 
-                <Link
-                  href="/seller/orders"
-                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-10 rounded-full border-neutral-300"
-                  >
-                    <ShoppingCart className="size-5 cursor-pointer" />
-                  </Button>
-                  <span className="text-xs font-medium">Orders</span>
-                </Link>
+              
 
                 <Link
                   href="/seller/chat"
@@ -311,7 +294,7 @@ export default function SellerLayoutHeader() {
             <Plus className="size-5 cursor-pointer" />
           </Button>
         </Link> */}
-        <Link href="/seller/orders">
+        {/* <Link href="/seller/orders">
           <Button
             variant="outline"
             size="icon"
@@ -319,7 +302,7 @@ export default function SellerLayoutHeader() {
           >
             <ShoppingCart className="size-5 cursor-pointer" />
           </Button>
-        </Link>
+        </Link> */}
         <Link href="/seller/notifications">
           <Button
             variant="outline"
