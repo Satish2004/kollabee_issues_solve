@@ -1,6 +1,10 @@
 "use client";
 
-import type { FormData, Country as CountryType } from "@/types/settings";
+import type {
+  FormData,
+  Country as CountryType,
+  ValidationErrors,
+} from "@/types/settings";
 import {
   countries,
   getCountryCode,
@@ -8,8 +12,8 @@ import {
 } from "@/lib/country";
 import Star from "@/app/(auth)/signup/seller/onboarding/Star";
 import { Country, State } from "country-state-city";
-import { User, Loader2 } from "lucide-react";
-import React, { useMemo } from "react";
+import { User, Loader2, AlertCircle } from "lucide-react";
+import React, { useMemo, useState, useEffect } from "react";
 import ReactCountryFlag from "react-country-flag";
 
 interface AccountSettingsProps {
@@ -54,6 +58,213 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
     setIsSelecting,
     isSelecting,
   }) => {
+    const [errors, setErrors] = useState<ValidationErrors>({});
+    const [touchedFields, setTouchedFields] = useState<Set<string>>(new Set());
+
+    // Validation functions
+    const validateName = (name: string, fieldName: string): string => {
+      if (!name.trim()) return `${fieldName} is required`;
+      if (name.trim().length < 3)
+        return `${fieldName} must be at least 3 characters`;
+      if (name.trim().length > 50)
+        return `${fieldName} cannot exceed 50 characters`;
+
+      // Check if name contains only letters and spaces
+      if (!/^[a-zA-Z\s]+$/.test(name.trim())) {
+        return `${fieldName} can only contain letters and spaces`;
+      }
+
+      // Check if name is only numbers
+      if (/^\d+$/.test(name.trim())) {
+        return `${fieldName} cannot be only numbers`;
+      }
+
+      // Check if name has repeated characters (like aaaaa, bbbb)
+      const cleanName = name.trim().toLowerCase().replace(/\s/g, "");
+      if (cleanName.length >= 3) {
+        const firstChar = cleanName[0];
+        if (cleanName.split("").every((char) => char === firstChar)) {
+          return `${fieldName} cannot have all same characters`;
+        }
+      }
+
+      return "";
+    };
+
+    const validatePhoneNumber = (phone: string): string => {
+      if (!phone.trim()) return "Phone number is required";
+
+      // Remove any spaces, hyphens, or other formatting
+      const cleanPhone = phone.replace(/[\s\-$$$$]/g, "");
+
+      // Check if it contains only digits
+      if (!/^\d+$/.test(cleanPhone)) {
+        return "Phone number can only contain digits";
+      }
+
+      // Check minimum length
+      if (cleanPhone.length < 10) {
+        return "Phone number must be at least 10 digits";
+      }
+
+      if (cleanPhone.length > 15) {
+        return "Phone number cannot exceed 15 digits";
+      }
+
+      // Check for invalid patterns
+      const invalidPatterns = [
+        /^0+$/, // All zeros
+        /^1+$/, // All ones
+        /^2+$/, // All twos
+        /^3+$/, // All threes
+        /^4+$/, // All fours
+        /^5+$/, // All fives
+        /^6+$/, // All sixes
+        /^7+$/, // All sevens
+        /^8+$/, // All eights
+        /^9+$/, // All nines
+        /^1234567890/, // Sequential ascending
+        /^0987654321/, // Sequential descending
+        /^(\d)\1{9,}/, // Same digit repeated 10+ times
+      ];
+
+      for (const pattern of invalidPatterns) {
+        if (pattern.test(cleanPhone)) {
+          return "Please enter a valid phone number";
+        }
+      }
+
+      // Check for sequential patterns
+      let isSequential = true;
+      for (let i = 1; i < cleanPhone.length; i++) {
+        if (
+          Number.parseInt(cleanPhone[i]) !==
+          Number.parseInt(cleanPhone[i - 1]) + 1
+        ) {
+          isSequential = false;
+          break;
+        }
+      }
+      if (isSequential && cleanPhone.length >= 10) {
+        return "Please enter a valid phone number";
+      }
+
+      // Check for reverse sequential patterns
+      let isReverseSequential = true;
+      for (let i = 1; i < cleanPhone.length; i++) {
+        if (
+          Number.parseInt(cleanPhone[i]) !==
+          Number.parseInt(cleanPhone[i - 1]) - 1
+        ) {
+          isReverseSequential = false;
+          break;
+        }
+      }
+      if (isReverseSequential && cleanPhone.length >= 10) {
+        return "Please enter a valid phone number";
+      }
+
+      return "";
+    };
+
+    const validateZipCode = (zipCode: string): string => {
+      if (!zipCode.trim()) return "Zip code is required";
+
+      // Check if it contains only digits
+      if (!/^\d+$/.test(zipCode.trim())) {
+        return "Zip code can only contain numbers";
+      }
+
+      // Check length (max 6 digits)
+      if (zipCode.trim().length > 6) {
+        return "Zip code cannot exceed 6 digits";
+      }
+
+      if (zipCode.trim().length < 3) {
+        return "Zip code must be at least 3 digits";
+      }
+
+      return "";
+    };
+
+    // Real-time validation
+    const validateField = (name: string, value: string): string => {
+      switch (name) {
+        case "firstName":
+          return validateName(value, "First name");
+        case "lastName":
+          return validateName(value, "Last name");
+        case "phoneNumber":
+          return validatePhoneNumber(value);
+        case "zipCode":
+          return validateZipCode(value);
+        default:
+          return "";
+      }
+    };
+
+    // Validate all fields
+    const validateAllFields = (): ValidationErrors => {
+      const newErrors: ValidationErrors = {};
+
+      newErrors.firstName = validateName(
+        formData.firstName || "",
+        "First name"
+      );
+      newErrors.lastName = validateName(formData.lastName || "", "Last name");
+      newErrors.phoneNumber = validatePhoneNumber(formData.phoneNumber || "");
+      newErrors.zipCode = validateZipCode(formData.zipCode || "");
+
+      // Remove empty errors
+      Object.keys(newErrors).forEach((key) => {
+        if (!newErrors[key]) delete newErrors[key];
+      });
+
+      return newErrors;
+    };
+
+    // Handle input change with validation
+    const handleInputChangeWithValidation = (
+      e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+      const { name, value } = e.target;
+
+      // For phone number, only allow digits
+      if (name === "phoneNumber") {
+        const digitsOnly = value.replace(/\D/g, "");
+        // Update formData directly for phone number
+        setFormData((prev) => ({
+          ...prev,
+          [name]: digitsOnly,
+        }));
+      } else if (name === "zipCode") {
+        // For zip code, only allow digits
+        const digitsOnly = value.replace(/\D/g, "");
+        // Update formData directly for zip code
+        setFormData((prev) => ({
+          ...prev,
+          [name]: digitsOnly,
+        }));
+      } else {
+        // Call the original handler for other fields
+        handleInputChange(e);
+      }
+
+      // Mark field as touched
+      setTouchedFields((prev) => new Set(prev).add(name));
+
+      // Validate the field with the processed value
+      const processedValue =
+        name === "phoneNumber" || name === "zipCode"
+          ? value.replace(/\D/g, "")
+          : value;
+      const error = validateField(name, processedValue);
+      setErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+    };
+
     const countryOptions = useMemo(() => {
       return [
         <option key="none" value="">
@@ -89,6 +300,29 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
     const hasChanges = useMemo(() => {
       return JSON.stringify(formData) !== JSON.stringify(originalFormData);
     }, [formData, originalFormData]);
+
+    // Check if form is valid
+    const isFormValid = useMemo(() => {
+      const currentErrors = validateAllFields();
+      return Object.keys(currentErrors).length === 0;
+    }, [formData]);
+
+    // Update errors when formData changes (for touched fields only)
+    useEffect(() => {
+      const newErrors: ValidationErrors = {};
+
+      touchedFields.forEach((fieldName) => {
+        const error = validateField(
+          fieldName,
+          formData[fieldName as keyof FormData] || ""
+        );
+        if (error) {
+          newErrors[fieldName] = error;
+        }
+      });
+
+      setErrors(newErrors);
+    }, [formData, touchedFields]);
 
     return (
       <div className="p-6">
@@ -155,10 +389,20 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                   type="text"
                   name="firstName"
                   value={formData.firstName}
-                  onChange={handleInputChange}
+                  onChange={handleInputChangeWithValidation}
                   placeholder="Enter your First Name"
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className={`w-full px-3 py-2 border rounded-lg ${
+                    errors.firstName
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-blue-500"
+                  }`}
                 />
+                {errors.firstName && touchedFields.has("firstName") && (
+                  <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.firstName}</span>
+                  </div>
+                )}
               </div>
 
               <div className="w-full">
@@ -170,10 +414,20 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                   type="text"
                   name="lastName"
                   value={formData.lastName}
-                  onChange={handleInputChange}
+                  onChange={handleInputChangeWithValidation}
                   placeholder="Enter your Last Name"
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className={`w-full px-3 py-2 border rounded-lg ${
+                    errors.lastName
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-blue-500"
+                  }`}
                 />
+                {errors.lastName && touchedFields.has("lastName") && (
+                  <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.lastName}</span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -320,11 +574,21 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                   type="tel"
                   name="phoneNumber"
                   value={formData.phoneNumber || ""}
-                  onChange={handleInputChange}
+                  onChange={handleInputChangeWithValidation}
                   placeholder="1234567890"
-                  className="w-full px-3 py-2 border rounded-r-lg"
+                  className={`w-full px-3 py-2 border rounded-r-lg ${
+                    errors.phoneNumber
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-blue-500"
+                  }`}
                 />
               </div>
+              {errors.phoneNumber && touchedFields.has("phoneNumber") && (
+                <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                  <AlertCircle className="h-4 w-4" />
+                  <span>{errors.phoneNumber}</span>
+                </div>
+              )}
             </div>
 
             <div>
@@ -366,20 +630,33 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                   type="text"
                   name="zipCode"
                   value={formData.zipCode || ""}
-                  onChange={handleInputChange}
+                  onChange={handleInputChangeWithValidation}
                   placeholder="Enter Zip Code"
-                  className="w-full px-3 py-2 border rounded-lg"
+                  maxLength={6}
+                  className={`w-full px-3 py-2 border rounded-lg ${
+                    errors.zipCode
+                      ? "border-red-500 focus:border-red-500"
+                      : "border-gray-300 focus:border-blue-500"
+                  }`}
                 />
+                {errors.zipCode && touchedFields.has("zipCode") && (
+                  <div className="flex items-center gap-1 text-red-500 text-sm mt-1">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.zipCode}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
         <div className="pt-4 flex justify-end">
           <button
-            disabled={loading || !hasChanges}
+            disabled={loading || !hasChanges || !isFormValid}
             onClick={updateProfileData}
             className={`bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] ${
-              loading || !hasChanges ? "opacity-50 cursor-not-allowed" : ""
+              loading || !hasChanges || !isFormValid
+                ? "opacity-50 cursor-not-allowed"
+                : ""
             }`}
           >
             {loading ? (
@@ -392,6 +669,21 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
             )}
           </button>
         </div>
+
+        {/* Form validation summary */}
+        {Object.keys(errors).length > 0 && (
+          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="flex items-center gap-2 text-red-700 text-sm font-medium mb-2">
+              <AlertCircle className="h-4 w-4" />
+              Please fix the following errors:
+            </div>
+            <ul className="text-red-600 text-sm space-y-1">
+              {Object.entries(errors).map(([field, error]) => (
+                <li key={field}>• {error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
     );
   }
