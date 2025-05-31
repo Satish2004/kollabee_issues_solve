@@ -38,6 +38,14 @@ export const upload = multer({
   },
 });
 
+export const videoUpload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
+  },
+});
+
 // Helper function to upload to Cloudinary
 export const uploadToCloudinary = async (
   fileBuffer: Buffer,

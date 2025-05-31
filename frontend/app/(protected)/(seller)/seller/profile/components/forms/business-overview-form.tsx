@@ -211,27 +211,19 @@ const BusinessOverviewForm = ({
       console.log("Deleting business logo:", formState.businessLogo);
 
       // Call the API to delete the logo
-      const success = await onFileUpload(
-        null,
-        "deleteLogo",
-        formState.businessLogo
-      );
 
-      if (success) {
-        // Update the UI after successful deletion
-        onChange({
-          ...formState,
-          logoPreview: null,
-          businessLogo: null,
-        });
+      // Update the UI after successful deletion
+      onChange({
+        ...formState,
+        logoPreview: null,
+        businessLogo: null,
+      });
+      setErrors({
+        ...errors,
+        logo: "",
+      });
 
-        toast.success("Logo deleted successfully");
-      } else {
-        setErrors({
-          ...errors,
-          logo: "Failed to delete logo. Please try again.",
-        });
-      }
+      toast.success("Logo deleted successfully");
     } catch (error) {
       console.error("Error deleting logo:", error);
       setErrors({
@@ -275,10 +267,11 @@ const BusinessOverviewForm = ({
         const imageUrl = await onFileUpload(file, "businessLogo");
 
         if (imageUrl) {
-          // Update the form state with the uploaded image URL
+          // Update the form state with the uploaded image URL and clear preview
           onChange({
             ...formState,
             businessLogo: imageUrl,
+            logoPreview: null,
           });
         }
       } catch (error) {
@@ -327,10 +320,14 @@ const BusinessOverviewForm = ({
                 accept="image/jpeg,image/png,image/gif,image/webp"
                 className="hidden"
               />
-              {formState.logoPreview ? (
+              {formState.logoPreview || formState.businessLogo ? (
                 <div className="relative w-24 h-24 border rounded-md overflow-hidden">
                   <img
-                    src={formState.logoPreview || "/placeholder.svg"}
+                    src={
+                      formState.businessLogo ||
+                      formState.logoPreview ||
+                      "/placeholder.svg"
+                    }
                     alt="Logo preview"
                     className="w-full h-full object-contain"
                   />

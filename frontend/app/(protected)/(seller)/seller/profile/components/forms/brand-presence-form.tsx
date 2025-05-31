@@ -1,13 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Upload,
   X,
-  Trash2,
   AlertCircle,
   Video,
   Globe,
@@ -55,6 +53,31 @@ const BrandPresenceForm = ({
       return { instagram: "", linkedin: "", website: "" };
     }
   });
+
+  // Add validation functions
+  const validateUrl = (url: string): boolean => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  const validateInstagramUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // Don't validate empty fields
+    return validateUrl(url) && url.toLowerCase().includes("instagram.com");
+  };
+
+  const validateLinkedInUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // Don't validate empty fields
+    return validateUrl(url) && url.toLowerCase().includes("linkedin.com");
+  };
+
+  const validateWebsiteUrl = (url: string): boolean => {
+    if (!url.trim()) return true; // Don't validate empty fields
+    return validateUrl(url);
+  };
 
   const handleProjectImageUpload = async (
     e: React.ChangeEvent<HTMLInputElement>
@@ -194,6 +217,7 @@ const BrandPresenceForm = ({
       try {
         // Upload the file and get the URL
         const videoUrl = await onFileUpload(file, "brandVideo");
+        // console.log("Video URL:", videoUrl);
 
         if (videoUrl) {
           // Update the form state with the uploaded video URL
@@ -258,10 +282,49 @@ const BrandPresenceForm = ({
   ) => {
     const updatedSocialMedia = { ...socialMedia, [platform]: value };
     setSocialMedia(updatedSocialMedia);
-    onChange({
-      ...formState,
-      socialMediaLinks: JSON.stringify(updatedSocialMedia),
-    });
+
+    // Clear previous errors for this field
+    const newErrors = { ...errors };
+    delete newErrors[platform];
+
+    let isValid = true;
+
+    // Validate the input only if there's a value
+    if (value.trim()) {
+      switch (platform) {
+        case "instagram":
+          if (!validateInstagramUrl(value)) {
+            newErrors.instagram =
+              "Please enter a valid Instagram URL (e.g., https://instagram.com/yourbrand)";
+            isValid = false;
+          }
+          break;
+        case "linkedin":
+          if (!validateLinkedInUrl(value)) {
+            newErrors.linkedin =
+              "Please enter a valid LinkedIn URL (e.g., https://linkedin.com/company/yourbrand)";
+            isValid = false;
+          }
+          break;
+        case "website":
+          if (!validateWebsiteUrl(value)) {
+            newErrors.website =
+              "Please enter a valid website URL (e.g., https://yourbrand.com)";
+            isValid = false;
+          }
+          break;
+      }
+    }
+
+    setErrors(newErrors);
+
+    // Only update parent form state if validation passes or field is empty
+    if (isValid || !value.trim()) {
+      onChange({
+        ...formState,
+        socialMediaLinks: JSON.stringify(updatedSocialMedia),
+      });
+    }
   };
 
   return (
@@ -292,18 +355,15 @@ const BrandPresenceForm = ({
                       alt={`Project ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          deleteExistingProjectImage(imageUrl, index)
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        deleteExistingProjectImage(imageUrl, index)
+                      }
+                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 transition-colors"
+                    >
+                      <X className="h-4 w-4 text-gray-600" />
+                    </button>
                   </div>
                 )
               )}
@@ -411,36 +471,45 @@ const BrandPresenceForm = ({
                 className="hidden"
               />
               {formState.videoPreview || formState.brandVideo ? (
-                <div className="relative w-40 h-24 border rounded-md overflow-hidden">
-                  {formState.videoPreview ? (
-                    <video
-                      src={formState.videoPreview}
-                      controls
-                      className="w-full h-full object-cover"
-                      onError={() => {
-                        console.error("Video preview error");
-                      }}
+                <div className="relative w-full max-w-md border rounded-md overflow-hidden">
+                  <video
+                    src={formState.brandVideo || formState.videoPreview}
+                    controls
+                    controlsList="nodownload"
+                    className="w-full h-48 object-contain bg-black"
+                    style={{ aspectRatio: "16/9" }}
+                    onError={() => {
+                      console.error("Video preview error");
+                    }}
+                    preload="metadata"
+                  >
+                    <source
+                      src={formState.brandVideo || formState.videoPreview}
+                      type="video/mp4"
                     />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                      <Video className="h-10 w-10 text-gray-400" />
-                      <span className="text-xs text-gray-500 ml-2">
-                        Video uploaded
-                      </span>
-                    </div>
-                  )}
+                    <source
+                      src={formState.brandVideo || formState.videoPreview}
+                      type="video/quicktime"
+                    />
+                    <source
+                      src={formState.brandVideo || formState.videoPreview}
+                      type="video/x-msvideo"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
                   <button
                     type="button"
                     onClick={removeVideoPreview}
-                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
+                    className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-1.5 shadow-md transition-colors"
                   >
-                    <X className="h-4 w-4 text-gray-600" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : (
                 <div
                   onClick={triggerVideoFileInput}
-                  className="w-40 h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
+                  className="w-full max-w-md h-48 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
+                  style={{ aspectRatio: "16/9" }}
                 >
                   {isUploading.video ? (
                     <div className="flex flex-col items-center">
@@ -505,40 +574,70 @@ const BrandPresenceForm = ({
             </div>
 
             <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <Instagram className="h-5 w-5 text-[#a11770]" />
-                <Input
-                  placeholder="https://instagram.com/yourbrand"
-                  value={socialMedia.instagram}
-                  onChange={(e) =>
-                    handleSocialMediaChange("instagram", e.target.value)
-                  }
-                  className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                />
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Instagram className="h-5 w-5 text-[#a11770]" />
+                  <Input
+                    placeholder="https://instagram.com/yourbrand"
+                    value={socialMedia.instagram}
+                    onChange={(e) =>
+                      handleSocialMediaChange("instagram", e.target.value)
+                    }
+                    className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                      errors.instagram ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.instagram && (
+                  <div className="flex items-center gap-1 text-red-500 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.instagram}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Linkedin className="h-5 w-5 text-[#a11770]" />
-                <Input
-                  placeholder="https://linkedin.com/company/yourbrand"
-                  value={socialMedia.linkedin}
-                  onChange={(e) =>
-                    handleSocialMediaChange("linkedin", e.target.value)
-                  }
-                  className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                />
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Linkedin className="h-5 w-5 text-[#a11770]" />
+                  <Input
+                    placeholder="https://linkedin.com/company/yourbrand"
+                    value={socialMedia.linkedin}
+                    onChange={(e) =>
+                      handleSocialMediaChange("linkedin", e.target.value)
+                    }
+                    className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                      errors.linkedin ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.linkedin && (
+                  <div className="flex items-center gap-1 text-red-500 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.linkedin}</span>
+                  </div>
+                )}
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Globe className="h-5 w-5 text-[#a11770]" />
-                <Input
-                  placeholder="https://yourbrand.com"
-                  value={socialMedia.website}
-                  onChange={(e) =>
-                    handleSocialMediaChange("website", e.target.value)
-                  }
-                  className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-                />
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Globe className="h-5 w-5 text-[#a11770]" />
+                  <Input
+                    placeholder="https://yourbrand.com"
+                    value={socialMedia.website}
+                    onChange={(e) =>
+                      handleSocialMediaChange("website", e.target.value)
+                    }
+                    className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                      errors.website ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.website && (
+                  <div className="flex items-center gap-1 text-red-500 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.website}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

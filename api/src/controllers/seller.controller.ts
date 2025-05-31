@@ -2014,7 +2014,7 @@ export const getComplianceCredentials = async (req: any, res: Response) => {
       where: { userId },
       select: {
         businessRegistration: true,
-        certifications: true,
+        certificates: true,
         certificationTypes: true,
         notableClients: true,
         clientLogos: true,
@@ -2025,7 +2025,15 @@ export const getComplianceCredentials = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Seller not found" });
     }
 
-    res.json(seller);
+    const data = {
+      businessRegistration: seller.businessRegistration,
+      certifications: seller.certificates || [],
+      certificationTypes: seller.certificationTypes || [],
+      notableClients: seller.notableClients || "",
+      clientLogos: seller.clientLogos || [],
+    };
+
+    res.json(data);
   } catch (error) {
     console.error("Get compliance & credentials error:", error);
     res.status(500).json({ error: "Failed to get compliance & credentials" });
@@ -2035,43 +2043,18 @@ export const getComplianceCredentials = async (req: any, res: Response) => {
 export const updateComplianceCredentials = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { certificationTypes, notableClients } = req.body;
+    const {
+      businessRegistration,
+      certifications,
+      clientLogos,
+      otherCertSelected,
+      certificationTypes,
+      notableClients,
+      otherCertifications,
+    } = req.body;
 
     // Handle file uploads
     const uploads: Record<string, string> = {};
-
-    if (req.files) {
-      // Business registration document
-      if (req.files.businessRegistration) {
-        const result = (await uploadToCloudinary(
-          req.files.businessRegistration[0].buffer,
-          "business-registrations"
-        )) as any;
-        uploads.businessRegistration = result.secure_url;
-      }
-
-      // Certification documents
-      if (req.files.certifications) {
-        const certUploadPromises = req.files.certifications.map((file: any) =>
-          uploadToCloudinary(file.buffer, "certifications")
-        );
-        const certResults = await Promise.all(certUploadPromises);
-        uploads.certifications = certResults
-          .map((result: any) => result.secure_url)
-          .join(","); // Convert the array to a single string
-      }
-
-      // Client logos
-      if (req.files.clientLogos) {
-        const logoUploadPromises = req.files.clientLogos.map((file: any) =>
-          uploadToCloudinary(file.buffer, "client-logos")
-        );
-        const logoResults = await Promise.all(logoUploadPromises);
-        uploads.clientLogos = logoResults
-          .map((result: any) => result.secure_url)
-          .join(","); // Convert the array to a single string
-      }
-    }
 
     const seller = await prisma.seller.findUnique({
       where: { userId },
@@ -2084,13 +2067,23 @@ export const updateComplianceCredentials = async (req: any, res: Response) => {
       },
     });
 
+    // {
+    //   "businessRegistration": null,
+    //     "certifications": [],
+    //     "certificationTypes": [],
+    //     "notableClients": "sdfs",
+    //     "clientLogos": [],
+    //     "otherCertSelected": false,
+    //       "otherCertifications": ""
+    // }
+
     if (!seller) {
       return res.status(404).json({ error: "Seller not found" });
     }
 
     // Check if we have valid data to mark this step as complete
     const hasRequiredData =
-      uploads.businessRegistration || seller.bussinessRegistration;
+      businessRegistration || seller.bussinessRegistration;
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasRequiredData
@@ -2098,31 +2091,40 @@ export const updateComplianceCredentials = async (req: any, res: Response) => {
       : currentCompletion.filter((step) => step !== 5);
 
     // Merge existing certifications and logos with new ones if any
-    const updatedCertifications = uploads.certifications
-      ? [...(seller.certifications || []), ...uploads.certifications]
+    const updatedCertifications = certifications
+      ? [...(seller.certifications || []), ...certifications]
       : seller.certifications;
 
-    const updatedClientLogos = uploads.clientLogos
-      ? [...(seller.clientLogos || []), ...uploads.clientLogos]
+    const updatedClientLogos = clientLogos
+      ? [...(seller.clientLogos || []), ...clientLogos]
       : seller.clientLogos;
+    // now remove dublicate onces
+
+    const filteredUpdatedClientLogos = updatedClientLogos.filter(
+      (logo, index) => {
+        return updatedClientLogos.indexOf(logo) === index;
+      }
+    );
 
     const updatedSeller = await prisma.seller.update({
       where: { userId },
       data: {
-        ...(uploads.businessRegistration && {
-          businessRegistration: uploads.businessRegistration,
-        }),
-        certifications: {
-          connect: Array.isArray(updatedCertifications)
-            ? updatedCertifications.map((cert) =>
-                typeof cert === "string" ? { id: cert } : cert
-              )
-            : [],
-        },
+        businessRegistration: businessRegistration,
+
+        certificates: updatedCertifications.filter(
+          (cert) => typeof cert === "string"
+        ),
         certificationTypes,
         notableClients,
-        clientLogos: updatedClientLogos,
+        clientLogos: clientLogos,
         profileCompletion: newCompletion,
+      },
+      select: {
+        businessRegistration: true,
+        certificates: true,
+        certificationTypes: true,
+        notableClients: true,
+        clientLogos: true,
       },
     });
 
@@ -2163,35 +2165,20 @@ export const getBrandPresence = async (req: any, res: Response) => {
 export const updateBrandPresence = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { socialMediaLinks, additionalNotes } = req.body;
+    const { socialMediaLinks, additionalNotes, projectImages, brandVideo } =
+      req.body;
 
     // Handle file uploads
     const uploads: Record<string, any> = {};
 
-    if (req.files) {
-      // Project images
-      if (req.files.projectImages) {
-        const imageUploadPromises = req.files.projectImages.map((file: any) =>
-          uploadToCloudinary(file.buffer, "project-images")
-        );
-        const imageResults = await Promise.all(imageUploadPromises);
-        uploads.projectImages = imageResults.map(
-          (result: any) => result.secure_url
-        );
-      }
-
-      // Brand video
-      if (req.files.brandVideo) {
-        const videoResult = (await uploadToCloudinary(
-          req.files.brandVideo[0].buffer,
-          "brand-videos",
-          {
-            resource_type: "video",
-          }
-        )) as any;
-        uploads.brandVideo = videoResult.secure_url;
-      }
-    }
+    // {
+    //   {
+    //     "projectImages": ["https://res.cloudinary.com/dtggaphek/image/upload/v1748689128/product-images/q6yg9nzs5mjugocrvmc1.jpg"],
+    //       "brandVideo": null,
+    //         "socialMediaLinks": "{\"instagram\":\"\",\"linkedin\":\"\",\"website\":\"\"}",
+    //       "additionalNotes": null
+    //   }
+    // }
 
     const seller = await prisma.seller.findUnique({
       where: { userId },
@@ -2208,7 +2195,7 @@ export const updateBrandPresence = async (req: any, res: Response) => {
 
     // Check if we have valid data to mark this step as complete
     const existingImages = seller.projectImages || [];
-    const newImages = uploads.projectImages || [];
+    const newImages = projectImages || [];
     const hasRequiredData = existingImages.length + newImages.length >= 2;
 
     const currentCompletion = seller.profileCompletion || [];
@@ -2216,19 +2203,20 @@ export const updateBrandPresence = async (req: any, res: Response) => {
       ? [...new Set([...currentCompletion, 6])]
       : currentCompletion.filter((step) => step !== 6);
 
-    // Merge existing project images with new ones
-    const updatedProjectImages = uploads.projectImages
-      ? [...existingImages, ...uploads.projectImages]
-      : existingImages;
-
     const updatedSeller = await prisma.seller.update({
       where: { userId },
       data: {
-        projectImages: updatedProjectImages,
-        ...(uploads.brandVideo && { brandVideo: uploads.brandVideo }),
+        projectImages: projectImages,
+        brandVideo: brandVideo,
         socialMediaLinks,
         additionalNotes,
         profileCompletion: newCompletion,
+      },
+      select: {
+        projectImages: true,
+        brandVideo: true,
+        socialMediaLinks: true,
+        additionalNotes: true,
       },
     });
 
