@@ -382,6 +382,7 @@ model Seller {
   certificationTypes String[]
   notableClients     String?
   clientLogos        String[]
+  certificates       String[]
   
   // Brand Presence (Step 7)
   projectImages      String[]

@@ -1,8 +1,8 @@
 "use client";
 
+import { uploadApi } from "@/lib/api/upload";
 import { useState } from "react";
 import { toast } from "sonner";
-import { uploadApi } from "@/lib/api/upload";
 
 export const useFileManagement = () => {
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>(
@@ -115,6 +115,8 @@ export const useFileManagement = () => {
         response = await uploadApi.uploadPDF(file);
       }
 
+      console.log("Upload response:", response);
+
       clearInterval(progressInterval);
       setUploadProgress((prev) => ({ ...prev, [field]: 100 }));
 
@@ -133,11 +135,7 @@ export const useFileManagement = () => {
       }, 1000);
 
       // Return the URL from the response
-      return (
-        response?.data?.url ||
-        response?.data?.imageUrl ||
-        response?.data?.fileUrl
-      );
+      return response?.url || response?.imageUrl || response?.fileUrl;
     } catch (error) {
       console.error(`Error uploading ${field}:`, error);
       toast.error(

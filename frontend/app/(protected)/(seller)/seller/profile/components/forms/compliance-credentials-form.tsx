@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import MultiSelectDropdown from "@/components/ui/multi-select-dropdown";
 import { Progress } from "@/components/ui/progress";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, X, Trash2, AlertCircle, FileText, File } from "lucide-react";
+import { Upload, X, AlertCircle, FileText, File } from "lucide-react";
 import type React from "react";
 import { useState, useRef } from "react";
 
@@ -131,6 +131,7 @@ const ComplianceCredentialsForm = ({
       try {
         // Upload the file and get the URL
         const fileUrl = await onFileUpload(file, "businessRegistration");
+        console.log("File URL:", fileUrl);
 
         if (fileUrl) {
           // Update the form state with the uploaded file URL
@@ -362,6 +363,8 @@ const ComplianceCredentialsForm = ({
   };
 
   const removeBusinessRegPreview = () => {
+    onDeleteFile(formState.businessRegistration, "businessRegistration");
+
     onChange({
       ...formState,
       businessRegPreview: null,
@@ -452,6 +455,25 @@ const ComplianceCredentialsForm = ({
                 accept=".pdf,.doc,.docx,image/jpeg,image/png,image/gif,image/webp"
                 className="hidden w-full"
               />
+              {formState.businessRegistration && (
+                <div
+                  key={``}
+                  className="relative h-24 border rounded-md overflow-hidden"
+                >
+                  <img
+                    src={formState.businessRegistration || "/placeholder.svg"}
+                    className="w-full h-full object-contain p-2"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeBusinessRegPreview()}
+                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
+                  >
+                    <X className="h-4 w-4 text-gray-600" />
+                  </button>
+                </div>
+              )}
+
               {formState.businessRegPreview ? (
                 <div className="relative w-24 h-24 border rounded-md overflow-hidden flex items-center justify-center">
                   {formState.businessRegPreview.startsWith("data:image") ? (
@@ -559,44 +581,33 @@ const ComplianceCredentialsForm = ({
             </div>
             <div className="grid grid-cols-3 gap-3">
               {/* Existing certifications */}
-              {formState.certifications?.map(
-                (
-                  fileUrl: {
-                    id: string;
-                    image: string;
-                  },
-                  index: number
-                ) => (
-                  <div
-                    key={`existing-cert-${index}`}
-                    className="relative h-24 border rounded-md overflow-hidden group"
-                  >
-                    <div className="w-full h-full flex items-center justify-center">
-                      {fileUrl ? (
-                        <img
-                          src={fileUrl.image || "/placeholder.svg"}
-                          alt={`Certification ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <FileText className="h-12 w-12 text-red-500" />
-                      )}
-                    </div>
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          deleteExistingCertification(fileUrl, index)
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+              {formState.certifications?.map((image: string, index: number) => (
+                <div
+                  key={`existing-cert-${index}`}
+                  className="relative h-24 border rounded-md overflow-hidden group"
+                >
+                  <div className="w-full h-full flex items-center justify-center">
+                    {image ? (
+                      <img
+                        src={image || "/placeholder.svg"}
+                        alt={`Certification ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <FileText className="h-12 w-12 text-red-500" />
+                    )}
                   </div>
-                )
-              )}
+                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button
+                      type="button"
+                      onClick={() => deleteExistingCertification(image, index)}
+                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
+                    >
+                      <X className="h-4 w-4 text-gray-600" />
+                    </button>
+                  </div>
+                </div>
+              ))}
 
               {/* New certification previews */}
               {formState.certificationPreviews?.map(
@@ -747,10 +758,10 @@ const ComplianceCredentialsForm = ({
                     <Button
                       variant="destructive"
                       size="icon"
-                      className="h-8 w-8"
+                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
                       onClick={() => deleteExistingClientLogo(imageUrl, index)}
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>

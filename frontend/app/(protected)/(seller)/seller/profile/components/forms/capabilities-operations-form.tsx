@@ -297,7 +297,6 @@ const CapabilitiesOperationsForm = ({
               <label className="text-sm font-medium flex items-center  ">
                 Minimum Order Quantity (MOQ)
                 <span className="text-red-500 ml-0.5">*</span>
-               
               </label>
               <p className="text-sm font-futura italic">
                 Enter the minimum quantity a buyer must order
@@ -322,7 +321,6 @@ const CapabilitiesOperationsForm = ({
               <div className="space-y-1">
                 <label className="text-sm font-medium flex items-center gap-1">
                   MOQ Flexibility
-                  
                 </label>
                 <p className="text-sm font-futura italic">
                   Indicate if you're willing to work with lower order quantities
@@ -410,7 +408,7 @@ const CapabilitiesOperationsForm = ({
                 <Input
                   placeholder="e.g., 3–5 business days"
                   value={formState.sampleDispatchTime}
-                  type="date"
+                  type="text"
                   onChange={(e) => {
                     onChange({
                       ...formState,
@@ -427,7 +425,7 @@ const CapabilitiesOperationsForm = ({
               <Input
                 placeholder="e.g., 2–4 weeks"
                 value={formState.productionTimeline}
-                type="date"
+                type="text"
                 onChange={(e) => {
                   onChange({
                     ...formState,
