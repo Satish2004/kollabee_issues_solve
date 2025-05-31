@@ -385,8 +385,8 @@ export const login = async (req: Request, res: Response) => {
     const validatedData = loginSchema.parse(req.body);
 
     // Find user
-    const user = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+    const user = await prisma.user.findFirst({
+      where: { email: { contains: validatedData.email, mode: "insensitive" } },
       include: {
         seller: true,
         buyer: true,
@@ -442,8 +442,8 @@ export const login = async (req: Request, res: Response) => {
         ...(user.role === "SELLER"
           ? { sellerId: user.seller?.id }
           : user.role === "ADMIN"
-          ? { adminId: user.id }
-          : { buyerId: user.buyer?.id }),
+            ? { adminId: user.id }
+            : { buyerId: user.buyer?.id }),
       },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
@@ -830,8 +830,8 @@ export const googleCallback = async (req: Request, res: Response) => {
             ...(user.role === "SELLER"
               ? { sellerId: user.seller?.id }
               : user.role === "ADMIN"
-              ? { adminId: user.admin?.id }
-              : { buyerId: user.buyer?.id }),
+                ? { adminId: user.admin?.id }
+                : { buyerId: user.buyer?.id }),
           },
           process.env.JWT_SECRET!,
           { expiresIn: "7d" }
@@ -873,8 +873,8 @@ export const googleCallback = async (req: Request, res: Response) => {
         ...(user.role === "SELLER"
           ? { sellerId: user.seller?.id }
           : user.role === "ADMIN"
-          ? { adminId: user.admin?.id }
-          : { buyerId: user.buyer?.id }),
+            ? { adminId: user.admin?.id }
+            : { buyerId: user.buyer?.id }),
       },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
