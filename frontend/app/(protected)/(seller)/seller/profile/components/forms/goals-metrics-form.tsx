@@ -1,5 +1,6 @@
 "use client";
 
+import Star from "@/app/(auth)/signup/seller/onboarding/Star";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -78,7 +79,8 @@ const GoalsMetricsForm = ({
       <div className="space-y-8">
         <div className="">
           <h3 className="font-bold">
-            1. What are your main goals on KollaBee? (Choose up to 3)
+            1. What are your main goals on KollaBee?
+            <Star /> (Choose up to 3)
           </h3>
           <p className="text-sm font-futura italic">
             Select up to 3 goals that best reflect what you're hoping to achieve
@@ -109,8 +111,8 @@ const GoalsMetricsForm = ({
 
         <div className="">
           <h3 className="font-bold">
-            2. What challenges are you looking to overcome? (Select all that
-            apply) <span className="text-red-500">*</span>
+            2. What challenges are you looking to overcome?
+            <Star /> (Select all that apply)
           </h3>
           <p className="text-sm font-futura italic">
             Select the most relevant challenges you face in your current
@@ -137,8 +139,8 @@ const GoalsMetricsForm = ({
 
         <div className="">
           <h3 className="font-bold">
-            3. What success metrics matter most to you? (Select your top 3){" "}
-            <span className="text-red-500">*</span>
+            3. What success metrics matter most to you?
+            <Star /> (Select your top 3){" "}
           </h3>
           <p className="text-sm text-muted-foreground font-futura italic">
             Select the metrics you value the most to evaluate your success on
@@ -169,7 +171,7 @@ const GoalsMetricsForm = ({
 
         <div className="space-y-3">
           <h3 className="font-bold">
-            Agreement Statement: <span className="text-red-500">*</span>
+            Agreement Statement:<span className="text-red-500">*</span>
           </h3>
           <div className="flex items-start space-x-3">
             <Checkbox

@@ -189,8 +189,10 @@ export default function BusinessInfoForm({
 
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Description
-              <Star />
+              <span>
+                Business Description
+                <Star />
+              </span>
             </label>
             <p className="text-sm font-futura italic">
               Enter your business description to help customers understand what
@@ -266,8 +268,10 @@ export default function BusinessInfoForm({
         <div className="space-y-6">
           <div className="space-y-2">
             <label className="text-sm font-medium flex items-center gap-1">
-              Business Address
-              <Star />
+              <span>
+                Business Address
+                <Star />
+              </span>
             </label>
             <p className="text-sm font-futura italic">
               Provide the full physical address of your business location,
