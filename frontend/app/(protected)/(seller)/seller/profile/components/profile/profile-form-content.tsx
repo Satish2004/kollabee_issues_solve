@@ -1,7 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import BrandPresenceForm from "../forms/brand-presence-form";
+import BusinessInfoForm from "../forms/business-info-form";
+import BusinessOverviewForm from "../forms/business-overview-form";
+import CapabilitiesOperationsForm from "../forms/capabilities-operations-form";
+import ComplianceCredentialsForm from "../forms/compliance-credentials-form";
+import FinalReviewForm from "../forms/final-review-form";
+import GoalsMetricsForm from "../forms/goals-metrics-form";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,15 +17,7 @@ import {
   CheckCircle2,
   Circle,
 } from "lucide-react";
-import BusinessInfoForm from "../forms/business-info-form";
-import GoalsMetricsForm from "../forms/goals-metrics-form";
-import BusinessOverviewForm from "../forms/business-overview-form";
-import CapabilitiesOperationsForm from "../forms/capabilities-operations-form";
-import ComplianceCredentialsForm from "../forms/compliance-credentials-form";
-import BrandPresenceForm from "../forms/brand-presence-form";
-import FinalReviewForm from "../forms/final-review-form";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 type ProfileFormContentProps = {
   activeStep: number;
@@ -194,16 +194,7 @@ export const ProfileFormContent = ({
             pendingSteps={pendingStepNames}
           />
         );
-      case "certificates":
-        if (onAddCertificate && handleRemoveCertificate) {
-          return (
-            <div className="certificates-form">
-              {/* Placeholder for certificates form if needed */}
-              <p>Certificates form would go here</p>
-            </div>
-          );
-        }
-        return null;
+
       default:
         return null;
     }

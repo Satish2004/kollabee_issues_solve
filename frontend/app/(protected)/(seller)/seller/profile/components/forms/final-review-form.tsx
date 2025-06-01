@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import { useState } from "react";
 
 type FinalReviewFormProps = {
   profileData: any;
@@ -33,7 +33,8 @@ const FinalReviewForm = ({
       return;
     }
 
-    if (pendingSteps.length > 0) {
+    if (pendingSteps.length > 1) {
+      console.log("Pending steps:", pendingSteps);
       setError(
         `Please complete the following steps before submitting: ${pendingSteps.join(
           ", "
@@ -529,7 +530,8 @@ const FinalReviewForm = ({
               isSubmitting ||
               (pendingSteps &&
                 Array.isArray(pendingSteps) &&
-                pendingSteps.length > 0)
+                pendingSteps.length > 1) ||
+              !confirmSubmit
             }
             className="bg-[#a11770] text-white hover:bg-[#a11770]/70 flex items-center gap-2"
           >

@@ -73,6 +73,8 @@ const KollaBeeProfile = () => {
     loadProfileCompletion,
   });
 
+  console.log("steps to be completed : ", stepsToBeCompleted);
+
   // Certificate management
   const {
     certificateModalOpen,
@@ -111,13 +113,7 @@ const KollaBeeProfile = () => {
     loadProfileCompletion();
   }, [activeStep]);
 
-  useEffect(() => {
-    setApprovalStatus({
-      approvalRequested: profileData.seller?.approvalRequested,
-      approvalRequestedAt: profileData.seller?.approvalRequestedAt,
-      isApproved: profileData.seller?.approved,
-    });
-  }, [profileData]);
+
 
   // Get pending step names for display
   const getPendingStepNames = () => {
