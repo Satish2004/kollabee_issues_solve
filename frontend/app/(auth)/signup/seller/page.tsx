@@ -210,8 +210,8 @@ export default function SignupSellerPage() {
       // Token is automatically set by authApi.signup
       toast.success("Account created successfully!");
     } catch (error: any) {
-      console.error("Error creating account:", error);
-      toast.error("Failed to create account" + response?.error);
+      console.error(`Error creating account: ${error}`);
+      toast.error(`Failed to create account: ${error}`);
     } finally {
       setSubmitLoading(false);
     }

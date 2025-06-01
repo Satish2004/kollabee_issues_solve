@@ -239,6 +239,7 @@ export const signup = async (req: Request, res: Response) => {
           },
         });
       } else if (validatedData.role === "BUYER") {
+        console.log("is here : ", validatedData);
         // Create buyer profile with all the buyer-specific fields
         await tx.buyer.create({
           data: {

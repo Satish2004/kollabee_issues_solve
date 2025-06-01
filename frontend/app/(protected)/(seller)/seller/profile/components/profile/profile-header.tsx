@@ -146,15 +146,6 @@ export const ProfileHeader = ({
           </p>
         </div>
         {/* Optionally, add a button to jump to the first pending step */}
-        {stepsToBeCompleted.length > 0 && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setActiveStep(stepsToBeCompleted[0] - 1)}
-          >
-            Go to Next Step
-          </Button>
-        )}
       </div>
       {/* Progress Bar */}
       <div className="w-full bg-gray-200 h-1.5 mt-3 rounded-full overflow-hidden">
@@ -162,7 +153,8 @@ export const ProfileHeader = ({
           className="bg-yellow-500 h-full transition-all duration-500"
           style={{
             width: `${
-              ((steps.length - stepsToBeCompleted.length) / steps.length) * 100
+              ((steps?.length - stepsToBeCompleted?.length) / steps.length) *
+              100
             }%`,
           }}
         ></div>

@@ -88,14 +88,14 @@ export const useProfileApproval = ({
       } else {
         // This case might occur if sellerApi.getApproval() doesn't throw an error for non-200
         // but returns something falsy, or if the expected structure is missing.
-        console.error(
-          "Failed to fetch approval status: Invalid response structure"
-        );
+        // console.error(
+        //   "Failed to fetch approval status: Invalid response structure"
+        // );
         toast.error("Failed to fetch approval status: Invalid response");
       }
     } catch (error: any) {
       // Catch block to handle errors from sellerApi.getApproval()
-      console.error("Error fetching approval status:", error);
+      // console.error("Error fetching approval status:", error);
       // If the error object has a response from the server (e.g., from Axios)
       const errorMessage =
         error.response?.data?.message ||
