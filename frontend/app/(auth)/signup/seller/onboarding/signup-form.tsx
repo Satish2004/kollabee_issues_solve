@@ -334,26 +334,27 @@ export function SignupForm({
     return true;
   };
 
-  const isPhoneValid = (phone: string) => {
-    // Basic length and digit check
-    if (!/^\d{6,15}$/.test(phone)) return false;
+  const validatePhoneNumber = (phone: string): string => {
+    if (!phone.trim()) return "Phone number is required";
 
-    // Check for invalid patterns like all same digits
-    const uniqueDigits = new Set(phone).size;
-    if (uniqueDigits < 2) return false;
+    // Remove any spaces, hyphens, or other formatting
+    const cleanPhone = phone.replace(/[\s\-$$$$]/g, "");
 
-    // Check for sequential patterns (like 123456 or 987654)
-    let isSequential = true;
-    for (let i = 1; i < phone.length; i++) {
-      const diff = Number.parseInt(phone[i]) - Number.parseInt(phone[i - 1]);
-      if (Math.abs(diff) !== 1) {
-        isSequential = false;
-        break;
-      }
+    // Check if it contains only digits
+    if (!/^\d+$/.test(cleanPhone)) {
+      return "Phone number can only contain digits";
     }
-    if (isSequential && phone.length > 4) return false;
 
-    // Check for obvious fake numbers
+    // Check minimum length
+    if (cleanPhone.length < 10) {
+      return "Phone number must be at least 10 digits";
+    }
+
+    if (cleanPhone.length > 15) {
+      return "Phone number cannot exceed 15 digits";
+    }
+
+    // Check for invalid patterns
     const invalidPatterns = [
       /^0+$/, // All zeros
       /^1+$/, // All ones
@@ -365,10 +366,48 @@ export function SignupForm({
       /^7+$/, // All sevens
       /^8+$/, // All eights
       /^9+$/, // All nines
-      /^(0123456789|9876543210)/, // Sequential
+      /^1234567890/, // Sequential ascending
+      /^0987654321/, // Sequential descending
+      /^(\d)\1{9,}/, // Same digit repeated 10+ times
     ];
 
-    return !invalidPatterns.some((pattern) => pattern.test(phone));
+    for (const pattern of invalidPatterns) {
+      if (pattern.test(cleanPhone)) {
+        return "Please enter a valid phone number";
+      }
+    }
+
+    // Check for sequential patterns
+    let isSequential = true;
+    for (let i = 1; i < cleanPhone.length; i++) {
+      if (
+        Number.parseInt(cleanPhone[i]) !==
+        Number.parseInt(cleanPhone[i - 1]) + 1
+      ) {
+        isSequential = false;
+        break;
+      }
+    }
+    if (isSequential && cleanPhone.length >= 10) {
+      return "Please enter a valid phone number";
+    }
+
+    // Check for reverse sequential patterns
+    let isReverseSequential = true;
+    for (let i = 1; i < cleanPhone.length; i++) {
+      if (
+        Number.parseInt(cleanPhone[i]) !==
+        Number.parseInt(cleanPhone[i - 1]) - 1
+      ) {
+        isReverseSequential = false;
+        break;
+      }
+    }
+    if (isReverseSequential && cleanPhone.length >= 10) {
+      return "Please enter a valid phone number";
+    }
+
+    return "";
   };
 
   useEffect(() => {
@@ -386,10 +425,16 @@ export function SignupForm({
         ...prev,
         lastName: "Last name must be at least 3 characters long",
       }));
+    }
+    if (formData.phone) {
+      setErrors((prev) => ({
+        ...prev,
+        phone: validatePhoneNumber(formData.phone),
+      }));
     } else {
       setErrors((prev) => ({ ...prev, lastName: undefined }));
     }
-  }, [formData.firstName, formData.lastName]);
+  }, [formData.firstName, formData.lastName, formData.phone]);
   const validateForm = () => {
     const newErrors: any = {};
 
@@ -427,15 +472,9 @@ export function SignupForm({
       newErrors.email = "Please enter a valid email address";
     }
 
-    // Enhanced phone validation
-    if (formData.phone && !isPhoneValid(formData.phone)) {
-      newErrors.phone =
-        "Please enter a valid phone number (no repeated digits or obvious fake numbers)";
-    }
-
     if (formData.password) {
-      if (formData.password.length < 12) {
-        newErrors.password = "Password must be at least 12 characters long";
+      if (formData.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters long";
       }
       if (!/\d/.test(formData.password)) {
         newErrors.password = "Password must contain at least one number";
