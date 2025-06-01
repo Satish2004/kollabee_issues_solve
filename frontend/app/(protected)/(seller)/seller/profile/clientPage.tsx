@@ -125,6 +125,7 @@ const KollaBeeProfile = () => {
           <ProfileHeader
             profileData={profileData}
             setActiveStep={setActiveStep}
+            steps={steps}
             isLoading={isLoading}
             stepsToBeCompleted={stepsToBeCompleted}
             approvalStatus={approvalStatus}

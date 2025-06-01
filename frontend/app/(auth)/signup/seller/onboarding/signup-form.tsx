@@ -425,16 +425,27 @@ export function SignupForm({
         ...prev,
         lastName: "Last name must be at least 3 characters long",
       }));
+    } else {
+      setErrors((prev) => ({ ...prev, lastName: undefined }));
     }
     if (formData.phone) {
       setErrors((prev) => ({
         ...prev,
         phone: validatePhoneNumber(formData.phone),
       }));
-    } else {
-      setErrors((prev) => ({ ...prev, lastName: undefined }));
     }
-  }, [formData.firstName, formData.lastName, formData.phone]);
+    if (formData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (formData.email && !emailRegex.test(formData.email)) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "Please enter a valid email address",
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, email: undefined }));
+      }
+    }
+  }, [formData.firstName, formData.lastName, formData.phone, formData.email]);
   const validateForm = () => {
     const newErrors: any = {};
 
@@ -684,7 +695,7 @@ export function SignupForm({
                 onClick={onVerifyEmail}
                 disabled={
                   !formData.email ||
-                  !errors.email ||
+                  errors.email ||
                   generateOTPLoading ||
                   otpVerified
                 }
