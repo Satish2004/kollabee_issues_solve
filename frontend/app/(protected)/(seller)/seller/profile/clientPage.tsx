@@ -27,6 +27,7 @@ const KollaBeeProfile = () => {
     isLoading,
     stepsToBeCompleted,
     setStepsToBeCompleted,
+
     loadProfileCompletion,
   } = useProfileData();
 
@@ -113,8 +114,6 @@ const KollaBeeProfile = () => {
     loadProfileCompletion();
   }, [activeStep]);
 
-
-
   // Get pending step names for display
   const getPendingStepNames = () => {
     return stepsToBeCompleted.map(
@@ -176,6 +175,7 @@ const KollaBeeProfile = () => {
                   onAddCertificate={() => setCertificateModalOpen(true)}
                   handleRemoveCertificate={handleRemoveCertificate}
                   uploadProgress={uploadProgress}
+                  approvalStatus={approvalStatus}
                 />
               </div>
             </div>

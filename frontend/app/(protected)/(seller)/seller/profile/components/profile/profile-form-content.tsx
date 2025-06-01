@@ -39,6 +39,12 @@ type ProfileFormContentProps = {
   onAddCertificate?: () => void;
   handleRemoveCertificate?: (certificateId: string) => Promise<void>;
   uploadProgress?: Record<string, number>;
+  approvalStatus: {
+    approvalRequested: boolean;
+    approvalRequestedAt: Date | null;
+    isApproved: boolean;
+    message?: string; // To hold messages like "Approval request is rejected..."
+  };
 };
 
 export const ProfileFormContent = ({
@@ -61,6 +67,7 @@ export const ProfileFormContent = ({
   onAddCertificate,
   handleRemoveCertificate,
   uploadProgress = {},
+  approvalStatus,
 }: ProfileFormContentProps) => {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
@@ -192,6 +199,7 @@ export const ProfileFormContent = ({
             onSubmitForApproval={onSubmitForApproval}
             isSubmitting={isSubmittingApproval}
             pendingSteps={pendingStepNames}
+            approvalStatus={approvalStatus}
           />
         );
 

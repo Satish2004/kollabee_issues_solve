@@ -440,6 +440,9 @@ model Seller {
   agrrement1         Boolean?        @default(false)
   agrrement2         Boolean?        @default(false)
 
+  createdAt         DateTime?        @default(now())
+  updatedAt         DateTime?        @updatedAt
+
   @@index([userId])
 }
 

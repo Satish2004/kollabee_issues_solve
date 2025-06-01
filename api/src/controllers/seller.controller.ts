@@ -1417,6 +1417,7 @@ export const getProfileCompletion = async (req: any, res: Response) => {
       where: { userId },
       select: {
         profileCompletion: true,
+        updatedAt: true,
       },
     });
 
@@ -1465,6 +1466,7 @@ export const approveOrRejectSeller = async (req: any, res: Response) => {
               },
             }
           : undefined,
+        updatedAt: new Date(Date.now()),
       },
     });
 
