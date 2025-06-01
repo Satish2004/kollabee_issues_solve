@@ -354,7 +354,7 @@ model Seller {
   businessDescription String?
   businessAddress    String?
   websiteLink        String?
-  businessCategories CategoryEnum[]
+  businessCategories String[]
   businessTypes      String[]
   
   // Business Overview (Step 4)
