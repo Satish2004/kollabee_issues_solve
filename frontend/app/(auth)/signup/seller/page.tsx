@@ -175,7 +175,7 @@ export default function SignupSellerPage() {
         lastName: formData.lastName,
         name: formData.firstName + " " + formData.lastName,
         role: "SELLER",
-        phoneNumber: formData.phone,
+        phone: formData.phone,
         country: formData.country,
         countryCode: formData.countryCode,
 

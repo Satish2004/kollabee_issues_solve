@@ -14,6 +14,7 @@ import React, { useState, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
 
+
 // import { ProgressStepper } from "./onboarding/ProgressStepper";
 
 export default function SignupBuyerPage() {
@@ -169,7 +170,7 @@ export default function SignupBuyerPage() {
         lastName: formData.lastName,
         name: formData.firstName + " " + formData.lastName,
         role: "BUYER",
-        phoneNumber: formData.phone,
+        phone: formData.phone,
 
         // Company details
         companyName: formData.businessName,
