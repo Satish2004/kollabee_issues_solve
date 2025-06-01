@@ -40,6 +40,27 @@ console.log("newBusinesCat : ", newBusinesCat);
 // Convert business types to string array for the dropdown
 const businessTypeOptions = businessTypes.map(({ label }) => label);
 
+const isNameValid = (name: string) => {
+  // Check minimum length
+  if (name.trim().length < 2)
+    return "Name must be at least 2 characters long without space";
+
+  // Check if it contains only single characters (like "a" or "ab")
+  if (name.trim().length < 3) return "Name must be at least 3 characters long";
+
+  // Check if it contains numbers or special characters
+  const nameRegex = /^[a-zA-Z\s]+$/;
+  if (!nameRegex.test(name)) return "Name can only contain letters and spaces";
+
+  // Check if it's not just repeated characters
+  const trimmedName = name.trim().replace(/\s+/g, "");
+  const uniqueChars = new Set(trimmedName.toLowerCase()).size;
+  if (uniqueChars < 2)
+    return "Name must contain at least two different characters";
+
+  return "";
+};
+
 // Convert business categories to string array for the dropdown
 const businessCategoryOptions = businessCategories.map(({ label }) => label);
 
@@ -129,11 +150,8 @@ export function BusinessInfoForm({
     const websiteRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-]*)*$/; // Valid URL format
 
     const newErrors = {
-      businessName:
-        formData.businessName.trim().length < 3 ||
-        !nameRegex.test(formData.businessName)
-          ? "Business Name must be at least 3 characters long and cannot contain only numbers or special characters"
-          : "",
+      businessName: isNameValid(formData.businessName),
+
       businessDescription:
         formData.businessDescription.trim().length < 10 ||
         !nameRegex.test(formData.businessDescription)
