@@ -47,6 +47,7 @@ import {
   deleteProjectImage,
   getProfileSummary,
   getPendingStepNames,
+  getApproval,
 } from "../controllers/seller.controller";
 import { authMiddleware } from "../middleware/auth";
 import { upload } from "../utils/multer";
@@ -127,6 +128,8 @@ router.get("/profile/summary", authMiddleware, getProfileSummary);
 // Profile completion and approval
 router.get("/profile/completion", authMiddleware, getProfileCompletion);
 router.get("/profile/pending-steps", authMiddleware, getPendingStepNames);
+router.get("/approval", authMiddleware, getApproval);
+
 router.post("/approval", authMiddleware, requestApproval);
 
 // router.get("/profile/categories", authMiddleware, getSellerProfileCategories);

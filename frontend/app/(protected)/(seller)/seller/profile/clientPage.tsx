@@ -111,14 +111,6 @@ const KollaBeeProfile = () => {
     loadProfileCompletion();
   }, [activeStep]);
 
-  useEffect(() => {
-    setApprovalStatus({
-      approvalRequested: profileData.seller?.approvalRequested,
-      approvalRequestedAt: profileData.seller?.approvalRequestedAt,
-      isApproved: profileData.seller?.approved,
-    });
-  }, [profileData]);
-
   // Get pending step names for display
   const getPendingStepNames = () => {
     return stepsToBeCompleted.map(
@@ -127,26 +119,21 @@ const KollaBeeProfile = () => {
   };
 
   return (
-    <div className="flex flex-col rounded-lg">
-      {/* Profile header with approval status */}
-      <ProfileHeader
-        profileData={profileData}
-        setActiveStep={setActiveStep}
-        isLoading={isLoading}
-        stepsToBeCompleted={stepsToBeCompleted}
-        approvalStatus={approvalStatus}
-        isSubmittingApproval={isSubmittingApproval}
-        requestApproval={requestApproval}
-        getPendingStepNames={getPendingStepNames}
-      />
-
-      {/* Main content */}
-      <div className="flex-1 flex flex-col md:flex-row">
-        {/* Main content area */}
-        <div className="flex-1 overflow-visible">
-          {/* Profile completion and updates */}
-          <div className=" w-full bg-white">
-            {/* Stepper */}
+    <div className="h-[100%] overflow-hidden">
+      <div className="flex flex-col  rounded-lg">
+        <div className="relative top-0  bg-white">
+          <ProfileHeader
+            profileData={profileData}
+            setActiveStep={setActiveStep}
+            isLoading={isLoading}
+            stepsToBeCompleted={stepsToBeCompleted}
+            approvalStatus={approvalStatus}
+            isSubmittingApproval={isSubmittingApproval}
+            requestApproval={requestApproval}
+            getPendingStepNames={getPendingStepNames}
+            visibleStepsCount={5}
+          />
+          <div className="w-full border-b">
             <ProfileStepper
               steps={steps}
               activeStep={activeStep}
@@ -156,10 +143,21 @@ const KollaBeeProfile = () => {
               warningSteps={getWarningSteps()}
               stepsToBeCompleted={stepsToBeCompleted}
             />
+          </div>
+        </div>
 
+        {/* Main content */}
+        <div className="flex-1 flex flex-col md:flex-row">
+          {/* Main content area */}
+          <div className="flex-1">
+            {/* Profile completion and updates */}
+            {/* The w-full and bg-white for the stepper's original container might be redundant now or need adjustment */}
             {/* Content */}
             <div className="bg-white">
-              <div className="md:col-span-2">
+              {" "}
+              <div className="md:col-span-2 p-4 md:p-6">
+                {" "}
+                {/* Added padding for content below sticky header */}
                 <ProfileFormContent
                   activeStep={activeStep}
                   steps={steps}
@@ -180,22 +178,23 @@ const KollaBeeProfile = () => {
                   onAddCertificate={() => setCertificateModalOpen(true)}
                   handleRemoveCertificate={handleRemoveCertificate}
                   uploadProgress={uploadProgress}
+                  approvalStatus={approvalStatus}
                 />
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Certificate Upload Modal */}
-      <CertificateModal
-        open={certificateModalOpen}
-        setOpen={setCertificateModalOpen}
-        newCertificate={newCertificate}
-        setNewCertificate={setNewCertificate}
-        handleUpload={handleCertificateUpload}
-        isSaving={isSaving}
-      />
+        {/* Certificate Upload Modal */}
+        <CertificateModal
+          open={certificateModalOpen}
+          setOpen={setCertificateModalOpen}
+          newCertificate={newCertificate}
+          setNewCertificate={setNewCertificate}
+          handleUpload={handleCertificateUpload}
+          isSaving={isSaving}
+        />
+      </div>
     </div>
   );
 };

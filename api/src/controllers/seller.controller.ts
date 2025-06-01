@@ -1417,6 +1417,7 @@ export const getProfileCompletion = async (req: any, res: Response) => {
       where: { userId },
       select: {
         profileCompletion: true,
+        updatedAt: true,
       },
     });
 
@@ -1465,6 +1466,7 @@ export const approveOrRejectSeller = async (req: any, res: Response) => {
               },
             }
           : undefined,
+        updatedAt: new Date(Date.now()),
       },
     });
 
@@ -1728,6 +1730,96 @@ export const getAllBuyers = async (req: any, res: Response) => {
   }
 };
 
+export const getApproval = async (req: any, res: Response) => {
+  try {
+    const sellerId = req.user.sellerId; // Assuming sellerId is sent in the request body
+
+    const seller = await prisma.seller.findFirst({
+      where: { id: sellerId },
+      include: {
+        Approved: true,
+      },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    seller.profileCompletion = seller.profileCompletion || [];
+
+    if (
+      ![1, 2, 3, 4, 5, 6, 7].every((num) =>
+        seller.profileCompletion.includes(num)
+      )
+    ) {
+      return res.status(400).json({
+        message: "Profile is not complete. Please complete all required steps.",
+        profileCompletion: seller.profileCompletion,
+      });
+    }
+
+    if (seller.approvalRequested) {
+      if (seller.ApprovedId) {
+        const approvalStatus = await prisma.approved.findUnique({
+          where: {
+            id: seller.ApprovedId,
+          },
+        });
+
+        if (approvalStatus) {
+          return res.status(200).json({
+            message:
+              approvalStatus.status === true
+                ? "Approved"
+                : "Approval request is rejected, Please change the details and request again",
+            approvalStatus: approvalStatus.status,
+            lastUpdatedAt: approvalStatus.updatedAt,
+            approvalRequested: seller.approvalRequested,
+            approvalRequestedAt: seller.approvalReqestAt,
+            isApproved: approvalStatus.status || false,
+          });
+        } else {
+          return res.status(404).json({
+            message: "Approval status not found",
+            approvalRequested: seller.approvalRequested,
+            approvalRequestedAt: seller.approvalReqestAt,
+            isApproved: false,
+          });
+        }
+      }
+
+      return res.status(200).json({
+        message: "Approval requested, waiting for admin approval",
+        approvalRequested: seller.approvalRequested,
+        approvalRequestedAt: seller.approvalReqestAt,
+        isApproved: false,
+      });
+    }
+    if (seller.approvalRequested === false) {
+      // Seller is not approved yet
+      if (seller.profileCompletion.includes(7)) {
+        return res.status(200).json({
+          message: "Seller is not approved yet, but profile is complete",
+          approvalStatus: false,
+          approvalRequestedAt: seller.approvalReqestAt,
+          isApproved: false,
+        });
+      }
+    }
+
+    return res.status(200).json({
+      message: "Seller is not approved yet",
+      approvalStatus: false,
+      approvalRequested: seller.approvalRequested,
+      approvalRequestedAt: seller.approvalReqestAt,
+      isApproved: false,
+    });
+  } catch (error) {
+    console.error("Get approval error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
 export const requestApproval = async (req: any, res: Response) => {
   try {
     const sellerId = req.user.sellerId; // Assuming sellerId is sent in the request body
@@ -1763,13 +1855,20 @@ export const requestApproval = async (req: any, res: Response) => {
         approvalReqestAt: new Date(Date.now()),
         profileCompletion: currentCompletion,
       },
+      select: {
+        id: true,
+        approvalRequested: true,
+        approvalReqestAt: true,
+        profileCompletion: true,
+      },
     });
 
     // Check if we have valid data to mark this step as complete
 
-    return res
-      .status(200)
-      .json({ message: "Approval request submitted successfully" });
+    return res.status(200).json({
+      message: "Approval request submitted successfully",
+      approval: reqApproval,
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Internal server error" });

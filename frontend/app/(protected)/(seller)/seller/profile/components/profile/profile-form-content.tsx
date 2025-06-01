@@ -1,7 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import BrandPresenceForm from "../forms/brand-presence-form";
+import BusinessInfoForm from "../forms/business-info-form";
+import BusinessOverviewForm from "../forms/business-overview-form";
+import CapabilitiesOperationsForm from "../forms/capabilities-operations-form";
+import ComplianceCredentialsForm from "../forms/compliance-credentials-form";
+import FinalReviewForm from "../forms/final-review-form";
+import GoalsMetricsForm from "../forms/goals-metrics-form";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
@@ -9,15 +17,7 @@ import {
   CheckCircle2,
   Circle,
 } from "lucide-react";
-import BusinessInfoForm from "../forms/business-info-form";
-import GoalsMetricsForm from "../forms/goals-metrics-form";
-import BusinessOverviewForm from "../forms/business-overview-form";
-import CapabilitiesOperationsForm from "../forms/capabilities-operations-form";
-import ComplianceCredentialsForm from "../forms/compliance-credentials-form";
-import BrandPresenceForm from "../forms/brand-presence-form";
-import FinalReviewForm from "../forms/final-review-form";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
 
 type ProfileFormContentProps = {
   activeStep: number;
@@ -39,6 +39,12 @@ type ProfileFormContentProps = {
   onAddCertificate?: () => void;
   handleRemoveCertificate?: (certificateId: string) => Promise<void>;
   uploadProgress?: Record<string, number>;
+  approvalStatus: {
+    approvalRequested: boolean;
+    approvalRequestedAt: Date | null;
+    isApproved: boolean;
+    message?: string; // To hold messages like "Approval request is rejected..."
+  };
 };
 
 export const ProfileFormContent = ({
@@ -61,6 +67,7 @@ export const ProfileFormContent = ({
   onAddCertificate,
   handleRemoveCertificate,
   uploadProgress = {},
+  approvalStatus,
 }: ProfileFormContentProps) => {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
@@ -192,18 +199,10 @@ export const ProfileFormContent = ({
             onSubmitForApproval={onSubmitForApproval}
             isSubmitting={isSubmittingApproval}
             pendingSteps={pendingStepNames}
+            approvalStatus={approvalStatus}
           />
         );
-      case "certificates":
-        if (onAddCertificate && handleRemoveCertificate) {
-          return (
-            <div className="certificates-form">
-              {/* Placeholder for certificates form if needed */}
-              <p>Certificates form would go here</p>
-            </div>
-          );
-        }
-        return null;
+
       default:
         return null;
     }
@@ -240,7 +239,7 @@ export const ProfileFormContent = ({
       </div>
 
       {/* Form content */}
-      <div className="p-6 min-h-[400px] relative">{renderStepContent()}</div>
+      <div className="p-6 max-h-[400px] overflow-y-auto relative">{renderStepContent()}</div>
 
       {/* Navigation buttons */}
       <div className="p-6 border-t flex flex-wrap md:flex-nowrap gap-4 justify-between items-center">

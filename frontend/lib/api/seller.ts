@@ -1,6 +1,6 @@
+import { api } from "../axios";
 import { CategoryEnum } from "@/types/api";
 import { BusinessType } from "@/types/api";
-import { api } from "../axios";
 import { Product } from "@/types/api";
 import { Request } from "@/types/api";
 
@@ -56,6 +56,10 @@ export const sellerApi = {
 
   reqApproval: async () => {
     return api.put("/seller/approval");
+  },
+
+  getApproval: async () => {
+    return api.get("/seller/approval");
   },
 
   updateGoalsAndMetrics: (data: GoalsAndMetrics) =>
