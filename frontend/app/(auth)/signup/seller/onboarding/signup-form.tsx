@@ -337,6 +337,9 @@ export function SignupForm({
   const validatePhoneNumber = (phone: string): string => {
     if (!phone.trim()) return "Phone number is required";
 
+    if (phone.length < 10) return "Phone number must be at least 10 digits";
+    if (phone.length > 10) return "Phone number cannot exceed 10 digits";
+
     // Remove any spaces, hyphens, or other formatting
     const cleanPhone = phone.replace(/[\s\-$$$$]/g, "");
 
@@ -366,6 +369,25 @@ export function SignupForm({
       /^7+$/, // All sevens
       /^8+$/, // All eights
       /^9+$/, // All nines
+      /^123456789/, // Sequential ascending
+      /^987654321/, // Sequential descending
+      /^0123456789/, // Sequential ascending
+      /^9876543210/, // Sequential descending
+      /^1234567890/, // Sequential ascending
+      /^0987654321/, // Sequential descending
+      /^0000000000/, // All zeros
+      /^1111111111/, // All ones
+      /^2222222222/, // All twos
+      /^3333333333/, // All threes
+      /^4444444444/, // All fours
+      /^5555555555/, // All fives
+      /^6666666666/, // All sixes
+      /^7777777777/, // All sevens
+      /^8888888888/, // All eights
+      /^9999999999/, // All nines
+      /^0123456789/, // Sequential ascending
+      /^1212121212^/, // Repeated pattern
+
       /^1234567890/, // Sequential ascending
       /^0987654321/, // Sequential descending
       /^(\d)\1{9,}/, // Same digit repeated 10+ times
@@ -695,7 +717,7 @@ export function SignupForm({
                 onClick={onVerifyEmail}
                 disabled={
                   !formData.email ||
-                  errors.email ||
+                  !!errors.email ||
                   generateOTPLoading ||
                   otpVerified
                 }
@@ -845,6 +867,11 @@ export function SignupForm({
                 <div className="absolute -bottom-6 left-0 text-xs text-red-500 bg-white px-2 py-1 rounded shadow-sm border border-red-100">
                   Passwords do not match
                 </div>
+              )}
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.confirmPassword}
+                </p>
               )}
             </div>
 

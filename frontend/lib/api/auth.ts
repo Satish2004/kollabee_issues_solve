@@ -10,7 +10,7 @@ interface SignupData {
   password: string;
   name: string;
   role: "BUYER" | "SELLER";
-  phoneNumber?: string;
+  phone?: string;
   firstName?: string;
   lastName?: string;
   country?: string;
