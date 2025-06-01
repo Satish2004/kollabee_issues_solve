@@ -239,7 +239,7 @@ export const ProfileFormContent = ({
       </div>
 
       {/* Form content */}
-      <div className="p-6 min-h-[400px] relative">{renderStepContent()}</div>
+      <div className="p-6 max-h-[400px] overflow-y-auto relative">{renderStepContent()}</div>
 
       {/* Navigation buttons */}
       <div className="p-6 border-t flex flex-wrap md:flex-nowrap gap-4 justify-between items-center">
