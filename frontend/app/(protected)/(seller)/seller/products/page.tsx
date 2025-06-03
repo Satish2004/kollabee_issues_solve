@@ -1,18 +1,19 @@
 "use client";
 
+import { useProfileApproval } from "../profile/hooks/use-profile-approval";
+import Pagination from "./components/pagination";
+import ProductStats from "./components/product-stats";
+import ProductsHeader from "./components/products-header";
+import ProductsTable from "./components/products-table";
+import SearchAndFilter from "./components/search-and-filter";
+import { useCategories } from "./hooks/use-categories";
+import { useDebounce } from "./hooks/use-debounce";
+import { useProducts } from "./hooks/use-products";
+import { useProfileCompletion } from "./hooks/use-profile-completion";
+import { AlertCircle, Plus } from "lucide-react";
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import Link from "next/link";
-import { AlertCircle, Plus } from "lucide-react";
-import ProductsTable from "./components/products-table";
-import ProductsHeader from "./components/products-header";
-import SearchAndFilter from "./components/search-and-filter";
-import Pagination from "./components/pagination";
-import { useProducts } from "./hooks/use-products";
-import { useCategories } from "./hooks/use-categories";
-import { useProfileCompletion } from "./hooks/use-profile-completion";
-import { useDebounce } from "./hooks/use-debounce";
-import ProductStats from "./components/product-stats";
 
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<"active" | "draft">("active");
@@ -36,8 +37,22 @@ export default function ProductsPage() {
     });
 
   const { categories } = useCategories();
-  const { profileCompletion, remainingSteps, isProfileComplete } =
-    useProfileCompletion();
+  const {
+    profileCompletion,
+    remainingSteps,
+    isProfileComplete,
+    isLoading: profileCompletionIsLoading,
+  } = useProfileCompletion();
+
+  const {
+    approvalStatus,
+    isSubmittingApproval,
+    requestApproval,
+    getApproval, // You might want to call this on certain actions
+    isLoading: approvalStatusIsLoading,
+  } = useProfileApproval({
+    stepsToBeCompleted: remainingSteps,
+  });
 
   // Simulate loading state
   useEffect(() => {
@@ -99,11 +114,23 @@ export default function ProductsPage() {
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {/* Header with tabs */}
-          <ProductsHeader
+          {/* <ProductsHeader
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             isProfileComplete={isProfileComplete}
             remainingSteps={remainingSteps}
+          /> */}
+
+          <ProductsHeader
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            remainingProfileSteps={remainingSteps}
+            approvalStatus={approvalStatus}
+            isSubmittingApproval={isSubmittingApproval}
+            requestApproval={requestApproval}
+            isProfileInitiallyComplete={isProfileComplete}
+            profileCompletionIsLoading={profileCompletionIsLoading}
+            approvalStatusIsLoading={approvalStatusIsLoading}
           />
 
           {/* Search and Filter */}

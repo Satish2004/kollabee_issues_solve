@@ -1,15 +1,20 @@
 "use client";
-import React, { use, useEffect } from "react";
-import { AdminSidebar } from "@/components/admin/admin-sidebar";
+
 import AdminLayoutHeader from "@/components/admin/admin-layout-header";
-import { useRouter } from "next/navigation";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
 import { IntroTour } from "@/components/tour/IntroTour";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import React, { use, useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
+  const token = Cookies.get("token");
+
   useEffect(() => {
-    if (!localStorage.getItem("kollabee_token")) {
+    console.log("Token from cookies:", token);
+    if (!token || token === "undefined") {
       router.push("/");
       console.log("Token not found");
     }

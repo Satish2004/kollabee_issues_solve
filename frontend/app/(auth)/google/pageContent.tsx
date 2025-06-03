@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { toast } from "sonner";
+import SignupBuyerPage from "./buyerSignup";
+import { Button } from "@/components/ui/button";
 import { setToken } from "@/lib/utils/token";
 import Cookies from "js-cookie";
-import { Button } from "@/components/ui/button";
-import SignupBuyerPage from "./buyerSignup";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function GoogleRedirectPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [token, setToken] = useState("");
+  const [tokenData, setToken] = useState("");
   const [realRole, setRole] = useState("");
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export default function GoogleRedirectPageContent() {
     if (token && token !== "undefined") {
       // Store the token
       setToken(token);
-      localStorage.setItem("token", token);
+      // localStorage.setItem("kollabee_token", token);
       Cookies.set("token", token, { expires: 7 }); // Token expires in 7 days
 
       toast.success("Signed in successfully with Google");
@@ -59,7 +59,7 @@ export default function GoogleRedirectPageContent() {
           </div>
         )}
 
-        {realRole === "BUYER" && <SignupBuyerPage token={token} />}
+        {realRole === "BUYER" && <SignupBuyerPage token={tokenData} />}
 
         {errorMessage && (
           <div className="mt-4">

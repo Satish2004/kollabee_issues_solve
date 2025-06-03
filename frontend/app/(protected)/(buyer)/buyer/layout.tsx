@@ -1,18 +1,24 @@
 "use client";
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { IntroTour } from "@/components/tour/IntroTour";
-import { BuyerSidebar } from "../../../../components/buyer/buyer-sidebar";
+
 import BuyerLayoutHeader from "../../../../components/buyer/buyer-layout-header";
-import { CheckoutProvider } from "@/contexts/checkout-context";
+import { BuyerSidebar } from "../../../../components/buyer/buyer-sidebar";
 import { ChatbotWidget } from "../../../../components/chatbot/ChatWidget";
+import { IntroTour } from "@/components/tour/IntroTour";
+import { CheckoutProvider } from "@/contexts/checkout-context";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import React, { useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
+  const token = Cookies.get("token");
+
   useEffect(() => {
-    if (!localStorage.getItem("kollabee_token")) {
+    console.log("Token from cookies:", token);
+    if (!token || token === "undefined") {
       router.push("/");
+      console.log("Token not found");
     }
   }, []);
 

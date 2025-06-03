@@ -7,6 +7,15 @@ import CapabilitiesOperationsForm from "../forms/capabilities-operations-form";
 import ComplianceCredentialsForm from "../forms/compliance-credentials-form";
 import FinalReviewForm from "../forms/final-review-form";
 import GoalsMetricsForm from "../forms/goals-metrics-form";
+import {
+  BrandPresenceFormSkeleton,
+  BusinessInfoFormSkeleton,
+  BusinessOverviewFormSkeleton,
+  CapabilitiesOperationsFormSkeleton,
+  ComplianceCredentialsFormSkeleton,
+  FinalReviewFormSkeleton,
+  GoalsMetricsFormSkeleton,
+} from "./skeletons/form-skeletons";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -98,12 +107,30 @@ export const ProfileFormContent = ({
     const currentFormState = formStates[currentStep];
 
     if (sectionLoading === currentStep) {
-      return (
-        <div className="flex justify-center items-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <span className="ml-2">Loading...</span>
-        </div>
-      );
+      switch (currentStep) {
+        case "business-info":
+          return <BusinessInfoFormSkeleton />;
+        case "goals-metrics":
+          return <GoalsMetricsFormSkeleton />;
+        case "business-overview":
+          return <BusinessOverviewFormSkeleton />;
+        case "capabilities-operations":
+          return <CapabilitiesOperationsFormSkeleton />;
+        case "compliance-credentials":
+          return <ComplianceCredentialsFormSkeleton />;
+        case "brand-presence":
+          return <BrandPresenceFormSkeleton />;
+        case "final-review":
+          return <FinalReviewFormSkeleton />; // Assuming data for final review is also part of formStates
+        default:
+          // Fallback generic skeleton or null
+          return (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-2">Loading section...</span>
+            </div>
+          );
+      }
     }
 
     if (!currentFormState) {
@@ -239,7 +266,9 @@ export const ProfileFormContent = ({
       </div>
 
       {/* Form content */}
-      <div className="p-6 max-h-[400px] overflow-y-auto relative">{renderStepContent()}</div>
+      <div className="p-6 max-h-[400px] overflow-y-auto relative">
+        {renderStepContent()}
+      </div>
 
       {/* Navigation buttons */}
       <div className="p-6 border-t flex flex-wrap md:flex-nowrap gap-4 justify-between items-center">
