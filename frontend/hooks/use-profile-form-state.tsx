@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
-import { toast } from "sonner";
 import { profileApi } from "@/lib/api/profile";
 import { sellerApi } from "@/lib/api/seller";
 import { uploadApi } from "@/lib/api/upload";
+import { useState, useCallback, useRef } from "react";
+import { toast } from "sonner";
 
 type Step = {
   id: string;
@@ -189,7 +189,6 @@ const useProfileFormState = ({
           break;
       }
 
-      console.log(`Response for ${sectionId}:`, response);
       if (response) {
         const newFormState = response || getDefaultFormState(sectionId);
 

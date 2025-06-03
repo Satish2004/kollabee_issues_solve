@@ -3,11 +3,13 @@
 import { Card, CardContent } from "@/components/ui/card";
 import React from "react";
 
+// Keep React import for React.memo
+
 const SkeletonBlock = ({ className }: { className?: string }) => (
   <div className={`animate-pulse bg-gray-200 rounded ${className}`}></div>
 );
 
-const RequestCardSkeleton = () => (
+const RequestCardSkeletonInternal = () => (
   <div className="w-full mx-auto rounded-lg overflow-hidden mb-4 sm:mb-6">
     {/* Header */}
     <div className="flex items-center gap-2 sm:gap-3 p-1 border-2 rounded-[10px] border-gray-200">
@@ -90,8 +92,9 @@ const RequestCardSkeleton = () => (
     </div>
   </div>
 );
+export const RequestCardSkeleton = React.memo(RequestCardSkeletonInternal);
 
-const ManufacturingCardSkeleton = () => (
+const ManufacturingCardSkeletonInternal = () => (
   <Card className="mb-4 sm:mb-6 overflow-hidden max-w-full animate-pulse">
     <CardContent className="p-0">
       {/* Header */}
@@ -168,30 +171,23 @@ const ManufacturingCardSkeleton = () => (
           <SkeletonBlock className="h-5 w-40 mb-2 sm:mb-3" />{" "}
           {/* Section Title */}
           <div className="space-y-3 sm:space-y-4">
-            {[...Array(1)].map(
-              (
-                _,
-                i // Assuming 1-2 milestones for skeleton
-              ) => (
-                <div
-                  key={`milestone-${i}`}
-                  className="border rounded-lg p-2 sm:p-3"
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <div className="overflow-hidden flex-grow space-y-1 mr-2">
-                      <SkeletonBlock className="h-4 w-3/4" /> {/* Name */}
-                      <SkeletonBlock className="h-3 w-full" />{" "}
-                      {/* Desc line 1 */}
-                      <SkeletonBlock className="h-3 w-5/6" />{" "}
-                      {/* Desc line 2 */}
-                    </div>
-                    <SkeletonBlock className="h-5 w-12 rounded-md shrink-0" />{" "}
-                    {/* Badge */}
+            {[...Array(1)].map((_, i) => (
+              <div
+                key={`milestone-${i}`}
+                className="border rounded-lg p-2 sm:p-3"
+              >
+                <div className="flex justify-between items-start mb-1">
+                  <div className="overflow-hidden flex-grow space-y-1 mr-2">
+                    <SkeletonBlock className="h-4 w-3/4" /> {/* Name */}
+                    <SkeletonBlock className="h-3 w-full" /> {/* Desc line 1 */}
+                    <SkeletonBlock className="h-3 w-5/6" /> {/* Desc line 2 */}
                   </div>
-                  <SkeletonBlock className="h-3 w-1/3" /> {/* Due Date */}
+                  <SkeletonBlock className="h-5 w-12 rounded-md shrink-0" />{" "}
+                  {/* Badge */}
                 </div>
-              )
-            )}
+                <SkeletonBlock className="h-3 w-1/3" /> {/* Due Date */}
+              </div>
+            ))}
           </div>
         </div>
 
@@ -222,17 +218,51 @@ const ManufacturingCardSkeleton = () => (
     </CardContent>
   </Card>
 );
+export const ManufacturingCardSkeleton = React.memo(
+  ManufacturingCardSkeletonInternal
+);
+
+// 7. Full Page Skeleton for Initial Load
+//    - What: A new skeleton component representing the entire page structure (tabs + content area).
+//    - Why: Provides a better loading experience for the initial Suspense fallback of KollaBeeRequestsPage.
+const FullPageSkeleton = () => (
+  <div className="flex min-h-screen max-w-full overflow-hidden">
+    <div className="flex-1 flex flex-col w-full p-2 sm:p-4">
+      {/* Tabs Skeleton */}
+      <div className="p-2 sm:p-4 bg-white rounded-xl">
+        <div className="grid w-full max-w-md grid-cols-2 bg-gray-100 rounded-md p-1 animate-pulse">
+          <SkeletonBlock className="h-8 sm:h-10 m-1" />
+          <SkeletonBlock className="h-8 sm:h-10 m-1" />
+        </div>
+      </div>
+      {/* Content Area Skeleton */}
+      <div className="p-2 sm:p-4 bg-white mt-3 sm:mt-6 rounded-xl flex-1">
+        <div className="mb-3 sm:mb-4">
+          <SkeletonBlock className="h-6 w-1/3 mb-2 sm:mb-4" />{" "}
+          {/* Title like "Showing all requests" */}
+        </div>
+        {/* Placeholder for a few cards */}
+        <RequestCardSkeleton />
+        <RequestCardSkeleton />
+      </div>
+    </div>
+  </div>
+);
 
 interface LoadingSkeletonsProps {
-  type?: "product" | "manufacturing";
+  type?: "product" | "manufacturing" | "full"; // Added "full" type
   count?: number;
 }
 
-export const LoadingSkeletonsTest = ({
+// Original LoadingSkeletonsTest component
+const LoadingSkeletonsTest = ({
   type = "product",
   count = 3,
 }: LoadingSkeletonsProps) => {
-  console.log("ut uis rebnder ");
+  if (type === "full") {
+    return <FullPageSkeleton />;
+  }
+
   const SkeletonComponent =
     type === "manufacturing" ? ManufacturingCardSkeleton : RequestCardSkeleton;
   return (
@@ -244,6 +274,9 @@ export const LoadingSkeletonsTest = ({
   );
 };
 
+// 8. React.memo for LoadingSkeletons (You already had this!)
+//    - What: Wraps the main LoadingSkeletons component.
+//    - Why: Prevents re-rendering the list of skeletons if its props (type, count) haven't changed.
 export const LoadingSkeletons = React.memo(
   LoadingSkeletonsTest,
   (prevProps, nextProps) => {

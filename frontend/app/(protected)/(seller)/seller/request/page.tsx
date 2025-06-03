@@ -136,7 +136,7 @@ const KollaBeeRequests = () => {
               </div>
 
               {isLoading ? (
-                <LoadingSkeletons type="product" count={3} />
+                <LoadingSkeletons type="product" count={2} />
               ) : requests.length > 0 ? (
                 <div className="space-y-4 sm:space-y-8">
                   {requests.map((request) => (
@@ -161,7 +161,7 @@ const KollaBeeRequests = () => {
               </div>
 
               {isLoading ? (
-                <LoadingSkeletons type="manufacturing" count={2} />
+                <LoadingSkeletons type="manufacturing" count={1} />
               ) : manufacturingRequests.length > 0 ? (
                 <div className="space-y-4">
                   {manufacturingRequests.map((request) => (
