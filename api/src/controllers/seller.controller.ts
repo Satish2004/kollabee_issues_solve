@@ -2351,7 +2351,12 @@ export const getProfileSummary = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Seller not found" });
     }
 
-    res.json(seller);
+    const data = {
+      ...seller,
+      certifications: seller.certificates || [],
+    };
+
+    res.json(data);
   } catch (error) {
     console.error("Get profile summary error:", error);
     res.status(500).json({ error: "Failed to get profile summary" });

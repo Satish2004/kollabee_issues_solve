@@ -37,6 +37,40 @@ interface ProductsHeaderProps {
   approvalStatusIsLoading: boolean;
 }
 
+const ProfileCompletionWarningSkeleton = () => (
+  <div className="bg-gray-50 p-3 sm:p-4 border-b border-gray-200 animate-pulse">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex items-start sm:items-center">
+        <div className="h-5 w-5 bg-gray-300 rounded-full mr-2 flex-shrink-0 mt-0.5 sm:mt-0"></div>
+        <div>
+          <div className="h-4 bg-gray-300 rounded w-48 mb-1.5"></div>
+          <div className="h-3 bg-gray-300 rounded w-32"></div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between sm:justify-start sm:ml-auto">
+        <div className="h-8 w-28 bg-gray-300 rounded-md"></div>
+        <div className="sm:hidden ml-2 h-5 w-5 bg-gray-300 rounded"></div>
+      </div>
+    </div>
+  </div>
+);
+
+const ApprovalStatusSkeleton = () => (
+  <div className="bg-gray-50 p-3 sm:p-4 border-b border-gray-200 animate-pulse">
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+      <div className="flex items-start sm:items-center">
+        <div className="h-5 w-5 bg-gray-300 rounded-full mr-2 flex-shrink-0 mt-0.5 sm:mt-0"></div>
+        <div>
+          <div className="h-4 bg-gray-300 rounded w-56"></div>
+        </div>
+      </div>
+      <div className="sm:ml-auto">
+        <div className="h-8 w-32 bg-gray-300 rounded-md"></div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function ProductsHeader({
   activeTab,
   setActiveTab,
@@ -48,12 +82,14 @@ export default function ProductsHeader({
   profileCompletionIsLoading,
   approvalStatusIsLoading,
 }: ProductsHeaderProps) {
-  const [showProfileCompletionWarning, setShowProfileCompletionWarning] =
-    useState(false);
+  const [
+    showProfileCompletionWarningBanner,
+    setShowProfileCompletionWarningBanner,
+  ] = useState(false);
 
   useEffect(() => {
-    // Show warning if profile is not complete and not loading
-    setShowProfileCompletionWarning(
+    // Determine if the actual warning banner (not skeleton) should be shown
+    setShowProfileCompletionWarningBanner(
       !isProfileInitiallyComplete && !profileCompletionIsLoading
     );
   }, [isProfileInitiallyComplete, profileCompletionIsLoading]);
@@ -84,21 +120,11 @@ export default function ProductsHeader({
   }
 
   const renderApprovalStatusSection = () => {
-    if (
-      profileCompletionIsLoading ||
-      (isProfileInitiallyComplete && approvalStatusIsLoading)
-    ) {
-      return (
-        <div className="bg-slate-50 p-3 sm:p-4 border-b border-slate-100">
-          <div className="flex items-center text-slate-600">
-            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-            <span className="text-sm">Loading profile status...</span>
-          </div>
-        </div>
-      );
+    // This section is only rendered if profile is complete and profile completion is not loading.
+    // So, we only need to check approvalStatusIsLoading here.
+    if (approvalStatusIsLoading) {
+      return <ApprovalStatusSkeleton />;
     }
-
-    if (!isProfileInitiallyComplete) return null; // This case is handled by showProfileCompletionWarning
 
     // Profile is complete, now show approval status
     return (
@@ -202,15 +228,9 @@ export default function ProductsHeader({
   return (
     <TooltipProvider>
       <div className="border-b">
-        {profileCompletionIsLoading && (
-          <div className="bg-slate-50 p-3 sm:p-4 border-b border-slate-100">
-            <div className="flex items-center text-slate-600">
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              <span className="text-sm">Loading profile status...</span>
-            </div>
-          </div>
-        )}
-        {showProfileCompletionWarning && !isProfileInitiallyComplete && (
+        {profileCompletionIsLoading ? (
+          <ProfileCompletionWarningSkeleton />
+        ) : showProfileCompletionWarningBanner ? ( // Actual warning banner, only if not loading and profile incomplete
           <div className="bg-amber-50 p-3 sm:p-4 border-b border-amber-100">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex items-start sm:items-center">
@@ -235,7 +255,7 @@ export default function ProductsHeader({
                 </Link>
                 <button
                   className="sm:hidden ml-2 text-amber-700"
-                  onClick={() => setShowProfileCompletionWarning(false)}
+                  onClick={() => setShowProfileCompletionWarningBanner(false)}
                   aria-label="Dismiss warning"
                 >
                   <X className="w-4 h-4" />
@@ -243,10 +263,14 @@ export default function ProductsHeader({
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {isProfileInitiallyComplete && renderApprovalStatusSection()}
+        {/* Render approval status section if profile is complete and not loading profile completion */}
+        {isProfileInitiallyComplete &&
+          !profileCompletionIsLoading &&
+          renderApprovalStatusSection()}
 
+        {/* Header with tabs and add button */}
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
           <div className="overflow-x-auto flex-1 border-b sm:border-b-0">
             <div className="flex space-x-4 px-4 py-3 sm:py-4 min-w-max">
@@ -279,8 +303,6 @@ export default function ProductsHeader({
             >
               <TooltipTrigger asChild>
                 <div className="relative">
-                  {" "}
-                  {/* Ensure this div takes full width or button does */}
                   <Link
                     href={canAddProducts ? "/seller/products/add-product" : "#"}
                     className={cn(
