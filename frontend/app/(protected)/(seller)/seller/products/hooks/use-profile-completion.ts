@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
 import { profileApi } from "@/lib/api/profile";
+import { useState, useEffect, useMemo } from "react";
 
 export function useProfileCompletion() {
   const [profileCompletion, setProfileCompletion] = useState<number[]>([]);
@@ -42,13 +42,13 @@ export function useProfileCompletion() {
 
   const remainingSteps = useMemo(() => {
     const completedSet = new Set(profileCompletion);
-    return Array.from({ length: 11 }, (_, i) => i + 1).filter(
+    return Array.from({ length: 7 }, (_, i) => i + 1).filter(
       (step) => !completedSet.has(step)
     );
   }, [profileCompletion]);
 
   const isProfileComplete = useMemo(() => {
-    return profileCompletion.length === 13;
+    return profileCompletion.length === 7;
   }, [profileCompletion]);
 
   return {
