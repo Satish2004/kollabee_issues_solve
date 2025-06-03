@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
-import { authApi } from '@/lib/api';
-import { User } from '@/types/api';
+import { authApi } from "@/lib/api";
+import { User } from "@/types/api";
+import Cookies from "js-cookie";
+import { useState, useEffect } from "react";
 
 interface AuthState {
   user: User | null;
@@ -17,7 +18,7 @@ interface SignupData {
   email: string;
   password: string;
   name: string;
-  role: 'BUYER' | 'SELLER';
+  role: "BUYER" | "SELLER";
   companyName?: string;
   phoneNumber?: string;
   country?: string;
@@ -39,102 +40,108 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = Cookies.get("token");
       if (!token) {
-        setState(prev => ({ ...prev, loading: false }));
+        setState((prev) => ({ ...prev, loading: false }));
         return;
       }
 
-      const user:any = await authApi.getCurrentUser();
+      const user: any = await authApi.getCurrentUser();
       setState({ user, loading: false, error: null });
     } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-      setState({ user: null, loading: false, error: 'Authentication failed' });
+      console.error("Auth check failed:", error);
+      Cookies.remove("token");
+      setState({ user: null, loading: false, error: "Authentication failed" });
     }
   };
 
   const login = async ({ email, password }: LoginData) => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
-      const response:any = await authApi.login({ email, password });
-      localStorage.setItem('token', response.token);
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      const response: any = await authApi.login({ email, password });
+      Cookies.set("token", response.token, { expires: 7 }); // Token expires in 7 days
+
+      // localStorage.setItem('token', response.token);
       setState({ user: response.user, loading: false, error: null });
       return response;
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Login failed';
-      setState(prev => ({ ...prev, loading: false, error: message }));
+      const message = error.response?.data?.error || "Login failed";
+      setState((prev) => ({ ...prev, loading: false, error: message }));
       throw error;
     }
   };
 
   const signup = async (data: SignupData) => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
-      const response:any  = await authApi.signup(data);
-      localStorage.setItem('token', response.token);
+      setState((prev) => ({ ...prev, loading: true, error: null }));
+      const response: any = await authApi.signup(data);
+      // localStorage.setItem('token', response.token);
+      Cookies.set("token", response.token, { expires: 7 }); // Token expires in 7 days
+
       setState({ user: response.user, loading: false, error: null });
       return response;
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Signup failed';
-      setState(prev => ({ ...prev, loading: false, error: message }));
+      const message = error.response?.data?.error || "Signup failed";
+      setState((prev) => ({ ...prev, loading: false, error: message }));
       throw error;
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    // localStorage.removeItem("token");
+    Cookies.remove("token");
     setState({ user: null, loading: false, error: null });
   };
 
   const generateOTP = async (email: string) => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
       const response = await authApi.generateOTP(email);
-      setState(prev => ({ ...prev, loading: false }));
+      setState((prev) => ({ ...prev, loading: false }));
       return response;
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Failed to generate OTP';
-      setState(prev => ({ ...prev, loading: false, error: message }));
+      const message = error.response?.data?.error || "Failed to generate OTP";
+      setState((prev) => ({ ...prev, loading: false, error: message }));
       throw error;
     }
   };
 
   const verifyOTP = async (email: string, otp: string) => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
       const response = await authApi.verifyOTP({ email, otp });
-      setState(prev => ({ ...prev, loading: false }));
+      setState((prev) => ({ ...prev, loading: false }));
       return response;
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Failed to verify OTP';
-      setState(prev => ({ ...prev, loading: false, error: message }));
+      const message = error.response?.data?.error || "Failed to verify OTP";
+      setState((prev) => ({ ...prev, loading: false, error: message }));
       throw error;
     }
   };
 
   const forgotPassword = async (email: string) => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
       const response = await authApi.forgotPassword(email);
-      setState(prev => ({ ...prev, loading: false }));
+      setState((prev) => ({ ...prev, loading: false }));
       return response;
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Failed to process password reset';
-      setState(prev => ({ ...prev, loading: false, error: message }));
+      const message =
+        error.response?.data?.error || "Failed to process password reset";
+      setState((prev) => ({ ...prev, loading: false, error: message }));
       throw error;
     }
   };
 
   const resetPassword = async (token: string, newPassword: string) => {
     try {
-      setState(prev => ({ ...prev, loading: true, error: null }));
+      setState((prev) => ({ ...prev, loading: true, error: null }));
       const response = await authApi.resetPassword({ token, newPassword });
-      setState(prev => ({ ...prev, loading: false }));
+      setState((prev) => ({ ...prev, loading: false }));
       return response;
     } catch (error: any) {
-      const message = error.response?.data?.error || 'Failed to reset password';
-      setState(prev => ({ ...prev, loading: false, error: message }));
+      const message = error.response?.data?.error || "Failed to reset password";
+      setState((prev) => ({ ...prev, loading: false, error: message }));
       throw error;
     }
   };
@@ -152,4 +159,4 @@ export function useAuth() {
     resetPassword,
     checkAuth,
   };
-} 
+}

@@ -1,16 +1,20 @@
 "use client";
-import React, { Suspense, use, useEffect } from "react";
-import { SellerSidebar } from "@/components/seller/seller-sidebar";
-import SellerLayoutHeader from "@/components/seller/layout-header";
-import { useRouter } from "next/navigation";
-import { IntroTour } from "@/components/tour/IntroTour";
+
 import { ChatbotWidget } from "@/components/chatbot/ChatWidget";
+import SellerLayoutHeader from "@/components/seller/layout-header";
+import { SellerSidebar } from "@/components/seller/seller-sidebar";
+import { IntroTour } from "@/components/tour/IntroTour";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
+import React, { Suspense, use, useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const token = Cookies.get("token");
 
   useEffect(() => {
-    if (!localStorage.getItem("kollabee_token")) {
+    console.log("Token from cookies:", token);
+    if (!token || token === "undefined") {
       router.push("/");
       console.log("Token not found");
     }

@@ -45,7 +45,6 @@ export const authApi = {
 
     if (response.token) {
       setToken(response.token);
-      localStorage.setItem("token", response.token);
       Cookies.set("token", response.token, { expires: 7 }); // Token expires in 7 days
     }
     return response;
@@ -55,7 +54,6 @@ export const authApi = {
     const response: any = await api.post(`${authUrl}/auth/signup`, data);
     if (response?.token) {
       setToken(response?.token);
-      localStorage.setItem("token", response?.token);
       Cookies.set("token", response?.token, { expires: 7 }); // Token expires in 7 days
     }
     return response;
@@ -73,7 +71,6 @@ export const authApi = {
     const response: any = await api.post(`${authUrl}/auth/buyer/google`, data);
     if (response?.token) {
       setToken(response?.token);
-      localStorage.setItem("token", response?.token);
       Cookies.set("token", response?.token, { expires: 7 }); // Token expires in 7 days
     }
     return response;

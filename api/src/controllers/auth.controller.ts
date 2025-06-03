@@ -700,7 +700,7 @@ export const googleAuth = (req: Request, res: Response) => {
     const role = (req.query.role as string) || "BUYER";
 
     // Validate role
-    if (!["BUYER", "SELLER", "ADMIN"].includes(role)) {
+    if (!["BUYER", "SELLER"].includes(role)) {
       return res.status(400).json({ error: "Invalid role" });
     }
 
@@ -775,7 +775,6 @@ export const googleCallback = async (req: Request, res: Response) => {
       include: {
         seller: true,
         buyer: true,
-        admin: true,
       },
     });
 
@@ -830,9 +829,7 @@ export const googleCallback = async (req: Request, res: Response) => {
             role: user.role,
             ...(user.role === "SELLER"
               ? { sellerId: user.seller?.id }
-              : user.role === "ADMIN"
-                ? { adminId: user.admin?.id }
-                : { buyerId: user.buyer?.id }),
+              : { buyerId: user.buyer?.id }),
           },
           process.env.JWT_SECRET!,
           { expiresIn: "7d" }
@@ -873,9 +870,7 @@ export const googleCallback = async (req: Request, res: Response) => {
         role: user.role,
         ...(user.role === "SELLER"
           ? { sellerId: user.seller?.id }
-          : user.role === "ADMIN"
-            ? { adminId: user.admin?.id }
-            : { buyerId: user.buyer?.id }),
+          : { buyerId: user.buyer?.id }),
       },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
