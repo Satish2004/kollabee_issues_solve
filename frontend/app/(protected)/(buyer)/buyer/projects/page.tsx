@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import CreateProjects from "./_component/CreateProjects";
+import EmptyState from "./_component/EmptyState";
+import ProjectsHeader from "./_component/ProjectsHeader";
+import ProjectsTable from "./_component/ProjectsTable";
+import { FormProvider } from "./_component/create-projects-context";
 import projectApi from "@/lib/api/project";
 import type { Project } from "@/types/api";
-import { FormProvider } from "./_component/create-projects-context";
-import CreateProjects from "./_component/CreateProjects";
-import ProjectsHeader from "./_component/ProjectsHeader";
-import EmptyState from "./_component/EmptyState";
-import ProjectsTable from "./_component/ProjectsTable";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const ProjectsPage = () => {
   const router = useRouter();
@@ -21,7 +21,7 @@ const ProjectsPage = () => {
   const fetchData = async () => {
     try {
       const data = await projectApi.getProjects();
-      console.log("Projects data:", data);
+      console.log("Projects data:", data.length);
 
       // Format the data to include status if needed
       const formattedData = data.map((project: Project) => ({
@@ -42,7 +42,7 @@ const ProjectsPage = () => {
   useEffect(() => {
     const fetchProjects = async () => {
       const data: any[] = await fetchData();
-      console.log("Fetched projects:", data);
+      // console.log("Fetched projects:", data);
       setProjects(data);
       setLoading(false);
     };

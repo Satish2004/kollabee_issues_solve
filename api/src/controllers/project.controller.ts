@@ -68,7 +68,8 @@ export const createProject = async (req: any, res: Response) => {
     if (projectData.selectedServices?.includes("custom-manufacturing")) {
       newProjectData.category =
         projectData.productCategory.join(",") || "OTHER";
-      newProjectData.productType = projectData.productCategory.join(",") || "OTHER";
+      newProjectData.productType =
+        projectData.productCategory.join(",") || "OTHER";
     } else if (projectData.selectedServices?.includes("packaging-only")) {
       newProjectData.category = "PACKAGING";
       newProjectData.productType =
@@ -292,7 +293,18 @@ export const updateProject = async (req: any, res: Response) => {
 
 export const getProjects = async (req: any, res: Response) => {
   try {
+    const { userId, buyerId } = req.user;
+    if (!userId || !buyerId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    // Fetch all projects for the user
     const projectsData = await prisma.project.findMany({
+      where: {
+        owner: {
+          id: buyerId,
+        },
+      },
       include: {
         requestedSeller: {
           where: {
