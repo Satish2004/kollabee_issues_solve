@@ -81,6 +81,11 @@ const languageOptions = [
   "Other",
 ];
 
+
+
+
+
+
 const businessAttributeOptions = [
   "Sustainable / Eco-Friendly Practices",
   "Female-Owned",
