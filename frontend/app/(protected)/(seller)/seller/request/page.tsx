@@ -1,22 +1,31 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CheckCheck, Factory } from "lucide-react";
-import { ordersApi } from "@/lib/api/orders";
-import { toast } from "sonner";
-import type { Order, ManufacturingRequest } from "@/types/api";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RequestCard } from "./components/requests/request-card";
-import { ManufacturingCard } from "./components/requests/manufacturing-card";
 import { ActionDialog } from "./components/requests/action-dialog";
 import { LoadingSkeletons } from "./components/requests/loading-skeletons";
+import { ManufacturingCard } from "./components/requests/manufacturing-card";
+import { RequestCard } from "./components/requests/request-card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ordersApi } from "@/lib/api/orders";
+import type { Order, ManufacturingRequest } from "@/types/api";
+import { CheckCheck, Factory } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { useState, useEffect, use } from "react";
+import { toast } from "sonner";
 
 const KollaBeeRequests = () => {
   const [requests, setRequests] = useState<Order[]>([]);
   const [manufacturingRequests, setManufacturingRequests] = useState<
     ManufacturingRequest[]
   >([]);
-  const [activeTab, setActiveTab] = useState("received");
+
+  const router = useRouter();
+  const params = useSearchParams();
+  const tab = params.get("tab") || "received";
+
+  const [activeTab, setActiveTab] = useState(
+    tab === "received" ? "received" : "manufacturing"
+  );
+
   const [isLoading, setIsLoading] = useState(true);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -89,7 +98,10 @@ const KollaBeeRequests = () => {
         <Tabs
           defaultValue="received"
           value={activeTab}
-          onValueChange={setActiveTab}
+          onValueChange={(value) => {
+            setActiveTab(value);
+            router.push(`/seller/request?tab=${value}`);
+          }}
           className="w-full"
         >
           <div className="p-2 sm:p-4 bg-white rounded-xl">
@@ -124,7 +136,7 @@ const KollaBeeRequests = () => {
               </div>
 
               {isLoading ? (
-                <LoadingSkeletons />
+                <LoadingSkeletons type="product" count={3} />
               ) : requests.length > 0 ? (
                 <div className="space-y-4 sm:space-y-8">
                   {requests.map((request) => (
@@ -149,7 +161,7 @@ const KollaBeeRequests = () => {
               </div>
 
               {isLoading ? (
-                <LoadingSkeletons />
+                <LoadingSkeletons type="manufacturing" count={2} />
               ) : manufacturingRequests.length > 0 ? (
                 <div className="space-y-4">
                   {manufacturingRequests.map((request) => (
@@ -195,4 +207,11 @@ const KollaBeeRequests = () => {
   );
 };
 
-export default KollaBeeRequests;
+const SuspansePage = () => {
+  return (
+    <React.Suspense fallback={<LoadingSkeletons type="full" count={1} />}>
+      <KollaBeeRequests />
+    </React.Suspense>
+  );
+};
+export default SuspansePage;
