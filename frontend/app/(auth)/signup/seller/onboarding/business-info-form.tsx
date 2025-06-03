@@ -311,6 +311,9 @@ export function BusinessInfoForm({
           <MultiSelectDropdown
             label="Business Type"
             placeholder="Select one or more business types"
+            description={
+              "Match with the right buyers by selecting one or more categories that best describe your business."
+            }
             options={businessTypeOptions}
             selectedValues={getSelectedTypeLabels()}
             onChange={handleBusinessTypeChange}
@@ -380,13 +383,13 @@ export function BusinessInfoForm({
           {/* Business Category - Using MultiSelectDropdown */}
           <MultiSelectDropdown
             label="Business Category"
+            description="Choose one or more categories your business primarily operates in."
             placeholder="Select one or more business categories"
             options={businessCategoryOptions}
             selectedValues={getSelectedCategoryLabels()}
             onChange={handleBusinessCategoryChange}
             isRequired={true}
             error={errors.businessCategories}
-            helperText="Choose one or more categories your business primarily operates in."
           />
         </div>
       </div>

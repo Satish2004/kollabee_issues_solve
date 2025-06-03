@@ -405,6 +405,10 @@ const CapabilitiesOperationsForm = ({
                 <label className="text-sm font-medium">
                   Post-Purchase Sample Dispatch Time
                 </label>
+                <p className="text-sm font-futura italic">
+                  How many days after order confirmation do you send product
+                  samples (if applicable)?
+                </p>
                 <Input
                   placeholder="e.g., 3–5 business days"
                   value={formState.sampleDispatchTime}
@@ -422,6 +426,10 @@ const CapabilitiesOperationsForm = ({
 
             <div className="space-y-2 mt-4">
               <label className="text-sm font-medium">Production Timeline</label>
+              <p className="text-sm font-futura italic">
+                How long does it typically take to complete full production
+                after confirming the order?
+              </p>
               <Input
                 placeholder="e.g., 2–4 weeks"
                 value={formState.productionTimeline}
@@ -434,10 +442,6 @@ const CapabilitiesOperationsForm = ({
                 }}
                 className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               />
-              <p className="text-xs text-gray-500">
-                How long does it typically take to complete full production
-                after confirming the order?
-              </p>
             </div>
           </div>
 

@@ -440,11 +440,12 @@ const ComplianceCredentialsForm = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center  ">
-                Business Registration Document
+                Business Registration
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
               <p className="text-sm font-futura italic">
-                Upload your business registration certificate or license
+                Upload your official business registration document (e.g.,
+                incorporation certificate, GST, Udyam, etc.)
               </p>
             </div>
             <div className="flex flex-col items-start gap-4 w-full">
@@ -517,15 +518,6 @@ const ComplianceCredentialsForm = ({
                   )}
                 </div>
               )}
-              <div className="text-sm text-gray-500 flex ">
-                <div className="">
-                  <p>
-                    Business license, registration certificate, or other legal
-                    document
-                  </p>
-                  <p>(JPEG, PNG, GIF, WEBP, max 5MB)</p>
-                </div>
-              </div>
             </div>
 
             {uploadProgress["businessRegistration"] !== undefined && (
@@ -551,8 +543,8 @@ const ComplianceCredentialsForm = ({
 
           {/* Certification Types - Using MultiSelectDropdown */}
           <MultiSelectDropdown
-            label="Certification Types"
-            placeholder="Select certifications your business has obtained"
+            label="Showcase industry-standard certifications to boost buyer confidence"
+            placeholder="Select Certifications Held"
             options={certificationOptions}
             selectedValues={
               formState.otherCertSelected
@@ -575,9 +567,9 @@ const ComplianceCredentialsForm = ({
               <label className="text-sm font-medium flex items-center gap-1">
                 Certification Documents (Optional)
               </label>
-              <p className="text-sm font-futura italic">
+              {/* <p className="text-sm font-futura italic">
                 Upload documents proving your certifications
-              </p>
+              </p> */}
             </div>
             <div className="grid grid-cols-3 gap-3">
               {/* Existing certifications */}
@@ -710,10 +702,11 @@ const ComplianceCredentialsForm = ({
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center gap-1">
-                Notable Clients (Optional)
+                Notable Clients or Collaborations
               </label>
               <p className="text-sm font-futura italic">
-                List your most significant clients or brands you've worked with
+                List any well-known brands or partners you’ve worked with. This
+                helps build credibility.
               </p>
             </div>
             <Textarea
@@ -736,7 +729,7 @@ const ComplianceCredentialsForm = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center gap-1">
-                Client Logos (Optional)
+                Client Logos
               </label>
               <p className="text-sm font-futura italic">
                 Upload logos of your notable clients (with permission)

@@ -335,11 +335,16 @@ const BrandPresenceForm = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center  ">
-                Project/Product Images
-                <span className="text-red-500 ml-0.5">*</span>
+                <p>
+                  Project/Product Images
+                  <span className="text-red-500 ml-0.5">*</span>
+                </p>
               </label>
               <p className="text-sm font-futura italic">
-                Upload images of your products or completed projects
+                Upload at least 2 high-quality images showcasing your past
+                projects or products. These images should highlight your
+                capabilities and the quality of your work. (JPEG, PNG, GIF,
+                WEBP, max 5MB each)
               </p>
             </div>
             <div className="grid grid-cols-3 gap-3">
@@ -445,21 +450,18 @@ const BrandPresenceForm = ({
                 <span>{errors.projectImages}</span>
               </div>
             )}
-
-            <p className="text-xs text-gray-500">
-              Upload at least 2 images of your products or completed projects
-              (JPEG, PNG, GIF, WEBP, max 5MB each)
-            </p>
           </div>
 
           {/* Brand Video */}
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center gap-1">
-                Brand/Product Video (Optional)
+                Brand/Product Video
               </label>
               <p className="text-sm font-futura italic">
-                Upload a video showcasing your brand or products
+                Share a short video that introduces your brand, your values, and
+                what makes you unique. This video can help buyers get to know
+                your company better.
               </p>
             </div>
             <div className="flex items-start gap-4">
@@ -529,10 +531,6 @@ const BrandPresenceForm = ({
                 </div>
               )}
               <div className="text-sm text-gray-500">
-                <p>
-                  Upload a short video showcasing your brand, products, or
-                  manufacturing process
-                </p>
                 <p>Max size: 50MB</p>
                 <p>Formats: MP4, MOV, AVI</p>
                 <p>Recommended length: 30-90 seconds</p>
@@ -566,7 +564,7 @@ const BrandPresenceForm = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center gap-1">
-                Social Media Links (Optional)
+                Social Media Links
               </label>
               <p className="text-sm font-futura italic">
                 Connect with your audience and show your brand's online presence
@@ -598,28 +596,6 @@ const BrandPresenceForm = ({
 
               <div className="space-y-1">
                 <div className="flex items-center space-x-2">
-                  <Linkedin className="h-5 w-5 text-[#a11770]" />
-                  <Input
-                    placeholder="https://linkedin.com/company/yourbrand"
-                    value={socialMedia.linkedin}
-                    onChange={(e) =>
-                      handleSocialMediaChange("linkedin", e.target.value)
-                    }
-                    className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
-                      errors.linkedin ? "border-red-500" : ""
-                    }`}
-                  />
-                </div>
-                {errors.linkedin && (
-                  <div className="flex items-center gap-1 text-red-500 text-sm">
-                    <AlertCircle className="h-4 w-4" />
-                    <span>{errors.linkedin}</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex items-center space-x-2">
                   <Globe className="h-5 w-5 text-[#a11770]" />
                   <Input
                     placeholder="https://yourbrand.com"
@@ -639,6 +615,28 @@ const BrandPresenceForm = ({
                   </div>
                 )}
               </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center space-x-2">
+                  <Linkedin className="h-5 w-5 text-[#a11770]" />
+                  <Input
+                    placeholder="https://linkedin.com/company/yourbrand"
+                    value={socialMedia.linkedin}
+                    onChange={(e) =>
+                      handleSocialMediaChange("linkedin", e.target.value)
+                    }
+                    className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
+                      errors.linkedin ? "border-red-500" : ""
+                    }`}
+                  />
+                </div>
+                {errors.linkedin && (
+                  <div className="flex items-center gap-1 text-red-500 text-sm">
+                    <AlertCircle className="h-4 w-4" />
+                    <span>{errors.linkedin}</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -646,14 +644,15 @@ const BrandPresenceForm = ({
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-sm font-medium flex items-center gap-1">
-                Additional Notes (Optional)
+                Additional Preferences/Notes
               </label>
               <p className="text-sm font-futura italic">
-                Add any other information you'd like buyers to know
+                Is there anything else you’d like buyers to know about your
+                brand, products, or services?
               </p>
             </div>
             <Textarea
-              placeholder="Share any additional information about your brand, products, or services that would be valuable for potential buyers"
+              placeholder="Enter Notes Here"
               value={formState.additionalNotes || ""}
               onChange={(e) => {
                 onChange({

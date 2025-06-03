@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { X, Plus } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+
 
 export type MultiSelectDropdownProps = {
   label: string;
@@ -20,6 +21,7 @@ export type MultiSelectDropdownProps = {
   customValues?: string[];
   onCustomValuesChange?: (values: string[]) => void;
   className?: string;
+  description?: string;
 };
 
 const MultiSelectDropdown = ({
@@ -36,6 +38,7 @@ const MultiSelectDropdown = ({
   customValues = [],
   onCustomValuesChange,
   className = "",
+  description: description,
 }: MultiSelectDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newCustomValue, setNewCustomValue] = useState("");
@@ -107,6 +110,9 @@ const MultiSelectDropdown = ({
         {label}
         {isRequired && <span className="text-[#EA3D4F]">*</span>}
       </Label>
+      {description && (
+        <p className="text-sm font-futura italic">{description}</p>
+      )}
 
       <div className="relative" ref={dropdownRef}>
         <Button

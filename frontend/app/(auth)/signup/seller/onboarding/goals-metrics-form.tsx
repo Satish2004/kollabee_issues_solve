@@ -1,5 +1,6 @@
 "use client";
 
+import Star from "./Star";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft } from "lucide-react";
@@ -106,7 +107,8 @@ export function GoalsMetricsForm({
       <div className="space-y-8">
         <div className="">
           <h3 className="font-bold">
-            1. What are your main goals on KollaBee? (Choose up to 3)
+            1. What are your main goals on KollaBee?
+            <Star /> (Choose up to 3)
           </h3>
           <p className="text-sm font-futura italic">
             Select up to 3 goals that best reflect what you're hoping to achieve
@@ -137,9 +139,8 @@ export function GoalsMetricsForm({
 
         <div className="">
           <h3 className="font-bold">
-            2. What Challenges Are You Looking to Overcome? (Select all that
-            apply)
-            <span className="text-destructive text-red-500">*</span>
+            2. What Challenges Are You Looking to Overcome?
+            <Star /> (Select all that apply)
           </h3>
           <p className="text-sm font-futura italic">
             Select the most relevant challenges you face in your current
@@ -166,8 +167,8 @@ export function GoalsMetricsForm({
 
         <div className="">
           <h3 className="font-bold">
-            3. What Success Metrics Matter Most to You? (Select your top 3)
-            <span className="text-destructive text-red-500">*</span>
+            3. What Success Metrics Matter Most to You?
+            <Star /> (Select your top 3)
           </h3>
           <p className="text-sm font-futura italic">
             Select the metrics you value the most to evaluate your success on
