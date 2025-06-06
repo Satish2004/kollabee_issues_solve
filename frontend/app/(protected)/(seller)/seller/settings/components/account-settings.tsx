@@ -360,7 +360,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                     >
                       {formData.imageUrl ? "Change" : "Upload"}
                     </span>
-                    <input
+                    <input title="Upload Image"
                       type="file"
                       className="hidden"
                       ref={fileInputRef}
