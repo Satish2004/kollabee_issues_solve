@@ -16,11 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const KollaBeeProfile = () => {
-  // Get steps and sections
   const { steps, sections } = useProfileSections();
-  const searchParams = useSearchParams();
-
-  // Profile data management
   const {
     profileData,
     setProfileData,
@@ -30,7 +26,6 @@ const KollaBeeProfile = () => {
     loadProfileCompletion,
   } = useProfileData();
 
-  // Form state management
   const [sectionLoading, setSectionLoading] = useState<string | null>(null);
   const {
     formStates,
@@ -44,11 +39,9 @@ const KollaBeeProfile = () => {
     setSectionLoading: (value) => setSectionLoading(value),
   });
 
-  // File management
   const { uploadProgress, isUploading, handleFileUpload, handleDeleteFile } =
     useFileManagement();
 
-  // Step navigation with URL query parameter support
   const {
     activeStep,
     setActiveStep,
@@ -147,18 +140,12 @@ const KollaBeeProfile = () => {
           </div>
         </div>
 
-        {/* Main content */}
         <div className="flex-1 flex flex-col md:flex-row">
-          {/* Main content area */}
           <div className="flex-1">
-            {/* Profile completion and updates */}
-            {/* The w-full and bg-white for the stepper's original container might be redundant now or need adjustment */}
-            {/* Content */}
             <div className="bg-white">
               {" "}
               <div className="md:col-span-2 p-4 md:p-6">
                 {" "}
-                {/* Added padding for content below sticky header */}
                 <ProfileFormContent
                   activeStep={activeStep}
                   steps={steps}

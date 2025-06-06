@@ -266,7 +266,7 @@ export const ProfileFormContent = ({
       </div>
 
       {/* Form content */}
-      <div className="p-6 max-h-[400px] overflow-y-auto relative">
+      <div className="p-6  relative">
         {renderStepContent()}
       </div>
 

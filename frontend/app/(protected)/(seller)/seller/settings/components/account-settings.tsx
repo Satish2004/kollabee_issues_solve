@@ -387,7 +387,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                 </label>
                 <input
                   type="text"
-                  disabled={true}
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleInputChangeWithValidation}
@@ -412,7 +411,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                   <Star />
                 </label>
                 <input
-                  disabled={true}
                   type="text"
                   name="lastName"
                   value={formData.lastName}
@@ -458,7 +456,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
               <input
                 type="text"
                 name="address"
-                disabled={true}
                 value={formData.address || ""}
                 onChange={handleInputChange}
                 placeholder="Create your Office Address"
