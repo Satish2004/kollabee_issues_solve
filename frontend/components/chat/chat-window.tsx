@@ -1,8 +1,25 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef, useEffect } from "react";
+import BlockedCommunicationNotice from "./blocked-communication-notice";
+import MediaViewer from "./media-viewer";
+import { useRecentEmojis } from "./recent-emojis";
+import type { Message, User as UserType, Conversation } from "./types/chat";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
+import Spinner from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { chatApi } from "@/lib/api/chat";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 import {
   Paperclip,
   Smile,
@@ -17,26 +34,8 @@ import {
   ExternalLink,
   Upload,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import type { Message, User as UserType, Conversation } from "./types/chat";
-import Spinner from "@/components/ui/spinner";
-import { useToast } from "@/hooks/use-toast";
-import { chatApi } from "@/lib/api/chat";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import BlockedCommunicationNotice from "./blocked-communication-notice";
-import { useRecentEmojis } from "./recent-emojis";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MediaViewer from "./media-viewer";
-import { Progress } from "@/components/ui/progress";
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface ChatWindowProps {
   messages: Message[];
@@ -184,7 +183,8 @@ export default function ChatWindow({
     return false;
   };
 
-  // Render empty state if no conversation is selected
+  // --- MAIN RENDER ---
+  // Layout: header (fixed), scrollable messages, footer (fixed)
   if (!activeConversationId) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-6 bg-white">
@@ -200,642 +200,62 @@ export default function ChatWindow({
     );
   }
 
-  // Render loading state
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <Spinner size="lg" />
-        <p className="mt-2 text-gray-500">Loading conversation...</p>
-      </div>
-    );
-  }
-
-  // Render blocked communication notice
-  if (isBlocked && conversation) {
-    return (
-      <div className="flex-1 flex flex-col h-[480px] bg-white">
-        {/* Conversation Header */}
-        <div className="p-4 border-b flex justify-between items-center">
-          <div className="flex items-center">
-            <Avatar className="mr-2">
-              {conversation?.participantAvatar ? (
-                <AvatarImage
-                  src={conversation.participantAvatar || "/placeholder.svg"}
-                  alt={conversation?.participantName || ""}
-                />
-              ) : (
-                <AvatarFallback>
-                  <User className="h-6 w-6" />
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div>
-              <h3 className="font-medium">
-                {conversation?.participantName || "Chat"}
-              </h3>
-              <div className="flex items-center text-xs text-gray-500">
-                {conversation?.isOnline ? (
-                  <span className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
-                    Online
-                  </span>
-                ) : (
-                  <span>Offline</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Blocked Notice */}
-        <div className="flex-1 flex items-center justify-center">
-          <BlockedCommunicationNotice
-            participantName={conversation.participantName}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  if (
-    conversation?.status === "PENDING" &&
-    conversation?.initiatedBy !== currentUser?.id
-  ) {
-    return (
-      <div className="flex-1 flex flex-col h-full bg-white">
-        {/* Conversation Header */}
-        <div className="p-4 border-b flex justify-between items-center">
-          <div className="flex items-center">
-            <Avatar className="mr-2">
-              {conversation?.participantAvatar ? (
-                <AvatarImage
-                  src={conversation.participantAvatar || "/placeholder.svg"}
-                  alt={conversation?.participantName || ""}
-                />
-              ) : (
-                <AvatarFallback>
-                  <User className="h-6 w-6" />
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <div>
-              <h3 className="font-medium">
-                {conversation?.participantName || "Chat"}
-              </h3>
-              <div className="flex items-center text-xs text-gray-500">
-                {conversation?.isOnline ? (
-                  <span className="flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
-                    Online
-                  </span>
-                ) : (
-                  <span>Offline</span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Messages */}
-        <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-180px)]">
-          {messages.length > 0 ? (
-            <>
-              {/* Group messages by date */}
-              {groupMessagesByDate(messages).map(([date, dateMessages]) => (
-                <div key={date}>
-                  <div className="text-center text-xs text-gray-500 my-2">
-                    {date}
-                  </div>
-
-                  {dateMessages.map((message) => (
-                    <div
-                      key={message.id}
-                      className={`mb-4 flex ${
-                        message.senderId === currentUser?.id
-                          ? "justify-end"
-                          : "justify-start"
-                      }`}
-                    >
-                      <div
-                        className={`max-w-xs lg:max-w-md ${
-                          message.senderId === currentUser?.id
-                            ? "order-2"
-                            : "order-1"
-                        }`}
-                      >
-                        <div className="flex items-end">
-                          {message.senderId !== currentUser?.id && (
-                            <Avatar className="w-6 h-6 rounded-full mr-2 mb-1">
-                              {conversation?.participantAvatar ? (
-                                <AvatarImage
-                                  src={
-                                    conversation.participantAvatar ||
-                                    "/placeholder.svg" ||
-                                    "/placeholder.svg" ||
-                                    "/placeholder.svg"
-                                  }
-                                  alt={conversation?.participantName || ""}
-                                />
-                              ) : (
-                                <AvatarFallback>
-                                  <User className="h-4 w-4" />
-                                </AvatarFallback>
-                              )}
-                            </Avatar>
-                          )}
-
-                          <div>
-                            <div
-                              className={`px-4 py-2 rounded-lg ${
-                                message.senderId === currentUser?.id
-                                  ? "bg-primary text-primary-foreground"
-                                  : "bg-gray-100"
-                              }`}
-                            >
-                              {message.content && <p>{message.content}</p>}
-
-                              {message.attachments &&
-                                message.attachments.length > 0 && (
-                                  <div className="mt-2 space-y-2">
-                                    {message.attachments.map((url, index) => {
-                                      const fileExt = url
-                                        .split(".")
-                                        .pop()
-                                        ?.toLowerCase();
-                                      const isImage = [
-                                        "jpg",
-                                        "jpeg",
-                                        "png",
-                                        "gif",
-                                        "webp",
-                                      ].includes(fileExt || "");
-                                      const isVideo = [
-                                        "mp4",
-                                        "webm",
-                                        "ogg",
-                                      ].includes(fileExt || "");
-
-                                      // Check if this attachment is still uploading
-                                      const isUploading =
-                                        message.uploadProgress &&
-                                        message.uploadProgress[url] !==
-                                          undefined &&
-                                        message.uploadProgress[url] < 100;
-                                      const uploadProgress =
-                                        message.uploadProgress?.[url] || 0;
-
-                                      if (isImage) {
-                                        return (
-                                          <div
-                                            key={index}
-                                            className="relative rounded-lg overflow-hidden group"
-                                          >
-                                            <img
-                                              src={url || "/placeholder.svg"}
-                                              alt="Attachment"
-                                              className="max-w-full h-auto max-h-40 rounded-lg cursor-pointer"
-                                              onClick={() =>
-                                                !isUploading &&
-                                                openMediaViewer(
-                                                  message.attachments,
-                                                  index
-                                                )
-                                              }
-                                            />
-                                            {isUploading && (
-                                              <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center">
-                                                <Upload className="h-6 w-6 text-white mb-2" />
-                                                <div className="w-3/4">
-                                                  <Progress
-                                                    value={uploadProgress}
-                                                    className="h-2"
-                                                  />
-                                                </div>
-                                                <p className="text-white text-xs mt-1">
-                                                  {Math.round(uploadProgress)}%
-                                                </p>
-                                              </div>
-                                            )}
-                                            {!isUploading && (
-                                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                                <Button
-                                                  size="icon"
-                                                  variant="secondary"
-                                                  className="h-8 w-8 bg-black/50 hover:bg-black/70 text-white rounded-full"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    window.open(url, "_blank");
-                                                  }}
-                                                >
-                                                  <Maximize2 className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                  size="icon"
-                                                  variant="secondary"
-                                                  className="h-8 w-8 bg-black/50 hover:bg-black/70 text-white rounded-full"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const downloadFile =
-                                                      async () => {
-                                                        try {
-                                                          const response =
-                                                            await fetch(url);
-                                                          if (!response.ok)
-                                                            throw new Error(
-                                                              "Download failed"
-                                                            );
-                                                          const blob =
-                                                            await response.blob();
-                                                          const blobUrl =
-                                                            URL.createObjectURL(
-                                                              blob
-                                                            );
-                                                          const a =
-                                                            document.createElement(
-                                                              "a"
-                                                            );
-                                                          a.href = blobUrl;
-                                                          a.download =
-                                                            url
-                                                              .split("/")
-                                                              .pop() || "image";
-                                                          document.body.appendChild(
-                                                            a
-                                                          );
-                                                          a.click();
-                                                          document.body.removeChild(
-                                                            a
-                                                          );
-                                                          setTimeout(
-                                                            () =>
-                                                              URL.revokeObjectURL(
-                                                                blobUrl
-                                                              ),
-                                                            100
-                                                          );
-                                                        } catch (error) {
-                                                          console.error(
-                                                            "Download error:",
-                                                            error
-                                                          );
-                                                          toast({
-                                                            title:
-                                                              "Download failed",
-                                                            description:
-                                                              "Failed to download image",
-                                                            variant:
-                                                              "destructive",
-                                                          });
-                                                        }
-                                                      };
-                                                    downloadFile();
-                                                  }}
-                                                >
-                                                  <Download className="h-4 w-4" />
-                                                </Button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      } else if (isVideo) {
-                                        return (
-                                          <div
-                                            key={index}
-                                            className="relative rounded-lg overflow-hidden group"
-                                          >
-                                            <video
-                                              src={url}
-                                              controls={!isUploading}
-                                              className="max-w-full h-auto max-h-40 rounded-lg cursor-pointer"
-                                              onClick={() =>
-                                                !isUploading &&
-                                                openMediaViewer(
-                                                  message.attachments,
-                                                  index
-                                                )
-                                              }
-                                            />
-                                            {isUploading && (
-                                              <div className="absolute inset-0 bg-black/30 flex flex-col items-center justify-center">
-                                                <Upload className="h-6 w-6 text-white mb-2" />
-                                                <div className="w-3/4">
-                                                  <Progress
-                                                    value={uploadProgress}
-                                                    className="h-2"
-                                                  />
-                                                </div>
-                                                <p className="text-white text-xs mt-1">
-                                                  {Math.round(uploadProgress)}%
-                                                </p>
-                                              </div>
-                                            )}
-                                            {!isUploading && (
-                                              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                                <Button
-                                                  size="icon"
-                                                  variant="secondary"
-                                                  className="h-8 w-8 bg-black/50 hover:bg-black/70 text-white rounded-full"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    window.open(url, "_blank");
-                                                  }}
-                                                >
-                                                  <Maximize2 className="h-4 w-4" />
-                                                </Button>
-                                                <Button
-                                                  size="icon"
-                                                  variant="secondary"
-                                                  className="h-8 w-8 bg-black/50 hover:bg-black/70 text-white rounded-full"
-                                                  onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    const downloadFile =
-                                                      async () => {
-                                                        try {
-                                                          const response =
-                                                            await fetch(url);
-                                                          if (!response.ok)
-                                                            throw new Error(
-                                                              "Download failed"
-                                                            );
-                                                          const blob =
-                                                            await response.blob();
-                                                          const blobUrl =
-                                                            URL.createObjectURL(
-                                                              blob
-                                                            );
-                                                          const a =
-                                                            document.createElement(
-                                                              "a"
-                                                            );
-                                                          a.href = blobUrl;
-                                                          a.download =
-                                                            url
-                                                              .split("/")
-                                                              .pop() || "video";
-                                                          document.body.appendChild(
-                                                            a
-                                                          );
-                                                          a.click();
-                                                          document.body.removeChild(
-                                                            a
-                                                          );
-                                                          setTimeout(
-                                                            () =>
-                                                              URL.revokeObjectURL(
-                                                                blobUrl
-                                                              ),
-                                                            100
-                                                          );
-                                                        } catch (error) {
-                                                          console.error(
-                                                            "Download error:",
-                                                            error
-                                                          );
-                                                          toast({
-                                                            title:
-                                                              "Download failed",
-                                                            description:
-                                                              "Failed to download video",
-                                                            variant:
-                                                              "destructive",
-                                                          });
-                                                        }
-                                                      };
-                                                    downloadFile();
-                                                  }}
-                                                >
-                                                  <Download className="h-4 w-4" />
-                                                </Button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      } else {
-                                        return (
-                                          <div
-                                            key={index}
-                                            className="flex items-center p-2 bg-gray-200 rounded group"
-                                          >
-                                            <Paperclip className="h-4 w-4 mr-2" />
-                                            <span className="truncate flex-1">
-                                              {url.split("/").pop() || "file"}
-                                            </span>
-                                            {isUploading ? (
-                                              <div className="flex items-center gap-2">
-                                                <div className="w-16">
-                                                  <Progress
-                                                    value={uploadProgress}
-                                                    className="h-2"
-                                                  />
-                                                </div>
-                                                <span className="text-xs">
-                                                  {Math.round(uploadProgress)}%
-                                                </span>
-                                              </div>
-                                            ) : (
-                                              <div className="flex gap-1 ml-2">
-                                                <Button
-                                                  size="icon"
-                                                  variant="ghost"
-                                                  className="h-6 w-6 hover:bg-gray-300"
-                                                  onClick={() =>
-                                                    window.open(url, "_blank")
-                                                  }
-                                                >
-                                                  <ExternalLink className="h-3 w-3" />
-                                                </Button>
-                                                <Button
-                                                  size="icon"
-                                                  variant="ghost"
-                                                  className="h-6 w-6 hover:bg-gray-300"
-                                                  onClick={() => {
-                                                    const downloadFile =
-                                                      async () => {
-                                                        try {
-                                                          const response =
-                                                            await fetch(url);
-                                                          if (!response.ok)
-                                                            throw new Error(
-                                                              "Download failed"
-                                                            );
-                                                          const blob =
-                                                            await response.blob();
-                                                          const blobUrl =
-                                                            URL.createObjectURL(
-                                                              blob
-                                                            );
-                                                          const a =
-                                                            document.createElement(
-                                                              "a"
-                                                            );
-                                                          a.href = blobUrl;
-                                                          a.download =
-                                                            url
-                                                              .split("/")
-                                                              .pop() || "file";
-                                                          document.body.appendChild(
-                                                            a
-                                                          );
-                                                          a.click();
-                                                          document.body.removeChild(
-                                                            a
-                                                          );
-                                                          setTimeout(
-                                                            () =>
-                                                              URL.revokeObjectURL(
-                                                                blobUrl
-                                                              ),
-                                                            100
-                                                          );
-                                                        } catch (error) {
-                                                          console.error(
-                                                            "Download error:",
-                                                            error
-                                                          );
-                                                          toast({
-                                                            title:
-                                                              "Download failed",
-                                                            description:
-                                                              "Failed to download file",
-                                                            variant:
-                                                              "destructive",
-                                                          });
-                                                        }
-                                                      };
-                                                    downloadFile();
-                                                  }}
-                                                >
-                                                  <Download className="h-3 w-3" />
-                                                </Button>
-                                              </div>
-                                            )}
-                                          </div>
-                                        );
-                                      }
-                                    })}
-                                  </div>
-                                )}
-                            </div>
-
-                            <div
-                              className={`text-xs text-gray-500 mt-1 flex items-center ${
-                                message.senderId === currentUser?.id
-                                  ? "justify-end"
-                                  : "justify-start"
-                              }`}
-                            >
-                              {formatTime(message.createdAt)}
-                              {message.senderId === currentUser?.id && (
-                                <span className="ml-1">
-                                  {message.status === "pending"
-                                    ? "⌛"
-                                    : message.status === "sent"
-                                    ? "✓"
-                                    : message.status === "delivered"
-                                    ? "✓✓"
-                                    : "✓✓"}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full">
-              <p className="text-gray-500">No messages in this request</p>
-            </div>
-          )}
-
-          {/* Message Request Action Buttons */}
-          <div className="mt-4">
-            <Alert className="max-w-md mx-auto">
-              <Clock className="h-4 w-4 mr-2" />
-              <AlertDescription>
-                <div className="text-center">
-                  <p className="font-medium mb-2">Message Request</p>
-                  <p className="text-sm mb-4">
-                    {conversation?.participantName} wants to start a
-                    conversation with you.
-                  </p>
-                  <div className="flex justify-center space-x-2">
-                    <Button variant="outline" onClick={handleDeclineRequest}>
-                      Decline
-                    </Button>
-                    <Button onClick={handleAcceptRequest}>Accept</Button>
-                  </div>
-                </div>
-              </AlertDescription>
-            </Alert>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex-1 flex flex-col h-screen bg-white">
-      {/* Conversation Header */}
-      <div className="p-4 border-b flex justify-between items-center">
-        <div className="flex items-center">
-          <Avatar className="mr-2">
-            {conversation?.participantAvatar ? (
-              <AvatarImage
-                src={conversation.participantAvatar || "/placeholder.svg"}
-                alt={conversation?.participantName || ""}
-              />
+    <div className="flex flex-col h-full min-h-0 bg-white relative">
+      {/* Header (fixed) */}
+      <div className="flex-shrink-0 sticky top-0 z-10 bg-white border-b px-4 py-3 flex items-center gap-3">
+        <Avatar className="w-10 h-10">
+          {conversation?.participantAvatar ? (
+            <AvatarImage
+              src={conversation.participantAvatar || "/placeholder.svg"}
+              alt={conversation?.participantName || ""}
+            />
+          ) : (
+            <AvatarFallback>
+              <User className="h-6 w-6" />
+            </AvatarFallback>
+          )}
+        </Avatar>
+        <div>
+          <div className="font-medium text-base">
+            {conversation?.participantName || "Chat"}
+          </div>
+          <div className="flex items-center text-xs text-gray-500">
+            {conversation?.isOnline ? (
+              <span className="flex items-center">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></span>
+                Online
+              </span>
             ) : (
-              <AvatarFallback className="bg-neutral-200">
-                <User className="h-6 w-6" />
-              </AvatarFallback>
+              <span>Offline</span>
             )}
-          </Avatar>
-          <div>
-            <h3 className="font-medium">
-              {conversation?.participantName || "Chat"}
-            </h3>
-            <div className="flex items-center text-xs text-gray-500">
-              {conversation?.isOnline ? (
-                <div className="flex items-center space-x-1 bg-green-100 px-2 rounded-xl py-0.5">
-                  <div className="h-1.5 w-1.5 bg-green-500 rounded-full"></div>
-                  <span className="text-green-600">Online</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-1 bg-neutral-100 px-2 rounded-xl py-0.5">
-                  <div className="h-1.5 w-1.5 bg-neutral-500 rounded-full"></div>
-                  <span className="text-neutral-500">Offline</span>
-                </div>
-              )}
-            </div>
           </div>
         </div>
-
-        {/* <Button variant="outline" size="sm">
-          <Phone className="h-4 w-4 mr-1" />
-          Call
-        </Button> */}
       </div>
 
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-180px)]">
-        {messages.length > 0 ? (
+      {/* Scrollable message area */}
+      <div
+        className="flex-1 min-h-0 overflow-y-auto px-2 py-4"
+        style={{ background: "#fafbfc" }}
+      >
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full">
+            <Spinner size="lg" />
+            <span className="mt-2 text-gray-500 text-sm">
+              Loading messages...
+            </span>
+          </div>
+        ) : messages.length > 0 ? (
           <>
-            {/* Group messages by date */}
             {groupMessagesByDate(messages).map(([date, dateMessages]) => (
               <div key={date}>
                 <div className="text-center text-xs text-gray-500 my-2">
                   {date}
                 </div>
-
                 {dateMessages.map((message) => (
                   <div
                     key={message.id}
-                    className={`mb-2 flex ${
+                    className={`mb-4 flex ${
                       message.senderId === currentUser?.id
                         ? "justify-end"
                         : "justify-start"
@@ -906,12 +326,11 @@ export default function ChatWindow({
 
                                     // Check if this attachment is still uploading
                                     const isUploading =
-                                      message.uploadProgress &&
-                                      message.uploadProgress[url] !==
-                                        undefined &&
-                                      message.uploadProgress[url] < 100;
-                                    const uploadProgress =
-                                      message.uploadProgress?.[url] || 0;
+                                      getUploadProgress(message, url) < 100;
+                                    const uploadProgress = getUploadProgress(
+                                      message,
+                                      url
+                                    );
 
                                     if (isImage) {
                                       return (
@@ -926,7 +345,7 @@ export default function ChatWindow({
                                             onClick={() =>
                                               !isUploading &&
                                               openMediaViewer(
-                                                message.attachments,
+                                                message.attachments || [],
                                                 index
                                               )
                                             }
@@ -1039,7 +458,7 @@ export default function ChatWindow({
                                             onClick={() =>
                                               !isUploading &&
                                               openMediaViewer(
-                                                message.attachments,
+                                                message.attachments || [],
                                                 index
                                               )
                                             }
@@ -1287,130 +706,134 @@ export default function ChatWindow({
         )}
       </div>
 
-      {/* File Preview Area */}
-      {attachments.length > 0 && (
-        <div className="p-2 border-t border-gray-200 flex gap-2 overflow-x-auto">
-          {previewUrls.map((url, index) => {
-            const file = attachments[index];
-            const isImage = file.type.startsWith("image/");
-            const isVideo = file.type.startsWith("video/");
+      {/* Footer (fixed) */}
+      <div className="flex-shrink-0 sticky bottom-0 z-10 bg-white border-t px-4 py-3">
+        {/* File Preview Area */}
+        {attachments.length > 0 && (
+          <div className="p-2 border-t border-gray-200 flex gap-2 overflow-x-auto">
+            {previewUrls.map((url, index) => {
+              const file = attachments[index];
+              const isImage = file.type.startsWith("image/");
+              const isVideo = file.type.startsWith("video/");
 
-            return (
-              <div
-                key={index}
-                className="relative group h-16 min-w-16 rounded overflow-hidden border"
-              >
-                {isImage ? (
-                  <img
-                    src={url || "/placeholder.svg"}
-                    alt="Preview"
-                    className="h-full w-full object-cover"
-                  />
-                ) : isVideo ? (
-                  <video src={url} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center bg-gray-100">
-                    <Paperclip className="h-5 w-5 text-gray-400" />
-                  </div>
-                )}
-                <button
-                  className="absolute top-0 right-0 bg-black bg-opacity-50 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
-                  onClick={() => removeAttachment(index)}
+              return (
+                <div
+                  key={index}
+                  className="relative group h-16 min-w-16 rounded overflow-hidden border"
                 >
-                  ×
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Message Input */}
-      {canSendMessages() ? (
-        <div className="m-4 rounded-xl bg-gray-100 pb-3 px-3 pt-2">
-          <form
-            onSubmit={handleSubmit}
-            className="flex flex-col items-end gap-2"
-          >
-            <input
-              type="file"
-              ref={fileInputRef}
-              multiple
-              onChange={handleFileChange}
-              className="hidden"
-            />
-
-            <div className="w-full relative">
-              <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                onClick={() => fileInputRef.current?.click()}
-                className="absolute"
-              >
-                <Paperclip className="h-5 w-5" />
-              </Button>
-
-              <Input
-                value={messageInput}
-                onChange={(e) => setMessageInput(e.target.value)}
-                placeholder="Send a message..."
-                className="flex-1 pl-10 border-none text-wrap shadow-none"
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    className="bg-white p-1 rounded-full"
+                  {isImage ? (
+                    <img
+                      src={url || "/placeholder.svg"}
+                      alt="Preview"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : isVideo ? (
+                    <video src={url} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center bg-gray-100">
+                      <Paperclip className="h-5 w-5 text-gray-400" />
+                    </div>
+                  )}
+                  <button
+                    className="absolute top-0 right-0 bg-black bg-opacity-50 text-white rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100"
+                    onClick={() => removeAttachment(index)}
                   >
-                    <Smile className="h-6 w-6 text-neutral-500" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Tabs defaultValue="all">
-                    <TabsList className="grid grid-cols-3">
-                      <TabsTrigger value="full">All</TabsTrigger>
-                    </TabsList>
+                    ×
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
-                    <TabsContent value="full">
-                      <Picker data={data} onEmojiSelect={handleEmojiSelect} />
-                    </TabsContent>
-                  </Tabs>
-                </PopoverContent>
-              </Popover>
+        {/* Message Input */}
+        {canSendMessages() ? (
+          <div className="m-4 rounded-xl bg-gray-100 pb-3 px-3 pt-2">
+            <form
+              onSubmit={handleSubmit}
+              className="flex flex-col items-end gap-2"
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+              />
 
-              <Button
-                type="submit"
-                className="border-none shadow-none text-white bg-[#ea3d4f] hover:bg-[#ea3d4f]/90"
-              >
-                Send
-                <SendHorizonal className="h-5 w-5" />
-              </Button>
+              <div className="w-full relative">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute"
+                >
+                  <Paperclip className="h-5 w-5" />
+                </Button>
+
+                <Input
+                  value={messageInput}
+                  onChange={(e) => setMessageInput(e.target.value)}
+                  placeholder="Send a message..."
+                  className="flex-1 pl-10 border-none text-wrap shadow-none"
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      className="bg-white p-1 rounded-full"
+                    >
+                      <Smile className="h-6 w-6 text-neutral-500" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Tabs defaultValue="all">
+                      <TabsList className="grid grid-cols-3">
+                        <TabsTrigger value="full">All</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="full">
+                        <Picker data={data} onEmojiSelect={handleEmojiSelect} />
+                      </TabsContent>
+                    </Tabs>
+                  </PopoverContent>
+                </Popover>
+
+                <Button
+                  type="submit"
+                  className="border-none shadow-none text-white bg-[#ea3d4f] hover:bg-[#ea3d4f]/90"
+                >
+                  Send
+                  <SendHorizonal className="h-5 w-5" />
+                </Button>
+              </div>
+            </form>
+          </div>
+        ) : conversation?.status === "PENDING" &&
+          conversation?.initiatedBy === currentUser?.id ? (
+          <div className="p-4 border-t bg-gray-50">
+            <div className="text-center text-sm text-gray-500">
+              <Clock className="h-4 w-4 inline mr-1" />
+              Waiting for {conversation?.participantName} to accept your message
+              request
             </div>
-          </form>
-        </div>
-      ) : conversation?.status === "PENDING" &&
-        conversation?.initiatedBy === currentUser?.id ? (
-        <div className="p-4 border-t bg-gray-50">
-          <div className="text-center text-sm text-gray-500">
-            <Clock className="h-4 w-4 inline mr-1" />
-            Waiting for {conversation?.participantName} to accept your message
-            request
           </div>
-        </div>
-      ) : (
-        <div className="p-4 border-t bg-gray-50">
-          <div className="text-center text-sm text-gray-500">
-            <AlertCircle className="h-4 w-4 inline mr-1" />
-            You cannot send messages in this conversation
+        ) : (
+          <div className="p-4 border-t bg-gray-50">
+            <div className="text-center text-sm text-gray-500">
+              <AlertCircle className="h-4 w-4 inline mr-1" />
+              You cannot send messages in this conversation
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
+
       {/* Media Viewer */}
       <MediaViewer
         isOpen={viewerOpen}
@@ -1448,4 +871,11 @@ function groupMessagesByDate(messages: Message[]): [string, Message[]][] {
   });
 
   return Object.entries(groups);
+}
+
+// Helper to get upload progress for a message attachment (if present)
+function getUploadProgress(message: any, url: string) {
+  return message.uploadProgress && message.uploadProgress[url] !== undefined
+    ? message.uploadProgress[url]
+    : 0;
 }

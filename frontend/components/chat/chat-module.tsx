@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { io, type Socket } from "socket.io-client";
-import type { Message, Conversation, BlockedCommunication } from "./types/chat";
+import { Button } from "../ui/button";
+import Spinner from "../ui/spinner";
 import ChatWindow from "./chat-window";
 import ContactList from "./contact-list";
+import type { Message, Conversation, BlockedCommunication } from "./types/chat";
+import { useToast } from "@/hooks/use-toast";
+import { uploadApi } from "@/lib/api";
 import { authApi } from "@/lib/api/auth";
 import { chatApi } from "@/lib/api/chat";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "../ui/button";
 import Link from "next/link";
-import { uploadApi } from "@/lib/api";
+import { useState, useEffect, useRef } from "react";
+import { io, type Socket } from "socket.io-client";
 
 export default function ChatModule() {
   const [activeTab, setActiveTab] = useState<"BUYER" | "SELLER" | "ADMIN">(
@@ -511,7 +512,7 @@ export default function ChatModule() {
   }, [activeTab, user?.role, conversations, activeConversation]);
 
   return (
-    <div className="flex flex-col rounded-lg shadow-sm overflow-hidden min-h-[560px]">
+    <div className="flex flex-col h-screen min-h-screen overflow-hidden rounded-lg shadow-sm">
       <div className="flex justify-between rounded-xl px-6 py-4 bg-white mb-6 ">
         <div className="flex space-x-8">
           {availableTabs.map((tab) => (
@@ -542,50 +543,68 @@ export default function ChatModule() {
         )}
       </div>
 
-      <div className="flex-1 flex space-x-6">
+      <div className="flex-1 flex space-x-6 overflow-hidden">
+        {/* Contact List Area */}
         {!(
           activeTab === "ADMIN" &&
           (user?.role === "BUYER" || user?.role === "SELLER")
         ) && (
-          <ContactList
-            conversations={conversations.filter(
-              (c) => c.participantType === activeTab
+          <div className="w-full max-w-xs min-w-[260px] h-full flex flex-col bg-white rounded-lg overflow-hidden border-r border-gray-100">
+            {isLoading ? (
+              <div className="flex-1 flex flex-col items-center justify-center">
+                <Spinner size="lg" />
+                <span className="mt-2 text-gray-500 text-sm">
+                  Loading contacts...
+                </span>
+              </div>
+            ) : (
+              <ContactList
+                conversations={conversations.filter(
+                  (c) => c.participantType === activeTab
+                )}
+                activeConversationId={activeConversation}
+                onSelectConversation={handleConversationChange}
+                isLoading={isLoading}
+                currentUserId={user?.id || ""}
+              />
             )}
-            activeConversationId={activeConversation}
-            onSelectConversation={handleConversationChange}
-            isLoading={isLoading}
-            currentUserId={user?.id || ""}
-          />
+          </div>
         )}
 
-        <ChatWindow
-          messages={messages}
-          activeConversationId={
-            activeConversation ||
-            (!(
-              activeTab === "ADMIN" &&
-              (user?.role === "BUYER" || user?.role === "SELLER")
-            )
-              ? null
-              : conversations.filter((c) => c.participantType === activeTab)[0]
-                  ?.id || null)
-          }
-          onSendMessage={sendMessage}
-          currentUser={user}
-          isLoading={isLoading}
-          conversation={
-            conversations.find((c) => c.id === activeConversation) ||
-            (!(
-              activeTab === "ADMIN" &&
-              (user?.role === "BUYER" || user?.role === "SELLER")
-            )
-              ? undefined
-              : conversations.filter((c) => c.participantType === activeTab)[0])
-          }
-          isBlocked={blockedCommunications.some(
-            (comm) => comm.initiatorId === user?.id
-          )}
-        />
+        {/* Chat Window Area */}
+        <div className="flex-1 h-full flex flex-col bg-white rounded-lg overflow-hidden">
+          <ChatWindow
+            messages={messages}
+            activeConversationId={
+              activeConversation ||
+              (!(
+                activeTab === "ADMIN" &&
+                (user?.role === "BUYER" || user?.role === "SELLER")
+              )
+                ? null
+                : conversations.filter(
+                    (c) => c.participantType === activeTab
+                  )[0]?.id || null)
+            }
+            onSendMessage={sendMessage}
+            currentUser={user}
+            isLoading={isLoading}
+            conversation={
+              conversations.find((c) => c.id === activeConversation) ||
+              (!(
+                activeTab === "ADMIN" &&
+                (user?.role === "BUYER" || user?.role === "SELLER")
+              )
+                ? undefined
+                : conversations.filter(
+                    (c) => c.participantType === activeTab
+                  )[0])
+            }
+            isBlocked={blockedCommunications.some(
+              (comm) => comm.initiatorId === user?.id
+            )}
+          />
+        </div>
       </div>
     </div>
   );
