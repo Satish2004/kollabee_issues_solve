@@ -81,7 +81,7 @@ model Conversation {
   status        conversationStatus      @default(PENDING)
   initiatedBy   String?         
   createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @updatedAt
+  updatedAt     DateTime                @default(now())
   participants  ConversationParticipant[]
   messages      Message[]
 }
@@ -108,7 +108,7 @@ model Message {
   attachments    String[]     @default([])
   isRead         Boolean      @default(false)
   createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  updatedAt      DateTime     @default(now())
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }
@@ -120,7 +120,7 @@ model BlockedCommunication {
   reason      String?
   blockedBy   String    
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime  @default(now())
   initiator   User      @relation("initiator", fields: [initiatorId], references: [id], onDelete: Cascade)
   target      User      @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
 
@@ -140,7 +140,7 @@ model Order {
   carrier           String?
   trackingHistory   Json[]
   createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  updatedAt         DateTime         @default(now())
   buyer             Buyer?           @relation(fields: [buyerId], references: [id])
   seller            Seller?          @relation(fields: [sellerId], references: [id])
   items             OrderItem[]
@@ -262,7 +262,7 @@ model Event {
   location    String?
   type        String
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
 }
 
 model SubscriptionTransaction {
@@ -347,6 +347,21 @@ model Notification {
 // }
 
 
+model Client {
+  id          String   @id @default(uuid())
+  name        String
+  logo        String?
+  description String?
+  website     String?
+  phone       String?
+
+  sellerId    String
+  seller      Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+}
+
+
 model Seller {
   id                 String          @id @default(uuid())
   userId             String          @unique
@@ -366,7 +381,7 @@ model Seller {
   businessAttributes String[]
   
   // Capabilities & Operations (Step 5)
-  bussinessRegistration String?
+  bussinessRegistration String[]
   servicesProvided   String[]
   minimumOrderQuantity String?
   lowMoqFlexibility  Boolean?        @default(false)
@@ -378,10 +393,9 @@ model Seller {
   factoryImages      String[]
   
   // Compliance & Credentials (Step 6)
-  businessRegistration String?
+  businessRegistration String[] // changed from String? to String[]
   certificationTypes String[]
-  notableClients     String?
-  clientLogos        String[]
+  notableClients     Client[]
   certificates       String[]
   
   // Brand Presence (Step 7)
@@ -441,7 +455,7 @@ model Seller {
   agrrement2         Boolean?        @default(false)
 
   createdAt         DateTime?        @default(now())
-  updatedAt         DateTime?        @updatedAt
+  updatedAt         DateTime?        @default(now())
 
   @@index([userId])
 }
@@ -451,7 +465,7 @@ model Invite {
   id          String   @id @default(uuid())
   email       String[]  
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
   userId      String?
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -466,7 +480,7 @@ model Approved {
   sellerId     String   @unique
   seller       Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  updatedAt  DateTime @default(now())
 }
 
 model Buyer {
@@ -577,7 +591,7 @@ model Product {
   categoryId             String?
   pickupAddressId        String?
   createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
+  updatedAt              DateTime           @default(now())
   advertisements         Advertisement[]
   cartItems              CartItem[]
   productCertificates    Certification[]
@@ -618,7 +632,7 @@ model Return {
   status      ReturnStatus @default(REQUESTED)
   refundAmount Float
   createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  updatedAt   DateTime     @default(now())
 }
 
 model ReturnItem {
@@ -631,7 +645,7 @@ model ReturnItem {
   reason      String?
   refundAmount Float
   createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  updatedAt   DateTime @default(now())
 }
 
 
@@ -681,7 +695,7 @@ model Request {
   status         RequestStatus @default(PENDING)
   requestType    RequestType   @default(PRODUCT)
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  updatedAt      DateTime      @default(now())
   buyer          Buyer         @relation(fields: [buyerId], references: [id])
   seller         Seller        @relation(fields: [sellerId], references: [id])
 }
@@ -825,7 +839,7 @@ model Project {
 
   // Timestamps
   createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
+  updatedAt              DateTime   @default(now())
 }
 
 
@@ -839,7 +853,7 @@ model projectReq {
   approvedAt     DateTime?
   rejectedAt     DateTime? 
   createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  updatedAt      DateTime      @default(now())
   project        Project         @relation(fields: [projectId], references: [id])
   buyer          Buyer         @relation(fields: [buyerId], references: [id])
   seller         Seller        @relation(fields: [sellerId], references: [id])

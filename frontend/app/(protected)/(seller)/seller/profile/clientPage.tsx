@@ -119,83 +119,76 @@ const KollaBeeProfile = () => {
   };
 
   return (
-    <div className="h-[100%] overflow-hidden">
-      <div className="flex flex-col  rounded-lg">
-        <div className="relative top-0  bg-white">
-          <ProfileHeader
-            profileData={profileData}
-            setActiveStep={setActiveStep}
-            steps={steps}
-            isLoading={isLoading}
-            stepsToBeCompleted={stepsToBeCompleted}
-            approvalStatus={approvalStatus}
-            isSubmittingApproval={isSubmittingApproval}
-            requestApproval={requestApproval}
-            getPendingStepNames={getPendingStepNames}
-            visibleStepsCount={5}
-          />
-          <div className="w-full border-b">
-            <ProfileStepper
-              steps={steps}
-              activeStep={activeStep}
-              setActiveStep={setActiveStep}
-              stepperContainerRef={stepperContainerRef}
-              activeStepRef={activeStepRef}
-              warningSteps={getWarningSteps()}
-              stepsToBeCompleted={stepsToBeCompleted}
-            />
-          </div>
-        </div>
+    <div className="h-screen w-full flex flex-col bg-red-500">
+      {/* Sticky header and ProfileHeader */}
+      <div className="sticky top-0 z-40 ">
+        <ProfileHeader
+          profileData={profileData}
+          setActiveStep={setActiveStep}
+          steps={steps}
+          isLoading={isLoading}
+          stepsToBeCompleted={stepsToBeCompleted}
+          approvalStatus={approvalStatus}
+          isSubmittingApproval={isSubmittingApproval}
+          requestApproval={requestApproval}
+          getPendingStepNames={getPendingStepNames}
+          visibleStepsCount={5}
+        />
+      </div>
+      <div className="sticky top-[64px] z-30 bg-white border-b">
+        {/* Adjust top-[64px] if your header height is different */}
+        <ProfileStepper
+          steps={steps}
+          activeStep={activeStep}
+          setActiveStep={setActiveStep}
+          stepperContainerRef={stepperContainerRef}
+          activeStepRef={activeStepRef}
+          warningSteps={getWarningSteps()}
+          stepsToBeCompleted={stepsToBeCompleted}
+        />
+      </div>
 
-        {/* Main content */}
-        <div className="flex-1 flex flex-col md:flex-row">
-          {/* Main content area */}
-          <div className="flex-1">
-            {/* Profile completion and updates */}
-            {/* The w-full and bg-white for the stepper's original container might be redundant now or need adjustment */}
-            {/* Content */}
-            <div className="bg-white">
-              {" "}
-              <div className="md:col-span-2 p-4 md:p-6">
-                {" "}
-                {/* Added padding for content below sticky header */}
-                <ProfileFormContent
-                  activeStep={activeStep}
-                  steps={steps}
-                  sections={sections}
-                  formStates={formStates}
-                  sectionLoading={sectionLoading}
-                  isSaving={isSaving}
-                  isSubmittingApproval={isSubmittingApproval}
-                  handleFormChange={handleFormChange}
-                  handleEnhancedSectionUpdate={handleEnhancedSectionUpdate}
-                  hasFormChanges={hasFormChanges}
-                  handlePrevious={handlePrevious}
-                  handleNext={handleNext}
-                  onFileUpload={handleFileUpload}
-                  onDeleteFile={handleDeleteFile}
-                  onSubmitForApproval={requestApproval}
-                  pendingStepNames={getPendingStepNames()}
-                  onAddCertificate={() => setCertificateModalOpen(true)}
-                  handleRemoveCertificate={handleRemoveCertificate}
-                  uploadProgress={uploadProgress}
-                  approvalStatus={approvalStatus}
-                />
-              </div>
+      {/* Main content */}
+      <div className="flex-1 flex flex-col md:flex-row overflow-y-scroll">
+        <div className="flex-1">
+          <div className="bg-white">
+            <div className="md:col-span-2 p-4 md:p-6">
+              <ProfileFormContent
+                activeStep={activeStep}
+                steps={steps}
+                sections={sections}
+                formStates={formStates}
+                sectionLoading={sectionLoading}
+                isSaving={isSaving}
+                isSubmittingApproval={isSubmittingApproval}
+                handleFormChange={handleFormChange}
+                handleEnhancedSectionUpdate={handleEnhancedSectionUpdate}
+                hasFormChanges={hasFormChanges}
+                handlePrevious={handlePrevious}
+                handleNext={handleNext}
+                onFileUpload={handleFileUpload}
+                onDeleteFile={handleDeleteFile}
+                onSubmitForApproval={requestApproval}
+                pendingStepNames={getPendingStepNames()}
+                onAddCertificate={() => setCertificateModalOpen(true)}
+                handleRemoveCertificate={handleRemoveCertificate}
+                uploadProgress={uploadProgress}
+                approvalStatus={approvalStatus}
+              />
             </div>
           </div>
         </div>
-
-        {/* Certificate Upload Modal */}
-        <CertificateModal
-          open={certificateModalOpen}
-          setOpen={setCertificateModalOpen}
-          newCertificate={newCertificate}
-          setNewCertificate={setNewCertificate}
-          handleUpload={handleCertificateUpload}
-          isSaving={isSaving}
-        />
       </div>
+
+      {/* Certificate Upload Modal */}
+      <CertificateModal
+        open={certificateModalOpen}
+        setOpen={setCertificateModalOpen}
+        newCertificate={newCertificate}
+        setNewCertificate={setNewCertificate}
+        handleUpload={handleCertificateUpload}
+        isSaving={isSaving}
+      />
     </div>
   );
 };

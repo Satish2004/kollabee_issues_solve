@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { X, Plus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
-
 export type MultiSelectDropdownProps = {
   label: string;
   placeholder: string;
@@ -22,6 +21,7 @@ export type MultiSelectDropdownProps = {
   onCustomValuesChange?: (values: string[]) => void;
   className?: string;
   description?: string;
+  lableBold?: boolean; // Optional prop to make label bold
 };
 
 const MultiSelectDropdown = ({
@@ -39,6 +39,7 @@ const MultiSelectDropdown = ({
   onCustomValuesChange,
   className = "",
   description: description,
+  lableBold,
 }: MultiSelectDropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [newCustomValue, setNewCustomValue] = useState("");
@@ -106,7 +107,10 @@ const MultiSelectDropdown = ({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <Label htmlFor={`dropdown-${label}`} className="text-sm font-normal">
+      <Label
+        htmlFor={`dropdown-${label}`}
+        className={`text-sm font-normal${lableBold ? " font-bold" : ""}`}
+      >
         {label}
         {isRequired && <span className="text-[#EA3D4F]">*</span>}
       </Label>
