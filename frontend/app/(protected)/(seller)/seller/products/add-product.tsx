@@ -1,7 +1,9 @@
 "use client";
 
-import type React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import type { ProductFormData } from "./types";
+import { categoryApi } from "@/lib/api/category";
+import { productsApi } from "@/lib/api/products";
+import type { Category } from "@/types/api";
 import {
   Upload,
   X,
@@ -12,12 +14,10 @@ import {
   FileText,
   Menu,
 } from "lucide-react";
-import { toast } from "sonner";
-import { productsApi } from "@/lib/api/products";
-import { categoryApi } from "@/lib/api/category";
-import type { Category } from "@/types/api";
-import type { ProductFormData } from "./types";
 import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { toast } from "sonner";
 
 interface ProductFormProps {
   initialData?: any;
@@ -48,6 +48,12 @@ const debounce = (func: Function, wait: number) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
   };
+};
+
+// Add a utility function for decimal validation
+const isValidDecimal = (value: string) => {
+  // Allow only numbers and up to one decimal point
+  return /^\d*(\.\d{0,2})?$/.test(value);
 };
 
 const ProductForm: React.FC<ProductFormProps> = ({
@@ -503,6 +509,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     if (!formData.price) {
       newErrors.price = "Price is required";
+    } else if (
+      typeof formData.price === "string" &&
+      !isValidDecimal(formData.price)
+    ) {
+      newErrors.price = "Enter a valid number (e.g. 12 or 12.50)";
     }
 
     if (
@@ -516,6 +527,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
     if (!formData.deliveryCost) {
       newErrors.deliveryCost = "Delivery cost is required";
+    } else if (
+      typeof formData.deliveryCost === "string" &&
+      !isValidDecimal(formData.deliveryCost)
+    ) {
+      newErrors.deliveryCost = "Enter a valid number (e.g. 12 or 12.50)";
     }
 
     if (!formData.minOrderQuantity) {
@@ -605,6 +621,16 @@ const ProductForm: React.FC<ProductFormProps> = ({
 
   // Add a function to handle real-time validation as user types
   const handleInputChange = (field: string, value: any) => {
+    // For price and deliveryCost, restrict input to only numbers and decimals
+    if (
+      (field === "price" || field === "deliveryCost") &&
+      typeof value === "string"
+    ) {
+      if (!isValidDecimal(value)) {
+        // Do not update state if invalid
+        return;
+      }
+    }
     setFormData({
       ...formData,
       [field]: value,
@@ -1228,6 +1254,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     </span>
                     <input
                       type="text"
+                      inputMode="decimal"
+                      pattern="^\d*(\.\d{0,2})?$"
                       placeholder="122.00"
                       className={`w-full p-2 pl-8 border rounded-md bg-[#fcfcfc] ${
                         errors.price ? "border-red-500" : ""
@@ -1252,7 +1280,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   <div className="flex-1 relative">
                     <input
                       type="text"
+                      inputMode="decimal"
                       placeholder="Enter discount"
+                      pattern="^\d*(\.\d{0,2})?$"
                       className={`w-full p-2 border rounded-md bg-[#fcfcfc] ${
                         errors.discount ? "border-red-500" : ""
                       }`}
@@ -1282,6 +1312,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     </span>
                     <input
                       type="text"
+                      inputMode="decimal"
+                      pattern="^\d*(\.\d{0,2})?$"
                       placeholder="Enter delivery cost"
                       className={`w-full p-2 pl-8 border rounded-md bg-[#fcfcfc] ${
                         errors.deliveryCost ? "border-red-500" : ""
