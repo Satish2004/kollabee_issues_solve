@@ -1,12 +1,17 @@
 "use client";
 
 import type { Conversation } from "./types/chat";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import Spinner from "@/components/ui/spinner";
 import { useToast } from "@/hooks/use-toast";
 import { chatApi } from "@/lib/api/chat";
 import { cn } from "@/lib/utils";
@@ -84,7 +89,68 @@ export default function ContactList({
     }
   };
 
-  // Group conversations by status (move these out of JSX)
+  if (isLoading) {
+    return (
+      <div className="w-80 rounded-xl h-100vh flex flex-col bg-white">
+        {/* Top bar skeleton */}
+        <div className="px-6 py-4 flex items-center space-x-2">
+          <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
+          <div className="h-5 w-8 bg-gray-100 rounded-full animate-pulse" />
+        </div>
+        <hr className="w-full" />
+        <div className="p-2">
+          <div className="relative">
+            <div className="h-9 w-full bg-gray-100 rounded animate-pulse" />
+            <div className="absolute right-2.5 top-1.5 h-6 w-6 bg-gray-200 rounded-full animate-pulse" />
+          </div>
+        </div>
+        {/* Pending Requests Skeleton */}
+        <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+        </div>
+        {Array(2)
+          .fill(0)
+          .map((_, i) => (
+            <div key={i} className="flex flex-col p-4 border-b">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+                </div>
+                <div className="ml-3 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                    <div className="h-4 w-12 bg-gray-100 rounded animate-pulse" />
+                  </div>
+                  <div className="h-3 w-32 bg-gray-100 rounded mt-2 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ))}
+        {/* Conversations Skeleton */}
+        <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+        </div>
+        {Array(4)
+          .fill(0)
+          .map((_, i) => (
+            <div key={i} className="flex items-center p-4 border-b">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+              </div>
+              <div className="ml-3 flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-3 w-10 bg-gray-100 rounded animate-pulse" />
+                </div>
+                <div className="h-3 w-32 bg-gray-100 rounded mt-2 animate-pulse" />
+              </div>
+            </div>
+          ))}
+      </div>
+    );
+  }
+
+  // Group conversations by status
   const pendingRequests = filteredConversations.filter(
     (conv) => conv.status === "PENDING" && conv.initiatedBy !== currentUserId
   );
@@ -94,33 +160,97 @@ export default function ContactList({
       (conv.status === "PENDING" && conv.initiatedBy === currentUserId)
   );
 
-  return (
-    <div className="flex flex-col h-full overflow-hidden">
-      <div className="p-4 border-b bg-white sticky top-0 z-10">
-        <Input
-          placeholder="Search contacts..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full"
-        />
-      </div>
-      <div className="flex-1 overflow-y-auto bg-white">
-        {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full p-4">
-            <Spinner size="lg" />
-            <span className="mt-2 text-gray-500 text-sm">
-              Loading contacts...
-            </span>
+  if (isLoading) {
+    return (
+      <div className="w-80 rounded-xl h-100vh flex flex-col bg-white">
+        {/* Top bar skeleton */}
+        <div className="px-6 py-4 flex items-center space-x-2">
+          <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
+          <div className="h-5 w-8 bg-gray-100 rounded-full animate-pulse" />
+        </div>
+        <hr className="w-full" />
+        <div className="p-2">
+          <div className="relative">
+            <div className="h-9 w-full bg-gray-100 rounded animate-pulse" />
+            <div className="absolute right-2.5 top-1.5 h-6 w-6 bg-gray-200 rounded-full animate-pulse" />
           </div>
-        ) : (
-          <>
-            {/* Group conversations by status */}
-            {pendingRequests.length > 0 && (
-              <div>
-                <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Message Requests ({pendingRequests.length})
+        </div>
+        {/* Pending Requests Skeleton */}
+        <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
+        </div>
+        {Array(2)
+          .fill(0)
+          .map((_, i) => (
+            <div key={i} className="flex flex-col p-4 border-b">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
                 </div>
+                <div className="ml-3 flex-1">
+                  <div className="flex items-center justify-between">
+                    <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                    <div className="h-4 w-12 bg-gray-100 rounded animate-pulse" />
+                  </div>
+                  <div className="h-3 w-32 bg-gray-100 rounded mt-2 animate-pulse" />
+                </div>
+              </div>
+            </div>
+          ))}
+        {/* Conversations Skeleton */}
+        <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-400 uppercase tracking-wider">
+          <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+        </div>
+        {Array(4)
+          .fill(0)
+          .map((_, i) => (
+            <div key={i} className="flex items-center p-4 border-b">
+              <div className="flex-shrink-0">
+                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
+              </div>
+              <div className="ml-3 flex-1">
+                <div className="flex items-center justify-between">
+                  <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
+                  <div className="h-3 w-10 bg-gray-100 rounded animate-pulse" />
+                </div>
+                <div className="h-3 w-32 bg-gray-100 rounded mt-2 animate-pulse" />
+              </div>
+            </div>
+          ))}
+      </div>
+    );
+  }
 
+  return (
+    <div className="w-80 rounded-xl h-100vh flex flex-col bg-white">
+      <div className="px-6 py-4 flex items-center space-x-2">
+        <h1 className="font-semibold text-lg">Messages</h1>
+        <span className="rounded-full bg-gray-100 text-xs font-semibold px-2">
+          {conversations.length}
+        </span>
+      </div>
+      <hr className="w-full"></hr>
+      <div className="p-2">
+        <div className="relative">
+          <Input
+            placeholder="Search contacts"
+            className="pr-8 border-neutral-200"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search className="absolute right-2.5 top-1.5 h-6 w-6 text-neutral-400 bg-neutral-200 p-1 rounded-full" />
+        </div>
+      </div>
+
+      <div className="flex-1 overflow-y-auto">
+        {/* Pending Requests Accordion */}
+        {pendingRequests.length > 0 && (
+          <Accordion type="single" collapsible defaultValue="pending">
+            <AccordionItem value="pending">
+              <AccordionTrigger className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Message Requests ({pendingRequests.length})
+              </AccordionTrigger>
+              <AccordionContent>
                 {pendingRequests.map((conversation) => (
                   <div
                     key={conversation.id}
@@ -172,86 +302,86 @@ export default function ContactList({
                     </div>
 
                     {/* <div className="flex justify-end mt-2 space-x-2">
-                      <Button size="sm" variant="outline" onClick={(e) => handleDeclineRequest(conversation.id, e)}>
-                        Decline
-                      </Button>
-                      <Button size="sm" onClick={(e) => handleAcceptRequest(conversation.id, e)}>
-                        Accept
-                      </Button>
-                    </div> */}
+                  <Button size="sm" variant="outline" onClick={(e) => handleDeclineRequest(conversation.id, e)}>
+                    Decline
+                  </Button>
+                  <Button size="sm" onClick={(e) => handleAcceptRequest(conversation.id, e)}>
+                    Accept
+                  </Button>
+                </div> */}
                   </div>
                 ))}
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+
+        {/* Regular Conversations Section */}
+        {acceptedConversations.length > 0 ? (
+          <div>
+            {pendingRequests.length > 0 && (
+              <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Conversations
               </div>
             )}
 
-            {/* Regular Conversations Section */}
-            {acceptedConversations.length > 0 ? (
-              <div>
-                {pendingRequests.length > 0 && (
-                  <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Conversations
-                  </div>
+            {acceptedConversations.map((conversation) => (
+              <div
+                key={conversation.id}
+                className={cn(
+                  "flex items-center p-4 border-b hover:bg-gray-50 cursor-pointer",
+                  activeConversationId === conversation.id && "bg-gray-50"
                 )}
-
-                {acceptedConversations.map((conversation) => (
-                  <div
-                    key={conversation.id}
-                    className={cn(
-                      "flex items-center p-4 border-b hover:bg-gray-50 cursor-pointer",
-                      activeConversationId === conversation.id && "bg-gray-50"
+                onClick={() => onSelectConversation(conversation.id)}
+              >
+                <div className="flex-shrink-0 relative">
+                  <Avatar>
+                    {conversation.participantAvatar ? (
+                      <AvatarImage
+                        src={conversation.participantAvatar}
+                        alt={conversation.participantName}
+                      />
+                    ) : (
+                      <AvatarFallback>
+                        <User className="h-6 w-6" />
+                      </AvatarFallback>
                     )}
-                    onClick={() => onSelectConversation(conversation.id)}
-                  >
-                    <div className="flex-shrink-0 relative">
-                      <Avatar>
-                        {conversation.participantAvatar ? (
-                          <AvatarImage
-                            src={conversation.participantAvatar}
-                            alt={conversation.participantName}
-                          />
-                        ) : (
-                          <AvatarFallback>
-                            <User className="h-6 w-6" />
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      {conversation.isOnline && (
-                        <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
-                      )}
-                    </div>
+                  </Avatar>
+                  {conversation.isOnline && (
+                    <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
+                  )}
+                </div>
 
-                    <div className="ml-3 flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">
-                          {conversation.participantName}
-                        </span>
-                        {conversation.lastMessageTime && (
-                          <span className="text-xs text-gray-500">
-                            {formatTime(conversation.lastMessageTime)}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center">
-                        <p className="text-sm text-gray-500 truncate flex-1">
-                          {conversation.lastMessage || "No messages yet"}
-                        </p>
-                        {(conversation.unreadCount || 0) > 0 && (
-                          <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
-                            {conversation.unreadCount}
-                          </span>
-                        )}
-                      </div>
-                    </div>
+                <div className="ml-3 flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">
+                      {conversation.participantName}
+                    </span>
+                    {conversation.lastMessageTime && (
+                      <span className="text-xs text-gray-500">
+                        {formatTime(conversation.lastMessageTime)}
+                      </span>
+                    )}
                   </div>
-                ))}
+
+                  <div className="flex items-center">
+                    <p className="text-sm text-gray-500 truncate flex-1">
+                      {conversation.lastMessage || "No messages yet"}
+                    </p>
+                    {(conversation.unreadCount || 0) > 0 && (
+                      <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                        {conversation.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full p-4 text-center text-gray-500">
-                <p>No conversations found</p>
-              </div>
-            )}
-          </>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full p-4 text-center text-gray-500">
+            <p>No conversations found</p>
+          </div>
         )}
       </div>
     </div>

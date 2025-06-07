@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import ChatModule from "../../../../../components/chat/chat-module"
+import ChatModule from "../../../../../components/chat/chat-module";
 
 export default function ChatPage() {
   return (
     <main className="container mx-auto">
-      <ChatModule />
+      <ChatModule userType={"ADMIN"} />
     </main>
-  )
+  );
 }
