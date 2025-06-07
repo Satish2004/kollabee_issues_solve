@@ -16,11 +16,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const KollaBeeProfile = () => {
-  // Get steps and sections
   const { steps, sections } = useProfileSections();
-  const searchParams = useSearchParams();
-
-  // Profile data management
   const {
     profileData,
     setProfileData,
@@ -30,7 +26,6 @@ const KollaBeeProfile = () => {
     loadProfileCompletion,
   } = useProfileData();
 
-  // Form state management
   const [sectionLoading, setSectionLoading] = useState<string | null>(null);
   const {
     formStates,
@@ -44,11 +39,9 @@ const KollaBeeProfile = () => {
     setSectionLoading: (value) => setSectionLoading(value),
   });
 
-  // File management
   const { uploadProgress, isUploading, handleFileUpload, handleDeleteFile } =
     useFileManagement();
 
-  // Step navigation with URL query parameter support
   const {
     activeStep,
     setActiveStep,
