@@ -486,6 +486,7 @@ export function SignupForm({
     }
   }, [formData.firstName, formData.lastName, formData.phone, formData.email]);
 
+  
   const validateForm = () => {
     const newErrors: any = {};
 
