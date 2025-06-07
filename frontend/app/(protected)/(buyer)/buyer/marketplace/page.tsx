@@ -143,7 +143,7 @@ export default function Page() {
       }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen px-0 md:px-7">
       <div className="relative bg-gradient-to-tr from-[#f4eadc] via-[#f1c2ca] to-[#f4eadc] pb-12">
         <div className="container px-4 pt-8 mx-auto">
           <div className="text-center mb-8">
@@ -164,7 +164,7 @@ export default function Page() {
                     fill
                     className="object-cover rounded-lg"
                   />
-                <button className="absolute right-2 bottom-2 z-10 rounded-full bg-white p-1.5 shadow-sm">
+                <button className="absolute right-2 bottom-2  rounded-full bg-white p-1.5 shadow-sm">
                   <Heart className="h-4 w-4" />
                 </button>
                 </div>

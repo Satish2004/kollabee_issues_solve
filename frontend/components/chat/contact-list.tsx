@@ -1,23 +1,23 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Clock, Search, User } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Input } from "@/components/ui/input"
-import { Skeleton } from "@/components/ui/skeleton"
-import { cn } from "@/lib/utils"
-import type { Conversation } from "./types/chat"
-import { useToast } from "@/hooks/use-toast"
-import { chatApi } from "@/lib/api/chat"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { useState } from "react";
+import { Clock, Search, User } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import type { Conversation } from "./types/chat";
+import { useToast } from "@/hooks/use-toast";
+import { chatApi } from "@/lib/api/chat";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface ContactListProps {
-  conversations: Conversation[]
-  activeConversationId: string | null
-  onSelectConversation: (id: string) => void
-  isLoading: boolean
-  currentUserId: string
+  conversations: Conversation[];
+  activeConversationId: string | null;
+  onSelectConversation: (id: string) => void;
+  isLoading: boolean;
+  currentUserId: string;
 }
 
 export default function ContactList({
@@ -27,55 +27,61 @@ export default function ContactList({
   isLoading,
   currentUserId,
 }: ContactListProps) {
-  const [searchTerm, setSearchTerm] = useState("")
-  const { toast } = useToast()
+  const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
   // Filter conversations based on search term
   const filteredConversations = conversations.filter((conv) =>
-    conv.participantName.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+    conv.participantName.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
-   // Handle accepting a conversation request
-   const handleAcceptRequest = async (conversationId: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering the conversation selection
+  // Handle accepting a conversation request
+  const handleAcceptRequest = async (
+    conversationId: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation(); // Prevent triggering the conversation selection
 
     try {
-      await chatApi.acceptConversation(conversationId)
+      await chatApi.acceptConversation(conversationId);
 
       toast({
         title: "Success",
         description: "Conversation request accepted",
-      })
+      });
     } catch (error) {
-      console.error("Failed to accept conversation:", error)
+      console.error("Failed to accept conversation:", error);
       toast({
         title: "Error",
         description: "Failed to accept conversation request",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   // Handle declining a conversation request
-  const handleDeclineRequest = async (conversationId: string, e: React.MouseEvent) => {
-    e.stopPropagation() // Prevent triggering the conversation selection
+  const handleDeclineRequest = async (
+    conversationId: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation(); // Prevent triggering the conversation selection
 
     try {
-      await chatApi.declineConversation(conversationId)
+      await chatApi.declineConversation(conversationId);
 
       toast({
         title: "Success",
         description: "Conversation request declined",
-      })
+      });
     } catch (error) {
-      console.error("Failed to decline conversation:", error)
+      console.error("Failed to decline conversation:", error);
       toast({
         title: "Error",
         description: "Failed to decline conversation request",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
 
   if (isLoading) {
     return (
@@ -100,16 +106,18 @@ export default function ContactList({
             ))}
         </div>
       </div>
-    )
+    );
   }
 
   // Group conversations by status
   const pendingRequests = filteredConversations.filter(
-    (conv) => conv.status === "PENDING" && conv.initiatedBy !== currentUserId,
-  )
+    (conv) => conv.status === "PENDING" && conv.initiatedBy !== currentUserId
+  );
   const acceptedConversations = filteredConversations.filter(
-    (conv) => conv.status === "ACCEPTED" || (conv.status === "PENDING" && conv.initiatedBy === currentUserId),
-  )
+    (conv) =>
+      conv.status === "ACCEPTED" ||
+      (conv.status === "PENDING" && conv.initiatedBy === currentUserId)
+  );
 
   if (isLoading) {
     return (
@@ -134,16 +142,18 @@ export default function ContactList({
             ))}
         </div>
       </div>
-    )
+    );
   }
 
   return (
     <div className="w-80 rounded-xl h-100vh flex flex-col bg-white">
       <div className="px-6 py-4 flex items-center space-x-2">
         <h1 className="font-semibold text-lg">Messages</h1>
-        <span className="rounded-full bg-gray-100 text-xs font-semibold px-2">{conversations.length}</span>
+        <span className="rounded-full bg-gray-100 text-xs font-semibold px-2">
+          {conversations.length}
+        </span>
       </div>
-        <hr className="w-full"></hr>
+      <hr className="w-full"></hr>
       <div className="p-2">
         <div className="relative">
           <Input
@@ -157,7 +167,7 @@ export default function ContactList({
       </div>
 
       <div className="flex-1 overflow-y-auto">
-      {pendingRequests.length > 0 && (
+        {pendingRequests.length > 0 && (
           <div>
             <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
               Message Requests ({pendingRequests.length})
@@ -168,7 +178,7 @@ export default function ContactList({
                 key={conversation.id}
                 className={cn(
                   "flex flex-col p-4 border-b hover:bg-gray-50 cursor-pointer",
-                  activeConversationId === conversation.id && "bg-gray-50",
+                  activeConversationId === conversation.id && "bg-gray-50"
                 )}
                 onClick={() => onSelectConversation(conversation.id)}
               >
@@ -176,7 +186,10 @@ export default function ContactList({
                   <div className="flex-shrink-0 relative">
                     <Avatar>
                       {conversation.participantAvatar ? (
-                        <AvatarImage src={conversation.participantAvatar} alt={conversation.participantName} />
+                        <AvatarImage
+                          src={conversation.participantAvatar}
+                          alt={conversation.participantName}
+                        />
                       ) : (
                         <AvatarFallback>
                           <User className="h-6 w-6" />
@@ -190,8 +203,13 @@ export default function ContactList({
 
                   <div className="ml-3 flex-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">{conversation.participantName}</span>
-                      <Badge variant="outline" className="flex items-center text-xs text-amber-600 bg-amber-100">
+                      <span className="font-medium">
+                        {conversation.participantName}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className="flex items-center text-xs text-amber-600 bg-amber-100"
+                      >
                         <Clock className="h-3 w-3 mr-1" />
                         Pending
                       </Badge>
@@ -232,14 +250,17 @@ export default function ContactList({
                 key={conversation.id}
                 className={cn(
                   "flex items-center p-4 border-b hover:bg-gray-50 cursor-pointer",
-                  activeConversationId === conversation.id && "bg-gray-50",
+                  activeConversationId === conversation.id && "bg-gray-50"
                 )}
                 onClick={() => onSelectConversation(conversation.id)}
               >
                 <div className="flex-shrink-0 relative">
                   <Avatar>
                     {conversation.participantAvatar ? (
-                      <AvatarImage src={conversation.participantAvatar} alt={conversation.participantName} />
+                      <AvatarImage
+                        src={conversation.participantAvatar}
+                        alt={conversation.participantName}
+                      />
                     ) : (
                       <AvatarFallback>
                         <User className="h-6 w-6" />
@@ -253,9 +274,13 @@ export default function ContactList({
 
                 <div className="ml-3 flex-1">
                   <div className="flex items-center justify-between">
-                    <span className="font-medium">{conversation.participantName}</span>
+                    <span className="font-medium">
+                      {conversation.participantName}
+                    </span>
                     {conversation.lastMessageTime && (
-                      <span className="text-xs text-gray-500">{formatTime(conversation.lastMessageTime)}</span>
+                      <span className="text-xs text-gray-500">
+                        {formatTime(conversation.lastMessageTime)}
+                      </span>
                     )}
                   </div>
 
@@ -280,21 +305,22 @@ export default function ContactList({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 // Helper function to format time
 function formatTime(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60))
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffInHours = Math.floor(
+    (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+  );
 
   if (diffInHours < 24) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   } else if (diffInHours < 48) {
-    return "Yesterday"
+    return "Yesterday";
   } else {
-    return date.toLocaleDateString([], { month: "short", day: "numeric" })
+    return date.toLocaleDateString([], { month: "short", day: "numeric" });
   }
 }
-

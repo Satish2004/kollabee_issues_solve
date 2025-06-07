@@ -1,34 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { authApi } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
 import {
   Home,
-  Store,
-  Users,
-  MessageSquare,
-  ShoppingCart,
   Headphones,
-  UserCog,
   HelpCircle,
   LogOut,
   ChevronLeft,
-  User,
-  Settings,
-  Plus,
   Package,
   User2,
-  Users2,
-  MessagesSquare,
+  Share,
+  NotebookPen,
+  Calendar,
+  MessageCircleQuestion,
 } from "lucide-react";
-import { BsFillCartCheckFill } from "react-icons/bs";
-import { Button } from "@/components/ui/button";
-import React, { useState, useEffect, ElementType } from "react";
 import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
-import { authApi } from "@/lib/api/auth";
-import { removeToken } from "@/lib/utils/token";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, type ElementType } from "react";
+import { BsFillCartCheckFill } from "react-icons/bs";
 import { HiChatBubbleLeftRight } from "react-icons/hi2";
 import { IoStorefront } from "react-icons/io5";
 
@@ -68,7 +60,11 @@ export function BuyerSidebar({ className }: SidebarProps) {
       }
     };
 
-    handleResize();
+    // Set initial state based on screen size
+    if (window.innerWidth < 1024) {
+      setIsCollapsed(true);
+    }
+
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
@@ -80,6 +76,21 @@ export function BuyerSidebar({ className }: SidebarProps) {
     } catch (error) {
       console.error("Logout failed:", error);
     }
+  };
+
+  // Function to check if a route is active
+  const isRouteActive = (routeHref: string) => {
+    // Exact match for dashboard
+    if (routeHref === "/buyer" && pathname === "/buyer") {
+      return true;
+    }
+
+    // For other routes, check if pathname starts with the route href
+    if (routeHref !== "/buyer" && pathname.startsWith(routeHref)) {
+      return true;
+    }
+
+    return false;
   };
 
   const routes = [
@@ -128,14 +139,38 @@ export function BuyerSidebar({ className }: SidebarProps) {
         {
           label: "Support",
           icon: Headphones,
-          href: "/seller/support",
-          // target: "advertise",
+          href: "/buyer/support",
+        },
+      ],
+    },
+    {
+      label: "OTHERS",
+      routes: [
+        {
+          label: "Invite",
+          icon: Share,
+          href: "/buyer/invite",
+        },
+        {
+          label: "Calendar",
+          icon: Calendar,
+          href: "/buyer/appointment",
+        },
+        {
+          label: "Feedback",
+          icon: NotebookPen,
+          href: "/buyer/contact",
+        },
+        {
+          label: "FAQ",
+          icon: MessageCircleQuestion,
+          href: "/buyer/faq",
         },
       ],
     },
   ];
 
-  const menuItems: string = [
+  const menuItems = [
     { title: "Dashboard", icon: Home },
     { title: "Products", icon: Package },
   ];
@@ -186,19 +221,22 @@ export function BuyerSidebar({ className }: SidebarProps) {
                 </span>
               )}
               <div className="flex flex-col gap-1">
-                {group.routes.map((route, routeIndex) => (
-                  <Link
-                    key={routeIndex}
-                    href={route.href}
-                    className={`${cn(
-                      "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent text-[#78787A]",
-                      pathname === route.href && "bg-[#FDECED] text-[#363638]"
-                    )} `}
-                  >
-                    <IconRenderer icon={route.icon} />
-                    {!isCollapsed && <span>{route.label}</span>}
-                  </Link>
-                ))}
+                {group.routes.map((route, routeIndex) => {
+                  const isActive = isRouteActive(route.href);
+                  return (
+                    <Link
+                      key={routeIndex}
+                      href={route.href}
+                      className={cn(
+                        "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent text-[#78787A]",
+                        isActive && "bg-[#FDECED] text-[#363638] font-medium"
+                      )}
+                    >
+                      <IconRenderer icon={route.icon} />
+                      {!isCollapsed && <span>{route.label}</span>}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -206,7 +244,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
 
         <div className="flex flex-col gap-2 border-t pt-4">
           <Link
-            href="/help"
+            href="#"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent"
           >
             <HelpCircle className="h-4 w-4" />

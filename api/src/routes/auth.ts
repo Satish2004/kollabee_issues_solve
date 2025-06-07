@@ -9,6 +9,9 @@ import {
   verifyOTP,
   updatePassword,
   logout,
+  googleAuth,
+  googleCallback,
+  buyerSingnupGoogle,
 } from "../controllers/auth.controller";
 import { authMiddleware } from "../middleware/auth";
 
@@ -23,5 +26,10 @@ router.get("/me", authMiddleware, getCurrentUser);
 router.post("/generate-otp", generateOTP);
 router.post("/verify-otp", verifyOTP);
 router.post("/update-password", authMiddleware, updatePassword);
+
+// Google OAuth routes
+router.get("/google", googleAuth);
+router.get("/google/callback", googleCallback);
+router.post("/buyer/google", buyerSingnupGoogle);
 
 export default router;

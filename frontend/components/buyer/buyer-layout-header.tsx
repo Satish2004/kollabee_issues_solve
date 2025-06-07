@@ -1,6 +1,10 @@
 "use client";
-import React, { useState } from "react";
-import { usePathname } from "next/navigation";
+
+import { Button } from "../ui/button";
+import IconRenderer from "./icon-render";
+import { UserDropdown } from "./user-dropdown";
+import { useCheckout } from "@/contexts/checkout-context";
+import { authApi } from "@/lib/api/auth";
 import {
   Home,
   Store,
@@ -14,125 +18,273 @@ import {
   Headphones,
   UserCog,
   Settings,
-  Plus,
   Heart,
   ShoppingCartIcon,
+  Menu,
+  X,
+  Calendar,
+  NotebookPen,
+  MessageCircleQuestion,
+  Share,
 } from "lucide-react";
-import { Button } from "../ui/button";
-import { UserDropdown } from "./user-dropdown";
-import { authApi } from "@/lib/api/auth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { User2 } from "lucide-react";
 import Link from "next/link";
-import IconRenderer from "./icon-render";
-import { useCheckout } from "@/contexts/checkout-context";
+import { usePathname } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useMemo } from "react";
+import { HiChatBubbleLeftRight } from "react-icons/hi2";
+import { IoStorefront } from "react-icons/io5";
 
 export default function BuyerLayoutHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const { products } = useCheckout();
   const [user, setUser] = useState<any>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await authApi.getCurrentUser();
-        setUser(user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
+  // Comprehensive routes array with proper ordering (most specific first)
+  const routes = useMemo(
+    () => [
+      // Buyer routes (most specific first)
+      {
+        label: "Update Product",
+        icon: PenTool,
+        href: "/seller/update-product",
+        patterns: ["/seller/update-product/", "/seller/products/edit/"],
+      },
+      {
+        label: "Add Product",
+        icon: StoreIcon,
+        href: "/seller/add-product",
+        patterns: ["/seller/add-product"],
+      },
+      {
+        label: "Profile Management",
+        icon: UserCog,
+        href: "/seller/profile",
+        patterns: ["/seller/profile/"],
+      },
+      {
+        label: "Projects",
+        icon: "custom",
+        href: "/buyer/projects",
+        patterns: ["/buyer/projects/", "/buyer/project/"],
+      },
+      {
+        label: "Marketplace",
+        icon: IoStorefront,
+        href: "/buyer/marketplace",
+        patterns: ["/buyer/marketplace/"],
+      },
+      {
+        label: "My Suppliers",
+        icon: User2,
+        href: "/buyer/my-suppliers",
+        patterns: ["/buyer/my-suppliers/", "/buyer/suppliers/"],
+      },
+      {
+        label: "Messages",
+        icon: HiChatBubbleLeftRight,
+        href: "/buyer/chat",
+        patterns: ["/buyer/chat/", "/buyer/messages/"],
+      },
+      {
+        label: "Orders",
+        icon: ShoppingCart,
+        href: "/buyer/orders",
+        patterns: ["/buyer/orders/", "/buyer/order/"],
+      },
+      {
+        label: "Cart",
+        icon: ShoppingCartIcon,
+        href: "/buyer/cart",
+        patterns: ["/buyer/cart/"],
+      },
+      {
+        label: "Wishlist",
+        icon: Heart,
+        href: "/buyer/wishlist",
+        patterns: ["/buyer/wishlist/"],
+      },
+      {
+        label: "Invite",
+        icon: Share,
+        href: "/buyer/invite",
+        patterns: ["/buyer/invite/"],
+      },
+      {
+        label: "Calendar",
+        icon: Calendar,
+        href: "/buyer/appointment",
+        patterns: ["/buyer/appointment/", "/buyer/calendar/"],
+      },
+      {
+        label: "Feedback",
+        icon: NotebookPen,
+        href: "/buyer/contact",
+        patterns: ["/buyer/contact/", "/buyer/feedback/"],
+      },
+      {
+        label: "FAQ",
+        icon: MessageCircleQuestion,
+        href: "/buyer/faq",
+        patterns: ["/buyer/faq/"],
+      },
+      {
+        label: "Support",
+        icon: Headphones,
+        href: "/buyer/support",
+        patterns: ["/buyer/support/"],
+      },
+      {
+        label: "Settings",
+        icon: Settings,
+        href: "/buyer/settings",
+        patterns: ["/buyer/settings/"],
+      },
+      {
+        label: "Notifications",
+        icon: Bell,
+        href: "/buyer/notifications",
+        patterns: ["/buyer/notifications/"],
+      },
+      // Seller routes
+      {
+        label: "Your Products",
+        icon: Store,
+        href: "/seller/products",
+        patterns: ["/seller/products/"],
+      },
+      {
+        label: "Customers",
+        icon: Users,
+        href: "/seller/customers",
+        patterns: ["/seller/customers/"],
+      },
+      {
+        label: "Seller Messages",
+        icon: MessageSquare,
+        href: "/seller/messages",
+        patterns: ["/seller/messages/"],
+      },
+      {
+        label: "Seller Orders",
+        icon: ShoppingCart,
+        href: "/seller/orders",
+        patterns: ["/seller/orders/"],
+      },
+      {
+        label: "Requests",
+        icon: Store,
+        href: "/seller/request",
+        patterns: ["/seller/request/", "/seller/requests/"],
+      },
+      {
+        label: "Advertise",
+        icon: Headphones,
+        href: "/seller/advertise",
+        patterns: ["/seller/advertise/"],
+      },
+      {
+        label: "Seller Chat",
+        icon: MessageSquare,
+        href: "/seller/chat",
+        patterns: ["/seller/chat/"],
+      },
+      {
+        label: "Seller Notifications",
+        icon: Bell,
+        href: "/seller/notifications",
+        patterns: ["/seller/notifications/"],
+      },
+      {
+        label: "Seller Settings",
+        icon: Settings,
+        href: "/seller/settings",
+        patterns: ["/seller/settings/"],
+      },
+      // Dashboard routes (least specific, should be last)
+      {
+        label: "Seller Dashboard",
+        icon: Home,
+        href: "/seller",
+        patterns: ["/seller"],
+        exact: true,
+      },
+      {
+        label: "Dashboard",
+        icon: Home,
+        href: "/buyer",
+        patterns: ["/buyer"],
+        exact: true,
+      },
+    ],
+    []
+  );
+
+  // Enhanced route detection function
+  const getCurrentRoute = useMemo(() => {
+    // First, try to find exact matches
+    const exactMatch = routes.find((route) => {
+      if (route.exact) {
+        return pathname === route.href;
       }
-    };
+      return false;
+    });
 
-    fetchUser();
-  }, []);
+    if (exactMatch) return exactMatch;
 
-  const numberOfCartItems = products.length;
-  const routes = [
-    {
+    // Then try pattern matching (most specific first)
+    const patternMatch = routes.find((route) => {
+      if (route.patterns) {
+        return route.patterns.some((pattern) => {
+          if (pattern.endsWith("/")) {
+            return (
+              pathname.startsWith(pattern) || pathname === pattern.slice(0, -1)
+            );
+          }
+          return pathname.startsWith(pattern);
+        });
+      }
+      return false;
+    });
+
+    if (patternMatch) return patternMatch;
+
+    // Fallback to basic startsWith matching
+    const basicMatch = routes.find((route) => {
+      if (route.exact) return false;
+      return pathname.startsWith(route.href) && pathname !== route.href;
+    });
+
+    if (basicMatch) return basicMatch;
+
+    // Default fallback based on path structure
+    if (pathname.startsWith("/buyer")) {
+      return {
+        label: "Dashboard",
+        icon: Home,
+        href: "/buyer",
+      };
+    }
+
+    if (pathname.startsWith("/seller")) {
+      return {
+        label: "Seller Dashboard",
+        icon: Home,
+        href: "/seller",
+      };
+    }
+
+    // Ultimate fallback
+    return {
       label: "Dashboard",
       icon: Home,
-      href: "/seller",
-      color: "text-gray-800",
-      fontWeight: "font-bold",
-    },
-    {
-      label: "Your Products",
-      icon: Store,
-      href: "/seller/products",
-    },
-    {
-      label: "Customers",
-      icon: Users,
-      href: "/seller/customers",
-    },
-    {
-      label: "Messages",
-      icon: MessageSquare,
-      href: "/seller/messages",
-    },
-    {
-      label: "Orders",
-      icon: ShoppingCart,
-      href: "/seller/orders",
-    },
-    {
-      label: "Requests",
-      icon: Store,
-      href: "/seller/request",
-    },
-    {
-      label: "Advertise",
-      icon: Headphones,
-      href: "/seller/advertise",
-    },
-    {
-      label: "Profile Manage",
-      icon: UserCog,
-      href: "/seller/profile/seller",
-    },
-    {
-      label: "Post New Product",
-      icon: StoreIcon,
-      href: "/seller/add-product",
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/seller/settings",
-    },
-    {
-      label: "Chat",
-      icon: MessageSquare,
-      href: "/seller/chat",
-    },
-    {
-      label: "Notifications",
-      icon: Bell,
-      href: "/seller/notifications",
-    },
-    {
-      label: "Projects",
-      icon: "custom",
-      href: "/buyer/projects",
-    },
-  ];
-
-  let currentRoute = routes.find((route) => pathname === route.href);
-  if (!currentRoute && pathname.startsWith("/seller/update-product/")) {
-    currentRoute = {
-      label: "Update Product",
-      icon: PenTool,
-      href: "/seller/update-product",
+      href: "/",
     };
-  }
+  }, [pathname, routes]);
 
-   if (!currentRoute && pathname.startsWith("/buyer/projects/")) {
-     currentRoute = {
-       label: "Projects",
-       icon: "custom",
-       href: "/buyer/projects",
-     };
-   }
+  const currentRoute = getCurrentRoute;
 
   const handleLogout = async () => {
     try {
@@ -145,21 +297,162 @@ export default function BuyerLayoutHeader() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const response: any = await authApi.getCurrentUser();
-      setUser(response);
+      try {
+        const response = await authApi.getCurrentUser();
+        setUser(response);
+      } catch (error) {
+        console.error("Error fetching user:", error);
+      }
     };
     fetchUser();
   }, []);
 
+  const numberOfCartItems = products.length;
+
+  console.log("Current route:", currentRoute, "Pathname:", pathname);
+
   return (
-    <div className="w-[94%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6 ">
+    <div className="w-[95%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6">
       <div className="flex items-center justify-between gap-2">
         {currentRoute && (
           <IconRenderer icon={currentRoute.icon} className="w-5 h-5" />
         )}
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
-      <div className="flex items-center gap-4 ">
+
+      {/* Mobile menu button */}
+      <div className="md:hidden">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="relative z-50"
+        >
+          {mobileMenuOpen ? "" : <Menu className="h-6 w-6" />}
+        </Button>
+      </div>
+
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-100000 md:hidden">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs bg-white shadow-xl transform transition-transform duration-300 ease-in-out">
+            <div className="flex flex-col p-6 h-full">
+              <div className="flex justify-end mb-6">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="rounded-full hover:bg-gray-100"
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold mb-6"
+              >
+                Upgrade
+              </Button>
+
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <Link
+                  href="/buyer/wishlist"
+                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
+                >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-10 rounded-full border-neutral-300"
+                  >
+                    <Heart className="size-5 cursor-pointer" />
+                  </Button>
+                  <span className="text-xs font-medium">Wishlist</span>
+                </Link>
+
+                <Link
+                  href="/buyer/cart"
+                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
+                >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className={`size-10 rounded-full ${
+                      numberOfCartItems > 3
+                        ? "border-red-500 border-2"
+                        : "border-neutral-300"
+                    } relative`}
+                  >
+                    <ShoppingCartIcon className="size-5 cursor-pointer" />
+                    {numberOfCartItems > 0 && (
+                      <div
+                        className={`flex items-center justify-center absolute -top-1 -right-1 ${
+                          numberOfCartItems > 3
+                            ? "w-6 h-6 bg-red-500 animate-pulse"
+                            : "w-5 h-5 bg-red-500"
+                        } rounded-full`}
+                      >
+                        <span className="text-xs font-semibold text-white">
+                          {numberOfCartItems}
+                        </span>
+                      </div>
+                    )}
+                  </Button>
+                  <span className="text-xs font-medium">Cart</span>
+                </Link>
+
+                <Link
+                  href="/buyer/notifications"
+                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
+                >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-10 rounded-full border-neutral-300"
+                  >
+                    <Bell
+                      className="size-5 cursor-pointer"
+                      fill={"currentColor"}
+                    />
+                  </Button>
+                  <span className="text-xs font-medium">Notifications</span>
+                </Link>
+
+                <Link
+                  href="/buyer/chat"
+                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
+                >
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-10 rounded-full border-neutral-300"
+                  >
+                    <Mail
+                      className="size-5 cursor-pointer"
+                      fill={"currentColor"}
+                      stroke="white"
+                    />
+                  </Button>
+                  <span className="text-xs font-medium">Messages</span>
+                </Link>
+              </div>
+
+              <div className="mt-auto border-t pt-6">
+                <div className="flex justify-center">
+                  <UserDropdown onLogout={handleLogout} currentUser={user} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desktop menu */}
+      <div className="hidden md:flex items-center gap-4">
         <Button
           variant="outline"
           className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
@@ -171,7 +464,6 @@ export default function BuyerLayoutHeader() {
             variant="outline"
             size="icon"
             className="size-8 rounded-full border-neutral-300"
-            onClick={() => router.push("/seller/notifications")}
           >
             <Heart className="size-7 cursor-pointer" />
           </Button>
@@ -180,22 +472,33 @@ export default function BuyerLayoutHeader() {
           <Button
             variant="outline"
             size="icon"
-            className="size-9 rounded-full border-neutral-300 relative"
-            onClick={() => router.push("/seller/notifications")}
+            className={`size-9 rounded-full ${
+              numberOfCartItems > 3
+                ? "border-red-500 border-2"
+                : "border-neutral-300"
+            } relative`}
           >
             <ShoppingCartIcon className="size-8 cursor-pointer" />
-            <div className="flex items-center justify-center absolute top-1 right-0 w-3 h-3 bg-gray-600 rounded-full p-1">
-              <span className="text-xs font-semibold text-white">
-                {numberOfCartItems}
-              </span>
-            </div>
+            {numberOfCartItems > 0 && (
+              <div
+                className={`flex items-center justify-center absolute -top-1 -right-1 ${
+                  numberOfCartItems > 3
+                    ? "w-6 h-6 bg-red-500 animate-pulse"
+                    : "w-5 h-5 bg-red-500"
+                } rounded-full`}
+              >
+                <span className="text-xs font-semibold text-white">
+                  {numberOfCartItems}
+                </span>
+              </div>
+            )}
           </Button>
         </Link>
         <Button
           variant="outline"
           size="icon"
           className="size-8 rounded-full border-neutral-300"
-          onClick={() => router.push("/seller/notifications")}
+          onClick={() => router.push("/buyer/notifications")}
         >
           <Bell className="size-7 cursor-pointer" fill={"currentColor"} />
         </Button>
@@ -204,7 +507,6 @@ export default function BuyerLayoutHeader() {
             variant="outline"
             size="icon"
             className="size-8 rounded-full border-neutral-300"
-            onClick={() => router.push("/seller/chat")}
           >
             <Mail
               className="h-4 w-4 cursor-pointer"

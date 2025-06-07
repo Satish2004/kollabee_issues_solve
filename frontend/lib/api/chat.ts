@@ -8,7 +8,7 @@ const authUrl = process.env.NEXT_PUBLIC_API_URL;
 
 export const chatApi = {
   // Conversations
-  getConversations: async (type?: "BUYER" | "SELLER", status?: "PENDING" | "ACCEPTED" | "DECLINED") => {
+  getConversations: async (type?: "BUYER" | "SELLER" | "ADMIN", status?: "PENDING" | "ACCEPTED" | "DECLINED") => {
     let url = "/conversations"
     const params = new URLSearchParams()
 
@@ -24,7 +24,7 @@ export const chatApi = {
 
   createConversation: async (data: {
     participantId: string
-    participantType: "BUYER" | "SELLER"
+    participantType: "BUYER" | "SELLER" | "ADMIN"
     initialMessage?: string
     attachments?: string[]
   }) => {
@@ -57,7 +57,7 @@ export const chatApi = {
     }
   },
 
-  getUsers: async (role?: "BUYER" | "SELLER") => {
+  getUsers: async (role?: "BUYER" | "SELLER" | "ADMIN") => {
     return api.get(`/users${role ? `?role=${role}` : ""}`)
   },
 
@@ -73,5 +73,20 @@ export const chatApi = {
       },
     })
   },
+
+  
+  // Admin functionality
+  blockCommunication: async (data: { initiatorId: string; targetId: string; reason?: string }) => {
+    return api.post("/admin/block-communication", data)
+  },
+
+  unblockCommunication: async (data: { initiatorId: string; targetId: string }) => {
+    return api.post("/admin/unblock-communication", data)
+  },
+
+  getBlockedCommunications: async () => {
+    return api.get("/admin/blocked-communications")
+  },
 }
+
 

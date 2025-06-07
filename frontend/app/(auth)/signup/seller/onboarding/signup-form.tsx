@@ -1,10 +1,12 @@
 "use client";
-import React, { useEffect, useState } from "react";
+
+import {
+  getCountryCode,
+  getSpecialCaseCountryCode,
+} from "@/components/country-utils";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Circle, ArrowLeft, Info } from "lucide-react";
-import { useRouter } from "next/navigation";
 import {
   Select,
   SelectTrigger,
@@ -12,12 +14,10 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Circle, ArrowLeft, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import ReactCountryFlag from "react-country-flag";
 
 interface SignupFormProps {
   formData: {
@@ -26,6 +26,7 @@ interface SignupFormProps {
     email: string;
     phone: string;
     password: string;
+    otherRole: string;
     confirmPassword: string;
     role: string;
     countryCode: string;
@@ -40,12 +41,10 @@ interface SignupFormProps {
 
 const companyRoles = [
   "Founder/CEO",
-  "Senior - Level Management",
-  "Mid - Level Management",
-  "Junior - Level",
+  "Executive/Leadership",
+  "Manager",
+  "Team Member",
   "Intern",
-  "Sales Manager",
-  "Export Manager",
   "Other",
 ];
 
@@ -268,10 +267,12 @@ export function SignupForm({
     role?: string;
   }>({});
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-
   const [search, setSearch] = useState("");
   const [filteredCountries, setFilteredCountries] = useState(countries);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [otherRole, setOtherROle] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   useEffect(() => {
     setFilteredCountries(
@@ -302,7 +303,7 @@ export function SignupForm({
   }, [isSelecting]);
 
   const isPasswordValid = {
-    hasMinLength: formData.password.length >= 12,
+    hasMinLength: formData.password.length >= 8,
     hasNumber: /\d/.test(formData.password),
     hasCapital: /[A-Z]/.test(formData.password),
   };
@@ -314,7 +315,160 @@ export function SignupForm({
       setShowPasswordError(false);
     }
   };
+  const isNameValid = (name: string) => {
+    // Check minimum length
+    if (name.trim().length < 2) return false;
 
+    // Check if it contains only single characters (like "a" or "ab")
+    if (name.trim().length < 3) return false;
+
+    // Check if it contains numbers or special characters
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(name)) return false;
+
+    // Check if it's not just repeated characters
+    const trimmedName = name.trim().replace(/\s+/g, "");
+    const uniqueChars = new Set(trimmedName.toLowerCase()).size;
+    if (uniqueChars < 2) return false;
+
+    return true;
+  };
+
+  const validatePhoneNumber = (phone: string): string => {
+    if (!phone.trim()) return "Phone number is required";
+
+    if (phone.length < 10) return "Phone number must be at least 10 digits";
+    if (phone.length > 10) return "Phone number cannot exceed 10 digits";
+
+    // Remove any spaces, hyphens, or other formatting
+    const cleanPhone = phone.replace(/[\s\-$$$$]/g, "");
+
+    // Check if it contains only digits
+    if (!/^\d+$/.test(cleanPhone)) {
+      return "Phone number can only contain digits";
+    }
+
+    // Check minimum length
+    if (cleanPhone.length < 10) {
+      return "Phone number must be at least 10 digits";
+    }
+
+    if (cleanPhone.length > 15) {
+      return "Phone number cannot exceed 15 digits";
+    }
+
+    // Check for invalid patterns
+    const invalidPatterns = [
+      /^0+$/, // All zeros
+      /^1+$/, // All ones
+      /^2+$/, // All twos
+      /^3+$/, // All threes
+      /^4+$/, // All fours
+      /^5+$/, // All fives
+      /^6+$/, // All sixes
+      /^7+$/, // All sevens
+      /^8+$/, // All eights
+      /^9+$/, // All nines
+      /^123456789/, // Sequential ascending
+      /^987654321/, // Sequential descending
+      /^0123456789/, // Sequential ascending
+      /^9876543210/, // Sequential descending
+      /^1234567890/, // Sequential ascending
+      /^0987654321/, // Sequential descending
+      /^0000000000/, // All zeros
+      /^1111111111/, // All ones
+      /^2222222222/, // All twos
+      /^3333333333/, // All threes
+      /^4444444444/, // All fours
+      /^5555555555/, // All fives
+      /^6666666666/, // All sixes
+      /^7777777777/, // All sevens
+      /^8888888888/, // All eights
+      /^9999999999/, // All nines
+      /^0123456789/, // Sequential ascending
+      /^1212121212^/, // Repeated pattern
+
+      /^1234567890/, // Sequential ascending
+      /^0987654321/, // Sequential descending
+      /^(\d)\1{9,}/, // Same digit repeated 10+ times
+    ];
+
+    for (const pattern of invalidPatterns) {
+      if (pattern.test(cleanPhone)) {
+        return "Please enter a valid phone number";
+      }
+    }
+
+    // Check for sequential patterns
+    let isSequential = true;
+    for (let i = 1; i < cleanPhone.length; i++) {
+      if (
+        Number.parseInt(cleanPhone[i]) !==
+        Number.parseInt(cleanPhone[i - 1]) + 1
+      ) {
+        isSequential = false;
+        break;
+      }
+    }
+    if (isSequential && cleanPhone.length >= 10) {
+      return "Please enter a valid phone number";
+    }
+
+    // Check for reverse sequential patterns
+    let isReverseSequential = true;
+    for (let i = 1; i < cleanPhone.length; i++) {
+      if (
+        Number.parseInt(cleanPhone[i]) !==
+        Number.parseInt(cleanPhone[i - 1]) - 1
+      ) {
+        isReverseSequential = false;
+        break;
+      }
+    }
+    if (isReverseSequential && cleanPhone.length >= 10) {
+      return "Please enter a valid phone number";
+    }
+
+    return "";
+  };
+
+  useEffect(() => {
+    if (formData.firstName && !isNameValid(formData.firstName)) {
+      setErrors((prev) => ({
+        ...prev,
+        firstName: "First name must be at least 3 characters long",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, firstName: undefined }));
+    }
+
+    if (formData.lastName && !isNameValid(formData.lastName)) {
+      setErrors((prev) => ({
+        ...prev,
+        lastName: "Last name must be at least 3 characters long",
+      }));
+    } else {
+      setErrors((prev) => ({ ...prev, lastName: undefined }));
+    }
+    if (formData.phone) {
+      setErrors((prev) => ({
+        ...prev,
+        phone: validatePhoneNumber(formData.phone),
+      }));
+    }
+    if (formData.email) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (formData.email && !emailRegex.test(formData.email)) {
+        setErrors((prev) => ({
+          ...prev,
+          email: "Please enter a valid email address",
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, email: undefined }));
+      }
+    }
+  }, [formData.firstName, formData.lastName, formData.phone, formData.email]);
+  
   const validateForm = () => {
     const newErrors: any = {};
 
@@ -336,31 +490,40 @@ export function SignupForm({
       }
     });
 
+    // Enhanced name validation
+    if (formData.firstName && !isNameValid(formData.firstName)) {
+      newErrors.firstName =
+        "Please enter a valid first name (at least 2 different characters, letters only)";
+    }
+    if (formData.lastName && !isNameValid(formData.lastName)) {
+      newErrors.lastName =
+        "Please enter a valid last name (at least 2 different characters, letters only)";
+    }
+
     // Additional validations if fields are not empty
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.email && !emailRegex.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
-    }
-
-    const phoneRegex = /^\d{6,15}$/;
-    if (formData.phone && !phoneRegex.test(formData.phone)) {
-      newErrors.phone = "Please enter a valid phone number";
+      newErrors.email = "Please enter a valid email address";
     }
 
     if (formData.password) {
-      if (!formData.password) {
-        newErrors.password = "Password is required";
-      }
-
-      if (formData.password.length < 12) {
-        newErrors.password = "Password must be at least 12 characters";
+      if (formData.password.length < 8) {
+        newErrors.password = "Password must be at least 8 characters long";
       }
       if (!/\d/.test(formData.password)) {
         newErrors.password = "Password must contain at least one number";
       }
       if (!/[A-Z]/.test(formData.password)) {
         newErrors.password =
-          "Password must contain at least one capital letter";
+          "Password must contain at least one uppercase letter";
+      }
+      if (!/[a-z]/.test(formData.password)) {
+        newErrors.password =
+          "Password must contain at least one lowercase letter";
+      }
+      if (!/[!@#$%^&*(),.?":{}|<>]/.test(formData.password)) {
+        newErrors.password =
+          "Password must contain at least one special character";
       }
     }
 
@@ -369,11 +532,13 @@ export function SignupForm({
     }
 
     if (!otpVerified) {
-      newErrors.email = "Please verify your email";
+      newErrors.email = "Please verify your email before proceeding";
     }
 
     if (!formData.role) {
-      newErrors.role = "Please let us know your role";
+      newErrors.role = "Please select your role within the company";
+    } else if (formData.role === "Other" && !formData.otherRole.trim()) {
+      newErrors.role = "Please specify your role";
     }
 
     setErrors(newErrors);
@@ -410,19 +575,19 @@ export function SignupForm({
   return (
     <div className="space-y-8 font-futura font-normal">
       <div className="text-start space-y-2">
-        <h1 className="text-2xl  font-futura">Create Your Account</h1>
+        <h1 className="text-2xl font-futura">Create Your Account</h1>
         <p className="text-muted-foreground">
           Fill in your details to create your account and get started with
           Kollabee.
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8">
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="font-futura font-normal">
               {" "}
-              First Name<span className="text-destructive">*</span>
+              First Name<span className="text-destructive text-red-500">*</span>
             </Label>
             <Input
               placeholder="Enter your First Name"
@@ -443,23 +608,38 @@ export function SignupForm({
 
           <div className="space-y-2">
             <Label className="font-futura font-normal">
-              Password<span className="text-destructive">*</span>
+              Password<span className="text-destructive text-red-500">*</span>
             </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Create your Password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className="bg-[#fcfcfc] border font-futura font-normal border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb]"
-              tabIndex={3}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create your Password"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="bg-[#fcfcfc] border font-futura font-normal border-[#e5e5e5] rounded-[6px] placeholder:text-[#bababb] pr-10"
+                tabIndex={3}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+              </Button>
+            </div>
             {errors.password && (
               <p className="text-sm text-red-500 mt-1">{errors.password}</p>
             )}
-            <div className=" text-xs text-muted-foreground flex flex-row justify-between">
+            <div className="text-xs text-muted-foreground flex flex-col sm:flex-row gap-2 sm:justify-between">
               <div
                 className={`flex items-center gap-2 ${
                   isPasswordValid.hasMinLength ? "text-green-500" : ""
@@ -472,7 +652,7 @@ export function SignupForm({
                       : "fill-current"
                   }`}
                 />
-                Min. 12 Characters
+                Min. 8 Characters
               </div>
               <div
                 className={`flex items-center gap-2 ${
@@ -506,25 +686,21 @@ export function SignupForm({
           </div>
 
           <div className="space-y-2 ">
-            <Label
-              htmlFor="email"
-              className="flex font-normal items-center gap-2"
-            >
-              Business Email<span className="text-destructive">*</span>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Info className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-gray-200 max-w-sm">
-                    <p>
-                      Enter your business email address. This email will be used
-                      to send you OTP for verification.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Label>
+            <div className="space-y-1">
+              <Label
+                htmlFor="email"
+                className="flex font-normal items-center gap-2"
+              >
+                <p>
+                  Business Email
+                  <span className="text-destructive text-red-500">*</span>
+                </p>
+              </Label>
+              <p className="text-sm font-futura italic">
+                Enter your business email address. This email will be used to
+                send you OTP for verification
+              </p>
+            </div>
             <div className="relative">
               <Input
                 id="email"
@@ -540,9 +716,14 @@ export function SignupForm({
               />
               <Button
                 onClick={onVerifyEmail}
-                disabled={!formData.email || generateOTPLoading || otpVerified}
+                disabled={
+                  !formData.email ||
+                  !!errors.email ||
+                  generateOTPLoading ||
+                  otpVerified
+                }
                 variant={otpVerified ? "outline" : "default"}
-                className={`absolute right-0 top-0 h-6 w-20 mt-[6px] mr-2 text-[12px] ${
+                className={`absolute  right-0 top-0 h-6  w-20 mt-[6px] mr-2 text-[12px] ${
                   otpVerified
                     ? " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
                     : " border border-[#9e1171]  bg-clip-text text-transparent bg-gradient-to-r from-red-500 to-yellow-500 hover:from-red-600 hover:to-yellow-600"
@@ -560,38 +741,73 @@ export function SignupForm({
               )}
             </div>
           </div>
+
+          {/* Role Selection - Using Select Component */}
           <div className="space-y-2">
             <Label className="font-futura font-normal">
               Describe your Role within the Company
-              <span className="text-destructive">*</span>
+              <span className="text-destructive text-red-500">*</span>
             </Label>
-            <div className="flex flex-wrap gap-2">
-              {companyRoles.map((role) => (
-                <Button
-                  key={role}
-                  variant={formData.role === role ? "default" : "outline"}
-                  className={`h-8 text-xs justify-start px-2 w-fit rounded-[6px] border ${
-                    formData.role === role
-                      ? "border-[#9e1171] border text-[#9e1171]"
-                      : "border-[#e5e5e5]"
-                  }`}
-                  onClick={() => setFormData({ ...formData, role: role })}
-                >
-                  {role}
-                </Button>
-              ))}
-            </div>
+            <Select
+              value={formData.role}
+              onValueChange={(value) => {
+                setFormData({
+                  ...formData,
+                  role: value,
+                });
+                setOtherROle("");
+                setErrors({ ...errors, role: undefined });
+              }}
+            >
+              <SelectTrigger
+                className={`w-full bg-[#fcfcfc] border ${
+                  errors.role ? "border-red-500" : "border-[#e5e5e5]"
+                } rounded-[6px]`}
+              >
+                <SelectValue placeholder="Select your role" />
+              </SelectTrigger>
+              <SelectContent className="bg-white z-10">
+                {companyRoles.map((role) => (
+                  <SelectItem key={role} value={role}>
+                    {role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {formData.role === "Other" && (
+              <>
+                <Label className="font-futura font-normal">
+                  Please specify your role
+                </Label>
+                <Input
+                  placeholder="example: Director, Chief, etc."
+                  value={formData.otherRole}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      otherRole: e.target.value,
+                    });
+                    setErrors({ ...errors, role: undefined });
+                  }}
+                  className={`bg-[#fcfcfc] border ${
+                    errors.role ? "border-red-500" : "border-[#e5e5e5]"
+                  } rounded-[6px] placeholder:text-[#bababb]`}
+                />
+              </>
+            )}
             {errors.role && (
               <p className="text-sm text-red-500 mt-1">{errors.role}</p>
             )}
           </div>
+
           <div className="space-y-4"></div>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="font-futura font-normal">
-              Last Name<span className="text-destructive">*</span>
+              Last Name<span className="text-destructive text-red-500">*</span>
             </Label>
             <Input
               placeholder="Enter your Last Name"
@@ -609,95 +825,158 @@ export function SignupForm({
               <p className="text-sm text-red-500 mt-1">{errors.lastName}</p>
             )}
           </div>
-          <div className="space-y-14">
+          <div className="space-y-4 md:space-y-10">
             <div className="space-y-2 relative">
               <Label className="font-futura font-normal">
-                Confirm Password<span className="text-destructive">*</span>
+                Confirm Password
+                <span className="text-destructive text-red-500">*</span>
               </Label>
-              <Input
-                type="password"
-                placeholder="Re-enter your Password"
-                required
-                value={formData.confirmPassword}
-                onChange={(e) => {
-                  setFormData({ ...formData, confirmPassword: e.target.value });
-                  checkPasswordMatch(e.target.value);
-                  setErrors({ ...errors, confirmPassword: undefined });
-                }}
-                className={`bg-[#fcfcfc] border ${
-                  showPasswordError ? "border-red-500" : "border-[#e5e5e5]"
-                } rounded-[6px] placeholder:text-[#bababb]`}
-                tabIndex={4}
-              />
-
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Re-enter your Password"
+                  required
+                  value={formData.confirmPassword}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      confirmPassword: e.target.value,
+                    });
+                    checkPasswordMatch(e.target.value);
+                    setErrors({ ...errors, confirmPassword: undefined });
+                  }}
+                  className={`bg-[#fcfcfc] border ${
+                    showPasswordError ? "border-red-500" : "border-[#e5e5e5]"
+                  } rounded-[6px] placeholder:text-[#bababb] pr-10`}
+                  tabIndex={4}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-400" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-400" />
+                  )}
+                </Button>
+              </div>
               {showPasswordError && (
                 <div className="absolute -bottom-6 left-0 text-xs text-red-500 bg-white px-2 py-1 rounded shadow-sm border border-red-100">
                   Passwords do not match
                 </div>
               )}
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.confirmPassword}
+                </p>
+              )}
             </div>
 
-            <div className="flex items-center gap-2">
-              <Select
-                value={formData.countryCode}
-                onValueChange={(value) => {
-                  setFormData({
-                    ...formData,
-                    countryCode: value,
-                    country: countries.find((c) => c.code === value)?.name,
-                  });
-                  setSearch("");
-                  setIsSelecting(false);
-                }}
-                onOpenChange={setIsSelecting}
-              >
-                <SelectTrigger className="w-[100px] h-10 rounded-l-md bg-white border border-gray-300 px-3">
-                  <SelectValue placeholder="🌍 +1">
-                    {
-                      countries.find((c) => c.code === formData.countryCode)
-                        ?.flag
-                    }{" "}
-                    {formData.countryCode || "+1"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2 bg-white">
-                  {isSelecting && (
-                    <input
-                      autoFocus
-                      type="text"
-                      placeholder="Search country..."
-                      className="w-full p-2 border border-gray-300 rounded-md mb-2"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                  )}
-                  {filteredCountries.length > 0 ? (
-                    filteredCountries.map((country) => (
-                      <SelectItem key={country.name} value={country.code}>
-                        <span>{country.flag}</span> {country.name} (
-                        {country.code})
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 text-sm p-2">
-                      No countries found
-                    </p>
-                  )}
-                </SelectContent>
-              </Select>
+            <div className="flex flex-col items-start  gap-2">
+              <div className="space-y-1">
+                <Label className="font-futura font-normal">
+                  Phone Number
+                  <span className="text-destructive text-red-500">*</span>
+                </Label>
+                <p className="text-sm font-futura italic">
+                  Please enter a valid phone number
+                </p>
+              </div>
+              <div className="w-full flex">
+                {/* Country Code Select */}
+                <Select
+                  value={formData.countryCode}
+                  onValueChange={(value) => {
+                    setFormData({
+                      ...formData,
+                      countryCode: value,
+                      country: countries.find((c) => c.code === value)?.name,
+                    });
+                    setSearch("");
+                    setIsSelecting(false);
+                  }}
+                  onOpenChange={setIsSelecting}
+                >
+                  <SelectTrigger className="w-[100px] h-10 border-r-0 rounded-r-none bg-white border border-gray-300 px-3 flex items-center">
+                    <SelectValue placeholder="🌍 +1">
+                      <ReactCountryFlag
+                        countryCode={getCountryCode(
+                          formData.countryCode || "+1"
+                        )}
+                        svg
+                        style={{
+                          width: "1em",
+                          height: "1em",
+                          marginRight: "0.5em",
+                        }}
+                        title={
+                          countries.find((c) => c.code === formData.countryCode)
+                            ?.name || "India"
+                        }
+                      />
+                      {formData.countryCode || "+91"}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="w-[260px] max-h-[300px] overflow-y-auto p-2 bg-white">
+                    {isSelecting && (
+                      <input
+                        autoFocus
+                        type="text"
+                        placeholder="Search country..."
+                        className="w-full p-2 border border-gray-300 rounded-md mb-2"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                      />
+                    )}
+                    {filteredCountries.length > 0 ? (
+                      filteredCountries.map((country) => (
+                        <SelectItem key={country.name} value={country.code}>
+                          <ReactCountryFlag
+                            countryCode={getSpecialCaseCountryCode(
+                              country.code,
+                              country.name
+                            )}
+                            svg
+                            style={{
+                              width: "1em",
+                              height: "1em",
+                              marginRight: "0.5em",
+                            }}
+                            title={country.name}
+                          />
+                          {country.name} ({country.code})
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <p className="text-gray-500 text-sm p-2">
+                        No countries found
+                      </p>
+                    )}
+                  </SelectContent>
+                </Select>
 
-              <Input
-                placeholder="Enter your Phone Number"
-                value={formData.phone}
-                onChange={(e) => {
-                  setFormData({ ...formData, phone: e.target.value });
-                  setErrors({ ...errors, phone: undefined });
-                }}
-                className={`flex-1 bg-white border ${
-                  errors.phone ? "border-red-500" : "border-gray-300"
-                } rounded-md placeholder-gray-400 px-3 py-2`}
-                tabIndex={6}
-              />
+                {/* Phone Input */}
+                <Input
+                  placeholder="Enter your Phone Number"
+                  value={formData.phone}
+                  onChange={(e) => {
+                    setFormData({ ...formData, phone: e.target.value });
+                    setErrors({ ...errors, phone: undefined });
+                  }}
+                  className={`flex-1 h-10 bg-white border ${
+                    errors.phone ? "border-red-500" : "border-gray-300"
+                  } border-l-0 rounded-l-none placeholder-gray-400 px-3 py-2`}
+                  tabIndex={6}
+                />
+              </div>
+
+              {errors.phone && (
+                <p className="text-sm text-red-500 mt-1">{errors.phone}</p>
+              )}
             </div>
           </div>
         </div>

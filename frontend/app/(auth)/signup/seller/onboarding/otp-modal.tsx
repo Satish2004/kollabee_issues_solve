@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import React from "react";
+
+import { useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,12 +18,14 @@ interface OTPModalProps {
   onClose: () => void;
   email: string;
   otp: string[];
+  setOtp: (otp: string[]) => void;
   onOtpChange: (index: number, value: string) => void;
   onKeyDown: (index: number, e: React.KeyboardEvent<HTMLInputElement>) => void;
   onVerify: () => void;
   onResend: () => void;
   isResendDisabled: boolean;
   countdown: number;
+  setCountdown: (remainingTime: number) => void;
   isVerifying: boolean;
   error?: string;
 }
@@ -31,23 +35,46 @@ export function OTPModal({
   onClose,
   email,
   otp,
+  setOtp,
   onOtpChange,
   onKeyDown,
   onVerify,
   onResend,
   isResendDisabled,
   countdown,
+  setCountdown,
   isVerifying,
   error,
 }: OTPModalProps) {
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
   useEffect(() => {
     if (countdown > 0) {
+      console.log("countdown : ", countdown);
       const timer = setInterval(() => {
-        countdown--;
+        setCountdown(countdown - 1);
       }, 1000);
       return () => clearInterval(timer);
     }
   }, [countdown]);
+
+  // Handle paste event for OTP inputs
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    currentIndex: number
+  ) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text");
+
+    // console.log("pastedData : ", pastedData);
+    // console.log("currentIndex : ", currentIndex);
+
+    // Filter only digits from pasted content
+    const digits = pastedData.replace(/\D/g, "").split("").slice(0, 6);
+    // console.log("digits : ", digits);
+
+    if (digits.length === 6) setOtp(digits);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={() => onClose()}>
@@ -68,12 +95,16 @@ export function OTPModal({
               .map((_, i) => (
                 <Input
                   key={i}
+                  ref={(el) => (inputRefs.current[i] = el)}
                   name={`otp-${i}`}
-                  className="w-12 h-12 text-center text-lg bg-[#fdeced] border-none rounded-[6px] "
+                  className="w-12 h-12 text-center text-lg bg-[#fdeced] border-none rounded-[6px]"
                   maxLength={1}
-                  value={otp[i]}
+                  value={otp[i] || ""}
                   onChange={(e) => onOtpChange(i, e.target.value)}
                   onKeyDown={(e) => onKeyDown(i, e)}
+                  onPaste={(e) => handlePaste(e, i)}
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                 />
               ))}
           </div>
@@ -90,9 +121,9 @@ export function OTPModal({
               variant="link"
               className="text-[#00B981] p-0 h-auto text-sm font-normal hover:no-underline"
               onClick={onResend}
-              disabled={isResendDisabled}
+              disabled={countdown > 0}
             >
-              {isResendDisabled ? (
+              {countdown > 0 ? (
                 <span>
                   Resend OTP in{" "}
                   <span className="text-destructive">{countdown}s</span>

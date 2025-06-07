@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { FeatureGrid } from "@/components/home/feature-grid";
 import { LandingNavbar } from "@/components/home/landing-navbar";
 import { ArrowRight } from "lucide-react";
-import ProductShowcase from "@/components/home/product-showcase";
 import SAPFeatures from "@/components/home/sap-features";
 import WhyKollabee from "@/components/home/why-kollabee";
 import ContactSection from "@/components/home/contact-section";
@@ -17,10 +16,10 @@ import Footer from "@/components/home/footer";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen relative">
-      {/* Background gradient container */}
+    <div className="min-h-screen relative overflow-x-hidden">
+      {/* Background gradient container - fixed overflow issue */}
       <div
-        className="absolute inset-0 h-[120vh] overflow-hidden"
+        className="absolute top-0 left-0 right-0 h-[120vh] w-full overflow-hidden"
         style={{
           background: `
             linear-gradient(to bottom, 
@@ -48,7 +47,7 @@ export default function LandingPage() {
         {/* Hero Section */}
         <main className="container mx-auto px-4 pt-6">
           <div className="text-center mb-8">
-            <div className="flex items-center justify-center gap-4 mb-6 bg-white w-fit mx-auto p-3 rounded-xl">
+            <div className="flex items-center justify-center gap-4 mb-6 bg-white w-fit mx-auto p-3 rounded-xl flex-wrap">
               <div className="flex -space-x-2">
                 {[1, 2, 3].map((i) => (
                   <div
@@ -82,10 +81,10 @@ export default function LandingPage() {
             {/* Dashboard Preview with double border and fade effect */}
             <div className="relative mx-auto max-w-7xl">
               {/* Outer blur border */}
-              <div className="absolute inset-0 -m-14 rounded-lg bg-white/30 backdrop-blur-sm shadow-[0_0_1px_rgba(0,0,0,0.05)]" />
+              <div className="absolute inset-0 -m-4 sm:-m-8 md:-m-14 rounded-lg bg-white/30 backdrop-blur-sm shadow-[0_0_1px_rgba(0,0,0,0.05)]" />
 
               {/* Inner blur border */}
-              <div className="absolute inset-0 -m-8 rounded-lg bg-white/40 backdrop-blur-md shadow-[0_0_1px_rgba(0,0,0,0.08)]" />
+              <div className="absolute inset-0 -m-2 sm:-m-4 md:-m-8 rounded-lg bg-white/40 backdrop-blur-md shadow-[0_0_1px_rgba(0,0,0,0.08)]" />
 
               {/* Main content container */}
               <div className="relative rounded-lg bg-white overflow-hidden">
@@ -102,7 +101,7 @@ export default function LandingPage() {
                   />
                   {/* Gradient overlay for fade effect */}
                   <div
-                    className="absolute inset-0"
+                    className="absolute inset-0 px-2"
                     style={{
                       background:
                         "linear-gradient(to bottom, rgba(255,255,255,0) 30%, rgba(255,255,255,0.9) 60%, white 70%)",

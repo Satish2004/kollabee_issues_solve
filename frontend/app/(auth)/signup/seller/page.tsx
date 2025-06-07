@@ -1,23 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-
-import { toast } from "sonner";
-import Link from "next/link";
-import Image from "next/image";
-import { Info } from "lucide-react";
-import { ProgressStepper } from "@/components/onboarding/progress-stepper";
-import { SignupForm } from "./onboarding/signup-form";
 import { BusinessInfoForm } from "./onboarding/business-info-form";
 import { GoalsMetricsForm } from "./onboarding/goals-metrics-form";
-import { SuccessMessage } from "./onboarding/success-message";
 import { OTPModal } from "./onboarding/otp-modal";
-import { ErrorBoundary } from "react-error-boundary";
+import { SignupForm } from "./onboarding/signup-form";
+import { SuccessMessage } from "./onboarding/success-message";
+import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { Card } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
-import { sellerApi } from "@/lib/api/seller";
+import type { BusinessType, CategoryEnum } from "@/types/api";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { BusinessType, CategoryEnum } from "@/types/api";
+import type React from "react";
+import { useState, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "sonner";
 
 export default function SignupSellerPage() {
   const router = useRouter();
@@ -34,14 +31,17 @@ export default function SignupSellerPage() {
     role: "",
     businessName: "",
     businessType: "",
+    businessDescription: "",
     businessAddress: "",
     websiteLink: "",
+    otherRole: "",
     businessTypes: [] as BusinessType[],
     businessCategories: [] as CategoryEnum[],
     selectedObjectives: [] as string[],
     selectedChallenges: [] as string[],
     selectedMetrics: [] as string[],
-    agreement: false,
+    agreement1: false,
+    agreement2: false,
   });
 
   const [showOTP, setShowOTP] = useState(false);
@@ -94,11 +94,10 @@ export default function SignupSellerPage() {
     }
     setGenerateOTPLoading(true);
     try {
-      await authApi.generateOTP(formData.email);
+      setCountdown(35);
       setShowOTP(true);
-      setCountdown(30);
+      await authApi.generateOTP(formData.email);
       setIsResendDisabled(true);
-      toast.success("OTP sent successfully");
     } catch (error: any) {
       console.error("Error generating OTP:", error);
       toast.error(error.response?.data?.message || "Failed to send OTP");
@@ -109,6 +108,7 @@ export default function SignupSellerPage() {
 
   const handleOtpChange = (index: number, value: string) => {
     if (isNaN(Number(value))) return;
+
     const newOtp = [...otp];
     newOtp[index] = value;
     setOtp(newOtp);
@@ -166,15 +166,18 @@ export default function SignupSellerPage() {
 
   const handleSubmit = async () => {
     setSubmitLoading(true);
-    console.log(formData);
     try {
       const response = await authApi.signup({
         // User details
         email: formData.email,
         password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         name: formData.firstName + " " + formData.lastName,
         role: "SELLER",
-        phoneNumber: formData.phone,
+        phone: formData.phone,
+        country: formData.country,
+        countryCode: formData.countryCode,
 
         // Company details
         companyName: formData.businessName,
@@ -183,22 +186,32 @@ export default function SignupSellerPage() {
 
         // Seller profile
         businessName: formData.businessName,
+        businessDescription: formData.businessDescription,
         businessAddress: formData.businessAddress,
         websiteLink: formData.websiteLink,
         businessTypes: formData.businessTypes,
         businessCategories: formData.businessCategories,
-        roleInCompany: formData.role,
-        objectives: formData.selectedObjectives,
-        challenges: formData.selectedChallenges,
-        metrics: formData.selectedMetrics,
+        roleInCompany:
+          formData.role === "other" ? formData.otherRole : formData.role,
+        selectedObjectives: formData.selectedObjectives,
+        selectedChallenges: formData.selectedChallenges,
+        selectedMetrics: formData.selectedMetrics,
+        agreement1: formData.agreement1,
+        agreement2: formData.agreement2,
       });
+
+      if (response?.error) {
+        toast.error(response?.error);
+        return;
+      }
       toast.success(response?.message);
       router.push("/seller");
 
       // Token is automatically set by authApi.signup
       toast.success("Account created successfully!");
     } catch (error: any) {
-      toast.error("Failed to create account");
+      console.error(`Error creating account: ${error}`);
+      toast.error(`Failed to create account: ${error}`);
     } finally {
       setSubmitLoading(false);
     }
@@ -230,33 +243,55 @@ export default function SignupSellerPage() {
   const validateStage2 = () => {
     const {
       businessName,
+      businessDescription,
       businessTypes,
       businessAddress,
       websiteLink,
       businessCategories,
     } = formData;
-    if (
-      !businessName ||
-      businessTypes.length === 0 ||
-      !businessAddress ||
-      !websiteLink ||
-      businessCategories.length === 0
-    ) {
-      toast.error("Please fill all required fields");
+
+    let isValid = true;
+    let errorMessage = "";
+
+    if (!businessName.trim()) {
+      errorMessage = "Business name is required";
+      isValid = false;
+    } else if (!businessDescription.trim()) {
+      errorMessage = "Business description is required";
+      isValid = false;
+    } else if (businessTypes.length === 0) {
+      errorMessage = "Please select at least one business type";
+      isValid = false;
+    } else if (!businessAddress.trim()) {
+      errorMessage = "Business address is required";
+      isValid = false;
+    } else if (!websiteLink.trim()) {
+      errorMessage = "Website link is required";
+      isValid = false;
+    } else if (businessCategories.length === 0) {
+      errorMessage = "Please select at least one business category";
+      isValid = false;
+    }
+
+    if (!isValid) {
+      toast.error(errorMessage);
       return false;
     }
+
     return true;
   };
 
   const validateStage3 = () => {
     const {
-      agreement,
+      agreement1,
+      agreement2,
       selectedMetrics,
       selectedChallenges,
       selectedObjectives,
     } = formData;
     if (
-      !agreement ||
+      !agreement1 ||
+      !agreement2 ||
       selectedMetrics.length === 0 ||
       selectedChallenges.length === 0 ||
       selectedObjectives.length === 0
@@ -299,6 +334,20 @@ export default function SignupSellerPage() {
     }
   };
 
+  // Add this after the other useEffect hooks
+  useEffect(() => {
+    // Reset any validation errors when form data changes
+    if (currentStage === 2) {
+      const businessInfoForm = document.getElementById("business-info-form");
+      if (businessInfoForm) {
+        // This will trigger a re-render of the BusinessInfoForm component
+        businessInfoForm.dispatchEvent(
+          new Event("reset-validation", { bubbles: true })
+        );
+      }
+    }
+  }, [formData, currentStage]);
+
   return (
     <ErrorBoundary
       FallbackComponent={({ error }) => (
@@ -316,7 +365,7 @@ export default function SignupSellerPage() {
         </div>
       )}
     >
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-pink-50 to-orange-50 p-10">
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-pink-50 to-orange-50 p-4 md:p-10">
         <div className="bg-white rounded-xl shadow-sm w-full min-h-[calc(100vh-5rem)] p-8">
           <div className="max-w-[1000px] mx-auto">
             <div className="space-y-8 mb-8">
@@ -344,7 +393,7 @@ export default function SignupSellerPage() {
               </div> */}
             </div>
 
-            <Card className="p-8 shadow-none border-none">
+            <Card className="md:p-8 shadow-none border-none">
               <>
                 {currentStage === 1 && (
                   <SignupForm
@@ -361,6 +410,7 @@ export default function SignupSellerPage() {
                   <BusinessInfoForm
                     formData={{
                       businessName: formData.businessName || "",
+                      businessDescription: formData.businessDescription || "",
                       websiteLink: formData.websiteLink || "",
                       businessAddress: formData.businessAddress || "",
                       businessTypes: formData.businessTypes || [],
@@ -370,6 +420,7 @@ export default function SignupSellerPage() {
                       setFormData((prev) => {
                         const updated = updater({
                           businessName: prev.businessName || "",
+                          businessDescription: prev.businessDescription || "",
                           websiteLink: prev.websiteLink || "",
                           businessAddress: prev.businessAddress || "",
                           businessTypes: prev.businessTypes || [],
@@ -388,7 +439,8 @@ export default function SignupSellerPage() {
                       selectedObjectives: formData.selectedObjectives,
                       selectedChallenges: formData.selectedChallenges,
                       selectedMetrics: formData.selectedMetrics,
-                      agreement: formData.agreement,
+                      agreement1: formData.agreement1,
+                      agreement2: formData.agreement2,
                     }}
                     setFormData={(data) => {
                       setFormData((prev) => ({
@@ -396,7 +448,8 @@ export default function SignupSellerPage() {
                         selectedObjectives: data(prev).selectedObjectives,
                         selectedChallenges: data(prev).selectedChallenges,
                         selectedMetrics: data(prev).selectedMetrics,
-                        agreement: data(prev).agreement,
+                        agreement1: data(prev).agreement1,
+                        agreement2: data(prev).agreement2,
                       }));
                     }}
                     onSubmit={handleNextStage}
@@ -412,15 +465,20 @@ export default function SignupSellerPage() {
 
         <OTPModal
           isOpen={showOTP}
-          onClose={() => setShowOTP(false)}
+          onClose={() => {
+            setShowOTP(false);
+            setOtp(Array(6).fill(""));
+          }}
           email={formData.email}
           otp={otp}
+          setOtp={setOtp}
           onOtpChange={handleOtpChange}
           onKeyDown={handleKeyDown}
           onVerify={handleOTPVerify}
           onResend={handleResendOTP}
           isResendDisabled={isResendDisabled}
           countdown={countdown}
+          setCountdown={setCountdown}
           isVerifying={verifyOTPLoading}
           error={otpError}
         />

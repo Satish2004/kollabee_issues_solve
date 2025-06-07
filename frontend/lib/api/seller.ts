@@ -1,7 +1,7 @@
-import { CategoryEnum } from '@/types/api';
-import { BusinessType } from '@/types/api';
-import { api } from '../axios';
-import { Product } from '@/types/api';
+import { api } from "../axios";
+import { CategoryEnum } from "@/types/api";
+import { BusinessType } from "@/types/api";
+import { Product } from "@/types/api";
 import { Request } from "@/types/api";
 
 export interface BusinessInfo {
@@ -31,33 +31,39 @@ export const sellerApi = {
   //   return api.get<Product[]>('/seller/products', { params });
   // },
 
-
- 
   getOrders: async (params?: {
     status?: string;
     page?: number;
     limit?: number;
   }) => {
-    return api.get('/seller/orders', { params });
+    return api.get("/seller/orders", { params });
   },
 
   getBusinessInfo: async () => {
-    return api.get('/seller/business');
+    return api.get("/seller/profile/bussinessInfo");
   },
 
   getSellers: async () => {
-    return api.get('/seller/sellers');
+    return api.get("/seller/sellers");
   },
 
   getSeller: async (userId: string) => {
     return api.get(`/seller/seller/${userId}`);
   },
 
-  updateBusinessInfo: (data: BusinessInfo) => 
-    api.put('/seller/business-info', data),
+  updateBusinessInfo: (data: BusinessInfo) =>
+    api.put("/seller/profile/bussinessInfo", data),
 
-  // updateGoalsAndMetrics: (data: GoalsAndMetrics) =>
-  //   api.post('/seller/goals-metrics', data),
+  reqApproval: async () => {
+    return api.put("/seller/approval");
+  },
+
+  getApproval: async () => {
+    return api.get("/seller/approval");
+  },
+
+  updateGoalsAndMetrics: (data: GoalsAndMetrics) =>
+    api.post("/seller/goals-metrics", data),
 
   // getDashboard: async (period?: '7d' | '30d') => {
   //   return api.get('/seller/dashboard', { params: { period } });

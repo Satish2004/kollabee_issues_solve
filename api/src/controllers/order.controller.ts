@@ -207,7 +207,7 @@ export const getOrderDetails = async (req: any, res: Response) => {
     const order = await prisma.order.findFirst({
       where: {
         id,
-        buyerId,
+        buyerId: buyerId,
       },
       include: {
         items: {
@@ -587,3 +587,318 @@ export const GetSellerRequest = async (req: any, res: Response) => {
     console.log("error :", error);
   }
 };
+
+export const getAllDetails = async (req: any, res: Response) => {
+  try {
+    const { pageNo, pageSize, search, sortBy, sortOrder, filter, type } =
+      req.query;
+
+    const page = parseInt(pageNo as string) || 1;
+    const size = parseInt(pageSize as string) || 10;
+    const skip = (page - 1) * size;
+    const take = size;
+    const searchTerm = search ? search.toString() : "";
+    const sortByField = sortBy ? sortBy.toString() : "createdAt";
+    const sortOrderField = sortOrder ? sortOrder.toString() : "desc";
+
+    // Parse filters from query
+    const filterFieldArray =
+      filter?.toString().split(",").filter(Boolean) || [];
+    const filterConditions = filterFieldArray.map((item: string) => {
+      const [key, value] = item.split(":");
+      switch (key) {
+        case "status":
+          return { status: { equals: value } };
+        case "country":
+          return { country: { contains: value, mode: "insensitive" } };
+        case "state":
+          return { state: { contains: value, mode: "insensitive" } };
+        default:
+          return {};
+      }
+    });
+
+    let data: any[] = [];
+    let totalCount = 0;
+
+    if (type === "orders") {
+      [data, totalCount] = await prisma.$transaction([
+        prisma.order.findMany({
+          where: {
+            // OR: [
+            //   { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
+            //   { carrier: { contains: searchTerm, mode: "insensitive" } },
+            // ],
+            AND: filterConditions,
+          },
+          skip,
+          take,
+          orderBy: {
+            [sortByField]: sortOrderField,
+          },
+          include: {
+            buyer: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            seller: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            items: {
+              include: {
+                product: true,
+                seller: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        email: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            shippingAddress: true,
+          },
+        }),
+        prisma.order.count({
+          where: {
+            // OR: [
+            //   { trackingNumber: { contains: searchTerm, mode: "insensitive" } },
+            //   { carrier: { contains: searchTerm, mode: "insensitive" } },
+            // ],
+            AND: filterConditions,
+          },
+        }),
+      ]);
+    } else if (type === "projectReq") {
+      [data, totalCount] = await prisma.$transaction([
+        prisma.projectReq.findMany({
+          where: {
+            OR: [{ status: { equals: searchTerm as RequestStatus } }],
+            AND: filterConditions,
+          },
+          skip,
+          take,
+          orderBy: {
+            [sortByField]: sortOrderField,
+          },
+          include: {
+            project: true,
+            buyer: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            seller: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.projectReq.count({
+          where: {
+            OR: [{ status: { equals: searchTerm as RequestStatus } }],
+            AND: filterConditions,
+          },
+        }),
+      ]);
+    } else if (type === "projects") {
+      [data, totalCount] = await prisma.$transaction([
+        prisma.project.findMany({
+          where: {
+            OR: [
+              { businessName: { contains: searchTerm, mode: "insensitive" } },
+              { category: { contains: searchTerm, mode: "insensitive" } },
+            ],
+            AND: filterConditions,
+          },
+          skip,
+          take,
+          orderBy: {
+            [sortByField]: sortOrderField,
+          },
+          include: {
+            milestones: true,
+            owner: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            sellers: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.project.count({
+          where: {
+            OR: [
+              { businessName: { contains: searchTerm, mode: "insensitive" } },
+              { category: { contains: searchTerm, mode: "insensitive" } },
+            ],
+            AND: filterConditions,
+          },
+        }),
+      ]);
+    } else if (type === "requests") {
+      [data, totalCount] = await prisma.$transaction([
+        prisma.request.findMany({
+          where: {
+            OR: [
+              { productName: { contains: searchTerm, mode: "insensitive" } },
+              { category: { contains: searchTerm, mode: "insensitive" } },
+            ],
+            AND: filterConditions,
+          },
+          skip,
+          take,
+          orderBy: {
+            [sortByField]: sortOrderField,
+          },
+          include: {
+            buyer: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+            seller: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
+        prisma.request.count({
+          where: {
+            OR: [
+              { productName: { contains: searchTerm, mode: "insensitive" } },
+              { category: { contains: searchTerm, mode: "insensitive" } },
+            ],
+            AND: filterConditions,
+          },
+        }),
+      ]);
+    } else {
+      return res.status(400).json({ error: "Invalid type parameter" });
+    }
+
+    res.json({
+      data,
+      pagination: {
+        total: totalCount,
+        pages: Math.ceil(totalCount / size),
+        page,
+        size,
+      },
+    });
+  } catch (error) {
+    console.error("Get all details error:", error);
+    res.status(500).json({ error: "Failed to fetch details" });
+  }
+};
+
+// get all the details of a particular order for admin
+
+export const getOrderDetailsForAdmin = async (req: any, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const order = await prisma.order.findFirst({
+      where: {
+        id,
+      },
+      include: {
+        items: {
+          include: {
+            product: true,
+            seller: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    imageUrl: true,
+                    phoneNumber: true,
+                    email: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        shippingAddress: true,
+        buyer: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                imageUrl: true,
+                phoneNumber: true,
+                country: true,
+                email: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      console.log("here is going ?");
+      return res.status(404).json({ error: "Order not found" });
+    }
+
+    res.json(order);
+  } catch (error) {
+    console.error("Get order details error:", error);
+    res.status(500).json({ error: "Failed to fetch order details" });
+  }
+};
+
+

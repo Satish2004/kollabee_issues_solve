@@ -31,7 +31,7 @@ export default function RootLayout({ children }: PropsWithChildren) {
   return (
     <html lang="en" className={futura.variable} suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary `}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary overflow-auto`}
       >
         {children}
         <Toaster position="top-center" />

@@ -18,6 +18,11 @@ import {
   Settings,
   Plus,
   Package,
+  Share,
+  NotebookPen,
+  Bot,
+  Calendar,
+  MessageCircleQuestion,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
@@ -119,11 +124,31 @@ export function SellerSidebar({ className }: SidebarProps) {
           href: "/seller/advertise",
           target: "advertise",
         },
-        // {
-        //   label: "Profile Manage",
-        //   icon: UserCog,
-        //   href: "/profile/seller/profile-management",
-        // },
+      ],
+    },
+    {
+      label: "OTHERS",
+      routes: [
+        {
+          label: "Invite",
+          icon: Share,
+          href: "/seller/invite",
+        },
+        {
+          label: "Calendar",
+          icon: Calendar,
+          href: "/seller/appointment",
+        },
+        {
+          label: "Feedback",
+          icon: NotebookPen,
+          href: "/seller/contact",
+        },
+        {
+          label: "FAQ",
+          icon: MessageCircleQuestion,
+          href: "/seller/faq",
+        },
       ],
     },
   ];
@@ -201,7 +226,7 @@ export function SellerSidebar({ className }: SidebarProps) {
 
         <div className="flex flex-col gap-2 border-t pt-4">
           <Link
-            href="/help"
+            href="#"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent"
           >
             <HelpCircle className="h-4 w-4" />

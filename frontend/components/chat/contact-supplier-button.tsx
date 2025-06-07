@@ -39,13 +39,13 @@ export default function ContactSupplierButton({
       <DialogTrigger asChild>
         <Button
           variant={variant}
-          className="w-full gradient-border gradient-text font-bold py-6 px-4"
+          className="w-full gradient-border gradient-text font-bold py-2 sm:py-6 px-3 sm:px-4 text-xs sm:text-sm"
           // size={size}
         >
           Contact Supplier
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-white " >
+      <DialogContent className="sm:max-w-md bg-white">
         <ContactSupplierForm
           supplierId={supplierId}
           supplierName={supplierName}

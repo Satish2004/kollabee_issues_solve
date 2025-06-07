@@ -1,29 +1,35 @@
 "use client";
 
+import Star from "./Star";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft } from "lucide-react";
 
 const objectives = [
-  "Expand your buyer network",
-  "Vegan Products",
-  "Organic Ingredients",
-  "Small-Batch Production",
+  "Expand into new markets",
+  "Connect with high-quality buyers",
+  "Increase brand visibility",
+  "Build relationships with startups or emerging brands",
+  "Promote sustainable or ethical practices",
+  "Grow export volume",
 ];
 
 const challenges = [
-  "Eco-Friendly Practices",
-  "Vegan Products",
-  "Organic Ingredients",
-  "Small-Batch Production",
+  "Difficulty reaching serious buyers",
+  "Low brand visibility",
+  "Price pressure and margin squeeze",
+  "Long lead times for closing deals",
+  "Managing small batch/MOQ efficiently",
+  "Complex compliance or certification demands",
 ];
 
 const metrics = [
-  "Small Businesses",
-  "Startups & Entrepreneurs",
-  "Established Brands",
-  "Regional Buyers",
+  "Number of quality leads",
+  "Volume/value of confirmed orders",
+  "New market penetration",
+  "Repeat buyers and customer loyalty",
+  "Brand visibility and recognition",
+  "Speed of response and deal closure",
 ];
 
 interface GoalsMetricsFormProps {
@@ -31,7 +37,8 @@ interface GoalsMetricsFormProps {
     selectedObjectives: string[];
     selectedChallenges: string[];
     selectedMetrics: string[];
-    agreement: boolean;
+    agreement1: boolean;
+    agreement2: boolean;
   };
   setFormData: (
     data: (
@@ -64,7 +71,7 @@ export function GoalsMetricsForm({
       ...prev,
       selectedChallenges: prev.selectedChallenges.includes(challenge)
         ? prev.selectedChallenges.filter((c) => c !== challenge)
-        : [...prev.selectedChallenges, challenge].slice(0, 3),
+        : [...prev.selectedChallenges, challenge],
     }));
   };
 
@@ -82,7 +89,8 @@ export function GoalsMetricsForm({
       formData.selectedObjectives.length > 0 &&
       formData.selectedChallenges.length > 0 &&
       formData.selectedMetrics.length > 0 &&
-      formData.agreement
+      formData.agreement1 &&
+      formData.agreement2
     );
   };
 
@@ -91,22 +99,24 @@ export function GoalsMetricsForm({
       <div className="text-start space-y-2">
         <h2 className="text-2xl font-bold">Goals and Metrics</h2>
         <p className="text-muted-foreground">
-          Help us understand your priorities so we can tailor the platform to
-          your needs.
+          Help us understand your business objectives so we can connect you with
+          the right buyers and opportunities.
         </p>
       </div>
 
       <div className="space-y-8">
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
-            What Do You Aim to Achieve with KollaBee?
+            1. What are your main goals on KollaBee?
+            <Star /> (Choose up to 3)
           </h3>
-          <p className="text-sm text-muted-foreground">
-            [Choose up to 3 options that best describe your goals.]
+          <p className="text-sm font-futura italic">
+            Select up to 3 goals that best reflect what you're hoping to achieve
+            on the platform.
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 mt-3 gap-3">
             {objectives.map((objective) => (
-              <div key={objective} className="flex items-start space-x-3">
+              <div key={objective} className="flex items-start space-x-3 ">
                 <Checkbox
                   id={`objective-${objective}`}
                   checked={formData.selectedObjectives.includes(objective)}
@@ -118,7 +128,7 @@ export function GoalsMetricsForm({
                 />
                 <label
                   htmlFor={`objective-${objective}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {objective}
                 </label>
@@ -127,29 +137,26 @@ export function GoalsMetricsForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
-            What Challenges Are You Looking to Overcome?{" "}
-            <span className="text-destructive">*</span>
+            2. What Challenges Are You Looking to Overcome?
+            <Star /> (Select all that apply)
           </h3>
-          <p className="text-sm text-muted-foreground">
-            [Help us understand your pain points to provide better support.]
+          <p className="text-sm font-futura italic">
+            Select the most relevant challenges you face in your current
+            operations or sales strategy.
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
             {challenges.map((challenge) => (
               <div key={challenge} className="flex items-start space-x-3">
                 <Checkbox
                   id={`challenge-${challenge}`}
                   checked={formData.selectedChallenges.includes(challenge)}
                   onCheckedChange={() => handleChallengeToggle(challenge)}
-                  disabled={
-                    !formData.selectedChallenges.includes(challenge) &&
-                    formData.selectedChallenges.length >= 3
-                  }
                 />
                 <label
                   htmlFor={`challenge-${challenge}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {challenge}
                 </label>
@@ -158,16 +165,16 @@ export function GoalsMetricsForm({
           </div>
         </div>
 
-        <div className="space-y-4">
+        <div className="">
           <h3 className="font-bold">
-            What Success Metrics Matter Most to You?{" "}
-            <span className="text-destructive">*</span>
+            3. What Success Metrics Matter Most to You?
+            <Star /> (Select your top 3)
           </h3>
-          <p className="text-sm text-muted-foreground">
-            [Select the metrics you value the most in evaluating KollaBee's
-            impact.]
+          <p className="text-sm font-futura italic">
+            Select the metrics you value the most to evaluate your success on
+            KollaBee.
           </p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
             {metrics.map((metric) => (
               <div key={metric} className="flex items-start space-x-3">
                 <Checkbox
@@ -181,7 +188,7 @@ export function GoalsMetricsForm({
                 />
                 <label
                   htmlFor={`metric-${metric}`}
-                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
                 >
                   {metric}
                 </label>
@@ -192,26 +199,62 @@ export function GoalsMetricsForm({
 
         <div className="space-y-3">
           <h3 className="font-bold">
-            Agreement Statement: <span className="text-destructive">*</span>
+            Agreement Statement:{" "}
+            <span className="text-destructive text-red-500">*</span>
           </h3>
           <div className="flex items-start space-x-3">
             <Checkbox
-              id="agreement"
-              checked={formData.agreement}
+              id="agreement1"
+              checked={formData.agreement1}
               onCheckedChange={(checked) =>
                 setFormData((prev) => ({
                   ...prev,
-                  agreement: checked as boolean,
+                  agreement1: checked as boolean,
                 }))
               }
             />
             <label
-              htmlFor="agreement"
-              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              htmlFor="agreement1"
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
-              By submitting this form, I give Kollabee permission to store my
-              contact details and share updates about relevant buyers and market
-              opportunities.
+              I agree to KollaBee’s{" "}
+              <a
+                href="/terms-conditions"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Terms & Conditions{" "}
+              </a>{" "}
+              and{" "}
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Privacy Policy.
+              </a>
+            </label>
+          </div>
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="agreement2"
+              checked={formData.agreement2}
+              onCheckedChange={(checked) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  agreement2: checked as boolean,
+                }))
+              }
+            />
+            <label
+              htmlFor="agreement2"
+              className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+            >
+              I give KollaBee permission to store my business information and
+              send updates about relevant buyers, opportunities, and platform
+              features.
             </label>
           </div>
         </div>

@@ -1,29 +1,108 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { Resend } from "resend";
+import { OAuth2Client } from "google-auth-library";
+import { googleClient } from "../config/google.config";
+import { countries } from "../utils/countries";
 
 declare module "bcryptjs";
 declare module "jsonwebtoken";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Validation schemas
-const signupSchema = z.object({
+//  firstName: "",
+//   lastName: "",
+//   email: "",
+//   phone: "",
+//   country: "India",
+//   countryCode: "+91",
+//   password: "",
+//   confirmPassword: "",
+//   role: "",
+//   businessName: "",
+//   businessType: "",
+//   businessDescription: "",
+//   businessAddress: "",
+//   websiteLink: "",
+//   businessTypes: [] as BusinessType[],
+//   businessCategories: [] as CategoryEnum[],
+//   selectedObjectives: [] as string[],
+//   selectedChallenges: [] as string[],
+//   selectedMetrics: [] as string[],
+//   agreement: false,
+
+// const [formData, setFormData] = useState({
+//   firstName: "",
+//   lastName: "",
+//   email: "",
+//   phone: "",
+//   countryCode: "+91",
+//   country: "India",
+//   password: "",
+//   confirmPassword: "",
+//   role: "",
+//   businessName: "",
+//   businessDescription: "",
+//   businessType: "", // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
+//   otherBusinessType: "",
+//   lookingFor: [] as string[], // What the buyer is looking for
+// });
+
+// Common fields for both seller and buyer
+const commonSignupFields = {
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email format"),
   password: z.string().min(8, "Password must be at least 8 characters"),
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  role: z.enum(["BUYER", "SELLER", "ADMIN"]),
-  companyName: z.string().optional(),
-  phoneNumber: z.string().optional(),
+  phone: z.string().optional(),
   countryCode: z.string().optional(),
   country: z.string().optional(),
   state: z.string().optional(),
-  address: z.string().optional(),
-  companyWebsite: z.string().optional(),
+  role: z.enum(["BUYER", "SELLER", "ADMIN"]),
+  roleInCompany: z.string().optional(),
+};
+
+// Seller-specific fields
+const sellerFields = {
+  businessName: z.string().optional(),
+  businessType: z.string().optional(),
+  businessDescription: z.string().optional(),
+  businessAddress: z.string().optional(),
+  websiteLink: z.string().optional(),
+  businessTypes: z.array(z.string()).optional(),
+  businessCategories: z.array(z.string()).optional(),
+  selectedObjectives: z.array(z.string()).optional(),
+  selectedChallenges: z.array(z.string()).optional(),
+  selectedMetrics: z.array(z.string()).optional(),
+  agreement1: z.boolean().optional(),
+  agreement2: z.boolean().optional(),
+};
+
+// Buyer-specific fields
+const buyerFields = {
+  businessName: z.string().optional(),
+  businessDescription: z.string().optional(),
+  businessType: z.string().optional(),
+  otherBusinessType: z.string().optional(),
+  lookingFor: z.array(z.string()).optional(),
+};
+
+const buyerSchema = z.object({
+  businessName: z.string(),
+  businessDescription: z.string(),
+  businessType: z.string(),
+  otherBusinessType: z.string().optional(),
+  lookingFor: z.array(z.string()),
+});
+
+const signupSchema = z.object({
+  ...commonSignupFields,
+  ...sellerFields,
+  ...buyerFields,
 });
 
 const loginSchema = z.object({
@@ -63,6 +142,56 @@ export const signup = async (req: Request, res: Response) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
+    // Combine first and last name
+    const fullName = `${validatedData.firstName} ${validatedData.lastName}`;
+    const address = validatedData.businessAddress || "";
+
+    const zipCodeMatch = address.match(/\b\d{6}\b/);
+    const zipCode = zipCodeMatch ? zipCodeMatch[0] : undefined;
+
+    // 2. Match State from known list
+    const states = [
+      "Andhra Pradesh",
+      "Arunachal Pradesh",
+      "Assam",
+      "Bihar",
+      "Chhattisgarh",
+      "Goa",
+      "Gujarat",
+      "Haryana",
+      "Himachal Pradesh",
+      "Jharkhand",
+      "Karnataka",
+      "Kerala",
+      "Madhya Pradesh",
+      "Maharashtra",
+      "Manipur",
+      "Meghalaya",
+      "Mizoram",
+      "Nagaland",
+      "Odisha",
+      "Punjab",
+      "Rajasthan",
+      "Sikkim",
+      "Tamil Nadu",
+      "Telangana",
+      "Tripura",
+      "Uttar Pradesh",
+      "Uttarakhand",
+      "West Bengal",
+      "Delhi",
+      "Jammu and Kashmir",
+      "Ladakh",
+    ];
+
+    const matchedState = states.find((state) =>
+      address.toLowerCase().includes(state.toLowerCase())
+    );
+
+    const matchedCountry = countries.find((country) =>
+      address.toLowerCase().includes(country.name.toLowerCase())
+    );
+
     // Create user with transaction to ensure both user and role-specific profile are created
     const result = await prisma.$transaction(async (tx: any) => {
       // Create user
@@ -70,15 +199,18 @@ export const signup = async (req: Request, res: Response) => {
         data: {
           email: validatedData.email,
           password: hashedPassword,
-          name: validatedData.name,
+          name: fullName,
+          firstName: validatedData.firstName,
+          lastName: validatedData.lastName,
           role: validatedData.role,
-          companyName: validatedData.companyName,
-          phoneNumber: validatedData.phoneNumber,
-          country: validatedData.country,
-          countryCode: validatedData.countryCode,
-          state: validatedData.state,
-          address: validatedData.address,
-          companyWebsite: validatedData.companyWebsite,
+          companyName: validatedData.businessName || "",
+          phoneNumber: validatedData.phone || "",
+          country: matchedCountry?.name ?? (validatedData.country || ""),
+          countryCode:
+            matchedCountry?.code ?? (validatedData.countryCode || ""),
+          state: zipCode ?? (validatedData.state || ""),
+          address: validatedData.businessAddress || "",
+          companyWebsite: validatedData.websiteLink || "",
           createdAt: new Date(),
           updatedAt: new Date(),
         },
@@ -86,19 +218,38 @@ export const signup = async (req: Request, res: Response) => {
 
       // Create role-specific profile
       if (validatedData.role === "SELLER") {
-        //console.log("seller");
-        const data = await tx.seller.create({
+        // Create seller profile with all the seller-specific fields
+        await tx.seller.create({
           data: {
             userId: user.id,
-            businessName: validatedData.companyName,
-            businessAddress: validatedData.address,
-            websiteLink: validatedData.companyWebsite,
-            country: validatedData.country,
+            businessName: validatedData.businessName || "",
+            businessDescription: validatedData.businessDescription || "",
+            businessAddress: validatedData.businessAddress || "",
+            websiteLink: validatedData.websiteLink || "",
+            country: validatedData.country || "",
+            roleInCompany: validatedData.roleInCompany || "",
+            businessTypes: validatedData.businessTypes || [],
+            businessCategories: validatedData.businessCategories || [],
+            objectives: validatedData.selectedObjectives || [],
+            challenges: validatedData.selectedChallenges || [],
+            metrics: validatedData.selectedMetrics || [],
+            profileCompletion: [1, 2],
+            agrrement1: validatedData.agreement1 || false,
+            agrrement2: validatedData.agreement2 || false,
           },
         });
-      } else {
+      } else if (validatedData.role === "BUYER") {
+        console.log("is here : ", validatedData);
+        // Create buyer profile with all the buyer-specific fields
         await tx.buyer.create({
-          data: { userId: user.id },
+          data: {
+            userId: user.id,
+            businessName: validatedData.businessName || "",
+            businessDescription: validatedData.businessDescription || "",
+            businessType: validatedData.businessType || "",
+            otherBusinessType: validatedData.otherBusinessType || "",
+            lookingFor: validatedData.lookingFor || [],
+          },
         });
       }
 
@@ -118,7 +269,6 @@ export const signup = async (req: Request, res: Response) => {
       return updatedUser;
     });
 
-    //console.log(result);
     // Generate JWT token
     const token = jwt.sign(
       {
@@ -133,9 +283,7 @@ export const signup = async (req: Request, res: Response) => {
     );
 
     // Set JWT token in cookie
-    const data = setAuthCookie(res, token);
-
-    //console.log("req:", req);
+    setAuthCookie(res, token);
 
     // Return success response
     res.status(201).json({
@@ -146,7 +294,7 @@ export const signup = async (req: Request, res: Response) => {
         email: result.email,
         name: result.name,
         role: result.role,
-        companyName: result.companyName,
+        companyName: result.companyName || result.businessName,
       },
     });
   } catch (error) {
@@ -158,14 +306,88 @@ export const signup = async (req: Request, res: Response) => {
   }
 };
 
+export const buyerSingnupGoogle = async (req: any, res: Response) => {
+  try {
+    const {
+      companyName,
+      businessDescription,
+      businessType,
+      otherBusinessType,
+      lookingFor,
+      roleInCompany,
+      token,
+    } = req.body;
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload;
+    const validatedData = buyerSchema.parse(req.body);
+
+    console.log("decoded", decoded);
+    if (!decoded.userId) {
+      return res.status(400).json({ error: "Invalid token" });
+    }
+
+    const existingUser = await prisma.user.findFirst({
+      where: { id: decoded.userId },
+      include: {
+        buyer: true,
+      },
+    });
+
+    if (!existingUser) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    if (!existingUser.buyer) {
+      await prisma.buyer.create({
+        data: {
+          businessName: companyName,
+          businessDescription: businessDescription,
+          businessType: businessType,
+          otherBusinessType: otherBusinessType,
+          lookingFor: lookingFor,
+          userId: decoded.userId,
+        },
+      });
+    } else {
+      await prisma.buyer.update({
+        where: {
+          userId: decoded.userId,
+        },
+        data: {
+          businessName: companyName,
+          businessDescription: businessDescription,
+          businessType: businessType,
+          otherBusinessType: otherBusinessType,
+          lookingFor: lookingFor,
+          userId: decoded.userId,
+        },
+      });
+    }
+
+    setAuthCookie(res, token);
+
+    return res.status(200).json({
+      message: "Buyer created successfully",
+      token, // Still include token in response for client-side storage if needed
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+
+    console.log("error", error);
+    return res.status(500).json({ error: "Error creating user" });
+  }
+};
+
 export const login = async (req: Request, res: Response) => {
   try {
     // Validate request body
     const validatedData = loginSchema.parse(req.body);
 
     // Find user
-    const user = await prisma.user.findUnique({
-      where: { email: validatedData.email },
+    const user = await prisma.user.findFirst({
+      where: { email: { contains: validatedData.email, mode: "insensitive" } },
       include: {
         seller: true,
         buyer: true,
@@ -174,6 +396,12 @@ export const login = async (req: Request, res: Response) => {
 
     if (!user) {
       return res.status(404).json({ error: "User not found" });
+    }
+
+    if (user.provider === "GOOGLE") {
+      return res.status(401).json({
+        error: "User registered with Google. Please login with Google.",
+      });
     }
 
     // Verify password
@@ -195,6 +423,12 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
+    if (validatedData.role === "ADMIN" && user.role != "ADMIN") {
+      return res.status(401).json({
+        error: "User is not an admin",
+      });
+    }
+
     // Update last login
     await prisma.user.update({
       where: { id: user.id },
@@ -208,13 +442,14 @@ export const login = async (req: Request, res: Response) => {
         role: user.role,
         ...(user.role === "SELLER"
           ? { sellerId: user.seller?.id }
-          : { buyerId: user.buyer?.id }),
+          : user.role === "ADMIN"
+            ? { adminId: user.id }
+            : { buyerId: user.buyer?.id }),
       },
       process.env.JWT_SECRET!,
       { expiresIn: "7d" }
     );
 
-    // Set JWT token in cookie
     // Set JWT token in cookie
     const data = setAuthCookie(res, token);
     // Return success response
@@ -273,6 +508,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
     });
 
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+    console.log("Reset link:", resetLink);
 
     // Send email using Resend
     const emailResponse = await resend.emails.send({
@@ -454,5 +690,201 @@ export const updatePassword = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Update password error:", error);
     res.status(500).json({ error: "Failed to update password" });
+  }
+};
+
+// Google OAuth functions
+export const googleAuth = (req: Request, res: Response) => {
+  try {
+    // Get the role from query parameters
+    const role = (req.query.role as string) || "BUYER";
+
+    // Validate role
+    if (!["BUYER", "SELLER"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
+    // Store role in state parameter
+    const state = Buffer.from(JSON.stringify({ role })).toString("base64");
+
+    // Generate Google OAuth URL
+    const authUrl = googleClient.generateAuthUrl({
+      access_type: "offline",
+      scope: [
+        "https://www.googleapis.com/auth/userinfo.profile",
+        "https://www.googleapis.com/auth/userinfo.email",
+      ],
+      state,
+    });
+
+    console.log("Google Auth URL:", authUrl);
+
+    // Redirect to Google OAuth
+    res.redirect(authUrl);
+  } catch (error) {
+    console.error("Google auth error:", error);
+    res.status(500).json({ error: "Failed to initiate Google authentication" });
+  }
+};
+
+export const googleCallback = async (req: Request, res: Response) => {
+  try {
+    const { code, state } = req.query;
+
+    if (!code) {
+      return res.status(400).json({ error: "Authorization code is required" });
+    }
+
+    // Parse state to get role
+    let role = "BUYER";
+    try {
+      const stateData = JSON.parse(
+        Buffer.from(state as string, "base64").toString()
+      );
+      console.log("role", stateData);
+      role = stateData.role || "BUYER";
+    } catch (error) {
+      console.error("Error parsing state:", error);
+    }
+
+    // Exchange code for tokens
+    const { tokens } = await googleClient.getToken(code as string);
+
+    // Set credentials
+    googleClient.setCredentials(tokens);
+
+    // Get user info
+    const oauth2 = new OAuth2Client();
+    oauth2.setCredentials(tokens);
+
+    const userInfoResponse = await oauth2.request({
+      url: "https://www.googleapis.com/oauth2/v3/userinfo",
+    });
+
+    const userInfo = userInfoResponse.data as {
+      email: string;
+      name: string;
+      picture?: string;
+    };
+
+    console.log("User Info:", userInfo);
+
+    // Check if user exists
+    let user = await prisma.user.findUnique({
+      where: { email: userInfo.email },
+      include: {
+        seller: true,
+        buyer: true,
+      },
+    });
+
+    if (!user) {
+      // Create new user
+      user = await prisma.$transaction(async (tx: any) => {
+        // Create user
+        const newUser = await tx.user.create({
+          data: {
+            email: userInfo.email,
+            name: userInfo.name,
+            role: role,
+            provider: "GOOGLE",
+            imageUrl: userInfo.picture,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+
+        // Create role-specific profile
+        if (role === "SELLER") {
+          await tx.seller.create({
+            data: { userId: newUser.id },
+          });
+        } else if (role === "BUYER") {
+          await tx.buyer.create({
+            data: { userId: newUser.id },
+          });
+        } else {
+          res.redirect(
+            `${
+              process.env.FRONTEND_URL
+            }/auth/callback?error=${"You can not create an admin account"}`
+          );
+        }
+
+        // Fetch updated user with relations
+        return await tx.user.findUnique({
+          where: { id: newUser.id },
+          include: {
+            seller: true,
+            buyer: true,
+            admin: true,
+          },
+        });
+      });
+
+      if (user) {
+        const token = jwt.sign(
+          {
+            userId: user.id,
+            role: user.role,
+            ...(user.role === "SELLER"
+              ? { sellerId: user.seller?.id }
+              : { buyerId: user.buyer?.id }),
+          },
+          process.env.JWT_SECRET!,
+          { expiresIn: "7d" }
+        );
+
+        if (role === "BUYER") {
+          return res.redirect(
+            `${process.env.FRONTEND_URL}/google?token=${token}&role=${role}&code=${code}&new=true`
+          );
+        }
+      }
+    } else {
+      // Check if user has the requested role
+
+      if (user.role !== role) {
+        // If the user exists but has a different role, update the role
+        console.log("redirecting to error page");
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/google?error=${"user is not a a"}${role}`
+        );
+      }
+
+      // Update user's last login
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { lastLogin: new Date() },
+      });
+    }
+
+    // Generate JWT token
+    if (!user) {
+      return res.status(400).json({ error: "User not found" });
+    }
+
+    const token = jwt.sign(
+      {
+        userId: user.id,
+        role: user.role,
+        ...(user.role === "SELLER"
+          ? { sellerId: user.seller?.id }
+          : { buyerId: user.buyer?.id }),
+      },
+      process.env.JWT_SECRET!,
+      { expiresIn: "7d" }
+    );
+
+    // Set JWT token in cookie
+    setAuthCookie(res, token);
+    res.redirect(
+      `${process.env.FRONTEND_URL}/google?token=${token}&role=${role}&code=${code}`
+    );
+
+    return;
+  } catch (error) {
+    console.error("Google callback error:", error);
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?error=${error}`);
   }
 };

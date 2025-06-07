@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  type Dispatch,
-  type SetStateAction,
-  useState,
-  useEffect,
-  useCallback,
-} from "react";
+import { type Dispatch, type SetStateAction, useState, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { ArrowLeft } from "lucide-react";
 import { ProgressStepper } from "@/components/onboarding/progress-stepper";
@@ -16,10 +10,9 @@ import Step2 from "./step2";
 import Step3 from "./step3";
 import LoadingScreen from "./loading-screen";
 import SuccessScreen from "./success-screen";
-// import SuppliersList from "./suppliers-list";
 import ConfirmationScreen from "./confirmation-screen";
-import { FormProvider, useFormContext } from "./create-projects-context";
-import { Project } from "../../../../../../types/api";
+import { useFormContext } from "./create-projects-context";
+import type { Project } from "@/types/api";
 import projectApi from "@/lib/api/project";
 import { useRouter } from "next/navigation";
 import { toast } from "@/hooks/use-toast";
@@ -49,26 +42,47 @@ const CreateProjects = ({
   const [id, setId] = useState("");
   const router = useRouter();
 
-  useCallback(() => {
+  useEffect(() => {
     console.log("Form data updated:", formData);
   }, [formData]);
+
+  // Get step labels based on selected service type
+  const getStepLabels = () => {
+    const serviceType = formData.selectedServices[0] || "";
+
+    if (serviceType === "custom-manufacturing") {
+      return ["Project Details", "Budget", "Timeline"];
+    } else if (serviceType === "packaging-only") {
+      return ["Packaging Details", "Budget", "Timeline"];
+    } else if (serviceType === "services-brand-support") {
+      return ["Service Details", "Budget", "Timeline"];
+    }
+
+    return [
+      "Business Requirements",
+      "Product Requirements",
+      "Payment and Timeline",
+    ];
+  };
+
+  const stepLabels = getStepLabels();
 
   const allSteps = [
     {
       number: "01",
-      label: "Business Requirements",
+      label: stepLabels[0],
       isActive: currentStage === 1,
       isCompleted: currentStage > 1,
     },
     {
       number: "02",
-      label: "Product Requirements",
+      label: stepLabels[1],
       isActive: currentStage === 2,
       isCompleted: currentStage > 2,
     },
     {
       number: "03",
-      label: "Payment and Timeline",
+      label: stepLabels[2],
       isActive: currentStage === 3,
       isCompleted: currentStage > 3,
     },
@@ -76,73 +90,105 @@ const CreateProjects = ({
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, any> = {};
+    const serviceType = formData.selectedServices[0] || "";
 
-    if (step === 1) {
-      if (!formData.category) newErrors.category = "Category is required.";
-      if (!formData.businessName)
-        newErrors.businessName = "Business Name is required.";
-      if (!formData.productType)
-        newErrors.productType = "Product Type is required.";
-    } else if (step === 2) {
-      if (!formData.formulationType)
-        newErrors.formulationType = "Formulation Type is required.";
-      if (!formData.targetBenefit)
-        newErrors.targetBenefit = "Target Benefit is required.";
-      if (!formData.texturePreferences)
-        newErrors.texturePreferences = "Texture Preferences are required.";
-      if (!formData.colorPreferences)
-        newErrors.colorPreferences = "Color Preferences are required.";
-      if (!formData.fragrancePreferences)
-        newErrors.fragrancePreferences = "Fragrance Preferences are required.";
-      if (!formData.packagingType)
-        newErrors.packagingType = "Packaging Type is required.";
-      if (!formData.materialPreferences)
-        newErrors.materialPreferences = "Material Preferences are required.";
-      if (!formData.bottleSize)
-        newErrors.bottleSize = "Bottle Size is required.";
-      if (!formData.labelingNeeded)
-        newErrors.labelingNeeded = "Labeling Needed is required.";
-      if (!formData.minimumOrderQuantity)
-        newErrors.minimumOrderQuantity = "Minimum Order Quantity is required.";
-      if (!formData.certificationsRequired)
-        newErrors.certificationsRequired =
-          "Certifications Required is required.";
-      if (!formData.sampleRequirements)
-        newErrors.sampleRequirements = "Sample Requirements are required.";
-    } else if (step === 3) {
-      if (!formData.projectTimelineFrom)
-        newErrors.projectTimelineFrom = "Project Timeline is required.";
-      if (!formData.projectTimelineTo)
-        newErrors.projectTimelineTo = "Project Timeline is required.";
-      if (!formData.budget) newErrors.budget = "Budget is required.";
-      if (!formData.pricingCurrency)
-        newErrors.pricingCurrency = "Pricing Currency is required.";
-
-      if (formData.milestones.length > 0) {
-        newErrors.milestones = formData.milestones.map((milestone) => {
-          const milestoneErrors: Record<string, string> = {};
-          if (!milestone.name)
-            milestoneErrors.name = "Milestone Name is required.";
-          if (!milestone.description)
-            milestoneErrors.description = "Milestone Description is required.";
-          if (!milestone.paymentPercentage)
-            milestoneErrors.paymentPercentage =
-              "Milestone Payment Percentage is required.";
-          if (!milestone.dueDate)
-            milestoneErrors.dueDate = "Milestone Due Date is required.";
-          return milestoneErrors;
-        });
-
-        console.log("test ");
-
-        if (
-          newErrors.milestones.length === 1 &&
-          Object.keys(newErrors.milestones[0]).length === 0
-        ) {
-          console.log("hey bro ");
-          delete newErrors.milestones;
-        }
+    if (step === 0) {
+      if (
+        !formData.selectedServices ||
+        formData.selectedServices.length === 0
+      ) {
+        newErrors.selectedServices = "Please select a service type.";
       }
+    } else if (step === 1) {
+      // Validation for Step 1 based on service type
+      if (serviceType === "custom-manufacturing") {
+        if (!formData.projectTitle)
+          newErrors.projectTitle = "Project title is required.";
+        if (!formData.productCategory || formData.productCategory.length === 0)
+          newErrors.productCategory = "Select Atleast One Category.";
+        if (!formData.productDescription)
+          newErrors.productDescription = "Product description is required.";
+        if (!formData.hasDesignOrFormula)
+          newErrors.hasDesignOrFormula = "This field is required.";
+        if (!formData.customizationLevel)
+          newErrors.customizationLevel = "This field is required.";
+        if (!formData.needsSample)
+          newErrors.needsSample = "This field is required.";
+        if (!formData.needsPackaging)
+          newErrors.needsPackaging = "This field is required.";
+        if (!formData.needsDesign)
+          newErrors.needsDesign = "This field is required.";
+      } else if (serviceType === "packaging-only") {
+        if (!formData.projectTitle)
+          newErrors.projectTitle = "Project title is required.";
+        if (!formData.packagingCategory)
+          newErrors.packagingCategory = "Packaging category is required.";
+        if (!formData.packagingDescription)
+          newErrors.packagingDescription = "Packaging description is required.";
+        if (!formData.ecoFriendly)
+          newErrors.ecoFriendly = "This field is required.";
+        if (!formData.packagingDimensions)
+          newErrors.packagingDimensions = "This field is required.";
+        if (!formData.needsSample)
+          newErrors.needsSample = "This field is required.";
+      } else if (serviceType === "services-brand-support") {
+        if (!formData.projectTitle)
+          newErrors.projectTitle = "Project title is required.";
+        if (!formData.projectDescription)
+          newErrors.projectDescription = "Project description is required.";
+        if (
+          !formData.selectedServices ||
+          formData.selectedServices.length <= 1
+        ) {
+          newErrors.selectedServices = "Please select at least one service.";
+        }
+        if (!formData.brandVision)
+          newErrors.brandVision = "Brand vision is required.";
+        if (!formData.brandStatus)
+          newErrors.brandStatus = "This field is required.";
+      }
+    } else if (step === 2) {
+      // Budget validation
+      if (!formData.quantity || formData.quantity <= 0) {
+        newErrors.quantity = "Quantity is required and must be greater than 0.";
+      }
+      if (!formData.budget || formData.budget <= 0) {
+        newErrors.budget = "Budget is required and must be greater than 0.";
+      }
+      if (!formData.budgetType) {
+        newErrors.budgetType = "Please select budget type.";
+      }
+
+      // Additional validation for services
+      if (
+        serviceType === "services-brand-support" &&
+        !formData.budgetFlexibility
+      ) {
+        newErrors.budgetFlexibility =
+          "Please select if your budget is fixed or flexible.";
+      }
+    } else if (step === 3) {
+      // Timeline validation based on service type
+      if (serviceType === "services-brand-support") {
+        if (!formData.serviceStartDate)
+          newErrors.serviceStartDate = "Start date is required.";
+        if (!formData.serviceEndDate)
+          newErrors.serviceEndDate = "End date is required.";
+        if (
+          formData.serviceStartDate &&
+          formData.serviceEndDate &&
+          new Date(formData.serviceEndDate) <
+            new Date(formData.serviceStartDate)
+        ) {
+          newErrors.serviceEndDate = "End date cannot be before start date.";
+        }
+      } else {
+        if (!formData.receiveDate)
+          newErrors.receiveDate = "Receive date is required.";
+      }
+
+      if (!formData.supplierLocation)
+        newErrors.supplierLocation = "Supplier location is required.";
     }
 
     setErrors(newErrors);
@@ -152,7 +198,7 @@ const CreateProjects = ({
   const handlePrev = () => {
     setErrors({});
     if (currentStage === 0) {
-      setOpen(false);
+      setOpen && setOpen(false);
       return;
     }
 
@@ -189,6 +235,7 @@ const CreateProjects = ({
       if (showConfirmation) {
         setShowConfirmation(false);
         setIsLoading(true);
+        handleSubmit();
         return;
       }
 
@@ -221,10 +268,16 @@ const CreateProjects = ({
           console.log("Project updated successfully:", response);
         } catch (error) {
           console.error("Failed to update project:", error);
+          toast({
+            title: "Error",
+            description: "Failed to update project.",
+            variant: "destructive",
+          });
         }
       } else {
         try {
-          const response = await projectApi.createProject(formData);
+          const { customCategories, ...restFormData } = formData;
+          const response = await projectApi.createProject(restFormData);
           if (response.status < 200 || response.status >= 300) {
             toast({
               title: "Error",
@@ -234,12 +287,16 @@ const CreateProjects = ({
             throw new Error(`HTTP error! Status: ${response.status}`);
           } else {
             console.log("Project created successfully:", response);
-
             setId(response?.id);
             setIsSuccess(true);
           }
         } catch (error) {
           console.error("Failed to create project:", error);
+          toast({
+            title: "Error",
+            description: "Failed to create project.",
+            variant: "destructive",
+          });
         }
       }
     } catch (error) {
@@ -258,9 +315,16 @@ const CreateProjects = ({
   return (
     <ErrorBoundary
       FallbackComponent={() => (
-        <div>
-          <div> An error occurred: </div>
-          <div onClick={() => window.location.reload()}>Try Again</div>
+        <div className="p-8 text-center">
+          <div className="text-lg font-medium mb-4">
+            An error occurred while processing your request
+          </div>
+          <button
+            className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+            onClick={() => window.location.reload()}
+          >
+            Try Again
+          </button>
         </div>
       )}
     >
@@ -286,7 +350,6 @@ const CreateProjects = ({
                 </div>
               )}
 
-            {/* {showSuppliers && <SuppliersList />} */}
             {showConfirmation && (
               <ConfirmationScreen
                 onBack={handlePrev}

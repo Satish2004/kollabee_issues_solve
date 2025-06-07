@@ -1,18 +1,20 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { toast } from "sonner";
-import Image from "next/image";
-import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { OTPModal } from "../seller/onboarding/otp-modal";
 import { SignupForm } from "../seller/onboarding/signup-form";
 import { AboutYouForm } from "./onboarding/AboutYouForm";
 import { LookingForForm } from "./onboarding/looking-for-form";
 import { SuccessMessage } from "./onboarding/success-message";
-import { OTPModal } from "../seller/onboarding/otp-modal";
-import { ErrorBoundary } from "react-error-boundary";
+import { ProgressStepper } from "@/components/onboarding/progress-stepper";
+import { Card } from "@/components/ui/card";
 import { authApi } from "@/lib/api/auth";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+import { toast } from "sonner";
+
+
 // import { ProgressStepper } from "./onboarding/ProgressStepper";
 
 export default function SignupBuyerPage() {
@@ -29,6 +31,8 @@ export default function SignupBuyerPage() {
     confirmPassword: "",
     role: "",
     businessName: "",
+    businessDescription: "",
+    otherRole: "",
     businessType: "", // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
     otherBusinessType: "",
     lookingFor: [] as string[], // What the buyer is looking for
@@ -84,9 +88,10 @@ export default function SignupBuyerPage() {
 
     setGenerateOTPLoading(true);
     try {
-      await authApi.generateOTP(formData.email);
+      setCountdown(35);
       setShowOTP(true);
-      setCountdown(30);
+      await authApi.generateOTP(formData.email);
+
       setIsResendDisabled(true);
       toast.success("OTP sent successfully");
     } catch (error: any) {
@@ -161,19 +166,28 @@ export default function SignupBuyerPage() {
         // User details
         email: formData.email,
         password: formData.password,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         name: formData.firstName + " " + formData.lastName,
         role: "BUYER",
-        phoneNumber: formData.phone,
+        phone: formData.phone,
 
         // Company details
         companyName: formData.businessName,
+        businessDescription: formData.businessDescription,
 
         // Additional buyer details
         businessType: formData.businessType,
         otherBusinessType: formData.otherBusinessType,
         lookingFor: formData.lookingFor,
-        roleInCompany: formData.role,
+        roleInCompany:
+          formData.role === "other" ? formData.otherRole : formData.role,
       });
+
+      if (response?.error) {
+        toast.error(response?.error);
+        return;
+      }
 
       setCurrentStage(4); // Move to success screen
       toast.success("Account created successfully!");
@@ -215,9 +229,14 @@ export default function SignupBuyerPage() {
   };
 
   const validateStage2 = () => {
-    const { businessName, businessType, otherBusinessType } = formData;
+    const {
+      businessName,
+      businessDescription,
+      businessType,
+      otherBusinessType,
+    } = formData;
 
-    if (!businessName || !businessType) {
+    if (!businessName || !businessType || !businessDescription) {
       toast.error("Please fill all required fields");
       return false;
     }
@@ -274,7 +293,7 @@ export default function SignupBuyerPage() {
         </div>
       )}
     >
-      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-pink-50 to-orange-50 p-10">
+      <div className="min-h-screen bg-gradient-to-br from-pink-100 via-pink-50 to-orange-50 p-4 md:p-10">
         <div className="bg-white rounded-xl shadow-sm w-full min-h-[calc(100vh-5rem)] p-8">
           <div className="max-w-[1000px] mx-auto">
             <div className="space-y-8 mb-8">
@@ -328,7 +347,7 @@ export default function SignupBuyerPage() {
               {currentStage === 4 && (
                 <SuccessMessage
                   userType="buyer"
-                  onContinue={() => router.push("/buyer/dashboard")}
+                  onContinue={() => router.push("/buyer")}
                 />
               )}
             </Card>
@@ -340,12 +359,14 @@ export default function SignupBuyerPage() {
           onClose={() => setShowOTP(false)}
           email={formData.email}
           otp={otp}
+          setOtp={setOtp}
           onOtpChange={handleOtpChange}
           onKeyDown={handleKeyDown}
           onVerify={handleOTPVerify}
           onResend={handleResendOTP}
           isResendDisabled={isResendDisabled}
           countdown={countdown}
+          setCountdown={setCountdown}
           isVerifying={verifyOTPLoading}
           error={otpError}
         />

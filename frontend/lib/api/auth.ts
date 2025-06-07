@@ -10,7 +10,11 @@ interface SignupData {
   password: string;
   name: string;
   role: "BUYER" | "SELLER";
-  phoneNumber?: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  country?: string;
+  countryCode?: string;
 
   // Company details
   companyName?: string;
@@ -19,14 +23,17 @@ interface SignupData {
 
   // Seller specific details
   businessName?: string;
+  businessDescription?: string;
   businessAddress?: string;
   websiteLink?: string;
   businessTypes?: BusinessType[];
   businessCategories?: CategoryEnum[];
   roleInCompany?: string;
-  objectives?: string[];
-  challenges?: string[];
-  metrics?: string[];
+  selectedObjectives?: string[];
+  selectedChallenges?: string[];
+  selectedMetrics?: string[];
+  agreement1?: boolean;
+  agreement2?: boolean;
 }
 const authUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -38,7 +45,6 @@ export const authApi = {
 
     if (response.token) {
       setToken(response.token);
-      localStorage.setItem("token", response.token);
       Cookies.set("token", response.token, { expires: 7 }); // Token expires in 7 days
     }
     return response;
@@ -48,7 +54,23 @@ export const authApi = {
     const response: any = await api.post(`${authUrl}/auth/signup`, data);
     if (response?.token) {
       setToken(response?.token);
-      localStorage.setItem("token", response?.token);
+      Cookies.set("token", response?.token, { expires: 7 }); // Token expires in 7 days
+    }
+    return response;
+  },
+
+  buyerGoogleLogin: async (data: {
+    token: string;
+    businessName: string;
+    businessDescription: string;
+    businessType: string; // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
+    otherBusinessType?: string;
+    lookingFor: string[]; // What the buyer is looking for
+    role: string;
+  }) => {
+    const response: any = await api.post(`${authUrl}/auth/buyer/google`, data);
+    if (response?.token) {
+      setToken(response?.token);
       Cookies.set("token", response?.token, { expires: 7 }); // Token expires in 7 days
     }
     return response;

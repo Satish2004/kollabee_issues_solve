@@ -1,21 +1,24 @@
 "use client";
-import React, { use, useEffect } from 'react';
-import { SellerSidebar } from "@/components/seller/seller-sidebar";
+
+import { ChatbotWidget } from "@/components/chatbot/ChatWidget";
 import SellerLayoutHeader from "@/components/seller/layout-header";
+import { SellerSidebar } from "@/components/seller/seller-sidebar";
+import { IntroTour } from "@/components/tour/IntroTour";
+import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
-import { IntroTour } from '@/components/tour/IntroTour';
+import React, { Suspense, use, useEffect } from "react";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const token = Cookies.get("token");
 
   useEffect(() => {
-    if(!localStorage.getItem("token")){
-      router.push("/login");
-      console.log("Token not found")
+    console.log("Token from cookies:", token);
+    if (!token || token === "undefined") {
+      router.push("/");
+      console.log("Token not found");
     }
   }, []);
-
-
 
   return (
     <div className="h-screen bg-gray-50 flex overflow-hidden">
@@ -30,8 +33,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <SellerLayoutHeader />
         </div>
 
-        <main className="flex-1 px-6 py-3 bg-gray-100">
+        <main className="flex-1 px-2 md:px-10 py-3 bg-gray-100">
           {children}
+          <ChatbotWidget />
         </main>
       </div>
 

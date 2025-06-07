@@ -136,7 +136,7 @@ export function NewPasswordForm() {
         </div>
       </div>
 
-      <Card className="w-full gradient-border-auth">
+      <Card className="w-full shadow-md hover:shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-normal">
             Create New Password
@@ -238,7 +238,7 @@ export function NewPasswordForm() {
               </Button>
             </div>
 
-            <div className="flex justify-between">
+            <div className="flex flex-col md:flex-row items-center gap-4 md:gap-0 justify-between">
               <div className="text-sm text-gray-600">
                 Remember your password?{" "}
                 <Link

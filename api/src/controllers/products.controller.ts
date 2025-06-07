@@ -78,7 +78,7 @@ export const createProduct = async (req: any, res: Response) => {
     // Send the approval request email to all admins
     await Promise.all(
       admin.map(async (adminEmail) => {
-        const approvalLink = `${process.env.FRONTEND_URL}/approve/${
+        const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${
           product.id
         }?email=${encodeURIComponent(adminEmail)}`;
         await resend.emails.send({
@@ -141,8 +141,8 @@ export const getProducts = async (req: any, res: Response) => {
     } = req.query;
 
     const filters: any = {
-      ...(req.user?.seller?.id
-        ? { sellerId: req.user.seller.id }
+      ...(req.user?.sellerId
+        ? { sellerId: req.user.sellerId }
         : { isDraft: false }),
     };
 
@@ -170,6 +170,8 @@ export const getProducts = async (req: any, res: Response) => {
         ...(maxPrice && { lte: Number(maxPrice) }),
       };
     }
+
+    console.log("filters", filters);
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
@@ -246,6 +248,15 @@ export const updateProduct = async (req: any, res: Response) => {
       deliveryCost,
     } = req.body;
 
+    // Check if images or documents are being updated
+    const isApprovalRequired =
+      (images?.length &&
+        images.some((img: string) => !product.images.includes(img))) ||
+      (documents?.length &&
+        documents.some((doc: string) => !product.documents.includes(doc)));
+
+    console.log("isApprovalRequired", isApprovalRequired);
+
     // Update product with attributes as JSON
     const updatedProduct = await prisma.product.update({
       where: { id },
@@ -263,12 +274,63 @@ export const updateProduct = async (req: any, res: Response) => {
         documents,
         discount: parseFloat(discount),
         deliveryCost: parseFloat(deliveryCost),
+        ...(isApprovalRequired && { isDraft: true }), // Mark as draft if approval is required
       },
       include: {
-        seller: true,
+        seller: {
+          include: {
+            user: true,
+          },
+        },
         pickupAddress: true,
       },
     });
+
+    // If approval is required, send an email to admins
+    if (isApprovalRequired) {
+      await Promise.all(
+        admin.map(async (adminEmail) => {
+          const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${
+            updatedProduct.id
+          }?email=${encodeURIComponent(adminEmail)}`;
+          await resend.emails.send({
+            from: "hello@tejasgk.com",
+            to: adminEmail,
+            subject: "Product Update Approval Request",
+            html: `
+          <p>A product has been updated and requires your approval.</p>
+          <p><strong>Product Name:</strong> ${updatedProduct.name}</p>
+          <p><strong>Description:</strong> ${updatedProduct.description}</p>
+          <p><strong>Price:</strong> $${updatedProduct.price}</p>
+          <p><strong>Discount:</strong> ${updatedProduct.discount}%</p>
+          <p><strong>Delivery Cost:</strong> $${updatedProduct.deliveryCost}</p>
+          <p><strong>Wholesale Price:</strong> $${
+            updatedProduct.wholesalePrice
+          }</p>
+          <p><strong>Minimum Order Quantity:</strong> ${
+            updatedProduct.minOrderQuantity
+          }</p>
+          <p><strong>Available Quantity:</strong> ${
+            updatedProduct.availableQuantity
+          }</p>
+          <p><strong>Category ID:</strong> ${updatedProduct.categoryId}</p>
+          <p><strong>Pickup Address ID:</strong> ${
+            updatedProduct.pickupAddressId || "N/A"
+          }</p>
+          <p><strong>Attributes:</strong> ${JSON.stringify(
+            updatedProduct.attributes,
+            null,
+            2
+          )}</p>
+          <p><strong>Seller:</strong> ${updatedProduct.seller.user.name} (${
+              updatedProduct.seller.user.email
+            })</p>
+          <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
+        `,
+          });
+        })
+      );
+    }
 
     res.json({ data: updatedProduct });
   } catch (error) {

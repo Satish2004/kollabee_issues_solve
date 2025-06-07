@@ -1,8 +1,9 @@
 "use client";
 
-import type React from "react";
-
-import { useState } from "react";
+import { AppleLogin } from "./AppleLoginButton";
+import { GoogleLoginButton } from "./GoogleLoginButton";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,17 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { authApi } from "@/lib/api/auth";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { cn } from "@/lib/utils";
+import { Info, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import type React from "react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface LoginError {
   message: string;
@@ -30,9 +32,11 @@ interface LoginError {
 export function LoginForm({
   message,
   role,
+  isAdmin = false,
 }: {
   message?: string;
   role?: string;
+  isAdmin?: boolean;
 }) {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +51,7 @@ export function LoginForm({
     message1: "",
     message2: "",
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,14 +63,23 @@ export function LoginForm({
       const email = formData.get("email") as string;
       const password = formData.get("password") as string;
 
-      const response = await authApi.login({ email, password, role: role });
+      // If isAdmin is true, pass ADMIN as the role regardless of the role prop
+      const loginRole = isAdmin ? "ADMIN" : role;
+
+      const response = await authApi.login({
+        email,
+        password,
+        role: loginRole,
+      });
       const user = await response.user;
 
       toast.success("Signed in successfully");
 
-      if (user.role === "BUYER") {
+      if (user.role === "ADMIN") {
+        router.push("/admin");
+      } else if (user.role === "BUYER") {
         router.push("/buyer");
-      } else {
+      } else if (user.role === "SELLER") {
         router.push("/seller");
       }
     } catch (error: any) {
@@ -74,9 +88,8 @@ export function LoginForm({
         show: true,
         type: "error",
         message1: "Login failed",
-        message2: err.message || "Invalid credentials",
+        message2: error?.response?.data?.error || "Invalid credentials",
       });
-      toast.error(error?.response?.data?.error || "Invalid credentials");
     } finally {
       setIsLoading(false);
     }
@@ -90,8 +103,11 @@ export function LoginForm({
     }
   };
 
+  // Determine the role to use for Google login
+  const googleLoginRole = isAdmin ? "ADMIN" : role;
+
   return (
-    <div className="flex flex-col items-center w-full max-w-lg mx-auto font-futura">
+    <div className="flex flex-col rounded-lg items-center w-full max-w-lg mx-auto font-futura">
       <div className="mb-8">
         <div className="flex justify-center">
           <Image
@@ -105,17 +121,36 @@ export function LoginForm({
         </div>
       </div>
 
-      <Card className="w-full gradient-border-auth ">
+      <Card className="w-full shadow-md hover:shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-normal">
             {message ?? "Login"}
           </CardTitle>
           <CardDescription className="text-center text-[15px]">
-            Fill in your details to login your account and get started with
-            Kollabee.
+            {isAdmin
+              ? "Enter your admin credentials to access the dashboard."
+              : "Fill in your details to login your account and get started with Kollabee."}
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Google Login Button */}
+          <div className="mb-6">
+            {!isAdmin && (
+              <>
+                <div className="flex flex-col space-y-2">
+                  <GoogleLoginButton role={googleLoginRole || "BUYER"} />
+                  <AppleLogin role={googleLoginRole || "BUYER"} />
+                </div>
+                <div className="relative my-4">
+                  <Separator />
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-gray-600">
+                    OR
+                  </span>
+                </div>
+              </>
+            )}
+          </div>
+
           <form className="space-y-4" onSubmit={handleSubmit}>
             {alert.show && (
               <Alert
@@ -148,14 +183,27 @@ export function LoginForm({
               <Label htmlFor="password" className="text-sm font-normal">
                 Password*
               </Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                placeholder="Create your Password"
-                className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Enter your Password"
+                  className="bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-3 flex items-center text-gray-600"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4 mt-6">
@@ -168,7 +216,7 @@ export function LoginForm({
               </Button>
 
               <div className="flex flex-col space-y-2">
-                <div className="flex justify-between">
+                <div className="flex flex-col gap-4 md:gap-0 md:flex-row items-center md:justify-between">
                   <Link
                     href="/forgot-password"
                     className="text-sm text-gray-600 hover:underline"
@@ -176,22 +224,30 @@ export function LoginForm({
                     Forgot password?
                   </Link>
 
-                  <div className="text-sm text-gray-600 ">
-                    Don't have an account?
-                    <Link
-                      href="/signup"
-                      className="ml-1 text-pink-600 hover:underline"
-                    >
-                      Sign up
-                    </Link>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleRoleSwitch}
-                    className="text-sm text-pink-600 hover:underline"
-                  >
-                    {role === "BUYER" ? "Login as Supplier" : "Login as Buyer"}
-                  </button>
+                  {!isAdmin && (
+                    <>
+                      <div className="text-sm text-gray-600">
+                        Don't have an account?
+                        <Link
+                          href="/signup"
+                          className="ml-1 text-pink-600 hover:underline"
+                        >
+                          Sign up
+                        </Link>
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          onClick={handleRoleSwitch}
+                          className="text-sm text-pink-600 hover:underline"
+                        >
+                          {role === "BUYER"
+                            ? "Login as Supplier"
+                            : "Login as Buyer"}
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

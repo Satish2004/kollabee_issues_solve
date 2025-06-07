@@ -1,27 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  PlusIcon,
-  Search,
-  Eye,
-  MessageSquare,
-  ArrowDownUp,
-  Wallet,
-} from "lucide-react";
-import { useState, useEffect } from "react";
 import CreateProjects from "./_component/CreateProjects";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { IoFilterOutline, IoGitCompareSharp } from "react-icons/io5";
-import { HiArrowsUpDown } from "react-icons/hi2";
+import EmptyState from "./_component/EmptyState";
+import ProjectsHeader from "./_component/ProjectsHeader";
+import ProjectsTable from "./_component/ProjectsTable";
 import { FormProvider } from "./_component/create-projects-context";
 import projectApi from "@/lib/api/project";
 import type { Project } from "@/types/api";
 import { useRouter } from "next/navigation";
-import { TbCash } from "react-icons/tb";
-import { LiaShippingFastSolid } from "react-icons/lia";
-import LoadingScreen from "./_component/loading-screen-wc";
+import { useState, useEffect } from "react";
 
 const ProjectsPage = () => {
   const router = useRouter();
@@ -31,28 +18,10 @@ const ProjectsPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
 
-  // Filter options
-  const projectTypeOptions = [
-    { id: "custom-manufacturing", label: "Custom Manufacturing" },
-    { id: "packaging-only", label: "Packaging Only" },
-    { id: "end-to-end", label: "End to End Development" },
-  ];
-
-  // Update to match the actual data structure
-  const categoryOptions = [
-    { id: "Apparel & Fashion", label: "Apparel & Fashion" },
-    // Add other categories as needed
-  ];
-
-  const formulationOptions = [
-    { id: "cream", label: "Cream" },
-    // Add other formulation types as needed
-  ];
-
   const fetchData = async () => {
     try {
       const data = await projectApi.getProjects();
-      console.log("Projects data:", data);
+      console.log("Projects data:", data.length);
 
       // Format the data to include status if needed
       const formattedData = data.map((project: Project) => ({
@@ -71,10 +40,9 @@ const ProjectsPage = () => {
   };
 
   useEffect(() => {
-    // Simulate API call
     const fetchProjects = async () => {
       const data: any[] = await fetchData();
-      console.log("Fetched projects:", data);
+      // console.log("Fetched projects:", data);
       setProjects(data);
       setLoading(false);
     };
@@ -129,238 +97,33 @@ const ProjectsPage = () => {
     );
   }
 
-  const getHealthBadge = (health: string) => {
-    switch (health) {
-      case "On Track":
-        return (
-          <Badge className="bg-pink-500 hover:bg-pink-600">{health}</Badge>
-        );
-      case "Delayed":
-        return <Badge className="bg-red-500 hover:bg-red-600">{health}</Badge>;
-      case "Critical":
-        return (
-          <Badge className="bg-amber-500 hover:bg-amber-600">{health}</Badge>
-        );
-      case "Good":
-        return (
-          <Badge className="bg-green-500 hover:bg-green-600">{health}</Badge>
-        );
-      default:
-        return health;
-    }
-  };
-
   // Empty state - no projects
   if (!loading && projects.length === 0) {
     return (
-      <div className="w-full h-full rounded-xl bg-white border flex flex-col items-center justify-center gap-4 p-8">
-        <h1 className="text-xl font-semibold text-gray-700">
-          You don't have any projects
-        </h1>
-        <p className="text-gray-500 text-center max-w-md">
-          Create your first project to start collaborating with suppliers and
-          track your manufacturing process.
-        </p>
-        <div className="flex items-center justify-center mt-4">
-          <Button
-            variant="outline"
-            className="bg-gradient-to-r from-[#9e1171] to-[#f0b168]  text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
-            onClick={() => router.push("/buyer/projects/new")}
-          >
-            <PlusIcon size={20} className="text-white mr-2" />
-            Create Project
-          </Button>
-        </div>
-      </div>
+      <EmptyState onCreateProject={() => router.push("/buyer/projects/new")} />
     );
-  }
-
-  // Loading state
-  if (loading) {
-    return <LoadingScreen />;
   }
 
   // Projects dashboard
   return (
-    <>
-      <div className="w-full h-[100px] flex justify-end items-center rounded-xl mb-8 bg-white border p-5">
-        <Button
-          className="gradient-border gradient-text"
-          onClick={() => router.push("/buyer/projects/new")}
-        >
-          <PlusIcon className="mr-2 h-4 w-4 text-rose-500" />
-          Create Project
-        </Button>
-      </div>
+    <div className=" px-0 md:px-6 w-full">
+      <ProjectsHeader
+        onCreateProject={() => router.push("/buyer/projects/new")}
+      />
 
-      <div className="w-full h-full bg-white rounded-xl   border flex flex-col p-4 gap-3">
+      <div className="w-full h-full bg-white rounded-xl border flex flex-col p-4 gap-3">
         {/* Projects section */}
         <h2 className="text-base font-medium mr-4">Projects Overview</h2>
 
-        <div className="p-0">
-          <div className="flex justify-between items-center mb-6 bg-[#F7F9FB] rounded-lg p-2 ">
-            <div className="flex items-center gap-3 text-black ">
-              <IoFilterOutline className="h-4 w-4 " />
-              <HiArrowsUpDown className="h-4 w-4 " />
-            </div>
-            <div className="flex items-center bg-white rounded-md gap-2">
-              <div className="relative">
-                <Input
-                  placeholder="Search "
-                  className="h-8 w-48 rounded-md border border-gray-300 pl-8 text-sm"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-                <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              </div>
-            </div>
-          </div>
-
-          {/* Projects table */}
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="text-left text-xs text-gray-500 border-b">
-                  <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">Project Type</div>
-                  </th>
-                  <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">Supplier</div>
-                  </th>
-                  <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">Business Name</div>
-                  </th>
-                  <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">Timeline</div>
-                  </th>
-                  <th className="py-2 px-4 font-medium">Health</th>
-                  <th className="py-2 px-4 font-medium">Payment Milestones</th>
-                  <th className="py-2 px-4 font-medium">Shipping</th>
-                  <th className="py-2 px-4 font-medium">Budget</th>
-                  <th className="py-2 px-4 font-medium">
-                    <div className="flex items-center">Status</div>
-                  </th>
-                  <th className="py-2 px-4 font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProjects.map((project) => (
-                  <tr key={project.id} className="border-b hover:bg-gray-50">
-                    <td className="py-3 px-4 text-sm">
-                      {project.selectedServices?.join(", ")}
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <p className="bg-gray-200 w-fit px-2 rounded-md">
-                        {project.requestedSeller.length}
-                      </p>
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <p className="bg-gray-200 w-fit px-2 rounded-md">
-                        {project.businessName || "N/A"}
-                      </p>
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <div className="flex items-center bg-gray-200 px-2 w-fit rounded-md">
-                        <Wallet className="mr-2 text-[#78787a]" />
-
-                        {project.projectTimeline
-                          ? new Date(
-                              project.projectTimeline[0]
-                            ).toLocaleDateString()
-                          : "N/A"}
-                      </div>
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <div className="flex items-center flex-col">-</div>
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      {project.milestones?.length > 0 ? (
-                        <div className="flex flex-col items-center  ">
-                          <div className="flex w-fit bg-gray-200  px-2 items-center  rounded-md">
-                            <TbCash className="mr-1 text-[#78787a]" />
-                            View
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center ">-</div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      {project.milestones?.length > 0 ? (
-                        <div className="flex flex-col items-center  ">
-                          <div
-                            className="flex w-fit items-center px-2 cursor-pointer bg-gray-200 gap-2 rounded-md"
-                            onClick={() => {
-                              router.push(
-                                `/buyer/projects/${project.id}/shipping-details`
-                              );
-                            }}
-                          >
-                            <LiaShippingFastSolid
-                              className="text-[#78787a]"
-                              height={96}
-                            />
-                            Not Started
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center ">-</div>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-sm">
-                      {project.budget
-                        ? `$${project.budget} ${
-                            project.pricingCurrency?.toUpperCase() || "USD"
-                          }`
-                        : "N/A"}
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <span className="flex items-center gap-2">
-                        <span className="relative w-4 h-4">
-                          {/* Outer circle */}
-                          <span className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-yellow-500 -translate-x-1/2 -translate-y-1/2"></span>{" "}
-                          {/* Inner dot */}
-                        </span>
-                        Pending
-                      </span>
-                    </td>
-
-                    <td className="py-3 px-4 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={() => {
-                            router.push(
-                              `/buyer/projects/${project.id}/supplier`
-                            );
-                          }}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                        >
-                          <MessageSquare className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <ProjectsTable
+          loading={loading}
+          filteredProjects={filteredProjects}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          router={router}
+        />
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "item-1",
+    "question": "Is my feedback anonymous?",
+    "answer": "Your feedback is only anonymous if you toggle the \"Submit Anonymously\" option. Otherwise, it will be associated with your account to help us better address your specific concerns.",
+    "category": "privacy"
+  },
+  {
+    "id": "item-2",
+    "question": "How is my feedback used?",
+    "answer": "Your feedback is reviewed by our product team and used to identify areas for improvement, prioritize new features, and enhance the overall user experience.",
+    "category": "general"
+  },
+  {
+    "id": "item-3",
+    "question": "Will I receive a response?",
+    "answer": "While we may not respond to every piece of feedback individually, we do review all submissions. For specific issues requiring attention, our support team may reach out to you directly.",
+    "category": "support"
+  },
+  {
+    "id": "item-4",
+    "question": "How long does it take to process my feedback?",
+    "answer": "We typically review feedback within 1-3 business days. For urgent issues, we prioritize accordingly and may address them sooner.",
+    "category": "support"
+  },
+  {
+    "id": "item-5",
+    "question": "Can I update my feedback after submission?",
+    "answer": "Yes, you can edit your feedback for up to 48 hours after submission. Simply navigate to your feedback history and select the 'Edit' option on the relevant submission.",
+    "category": "general"
+  },
+  {
+    "id": "item-6",
+    "question": "Is there a limit to how much feedback I can submit?",
+    "answer": "There is no limit to the amount of feedback you can provide. We value your input and encourage you to share your thoughts whenever you have suggestions or encounter issues.",
+    "category": "general"
+  },
+  {
+    "id": "item-7",
+    "question": "Can I attach files to my feedback?",
+    "answer": "Yes, you can attach screenshots, videos, or other files up to 10MB in size to help illustrate your feedback. This is particularly helpful for bug reports or UI/UX suggestions.",
+    "category": "technical"
+  },
+  {
+    "id": "item-8",
+    "question": "How do I track the status of my feedback?",
+    "answer": "You can view the status of your feedback submissions in your account dashboard under 'My Feedback'. We update the status as we review, implement, or close feedback items.",
+    "category": "technical"
+  },
+  {
+    "id": "item-9",
+    "question": "Can I see feedback from other users?",
+    "answer": "We maintain a public feedback board where you can view popular suggestions and feature requests from other users. You can also upvote ideas you'd like to see implemented.",
+    "category": "community"
+  },
+  {
+    "id": "item-10",
+    "question": "Do you offer rewards for valuable feedback?",
+    "answer": "Yes, we occasionally reward users whose feedback leads to significant improvements. These rewards may include premium features, account credits, or recognition in our release notes.",
+    "category": "rewards"
+  },
+  {
+    "id": "item-11",
+    "question": "How can I provide feedback about the feedback system itself?",
+    "answer": "Meta-feedback is welcome! You can use the same feedback form and select 'Feedback System' as the category, or contact our support team directly.",
+    "category": "meta"
+  },
+  {
+    "id": "item-12",
+    "question": "Is my feedback shared with third parties?",
+    "answer": "No, your feedback is kept confidential and is only used internally to improve our products and services. We never share individual feedback with third parties without your explicit consent.",
+    "category": "privacy"
+  },
+  {
+    "id": "item-13",
+    "question": "Can I delete my feedback history?",
+    "answer": "Yes, you can delete individual feedback items or your entire feedback history from your account settings. This will permanently remove the data from our systems.",
+    "category": "privacy"
+  },
+  {
+    "id": "item-14",
+    "question": "How do you prioritize feedback implementation?",
+    "answer": "We prioritize feedback based on several factors including user impact, alignment with our product roadmap, technical feasibility, and the number of similar requests we receive.",
+    "category": "general"
+  },
+  {
+    "id": "item-15",
+    "question": "Can I subscribe to updates about my feedback?",
+    "answer": "Yes, you can opt to receive notifications when there are updates to your feedback submissions or when feedback you've upvoted progresses through our implementation pipeline.",
+    "category": "technical"
+  }
+]

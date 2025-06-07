@@ -83,7 +83,7 @@ export function ForgotPasswordForm() {
         </div>
       </div>
 
-      <Card className="w-full gradient-border-auth">
+      <Card className="w-full shadow-md hover:shadow-xl">
         <CardHeader className="space-y-1 text-center">
           <CardTitle className="text-2xl font-normal">Reset Password</CardTitle>
           <CardDescription className="text-center text-[15px] font-normal">
@@ -136,7 +136,7 @@ export function ForgotPasswordForm() {
                 </Button>
               </div>
 
-              <div className="flex justify-between">
+              <div className="flex flex-col md:flex-row  gap-4 md:gap-0 items-center justify-between">
                 <div className="text-sm text-gray-600">
                   Remember your password?{" "}
                   <Link

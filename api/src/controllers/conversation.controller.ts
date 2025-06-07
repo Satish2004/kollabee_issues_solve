@@ -1,13 +1,15 @@
-import type { Request, Response } from "express"
-import prisma from '../db';
-import { conversationStatus } from "@prisma/client";
+import type { Response } from "express";
+import prisma from "../db";
+import type { conversationStatus } from "@prisma/client";
 
 export const conversationController = {
   // Get all conversations for a user
   getConversations: async (req: any, res: Response) => {
     try {
-      const { type, status } = req.query
+      const { type, status } = req.query;
       const { userId, role } = req.user;
+
+      const assistentID = process.env.ASSISTANT_ID;
 
       // Fetch conversations where the user is a participant
       const conversations = await prisma.conversation.findMany({
@@ -17,12 +19,9 @@ export const conversationController = {
               userId: userId,
             },
           },
-          ...(role === "BUYER"
+          ...(role === "BUYER" || role === "SELLER"
             ? {
-                OR: [
-                  { status: "ACCEPTED" },
-                  { initiatedBy: { not: userId } },
-                ],
+                OR: [{ status: "ACCEPTED" }, { initiatedBy: { not: userId } }],
               }
             : {}),
           ...(status ? { status: status as conversationStatus } : {}),
@@ -43,23 +42,69 @@ export const conversationController = {
         orderBy: {
           updatedAt: "desc",
         },
-      })
+      });
 
-      
+      console.log("Conversations:", conversations);
+
+      // If the user is a buyer or seller and type is ADMIN, ensure a conversation with an admin exists
+      if (role === "BUYER" || role === "SELLER") {
+        const admin = await prisma.user.findFirst({
+          where: {
+            email: "surajjbhardwaj@gmail.com",
+          },
+        });
+
+        console.log("Admin user:", admin);
+
+        if (admin) {
+          const adminConversation = conversations.find((conv) =>
+            conv.participants.some((p: any) => p.user.id === admin.id)
+          );
+
+          if (!adminConversation) {
+            // Create a conversation with the admin
+            const newConversation = await prisma.conversation.create({
+              data: {
+                status: "ACCEPTED", // Auto-accept admin conversations
+                initiatedBy: userId,
+                participants: {
+                  create: [{ userId: userId }, { userId: admin.id }],
+                },
+              },
+              include: {
+                participants: {
+                  include: {
+                    user: true,
+                  },
+                },
+              },
+            });
+
+            conversations.unshift({ ...newConversation, messages: [] });
+          }
+        }
+      }
 
       // Format conversations for the frontend
       const formattedConversations = conversations
         .map((conversation) => {
-          // Find the other participant (not the current user)
-          const otherParticipant = conversation.participants.find((p:any) => p.userId !== userId)
+          // For ADMIN tab, show the admin participant
+          let otherParticipant;
+          if (type === "ADMIN" && (role === "BUYER" || role === "SELLER")) {
+            otherParticipant = conversation.participants.find(
+              (p: any) => p.user.role === "ADMIN"
+            );
+          } else {
+            otherParticipant = conversation.participants.find(
+              (p: any) => p.userId !== userId
+            );
+          }
 
-          // // If we're filtering by type, make sure the other participant matches
-          // if (type && otherParticipant?.user.role !== type) {
-          //   return null
-          // }
+          if (!otherParticipant) return null;
 
-          // Get unread count
-          const unreadCount = conversation.messages.filter((m:any) => m.senderId !== userId && !m.isRead).length
+          const unreadCount = conversation.messages.filter(
+            (m: any) => m.senderId !== userId && !m.isRead
+          ).length;
 
           return {
             id: conversation.id,
@@ -69,53 +114,87 @@ export const conversationController = {
             participantAvatar: otherParticipant?.user.imageUrl || undefined,
             lastMessage:
               conversation.messages[0]?.content ||
-              (conversation.status === "PENDING" ? "New message request" : "No messages yet"),
+              (conversation.status === "PENDING"
+                ? "New message request"
+                : "No messages yet"),
             lastMessageTime: conversation.messages[0]?.createdAt.toISOString(),
             unreadCount,
             isOnline: otherParticipant?.isOnline || false,
             status: conversation.status,
             initiatedBy: conversation.initiatedBy,
-          }
+          };
         })
-        .filter(Boolean)
+        .filter(Boolean);
 
-      res.status(200).json({ conversations: formattedConversations })
+      res.status(200).json({ conversations: formattedConversations });
     } catch (error) {
-      console.error("Error fetching conversations:", error)
-      res.status(500).json({ error: "Failed to fetch conversations" })
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ error: "Failed to fetch conversations" });
     }
   },
 
   // Create a new conversation
   createConversation: async (req: any, res: Response) => {
-    
     try {
-      const { participantId, participantType, initialMessage, attachments = [] } = req.body
-      const { userId } = req.user;
+      const {
+        participantId,
+        participantType,
+        initialMessage,
+        attachments = [],
+      } = req.body;
+      const { userId, role } = req.user;
 
-      const userExists = await prisma.user.findUnique({
-        where: { id: userId },
-      });
+      let targetParticipantId = participantId;
 
-      
+      // If the participant type is ADMIN, find the admin user
+      if (participantType === "ADMIN") {
+        const admin = await prisma.user.findFirst({
+          where: { role: "ADMIN" },
+        });
 
-      if (!userExists) {
-        return res.status(404).json({ error: " user does not exist" });
+        if (!admin) {
+          return res.status(404).json({ error: "Admin user not found" });
+        }
+
+        targetParticipantId = admin.id;
       }
 
-      
-  
-      const participantExists = await prisma.user.findUnique({
-        where: { id: participantId },
-      });
+      const [currentUser, participant] = await Promise.all([
+        prisma.user.findUnique({ where: { id: userId } }),
+        prisma.user.findUnique({ where: { id: targetParticipantId } }),
+      ]);
 
-      console.log(participantId)
-  
-      if (!participantExists) {
-        return res.status(404).json({ error: "Participant does not exist" });
+      if (!currentUser || !participant) {
+        return res.status(404).json({ error: "User not found" });
       }
 
-      console.log(participantExists)
+      // Check if communication is blocked (for buyer-seller communications only)
+      if (
+        (currentUser.role === "BUYER" && participant.role === "SELLER") ||
+        (currentUser.role === "SELLER" && participant.role === "BUYER")
+      ) {
+        const isBlocked = await prisma.blockedCommunication.findFirst({
+          where: {
+            OR: [
+              {
+                initiatorId: userId,
+                targetId: targetParticipantId,
+              },
+              {
+                initiatorId: targetParticipantId,
+                targetId: userId,
+              },
+            ],
+          },
+        });
+
+        if (isBlocked) {
+          return res.status(403).json({
+            error:
+              "Communication between these users has been blocked by an admin",
+          });
+        }
+      }
 
       // Check if conversation already exists
       const existingConversation = await prisma.conversation.findFirst({
@@ -131,7 +210,7 @@ export const conversationController = {
             {
               participants: {
                 some: {
-                  userId: participantId,
+                  userId: targetParticipantId,
                 },
               },
             },
@@ -144,11 +223,12 @@ export const conversationController = {
             },
           },
         },
-      })
+      });
 
       if (existingConversation) {
-        // Find the other participant
-        const otherParticipant = existingConversation.participants.find((p) => p.userId !== userId)
+        const otherParticipant = existingConversation.participants.find(
+          (p) => p.userId !== userId
+        );
 
         return res.status(200).json({
           conversation: {
@@ -161,17 +241,20 @@ export const conversationController = {
             status: existingConversation.status,
             initiatedBy: existingConversation.initiatedBy,
           },
-        })
+        });
       }
 
+      // Set status to ACCEPTED for admin conversations
+      const conversationStatus =
+        participant.role === "ADMIN" ? "ACCEPTED" : "PENDING";
+
       const result = await prisma.$transaction(async (tx) => {
-        // Create the conversation
         const newConversation = await tx.conversation.create({
           data: {
-            status: "PENDING",
+            status: conversationStatus,
             initiatedBy: userId,
             participants: {
-              create: [{ userId: userId }, { userId: participantId }],
+              create: [{ userId: userId }, { userId: targetParticipantId }],
             },
           },
           include: {
@@ -181,9 +264,8 @@ export const conversationController = {
               },
             },
           },
-        })
+        });
 
-        // Create the initial message
         if (initialMessage) {
           await tx.message.create({
             data: {
@@ -192,14 +274,15 @@ export const conversationController = {
               content: initialMessage,
               attachments: attachments,
             },
-          })
+          });
         }
 
-        return newConversation
-      })
+        return newConversation;
+      });
 
-      // Find the other participant
-      const otherParticipant = result.participants.find((p) => p.userId !== userId)
+      const otherParticipant = result.participants.find(
+        (p) => p.userId !== userId
+      );
 
       res.status(201).json({
         conversation: {
@@ -209,21 +292,21 @@ export const conversationController = {
           participantType: otherParticipant?.user.role || "BUYER",
           participantAvatar: otherParticipant?.user.imageUrl || undefined,
           isOnline: otherParticipant?.isOnline || false,
-          status: "PENDING",
+          status: conversationStatus,
           initiatedBy: userId,
         },
-      })
+      });
     } catch (error) {
-      console.error("Error creating conversation:", error)
-      res.status(500).json({ error: "Failed to create conversation" })
+      console.error("Error creating conversation:", error);
+      res.status(500).json({ error: "Failed to create conversation" });
     }
   },
 
   // Accept a conversation request
   acceptConversation: async (req: any, res: Response) => {
     try {
-      const { conversationId } = req.params
-      const { userId } = req.user
+      const { conversationId } = req.params;
+      const { userId } = req.user;
 
       // Check if the conversation exists and the user is a participant
       const conversation = await prisma.conversation.findFirst({
@@ -243,15 +326,19 @@ export const conversationController = {
             },
           },
         },
-      })
+      });
 
       if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found or already accepted" })
+        return res
+          .status(404)
+          .json({ error: "Conversation not found or already accepted" });
       }
 
       // Make sure the user is not the one who initiated the conversation
       if (conversation.initiatedBy === userId) {
-        return res.status(403).json({ error: "You cannot accept your own conversation request" })
+        return res
+          .status(403)
+          .json({ error: "You cannot accept your own conversation request" });
       }
 
       // Update the conversation status
@@ -269,10 +356,12 @@ export const conversationController = {
             },
           },
         },
-      })
+      });
 
       // Find the other participant
-      const otherParticipant = updatedConversation.participants.find((p) => p.userId !== userId)
+      const otherParticipant = updatedConversation.participants.find(
+        (p) => p.userId !== userId
+      );
 
       res.status(200).json({
         conversation: {
@@ -285,18 +374,18 @@ export const conversationController = {
           status: "ACCEPTED",
           initiatedBy: updatedConversation.initiatedBy,
         },
-      })
+      });
     } catch (error) {
-      console.error("Error accepting conversation:", error)
-      res.status(500).json({ error: "Failed to accept conversation" })
+      console.error("Error accepting conversation:", error);
+      res.status(500).json({ error: "Failed to accept conversation" });
     }
   },
 
   // Decline a conversation request
   declineConversation: async (req: any, res: Response) => {
     try {
-      const { conversationId } = req.params
-      const { userId } = req.user
+      const { conversationId } = req.params;
+      const { userId } = req.user;
 
       // Check if the conversation exists and the user is a participant
       const conversation = await prisma.conversation.findFirst({
@@ -309,15 +398,19 @@ export const conversationController = {
           },
           status: "PENDING",
         },
-      })
+      });
 
       if (!conversation) {
-        return res.status(404).json({ error: "Conversation not found or already processed" })
+        return res
+          .status(404)
+          .json({ error: "Conversation not found or already processed" });
       }
 
       // Make sure the user is not the one who initiated the conversation
       if (conversation.initiatedBy === userId) {
-        return res.status(403).json({ error: "You cannot decline your own conversation request" })
+        return res
+          .status(403)
+          .json({ error: "You cannot decline your own conversation request" });
       }
 
       // Update the conversation status
@@ -328,13 +421,12 @@ export const conversationController = {
         data: {
           status: "DECLINED",
         },
-      })
+      });
 
-      res.status(200).json({ message: "Conversation request declined" })
+      res.status(200).json({ message: "Conversation request declined" });
     } catch (error) {
-      console.error("Error declining conversation:", error)
-      res.status(500).json({ error: "Failed to decline conversation" })
+      console.error("Error declining conversation:", error);
+      res.status(500).json({ error: "Failed to decline conversation" });
     }
   },
-}
-
+};
