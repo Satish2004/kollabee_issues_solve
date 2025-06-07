@@ -128,7 +128,9 @@ const MultiSelectDropdown = ({
           type="button"
           variant="outline"
           onClick={() => !disabled && setIsOpen(!isOpen)}
-          className={`w-full justify-between font-normal ${disabled ? "pointer-events-none opacity-50" : ""}`}
+          className={`w-full justify-between font-normal ${
+            disabled ? "pointer-events-none opacity-50" : ""
+          }`}
           id={`dropdown-${label}`}
           disabled={disabled}
         >
@@ -141,7 +143,7 @@ const MultiSelectDropdown = ({
         </Button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+          <div className="absolute z-50 w-full bottom-full mb-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
             <div className="p-2">
               {flattenedOptions.map((option) => {
                 const isSelected = selectedValues.includes(option);
@@ -178,7 +180,9 @@ const MultiSelectDropdown = ({
             {selectedValues.map((value) => (
               <div
                 key={value}
-                className={`bg-gray-100 rounded-full px-3 py-1 text-sm font-normal flex items-center ${disabled ? "opacity-50" : ""}`}
+                className={`bg-gray-100 rounded-full px-3 py-1 text-sm font-normal flex items-center ${
+                  disabled ? "opacity-50" : ""
+                }`}
               >
                 {value}
                 <button
@@ -197,7 +201,11 @@ const MultiSelectDropdown = ({
       )}
 
       {allowCustomValues && selectedValues.includes(customValueCategory) && (
-        <div className={`mt-4 space-y-3 border rounded-md p-4 ${disabled ? "opacity-50 pointer-events-none" : ""}`}>
+        <div
+          className={`mt-4 space-y-3 border rounded-md p-4 ${
+            disabled ? "opacity-50 pointer-events-none" : ""
+          }`}
+        >
           <p className="text-sm font-normal">{customValuesLabel}</p>
 
           <div className="flex items-center gap-2">
