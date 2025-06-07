@@ -516,7 +516,29 @@ export const getSellerBusinessInfo = async (req: any, res: Response) => {
       return res.status(400).json({ error: "Seller not found" });
     }
 
-    return res.status(200).json(seller);
+    const companyRoles = [
+      "Founder/CEO",
+      "Executive/Leadership",
+      "Manager",
+      "Team Member",
+      "Intern",
+      "Other",
+    ];
+    const roleValue =
+      typeof seller?.roleInCompany === "string" ? seller.roleInCompany : "";
+
+    const isStandardRole =
+      typeof roleValue === "string" && companyRoles.includes(roleValue);
+
+    console.log(isStandardRole, roleValue);
+
+    const newBusinessInfo = {
+      ...seller,
+      roleInCompany: isStandardRole ? roleValue : "Other",
+      ...(roleValue && !isStandardRole ? { otherRole: roleValue } : {}),
+    };
+
+    return res.status(200).json(newBusinessInfo);
   } catch (error) {
     console.error("Error fetching business info:", error);
     return res.status(500).json({ error: "Failed to fetch business info" });

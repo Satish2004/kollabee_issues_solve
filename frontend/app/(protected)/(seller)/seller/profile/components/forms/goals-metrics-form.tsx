@@ -46,7 +46,6 @@ const GoalsMetricsForm = ({
   hasChanges,
   isSaving,
 }: GoalsMetricsFormProps) => {
-  console.log("formState : ", formState);
   const handleObjectiveToggle = (objective: string) => {
     onChange({
       ...formState,

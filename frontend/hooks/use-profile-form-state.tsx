@@ -67,6 +67,7 @@ const useProfileFormState = ({
           websiteLink: "",
           businessAddress: "",
           roleInCompany: "",
+          otherRole: "",
           businessTypes: [],
           businessCategories: [],
         };

@@ -75,21 +75,6 @@ export default function BusinessInfoForm({
     formState.customBusinessTypes || []
   );
 
-  useEffect(() => {
-    // Check if the role exists and is not in the predefined company roles
-    if (
-      formState.roleInCompany &&
-      !companyRoles.includes(formState.roleInCompany)
-    ) {
-      // Set the role to "Other" and save the original role as otherRole
-      onChange({
-        ...formState,
-        otherRole: formState.roleInCompany,
-        roleInCompany: "Other",
-      });
-    }
-  }, []);
-
   const handleCustomCategoriesChange = (newCustomCategories: string[]) => {
     setCustomCategories(newCustomCategories);
     onChange({
