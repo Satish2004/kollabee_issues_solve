@@ -153,9 +153,8 @@ export function BusinessInfoForm({
       businessName: isNameValid(formData.businessName),
 
       businessDescription:
-        formData.businessDescription.trim().length < 10 ||
-        !nameRegex.test(formData.businessDescription)
-          ? "Business Description must be at least 10 characters long and cannot contain only numbers or special characters"
+        formData.businessDescription.trim().length < 10
+          ? "Business Description must be at least 10 characters long"
           : "",
       websiteLink:
         formData.websiteLink.trim() === "" ||

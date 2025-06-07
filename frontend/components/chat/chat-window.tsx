@@ -1,8 +1,25 @@
 "use client";
 
-import type React from "react";
-
-import { useState, useRef, useEffect } from "react";
+import BlockedCommunicationNotice from "./blocked-communication-notice";
+import MediaViewer from "./media-viewer";
+import { useRecentEmojis } from "./recent-emojis";
+import type { Message, User as UserType, Conversation } from "./types/chat";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Progress } from "@/components/ui/progress";
+import Spinner from "@/components/ui/spinner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+import { chatApi } from "@/lib/api/chat";
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 import {
   Paperclip,
   Smile,
@@ -17,26 +34,8 @@ import {
   ExternalLink,
   Upload,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import type { Message, User as UserType, Conversation } from "./types/chat";
-import Spinner from "@/components/ui/spinner";
-import { useToast } from "@/hooks/use-toast";
-import { chatApi } from "@/lib/api/chat";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import BlockedCommunicationNotice from "./blocked-communication-notice";
-import { useRecentEmojis } from "./recent-emojis";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MediaViewer from "./media-viewer";
-import { Progress } from "@/components/ui/progress";
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface ChatWindowProps {
   messages: Message[];
@@ -203,9 +202,37 @@ export default function ChatWindow({
   // Render loading state
   if (isLoading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <Spinner size="lg" />
-        <p className="mt-2 text-gray-500">Loading conversation...</p>
+      <div className="flex-1 flex flex-col bg-white max-h-[calc(100dvh-150px)] h-[calc(100dvh-150px)] overflow-hidden">
+        {/* Conversation Header Skeleton */}
+        <div className="p-4 border-b flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gray-200 animate-pulse" />
+          <div className="flex-1">
+            <div className="h-4 w-32 bg-gray-200 rounded mb-2 animate-pulse" />
+            <div className="h-3 w-16 bg-gray-100 rounded animate-pulse" />
+          </div>
+        </div>
+        {/* Messages Skeleton */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {Array(8)
+            .fill(0)
+            .map((_, i) => (
+              <div
+                key={i}
+                className={`flex ${
+                  i % 2 === 0 ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div className="max-w-xs w-40 bg-gray-100 rounded-lg p-3 animate-pulse">
+                  <div className="h-3 w-3/4 bg-gray-200 rounded mb-2" />
+                  <div className="h-3 w-1/2 bg-gray-200 rounded" />
+                </div>
+              </div>
+            ))}
+        </div>
+        {/* Input Skeleton */}
+        <div className="p-4 border-t bg-gray-50">
+          <div className="h-10 bg-gray-100 rounded-lg animate-pulse w-full" />
+        </div>
       </div>
     );
   }
@@ -779,9 +806,9 @@ export default function ChatWindow({
   }
 
   return (
-    <div className="flex-1 flex flex-col h-screen bg-white">
+    <div className="flex-1 flex flex-col bg-white max-h-[calc(100dvh-150px)] h-full">
       {/* Conversation Header */}
-      <div className="p-4 border-b flex justify-between items-center">
+      <div className="p-4 border-b flex justify-between items-center sticky top-0 z-10 bg-white">
         <div className="flex items-center">
           <Avatar className="mr-2">
             {conversation?.participantAvatar ? (
@@ -822,7 +849,8 @@ export default function ChatWindow({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 h-[calc(100vh-180px)]">
+      <div className="flex-1 overflow-y-auto p-4 pt-10">
+        {/* ↑↑↑ Add pt-8 for top padding to prevent overlap with sticky header */}
         {messages.length > 0 ? (
           <>
             {/* Group messages by date */}
@@ -1289,7 +1317,7 @@ export default function ChatWindow({
 
       {/* File Preview Area */}
       {attachments.length > 0 && (
-        <div className="p-2 border-t border-gray-200 flex gap-2 overflow-x-auto">
+        <div className="p-2 border-t border-gray-200 flex gap-2 overflow-x-auto sticky bottom-20 bg-white z-10 max-w-full">
           {previewUrls.map((url, index) => {
             const file = attachments[index];
             const isImage = file.type.startsWith("image/");
@@ -1327,7 +1355,7 @@ export default function ChatWindow({
 
       {/* Message Input */}
       {canSendMessages() ? (
-        <div className="m-4 rounded-xl bg-gray-100 pb-3 px-3 pt-2">
+        <div className="m-4 rounded-xl bg-gray-100 pb-3 px-3 pt-2 sticky bottom-0 z-20 max-w-full">
           <form
             onSubmit={handleSubmit}
             className="flex flex-col items-end gap-2"
@@ -1396,7 +1424,7 @@ export default function ChatWindow({
         </div>
       ) : conversation?.status === "PENDING" &&
         conversation?.initiatedBy === currentUser?.id ? (
-        <div className="p-4 border-t bg-gray-50">
+        <div className="p-4 border-t bg-gray-50 sticky bottom-0 z-20 max-w-full">
           <div className="text-center text-sm text-gray-500">
             <Clock className="h-4 w-4 inline mr-1" />
             Waiting for {conversation?.participantName} to accept your message
@@ -1404,7 +1432,7 @@ export default function ChatWindow({
           </div>
         </div>
       ) : (
-        <div className="p-4 border-t bg-gray-50">
+        <div className="p-4 border-t bg-gray-50 sticky bottom-0 z-20 max-w-full">
           <div className="text-center text-sm text-gray-500">
             <AlertCircle className="h-4 w-4 inline mr-1" />
             You cannot send messages in this conversation

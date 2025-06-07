@@ -101,6 +101,7 @@ export default function SignupSellerPage() {
     } catch (error: any) {
       console.error("Error generating OTP:", error);
       toast.error(error.response?.data?.message || "Failed to send OTP");
+      setShowOTP(false);
     } finally {
       setGenerateOTPLoading(false);
     }

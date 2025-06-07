@@ -67,6 +67,7 @@ const useProfileFormState = ({
           websiteLink: "",
           businessAddress: "",
           roleInCompany: "",
+          otherRole: "",
           businessTypes: [],
           businessCategories: [],
         };
@@ -116,13 +117,12 @@ const useProfileFormState = ({
         };
       case "compliance-credentials":
         return {
-          businessRegistration: null,
+          businessRegistration: [],
           businessRegPreview: null,
           certifications: [],
           certificationPreviews: [],
           certificationTypes: [],
-          notableClients: "",
-          clientLogos: [],
+          notableClients: [{}],
           clientLogoPreviews: [],
           otherCertSelected: false,
           otherCertifications: "",

@@ -47,6 +47,7 @@ type BusinessInfoFormProps = {
   onSave: () => void;
   hasChanges: boolean;
   isSaving: boolean;
+  disabled?: boolean;
 };
 
 export default function BusinessInfoForm({
@@ -55,6 +56,7 @@ export default function BusinessInfoForm({
   onSave,
   hasChanges,
   isSaving,
+  disabled = false,
 }: BusinessInfoFormProps) {
   const [errors, setErrors] = useState({
     businessName: "",
@@ -74,21 +76,6 @@ export default function BusinessInfoForm({
   const [customBusinessTypes, setCustomBusinessTypes] = useState<string[]>(
     formState.customBusinessTypes || []
   );
-
-  useEffect(() => {
-    // Check if the role exists and is not in the predefined company roles
-    if (
-      formState.roleInCompany &&
-      !companyRoles.includes(formState.roleInCompany)
-    ) {
-      // Set the role to "Other" and save the original role as otherRole
-      onChange({
-        ...formState,
-        otherRole: formState.roleInCompany,
-        roleInCompany: "Other",
-      });
-    }
-  }, []);
 
   const handleCustomCategoriesChange = (newCustomCategories: string[]) => {
     setCustomCategories(newCustomCategories);
@@ -163,7 +150,7 @@ export default function BusinessInfoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <p>
                 Business Name
                 <Star />
@@ -184,11 +171,12 @@ export default function BusinessInfoForm({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <span>
                 Business Description
                 <Star />
@@ -208,11 +196,12 @@ export default function BusinessInfoForm({
                 });
               }}
               className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <span>
                 Business Website/Instagram
                 <Star />
@@ -233,6 +222,7 @@ export default function BusinessInfoForm({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -262,12 +252,14 @@ export default function BusinessInfoForm({
             customValueCategory="Other"
             customValues={customBusinessTypes}
             onCustomValuesChange={handleCustomBusinessTypesChange}
+            lableBold={true}
+            disabled={disabled}
           />
         </div>
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <span>
                 Business Address
                 <Star />
@@ -288,6 +280,7 @@ export default function BusinessInfoForm({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -304,10 +297,12 @@ export default function BusinessInfoForm({
             customValueCategory="Other"
             customValues={customCategories}
             onCustomValuesChange={handleCustomCategoriesChange}
+            lableBold={true}
+            disabled={disabled}
           />
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center ">
+            <label className="text-sm font-bold flex items-center ">
               Describe your Role within the Company
               <span className="text-destructive text-red-500">*</span>
             </label>
@@ -321,6 +316,7 @@ export default function BusinessInfoForm({
                 });
                 setErrors({ ...errors, rolesInCompany: "" });
               }}
+              disabled={disabled}
             >
               <SelectTrigger
                 className={`w-full bg-[#fcfcfc] border ${
@@ -340,7 +336,7 @@ export default function BusinessInfoForm({
 
             {formState.roleInCompany === "Other" && (
               <>
-                <label className="text-sm font-medium">
+                <label className="text-sm font-bold">
                   Please specify your role
                 </label>
                 <Input
@@ -358,6 +354,7 @@ export default function BusinessInfoForm({
                       ? "border-red-500"
                       : "border-[#e5e5e5]"
                   } rounded-[6px] placeholder:text-black/50`}
+                  disabled={disabled}
                 />
               </>
             )}

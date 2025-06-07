@@ -516,7 +516,29 @@ export const getSellerBusinessInfo = async (req: any, res: Response) => {
       return res.status(400).json({ error: "Seller not found" });
     }
 
-    return res.status(200).json(seller);
+    const companyRoles = [
+      "Founder/CEO",
+      "Executive/Leadership",
+      "Manager",
+      "Team Member",
+      "Intern",
+      "Other",
+    ];
+    const roleValue =
+      typeof seller?.roleInCompany === "string" ? seller.roleInCompany : "";
+
+    const isStandardRole =
+      typeof roleValue === "string" && companyRoles.includes(roleValue);
+
+    console.log(isStandardRole, roleValue);
+
+    const newBusinessInfo = {
+      ...seller,
+      roleInCompany: isStandardRole ? roleValue : "Other",
+      ...(roleValue && !isStandardRole ? { otherRole: roleValue } : {}),
+    };
+
+    return res.status(200).json(newBusinessInfo);
   } catch (error) {
     console.error("Error fetching business info:", error);
     return res.status(500).json({ error: "Failed to fetch business info" });
@@ -1467,6 +1489,7 @@ export const approveOrRejectSeller = async (req: any, res: Response) => {
             }
           : undefined,
         updatedAt: new Date(Date.now()),
+        lock: false,
       },
     });
 
@@ -1745,6 +1768,11 @@ export const getApproval = async (req: any, res: Response) => {
       return res.status(404).json({ message: "Seller not found" });
     }
 
+    const lockInfo = {
+      isLocked: seller.lock,
+      lockedAt: seller.lockedAt,
+    };
+
     seller.profileCompletion = seller.profileCompletion || [];
 
     if (
@@ -1793,6 +1821,7 @@ export const getApproval = async (req: any, res: Response) => {
         approvalRequested: seller.approvalRequested,
         approvalRequestedAt: seller.approvalReqestAt,
         isApproved: false,
+        lockInfo,
       });
     }
     if (seller.approvalRequested === false) {
@@ -1854,6 +1883,9 @@ export const requestApproval = async (req: any, res: Response) => {
         approvalRequested: true,
         approvalReqestAt: new Date(Date.now()),
         profileCompletion: currentCompletion,
+        lock: true, // Lock the profile to prevent further edits
+        lockedAt: new Date(Date.now()),
+        updatedAt: new Date(Date.now()),
       },
       select: {
         id: true,
@@ -2115,8 +2147,14 @@ export const getComplianceCredentials = async (req: any, res: Response) => {
         businessRegistration: true,
         certificates: true,
         certificationTypes: true,
-        notableClients: true,
-        clientLogos: true,
+        notableClients: {
+          select: {
+            id: true,
+            name: true,
+            logo: true,
+            description: true,
+          },
+        },
       },
     });
 
@@ -2125,11 +2163,10 @@ export const getComplianceCredentials = async (req: any, res: Response) => {
     }
 
     const data = {
-      businessRegistration: seller.businessRegistration,
+      businessRegistration: seller.businessRegistration || [],
       certifications: seller.certificates || [],
       certificationTypes: seller.certificationTypes || [],
-      notableClients: seller.notableClients || "",
-      clientLogos: seller.clientLogos || [],
+      notableClients: seller.notableClients || [],
     };
 
     res.json(data);
@@ -2157,12 +2194,8 @@ export const updateComplianceCredentials = async (req: any, res: Response) => {
 
     const seller = await prisma.seller.findUnique({
       where: { userId },
-      select: {
-        id: true,
-        bussinessRegistration: true,
-        profileCompletion: true,
-        certifications: true,
-        clientLogos: true,
+      include: {
+        notableClients: true,
       },
     });
 
@@ -2180,9 +2213,19 @@ export const updateComplianceCredentials = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Seller not found" });
     }
 
+    const newSeller = {
+      id: seller?.id,
+      businessRegistration: businessRegistration || [],
+      certifications: certifications || [],
+      certificationTypes: certificationTypes || [],
+      notableClients: notableClients || [],
+      clientLogos: clientLogos || [],
+    };
+
     // Check if we have valid data to mark this step as complete
     const hasRequiredData =
-      businessRegistration || seller.bussinessRegistration;
+      businessRegistration.length > 0 ||
+      (seller.bussinessRegistration ?? []).length > 0;
 
     const currentCompletion = seller.profileCompletion || [];
     const newCompletion = hasRequiredData
@@ -2190,40 +2233,78 @@ export const updateComplianceCredentials = async (req: any, res: Response) => {
       : currentCompletion.filter((step) => step !== 5);
 
     // Merge existing certifications and logos with new ones if any
+    // Merge existing certifications and new ones, removing duplicates
     const updatedCertifications = certifications
-      ? [...(seller.certifications || []), ...certifications]
-      : seller.certifications;
+      ? Array.from(new Set([...(seller.certificates || []), ...certifications]))
+      : seller.certificates;
 
-    const updatedClientLogos = clientLogos
-      ? [...(seller.clientLogos || []), ...clientLogos]
-      : seller.clientLogos;
-    // now remove dublicate onces
-
-    const filteredUpdatedClientLogos = updatedClientLogos.filter(
-      (logo, index) => {
-        return updatedClientLogos.indexOf(logo) === index;
-      }
+    // Separate notableClients into new (no id) and existing (with id)
+    const newClients = notableClients.filter((client: any) => !client.id);
+    const existingClients = notableClients.filter((client: any) => client.id);
+    const deletedClients = seller.notableClients.filter(
+      (client: any) => !notableClients.some((c: any) => c.id === client.id)
     );
+
+    console.log("New Clients:", newClients);
+    console.log("Existing Clients:", existingClients);
+    console.log("Deleted Clients:", deletedClients);
+
+    // Delete notable clients that are no longer present
+    if (deletedClients.length > 0) {
+      await prisma.client.deleteMany({
+        where: {
+          id: {
+            in: deletedClients.map((client: any) => client.id),
+          },
+        },
+      });
+    }
+
+    // Update existing notable clients if changed
+    for (const client of existingClients) {
+      const dbClient = seller.notableClients.find(
+        (c: any) => c.id === client.id
+      );
+      if (
+        dbClient &&
+        (dbClient.name !== client.name ||
+          dbClient.logo !== client.logo ||
+          dbClient.description !== client.description)
+      ) {
+        await prisma.client.update({
+          where: { id: client.id },
+          data: {
+            name: client.name,
+            logo: client.logo,
+            description: client.description,
+          },
+        });
+      }
+    }
 
     const updatedSeller = await prisma.seller.update({
       where: { userId },
       data: {
         businessRegistration: businessRegistration,
-
         certificates: updatedCertifications.filter(
           (cert) => typeof cert === "string"
         ),
         certificationTypes,
-        notableClients,
-        clientLogos: clientLogos,
         profileCompletion: newCompletion,
+        // Only create new notable clients
+        notableClients: {
+          create: newClients.map((client: any) => ({
+            name: client.name,
+            logo: client.logo,
+            description: client.description,
+          })),
+        },
       },
       select: {
         businessRegistration: true,
         certificates: true,
         certificationTypes: true,
         notableClients: true,
-        clientLogos: true,
       },
     });
 

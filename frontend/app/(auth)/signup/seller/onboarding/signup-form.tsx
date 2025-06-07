@@ -1,5 +1,6 @@
 "use client";
 
+import countriesPhoneNo from "./countriesPhoneNo.json";
 import {
   getCountryCode,
   getSpecialCaseCountryCode,
@@ -317,28 +318,29 @@ export function SignupForm({
   };
   const isNameValid = (name: string) => {
     // Check minimum length
-    if (name.trim().length < 2) return false;
+    if (name.trim().length < 2)
+      return "Name must be at least 2 characters long";
 
     // Check if it contains only single characters (like "a" or "ab")
-    if (name.trim().length < 3) return false;
+    if (name.trim().length < 3)
+      return "Name must be at least 3 characters long";
 
     // Check if it contains numbers or special characters
     const nameRegex = /^[a-zA-Z\s]+$/;
-    if (!nameRegex.test(name)) return false;
+    if (!nameRegex.test(name))
+      return "Name can only contain letters and spaces";
 
     // Check if it's not just repeated characters
     const trimmedName = name.trim().replace(/\s+/g, "");
     const uniqueChars = new Set(trimmedName.toLowerCase()).size;
-    if (uniqueChars < 2) return false;
+    if (uniqueChars < 2)
+      return "Name must contain at least 2 different characters";
 
-    return true;
+    return "";
   };
 
   const validatePhoneNumber = (phone: string): string => {
     if (!phone.trim()) return "Phone number is required";
-
-    if (phone.length < 10) return "Phone number must be at least 10 digits";
-    if (phone.length > 10) return "Phone number cannot exceed 10 digits";
 
     // Remove any spaces, hyphens, or other formatting
     const cleanPhone = phone.replace(/[\s\-$$$$]/g, "");
@@ -348,14 +350,29 @@ export function SignupForm({
       return "Phone number can only contain digits";
     }
 
-    // Check minimum length
-    if (cleanPhone.length < 10) {
-      return "Phone number must be at least 10 digits";
-    }
+    // Get country name from selected code
+    const selectedCountry =
+      countries.find((c) => c.code === formData.countryCode)?.name || "";
+    // Find phone length rule for this country
+    const countryPhoneRule = countriesPhoneNo.find(
+      (c) => c.country === selectedCountry
+    );
+    // Default min/max if not found
+    const minLen =
+      typeof countryPhoneRule?.phoneNumberLengthByCountry_phLengthMin ===
+      "number"
+        ? countryPhoneRule.phoneNumberLengthByCountry_phLengthMin
+        : 5;
+    const maxLen =
+      typeof countryPhoneRule?.phoneNumberLengthByCountry_phLengthMax ===
+      "number"
+        ? countryPhoneRule.phoneNumberLengthByCountry_phLengthMax
+        : 15;
 
-    if (cleanPhone.length > 15) {
-      return "Phone number cannot exceed 15 digits";
-    }
+    if (cleanPhone.length < minLen)
+      return `Phone number must be at least ${minLen} digits`;
+    if (cleanPhone.length > maxLen)
+      return `Phone number cannot exceed ${maxLen} digits`;
 
     // Check for invalid patterns
     const invalidPatterns = [
@@ -410,7 +427,7 @@ export function SignupForm({
         break;
       }
     }
-    if (isSequential && cleanPhone.length >= 10) {
+    if (isSequential && cleanPhone.length >= minLen) {
       return "Please enter a valid phone number";
     }
 
@@ -425,7 +442,7 @@ export function SignupForm({
         break;
       }
     }
-    if (isReverseSequential && cleanPhone.length >= 10) {
+    if (isReverseSequential && cleanPhone.length >= minLen) {
       return "Please enter a valid phone number";
     }
 
@@ -433,19 +450,19 @@ export function SignupForm({
   };
 
   useEffect(() => {
-    if (formData.firstName && !isNameValid(formData.firstName)) {
+    if (formData.firstName && isNameValid(formData.firstName)) {
       setErrors((prev) => ({
         ...prev,
-        firstName: "First name must be at least 3 characters long",
+        firstName: isNameValid(formData.firstName),
       }));
     } else {
       setErrors((prev) => ({ ...prev, firstName: undefined }));
     }
 
-    if (formData.lastName && !isNameValid(formData.lastName)) {
+    if (formData.lastName && isNameValid(formData.lastName)) {
       setErrors((prev) => ({
         ...prev,
-        lastName: "Last name must be at least 3 characters long",
+        lastName: isNameValid(formData.lastName),
       }));
     } else {
       setErrors((prev) => ({ ...prev, lastName: undefined }));
@@ -468,6 +485,7 @@ export function SignupForm({
       }
     }
   }, [formData.firstName, formData.lastName, formData.phone, formData.email]);
+
   
   const validateForm = () => {
     const newErrors: any = {};
@@ -491,13 +509,11 @@ export function SignupForm({
     });
 
     // Enhanced name validation
-    if (formData.firstName && !isNameValid(formData.firstName)) {
-      newErrors.firstName =
-        "Please enter a valid first name (at least 2 different characters, letters only)";
+    if (formData.firstName && isNameValid(formData.firstName)) {
+      newErrors.firstName = isNameValid(formData.firstName);
     }
-    if (formData.lastName && !isNameValid(formData.lastName)) {
-      newErrors.lastName =
-        "Please enter a valid last name (at least 2 different characters, letters only)";
+    if (formData.lastName && isNameValid(formData.lastName)) {
+      newErrors.lastName = isNameValid(formData.lastName);
     }
 
     // Additional validations if fields are not empty
@@ -610,6 +626,10 @@ export function SignupForm({
             <Label className="font-futura font-normal">
               Password<span className="text-destructive text-red-500">*</span>
             </Label>
+            <p className="text-xs font-futura italic">
+              Password should contain at least 8 characters, one uppercase, one
+              lowercase and one number. example: User@123
+            </p>
             <div className="relative">
               <Input
                 id="password"
@@ -639,50 +659,6 @@ export function SignupForm({
             {errors.password && (
               <p className="text-sm text-red-500 mt-1">{errors.password}</p>
             )}
-            <div className="text-xs text-muted-foreground flex flex-col sm:flex-row gap-2 sm:justify-between">
-              <div
-                className={`flex items-center gap-2 ${
-                  isPasswordValid.hasMinLength ? "text-green-500" : ""
-                }`}
-              >
-                <Circle
-                  className={`w-1.5 h-1.5 font-futura font-normal ${
-                    isPasswordValid.hasMinLength
-                      ? "fill-green-500"
-                      : "fill-current"
-                  }`}
-                />
-                Min. 8 Characters
-              </div>
-              <div
-                className={`flex items-center gap-2 ${
-                  isPasswordValid.hasNumber ? "text-green-500" : ""
-                }`}
-              >
-                <Circle
-                  className={`w-1.5 h-1.5 ${
-                    isPasswordValid.hasNumber
-                      ? "fill-green-500"
-                      : "fill-current"
-                  }`}
-                />
-                Contains a number
-              </div>
-              <div
-                className={`flex items-center gap-2 ${
-                  isPasswordValid.hasCapital ? "text-green-500" : ""
-                }`}
-              >
-                <Circle
-                  className={`w-1.5 h-1.5 ${
-                    isPasswordValid.hasCapital
-                      ? "fill-green-500"
-                      : "fill-current"
-                  }`}
-                />
-                Contains a capital letter
-              </div>
-            </div>
           </div>
 
           <div className="space-y-2 ">
@@ -718,7 +694,7 @@ export function SignupForm({
                 onClick={onVerifyEmail}
                 disabled={
                   !formData.email ||
-                  !!errors.email ||
+                  !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email) ||
                   generateOTPLoading ||
                   otpVerified
                 }

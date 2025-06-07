@@ -54,6 +54,7 @@ type ProfileFormContentProps = {
     isApproved: boolean;
     message?: string; // To hold messages like "Approval request is rejected..."
   };
+  disabled?: boolean; // Add disabled prop
 };
 
 export const ProfileFormContent = ({
@@ -77,6 +78,7 @@ export const ProfileFormContent = ({
   handleRemoveCertificate,
   uploadProgress = {},
   approvalStatus,
+  disabled = false, // Default to false
 }: ProfileFormContentProps) => {
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
@@ -146,6 +148,7 @@ export const ProfileFormContent = ({
             onSave={() => handleEnhancedSectionUpdate("business-info")}
             hasChanges={hasFormChanges("business-info")}
             isSaving={isSaving}
+            disabled={disabled}
           />
         );
       case "goals-metrics":
@@ -156,6 +159,7 @@ export const ProfileFormContent = ({
             onSave={() => handleEnhancedSectionUpdate("goals-metrics")}
             hasChanges={hasFormChanges("goals-metrics")}
             isSaving={isSaving}
+            disabled={disabled}
           />
         );
       case "business-overview":
@@ -170,6 +174,7 @@ export const ProfileFormContent = ({
             isSaving={isSaving}
             onFileUpload={onFileUpload}
             uploadProgress={uploadProgress}
+            disabled={disabled}
           />
         );
       case "capabilities-operations":
@@ -187,6 +192,7 @@ export const ProfileFormContent = ({
             onFileUpload={onFileUpload}
             onDeleteImage={onDeleteFile}
             uploadProgress={uploadProgress}
+            disabled={disabled}
           />
         );
       case "compliance-credentials":
@@ -202,6 +208,7 @@ export const ProfileFormContent = ({
             onFileUpload={onFileUpload}
             onDeleteFile={onDeleteFile}
             uploadProgress={uploadProgress}
+            disabled={disabled}
           />
         );
       case "brand-presence":
@@ -217,6 +224,7 @@ export const ProfileFormContent = ({
             onFileUpload={onFileUpload}
             onDeleteFile={onDeleteFile}
             uploadProgress={uploadProgress}
+            disabled={disabled}
           />
         );
       case "final-review":
@@ -227,6 +235,7 @@ export const ProfileFormContent = ({
             isSubmitting={isSubmittingApproval}
             pendingSteps={pendingStepNames}
             approvalStatus={approvalStatus}
+            disabled={disabled}
           />
         );
 
@@ -266,7 +275,8 @@ export const ProfileFormContent = ({
       </div>
 
       {/* Form content */}
-      <div className="p-6  relative">
+      <div className="p-6 min-h-[400px] relative">
+
         {renderStepContent()}
       </div>
 

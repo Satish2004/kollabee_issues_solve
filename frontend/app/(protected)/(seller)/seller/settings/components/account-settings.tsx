@@ -1,16 +1,17 @@
 "use client";
 
-import type {
-  FormData,
-  Country as CountryType,
-  ValidationErrors,
-} from "@/types/settings";
+import Star from "@/app/(auth)/signup/seller/onboarding/Star";
+import countriesPhoneNo from "@/app/(auth)/signup/seller/onboarding/countriesPhoneNo.json";
 import {
   countries,
   getCountryCode,
   getSpecialCaseCountryCode,
 } from "@/lib/country";
-import Star from "@/app/(auth)/signup/seller/onboarding/Star";
+import type {
+  FormData,
+  Country as CountryType,
+  ValidationErrors,
+} from "@/types/settings";
 import { Country, State } from "country-state-city";
 import { User, Loader2, AlertCircle } from "lucide-react";
 import React, { useMemo, useState, useEffect } from "react";
@@ -102,14 +103,29 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
         return "Phone number can only contain digits";
       }
 
-      // Check minimum length
-      if (cleanPhone.length < 10) {
-        return "Phone number must be at least 10 digits";
-      }
+      // Get country name from selected country
+      const selectedCountry =
+        countries.find(
+          (c) => c.code === formData.country || c.name === formData.country
+        )?.name || "";
+      const countryPhoneRule = countriesPhoneNo.find(
+        (c) => c.country === selectedCountry
+      );
+      const minLen =
+        typeof countryPhoneRule?.phoneNumberLengthByCountry_phLengthMin ===
+        "number"
+          ? countryPhoneRule.phoneNumberLengthByCountry_phLengthMin
+          : 5;
+      const maxLen =
+        typeof countryPhoneRule?.phoneNumberLengthByCountry_phLengthMax ===
+        "number"
+          ? countryPhoneRule.phoneNumberLengthByCountry_phLengthMax
+          : 15;
 
-      if (cleanPhone.length > 15) {
-        return "Phone number cannot exceed 15 digits";
-      }
+      if (cleanPhone.length < minLen)
+        return `Phone number must be at least ${minLen} digits`;
+      if (cleanPhone.length > maxLen)
+        return `Phone number cannot exceed ${maxLen} digits`;
 
       // Check for invalid patterns
       const invalidPatterns = [
@@ -145,7 +161,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
           break;
         }
       }
-      if (isSequential && cleanPhone.length >= 10) {
+      if (isSequential && cleanPhone.length >= minLen) {
         return "Please enter a valid phone number";
       }
 
@@ -160,7 +176,7 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
           break;
         }
       }
-      if (isReverseSequential && cleanPhone.length >= 10) {
+      if (isReverseSequential && cleanPhone.length >= minLen) {
         return "Please enter a valid phone number";
       }
 
@@ -669,21 +685,6 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
             )}
           </button>
         </div>
-
-        {/* Form validation summary */}
-        {Object.keys(errors).length > 0 && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-            <div className="flex items-center gap-2 text-red-700 text-sm font-medium mb-2">
-              <AlertCircle className="h-4 w-4" />
-              Please fix the following errors:
-            </div>
-            <ul className="text-red-600 text-sm space-y-1">
-              {Object.entries(errors).map(([field, error]) => (
-                <li key={field}>• {error}</li>
-              ))}
-            </ul>
-          </div>
-        )}
       </div>
     );
   }

@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const token = Cookies.get("token");
 
   useEffect(() => {
-    console.log("Token from cookies:", token);
+    // console.log("Token from cookies:", token);
     if (!token || token === "undefined") {
       router.push("/");
       console.log("Token not found");

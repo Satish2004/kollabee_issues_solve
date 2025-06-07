@@ -81,11 +81,6 @@ const languageOptions = [
   "Other",
 ];
 
-
-
-
-
-
 const businessAttributeOptions = [
   "Sustainable / Eco-Friendly Practices",
   "Female-Owned",
@@ -115,6 +110,7 @@ type BusinessOverviewFormProps = {
     url?: string
   ) => Promise<string | boolean | null>;
   uploadProgress?: Record<string, number>;
+  disabled?: boolean;
 };
 
 const BusinessOverviewForm = ({
@@ -125,6 +121,7 @@ const BusinessOverviewForm = ({
   isSaving,
   onFileUpload,
   uploadProgress = {},
+  disabled = false,
 }: BusinessOverviewFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -310,7 +307,7 @@ const BusinessOverviewForm = ({
           {/* Business Logo Upload */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Logo (Optional)
               </label>
               <p className="text-sm font-futura italic">
@@ -324,6 +321,7 @@ const BusinessOverviewForm = ({
                 onChange={handleLogoUpload}
                 accept="image/jpeg,image/png,image/gif,image/webp"
                 className="hidden"
+                disabled={disabled}
               />
               {formState.logoPreview || formState.businessLogo ? (
                 <div className="relative w-24 h-24 border rounded-md overflow-hidden">
@@ -340,14 +338,17 @@ const BusinessOverviewForm = ({
                     type="button"
                     onClick={removeLogoPreview}
                     className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
+                    disabled={disabled}
                   >
                     <X className="h-4 w-4 text-gray-600" />
                   </button>
                 </div>
               ) : (
                 <div
-                  onClick={triggerFileInput}
-                  className="w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
+                  onClick={disabled ? undefined : triggerFileInput}
+                  className={`w-24 h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770] ${
+                    disabled ? "pointer-events-none opacity-50" : ""
+                  }`}
                 >
                   {isUploading ? (
                     <div className="flex flex-col items-center">
@@ -397,7 +398,7 @@ const BusinessOverviewForm = ({
           {/* Pre-filled fields */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Name<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -411,12 +412,13 @@ const BusinessOverviewForm = ({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Description
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
@@ -431,12 +433,13 @@ const BusinessOverviewForm = ({
                 });
               }}
               className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Website Link<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -450,12 +453,13 @@ const BusinessOverviewForm = ({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Address<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -469,6 +473,7 @@ const BusinessOverviewForm = ({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -501,6 +506,8 @@ const BusinessOverviewForm = ({
             }}
             isRequired={true}
             error={errors.businessTypes}
+            lableBold={true}
+            disabled={disabled}
           />
 
           {/* Business Category using the MultiSelectDropdown component */}
@@ -517,6 +524,8 @@ const BusinessOverviewForm = ({
             customValueCategory="Other"
             customValues={customCategories}
             onCustomValuesChange={handleCustomCategoriesChange}
+            lableBold={true}
+            disabled={disabled}
           />
         </div>
 
@@ -524,7 +533,7 @@ const BusinessOverviewForm = ({
           {/* Business Year Founded */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Year Founded
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
@@ -542,13 +551,14 @@ const BusinessOverviewForm = ({
               min="1900"
               max={new Date().getFullYear()}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
           {/* Business Team Size - Using MultiSelectDropdown */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Team Size<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -560,6 +570,7 @@ const BusinessOverviewForm = ({
                   teamSize: value,
                 });
               }}
+              disabled={disabled}
             >
               <SelectTrigger className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50">
                 <SelectValue placeholder="Select your team size" />
@@ -580,7 +591,7 @@ const BusinessOverviewForm = ({
           {/* Business Annual Revenue - Using MultiSelectDropdown */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Annual Revenue
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
@@ -593,6 +604,7 @@ const BusinessOverviewForm = ({
                   annualRevenue: value,
                 });
               }}
+              disabled={disabled}
             >
               <SelectTrigger className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50">
                 <SelectValue placeholder="Select your annual revenue" />
@@ -630,6 +642,8 @@ const BusinessOverviewForm = ({
             customValueCategory="Other"
             customValues={customLanguages}
             onCustomValuesChange={handleCustomLanguagesChange}
+            lableBold={true}
+            disabled={disabled}
           />
 
           {/* Business Attributes - Using MultiSelectDropdown */}
@@ -650,6 +664,8 @@ const BusinessOverviewForm = ({
             customValueCategory="Other"
             customValues={customAttributes}
             onCustomValuesChange={handleCustomAttributesChange}
+            lableBold={true}
+            disabled={disabled}
           />
         </div>
       </div>

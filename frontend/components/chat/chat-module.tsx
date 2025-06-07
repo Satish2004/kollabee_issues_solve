@@ -1,20 +1,24 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { io, type Socket } from "socket.io-client";
-import type { Message, Conversation, BlockedCommunication } from "./types/chat";
+import { Button } from "../ui/button";
 import ChatWindow from "./chat-window";
 import ContactList from "./contact-list";
+import type { Message, Conversation, BlockedCommunication } from "./types/chat";
+import { useToast } from "@/hooks/use-toast";
+import { uploadApi } from "@/lib/api";
 import { authApi } from "@/lib/api/auth";
 import { chatApi } from "@/lib/api/chat";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "../ui/button";
 import Link from "next/link";
-import { uploadApi } from "@/lib/api";
+import { useState, useEffect, useRef } from "react";
+import { io, type Socket } from "socket.io-client";
 
-export default function ChatModule() {
+interface ChatModuleProps {
+  userType: "BUYER" | "SELLER" | "ADMIN";
+}
+
+export default function ChatModule({ userType = "SELLER" }: ChatModuleProps) {
   const [activeTab, setActiveTab] = useState<"BUYER" | "SELLER" | "ADMIN">(
-    "BUYER"
+    userType === "BUYER" ? "SELLER" : userType === "SELLER" ? "BUYER" : "BUYER"
   );
   const [filteredConversations, setFilteredConversations] = useState<
     Conversation[]
@@ -190,7 +194,6 @@ export default function ChatModule() {
   // Fetch conversations from API
   const fetchConversations = async () => {
     try {
-      const userType = "BUYER";
       const response = await chatApi.getConversations(
         userType as "BUYER" | "SELLER" | "ADMIN"
       );
@@ -453,12 +456,12 @@ export default function ChatModule() {
   };
 
   const getAvailableTabs = () => {
-    if (user?.role === "ADMIN") {
+    if (userType === "ADMIN") {
       return [
         { value: "BUYER", label: "BUYER" },
         { value: "SELLER", label: "SELLER" },
       ];
-    } else if (user?.role === "BUYER") {
+    } else if (userType === "BUYER") {
       return [
         { value: "SELLER", label: "SELLER" },
         { value: "ADMIN", label: "ADMIN" },
@@ -511,7 +514,7 @@ export default function ChatModule() {
   }, [activeTab, user?.role, conversations, activeConversation]);
 
   return (
-    <div className="flex flex-col rounded-lg shadow-sm overflow-hidden min-h-[560px]">
+    <div className="flex flex-col shadow-sm overflow-hidden min-h-542px max-h-[calc(100dvh-50px)]">
       <div className="flex justify-between rounded-xl px-6 py-4 bg-white mb-6 ">
         <div className="flex space-x-8">
           {availableTabs.map((tab) => (
@@ -542,7 +545,7 @@ export default function ChatModule() {
         )}
       </div>
 
-      <div className="flex-1 flex space-x-6">
+      <div className="flex-1 flex space-x-6 pb-6 overflow-hidden ">
         {!(
           activeTab === "ADMIN" &&
           (user?.role === "BUYER" || user?.role === "SELLER")

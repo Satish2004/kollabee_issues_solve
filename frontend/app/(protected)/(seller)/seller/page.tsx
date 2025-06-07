@@ -1,5 +1,21 @@
 "use client";
 
+import router from "../../../../../api/src/routes/seller";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { dashboardApi } from "@/lib/api/dashboard";
+import {
+  TrendingUp,
+  TrendingDown,
+  ArrowDownCircleIcon,
+  ArrowUpCircleIcon,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   LineChart,
@@ -10,22 +26,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import {
-  TrendingUp,
-  TrendingDown,
-  ArrowDownCircleIcon,
-  ArrowUpCircleIcon,
-} from "lucide-react";
-import { dashboardApi } from "@/lib/api/dashboard";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 interface DashboardData {
   totalOrders: number;
@@ -170,6 +171,8 @@ const Dashboard = () => {
                     dashboardData.totalRevenue,
                     dashboardData.totalRevenue - dashboardData.revenueDifference
                   )}
+                  router={router}
+                  link="/seller/request"
                 />
                 <StatCard
                   title="TOTAL RECEIVED"
@@ -182,6 +185,8 @@ const Dashboard = () => {
                     dashboardData.totalRequests -
                       dashboardData.requestsDifference
                   )}
+                  router={router}
+                  link="/seller/request"
                 />
                 <StatCard
                   title="RETURNED PRODUCTS"
@@ -193,6 +198,7 @@ const Dashboard = () => {
                     dashboardData.totalReturns,
                     dashboardData.totalReturns - dashboardData.returnsDifference
                   )}
+                  router={router}
                 />
                 <StatCard
                   title="ON THE WAY TO SHIP"
@@ -201,6 +207,7 @@ const Dashboard = () => {
                   changeText="Products shipping"
                   trend="neutral"
                   percentage=""
+                  router={router}
                 />
                 <StatCard
                   title="AVERAGE SALES"
@@ -226,6 +233,7 @@ const Dashboard = () => {
                       (dashboardData.revenueDifference +
                         dashboardData.requestsRevenueDifference)
                   )}
+                  router={router}
                 />
               </div>
             </div>
@@ -269,7 +277,10 @@ const Dashboard = () => {
               </div>
               {/* Charts and Stats */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-                <div className="bg-red-50 rounded-xl p-4 lg:p-6">
+                <div
+                  className="bg-red-50 rounded-xl p-4 lg:p-6 hover:cursor-pointer"
+                  onClick={() => router.push("/seller/request")}
+                >
                   <h3 className="font-semibold text-sm">Requests</h3>
                   <div className="flex flex-row items-center justify-between">
                     <div className="text-2xl font-bold mt-2">
@@ -287,13 +298,19 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </div>
-                <div className="bg-neutral-100 rounded-xl p-4 lg:p-6">
+                <div
+                  className="bg-neutral-100 rounded-xl p-4 lg:p-6 hover:cursor-pointer"
+                  onClick={() => router.push("/seller/chat")}
+                >
                   <h3 className="font-semibold text-sm">Messages</h3>
                   <div className="text-2xl font-bold mt-2">
                     {periodMetrics.messages}
                   </div>
                 </div>
-                <div className="bg-neutral-100 rounded-xl p-4 lg:p-6">
+                <div
+                  className="bg-neutral-100 rounded-xl p-4 lg:p-6 hover:cursor-pointer"
+                  onClick={() => router.push("/seller/products")}
+                >
                   <h3 className="font-semibold text-sm">Published Products</h3>
                   <div className="text-2xl font-bold mt-2">
                     {periodMetrics.activeProducts}
@@ -382,8 +399,20 @@ const Dashboard = () => {
   );
 };
 
-const StatCard = ({ title, value, change, changeText, trend, percentage }) => (
-  <div className="border rounded-lg p-2">
+const StatCard = ({
+  title,
+  value,
+  change,
+  changeText,
+  trend,
+  percentage,
+  router,
+  link = "",
+}) => (
+  <div
+    className={`border rounded-lg p-2${link ? " hover:cursor-pointer" : ""}`}
+    onClick={() => link && router.push(link)}
+  >
     <div className="flex items-center justify-between mb-2">
       <span className="text-gray-600 text-xs">{title}</span>
       {trend === "up" ? (
