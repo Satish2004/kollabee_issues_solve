@@ -1,9 +1,5 @@
 "use client";
 
-import React from "react";
-
-import { useEffect, useRef } from "react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,7 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { AlertTriangle } from "lucide-react";
+import React from "react";
+import { useEffect, useRef } from "react";
 
 interface OTPModalProps {
   isOpen: boolean;
@@ -50,7 +49,6 @@ export function OTPModal({
 
   useEffect(() => {
     if (countdown > 0) {
-      console.log("countdown : ", countdown);
       const timer = setInterval(() => {
         setCountdown(countdown - 1);
       }, 1000);

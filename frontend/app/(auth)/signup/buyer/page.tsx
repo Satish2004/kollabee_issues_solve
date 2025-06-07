@@ -14,7 +14,6 @@ import React, { useState, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "sonner";
 
-
 // import { ProgressStepper } from "./onboarding/ProgressStepper";
 
 export default function SignupBuyerPage() {
@@ -95,8 +94,9 @@ export default function SignupBuyerPage() {
       setIsResendDisabled(true);
       toast.success("OTP sent successfully");
     } catch (error: any) {
-      console.error("Error generating OTP:", error);
+      console.log("Error generating OTP:", error);
       toast.error(error.response?.data?.message || "Failed to send OTP");
+      setShowOTP(false);
     } finally {
       setGenerateOTPLoading(false);
     }
