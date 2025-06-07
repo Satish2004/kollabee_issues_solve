@@ -276,7 +276,6 @@ export const ProfileFormContent = ({
 
       {/* Form content */}
       <div className="p-6 min-h-[400px] relative">
-
         {renderStepContent()}
       </div>
 
