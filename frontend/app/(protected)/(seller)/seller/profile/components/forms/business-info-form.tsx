@@ -47,6 +47,7 @@ type BusinessInfoFormProps = {
   onSave: () => void;
   hasChanges: boolean;
   isSaving: boolean;
+  disabled?: boolean;
 };
 
 export default function BusinessInfoForm({
@@ -55,6 +56,7 @@ export default function BusinessInfoForm({
   onSave,
   hasChanges,
   isSaving,
+  disabled = false,
 }: BusinessInfoFormProps) {
   const [errors, setErrors] = useState({
     businessName: "",
@@ -169,6 +171,7 @@ export default function BusinessInfoForm({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -193,6 +196,7 @@ export default function BusinessInfoForm({
                 });
               }}
               className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -218,6 +222,7 @@ export default function BusinessInfoForm({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -248,6 +253,7 @@ export default function BusinessInfoForm({
             customValues={customBusinessTypes}
             onCustomValuesChange={handleCustomBusinessTypesChange}
             lableBold={true}
+            disabled={disabled}
           />
         </div>
 
@@ -274,6 +280,7 @@ export default function BusinessInfoForm({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -291,6 +298,7 @@ export default function BusinessInfoForm({
             customValues={customCategories}
             onCustomValuesChange={handleCustomCategoriesChange}
             lableBold={true}
+            disabled={disabled}
           />
 
           <div className="space-y-2">
@@ -308,6 +316,7 @@ export default function BusinessInfoForm({
                 });
                 setErrors({ ...errors, rolesInCompany: "" });
               }}
+              disabled={disabled}
             >
               <SelectTrigger
                 className={`w-full bg-[#fcfcfc] border ${
@@ -345,6 +354,7 @@ export default function BusinessInfoForm({
                       ? "border-red-500"
                       : "border-[#e5e5e5]"
                   } rounded-[6px] placeholder:text-black/50`}
+                  disabled={disabled}
                 />
               </>
             )}

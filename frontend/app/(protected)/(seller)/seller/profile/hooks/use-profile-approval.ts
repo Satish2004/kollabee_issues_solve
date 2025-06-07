@@ -31,6 +31,11 @@ export const useProfileApproval = ({
     message: "",
   });
 
+  const [lock, setLock] = useState({
+    isLocked: false,
+    lockedAt: null,
+  }); // Assuming you might need a lock for some reason
+
   const requestApproval = useCallback(async () => {
     if (stepsToBeCompleted.length > 0) {
       toast.error(
@@ -85,6 +90,13 @@ export const useProfileApproval = ({
           isApproved: response.isApproved || false,
           message: response.message || "", // Store the message from the API
         });
+
+        setLock({
+          isLocked: response.lockInfo?.isLocked || false, // Access lockInfo from response.data
+          lockedAt: response?.lockInfo?.lockedAt
+            ? new Date(response.lockInfo.lockedAt)
+            : null,
+        });
       } else {
         // This case might occur if sellerApi.getApproval() doesn't throw an error for non-200
         // but returns something falsy, or if the expected structure is missing.
@@ -119,6 +131,7 @@ export const useProfileApproval = ({
 
   return {
     approvalStatus,
+    lock,
     setApprovalStatus, // Crucial for parent component if it needs to manually set status
     isSubmittingApproval,
     getApproval,

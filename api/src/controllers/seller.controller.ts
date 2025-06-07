@@ -1489,6 +1489,7 @@ export const approveOrRejectSeller = async (req: any, res: Response) => {
             }
           : undefined,
         updatedAt: new Date(Date.now()),
+        lock: false,
       },
     });
 
@@ -1767,6 +1768,11 @@ export const getApproval = async (req: any, res: Response) => {
       return res.status(404).json({ message: "Seller not found" });
     }
 
+    const lockInfo = {
+      isLocked: seller.lock,
+      lockedAt: seller.lockedAt,
+    };
+
     seller.profileCompletion = seller.profileCompletion || [];
 
     if (
@@ -1815,6 +1821,7 @@ export const getApproval = async (req: any, res: Response) => {
         approvalRequested: seller.approvalRequested,
         approvalRequestedAt: seller.approvalReqestAt,
         isApproved: false,
+        lockInfo,
       });
     }
     if (seller.approvalRequested === false) {
@@ -1876,6 +1883,9 @@ export const requestApproval = async (req: any, res: Response) => {
         approvalRequested: true,
         approvalReqestAt: new Date(Date.now()),
         profileCompletion: currentCompletion,
+        lock: true, // Lock the profile to prevent further edits
+        lockedAt: new Date(Date.now()),
+        updatedAt: new Date(Date.now()),
       },
       select: {
         id: true,

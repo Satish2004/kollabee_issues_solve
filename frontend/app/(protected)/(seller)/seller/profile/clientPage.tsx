@@ -91,6 +91,7 @@ const KollaBeeProfile = () => {
   // Profile approval
   const {
     approvalStatus,
+    lock,
     setApprovalStatus,
     isSubmittingApproval,
     requestApproval,
@@ -133,6 +134,7 @@ const KollaBeeProfile = () => {
           requestApproval={requestApproval}
           getPendingStepNames={getPendingStepNames}
           visibleStepsCount={5}
+          lock={lock} // Pass lock to header for possible messaging
         />
       </div>
       <div className="sticky top-[64px] z-30 bg-white border-b">
@@ -149,7 +151,9 @@ const KollaBeeProfile = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-y-scroll">
+      <div className="flex-1 flex flex-col md:flex-row overflow-y-scroll relative">
+        {/* Overlay when locked */}
+       
         <div className="flex-1">
           <div className="bg-white">
             <div className="md:col-span-2 p-4 md:p-6">
@@ -174,6 +178,7 @@ const KollaBeeProfile = () => {
                 handleRemoveCertificate={handleRemoveCertificate}
                 uploadProgress={uploadProgress}
                 approvalStatus={approvalStatus}
+                disabled={lock.isLocked} // Pass disabled prop to all forms
               />
             </div>
           </div>
@@ -188,6 +193,7 @@ const KollaBeeProfile = () => {
         setNewCertificate={setNewCertificate}
         handleUpload={handleCertificateUpload}
         isSaving={isSaving}
+        disabled={lock.isLocked}
       />
     </div>
   );

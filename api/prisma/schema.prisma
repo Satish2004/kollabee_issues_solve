@@ -434,6 +434,13 @@ model Seller {
   approved           Boolean?        @default(false)
   ApprovedId         String?
   Approved           Approved?
+
+
+  // lock stage
+
+  lock               Boolean         @default(false)
+  lockedAt           DateTime?
+
   
   // Relations
   advertisements     Advertisement[]

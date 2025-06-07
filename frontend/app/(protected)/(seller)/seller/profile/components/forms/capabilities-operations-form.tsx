@@ -48,6 +48,7 @@ type CapabilitiesOperationsFormProps = {
   onFileUpload: (file: File, field: string) => Promise<string | null>;
   onDeleteImage: (imageUrl: string, field: string) => void;
   uploadProgress?: Record<string, number>;
+  disabled?: boolean;
 };
 
 const CapabilitiesOperationsForm = ({
@@ -59,6 +60,7 @@ const CapabilitiesOperationsForm = ({
   onFileUpload,
   onDeleteImage,
   uploadProgress = {},
+  disabled = false,
 }: CapabilitiesOperationsFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -219,6 +221,7 @@ const CapabilitiesOperationsForm = ({
   };
 
   const removeFactoryImagePreview = (index: number) => {
+    if (disabled) return; // Prevent removal if disabled
     const updatedPreviews = [...(formState.factoryImagePreviews || [])];
     updatedPreviews.splice(index, 1);
 
@@ -233,6 +236,7 @@ const CapabilitiesOperationsForm = ({
     imageUrl: string,
     index: number
   ) => {
+    if (disabled) return; // Prevent deletion if disabled
     if (typeof imageUrl !== "string") {
       console.error("Invalid imageUrl:", imageUrl);
       setErrors({
@@ -290,6 +294,7 @@ const CapabilitiesOperationsForm = ({
             customValues={customServices}
             onCustomValuesChange={handleCustomServicesChange}
             lableBold={true}
+            disabled={disabled}
           />
 
           {/* Minimum Order Quantity (MOQ) */}
@@ -313,6 +318,7 @@ const CapabilitiesOperationsForm = ({
                 });
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
 
@@ -336,6 +342,7 @@ const CapabilitiesOperationsForm = ({
                   });
                 }}
                 className="data-[state=checked]:bg-[#a11770]"
+                disabled={disabled}
               />
             </div>
             <p className="text-sm text-gray-500 ml-1">
@@ -355,6 +362,7 @@ const CapabilitiesOperationsForm = ({
             isRequired={true}
             error={errors.productionModel}
             lableBold={true}
+            disabled={disabled}
           />
         </div>
 
@@ -378,6 +386,7 @@ const CapabilitiesOperationsForm = ({
             customValues={customCountries}
             onCustomValuesChange={handleCustomCountriesChange}
             lableBold={true}
+            disabled={disabled}
           />
 
           {/* Sample & Production Timelines */}
@@ -400,6 +409,7 @@ const CapabilitiesOperationsForm = ({
                   });
                 }}
                 className="data-[state=checked]:bg-[#a11770]"
+                disabled={disabled}
               />
             </div>
 
@@ -423,6 +433,7 @@ const CapabilitiesOperationsForm = ({
                     });
                   }}
                   className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+                  disabled={disabled}
                 />
               </div>
             )}
@@ -444,6 +455,7 @@ const CapabilitiesOperationsForm = ({
                   });
                 }}
                 className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+                disabled={disabled}
               />
             </div>
           </div>
@@ -467,18 +479,21 @@ const CapabilitiesOperationsForm = ({
                       alt={`Factory ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() =>
-                          deleteExistingFactoryImage(imageUrl, index)
-                        }
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    {disabled ? null : (
+                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() =>
+                            deleteExistingFactoryImage(imageUrl, index)
+                          }
+                          disabled={disabled}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )
               )}
@@ -495,13 +510,16 @@ const CapabilitiesOperationsForm = ({
                       alt={`Preview ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <button
-                      type="button"
-                      onClick={() => removeFactoryImagePreview(index)}
-                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
-                    >
-                      <X className="h-4 w-4 text-gray-600" />
-                    </button>
+                    {disabled ? null : (
+                      <button
+                        type="button"
+                        onClick={() => removeFactoryImagePreview(index)}
+                        className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
+                        disabled={disabled}
+                      >
+                        <X className="h-4 w-4 text-gray-600" />
+                      </button>
+                    )}
                   </div>
                 )
               )}
@@ -511,8 +529,10 @@ const CapabilitiesOperationsForm = ({
                 (formState.factoryImagePreviews?.length || 0) <
                 5 && (
                 <div
-                  onClick={triggerFileInput}
-                  className="h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
+                  onClick={disabled ? undefined : triggerFileInput}
+                  className={`h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770] ${
+                    disabled ? "pointer-events-none opacity-50" : ""
+                  }`}
                 >
                   <input
                     type="file"
@@ -521,6 +541,7 @@ const CapabilitiesOperationsForm = ({
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     multiple
                     className="hidden"
+                    disabled={disabled}
                   />
                   {isUploading ? (
                     <div className="flex flex-col items-center">

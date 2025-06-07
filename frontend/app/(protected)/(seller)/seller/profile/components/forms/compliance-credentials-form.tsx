@@ -54,6 +54,7 @@ type ComplianceCredentialsFormProps = {
   onFileUpload: (file: File, field: string) => Promise<string | null>;
   onDeleteFile: (fileUrl: string, field: string) => void;
   uploadProgress?: Record<string, number>;
+  disabled?: boolean;
 };
 
 const ComplianceCredentialsForm = ({
@@ -63,6 +64,7 @@ const ComplianceCredentialsForm = ({
   onFileUpload,
   onDeleteFile,
   uploadProgress = {},
+  disabled = false,
 }: ComplianceCredentialsFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const businessRegFileInputRef = useRef<HTMLInputElement>(null);
@@ -431,6 +433,7 @@ const ComplianceCredentialsForm = ({
               accept=".pdf,.doc,.docx,image/jpeg,image/png,image/gif,image/webp"
               multiple
               className="hidden"
+              disabled={disabled}
             />
             {/* Show all uploaded business registration files */}
             <div className="flex flex-wrap gap-3">
@@ -445,9 +448,12 @@ const ComplianceCredentialsForm = ({
                       {getFilePreviewElement(fileUrl)}
                       <button
                         type="button"
-                        onClick={() => removeBusinessReg(fileUrl, idx)}
+                        onClick={() => !disabled && removeBusinessReg(fileUrl, idx)}
                         className="absolute top-2 right-2 bg-white rounded-full p-1.5 shadow-md hover:bg-gray-100 transition-colors"
                         aria-label="Remove business registration"
+                        disabled={disabled}
+                        tabIndex={disabled ? -1 : 0}
+                        style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
                       >
                         <X className="h-4 w-4 text-gray-700" />
                       </button>
@@ -457,8 +463,8 @@ const ComplianceCredentialsForm = ({
             </div>
             {/* Upload button */}
             <div
-              onClick={triggerBusinessRegFileInput}
-              className="group w-full sm:w-64 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#a11770] transition-colors bg-gray-50 hover:bg-gray-100 p-4 mt-2"
+              onClick={disabled ? undefined : triggerBusinessRegFileInput}
+              className={`group w-full sm:w-64 h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#a11770] transition-colors bg-gray-50 hover:bg-gray-100 p-4 mt-2 ${disabled ? "pointer-events-none opacity-50" : ""}`}
             >
               {isUploading.businessReg ? (
                 <>
@@ -477,6 +483,7 @@ const ComplianceCredentialsForm = ({
                 </>
               )}
             </div>
+            {/* No limit message needed, so no restriction or count shown */}
             {uploadProgress["businessRegistration"] !== undefined &&
               !isUploading.businessReg && (
                 <div className="mt-2 space-y-1 w-full sm:w-64">
@@ -517,6 +524,7 @@ const ComplianceCredentialsForm = ({
             customValues={customCertifications}
             onCustomValuesChange={handleCustomCertificationsChange}
             lableBold={true}
+            disabled={disabled}
           />
 
           {/* Certification Documents */}
@@ -541,10 +549,13 @@ const ComplianceCredentialsForm = ({
                       <button
                         type="button"
                         onClick={() =>
-                          deleteExistingCertification(fileUrl, index)
+                          !disabled && deleteExistingCertification(fileUrl, index)
                         }
                         className="p-1.5 bg-white rounded-full shadow-md hover:bg-gray-100"
                         aria-label={`Remove certification ${index + 1}`}
+                        disabled={disabled}
+                        tabIndex={disabled ? -1 : 0}
+                        style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
                       >
                         <X className="h-4 w-4 text-gray-700" />
                       </button>
@@ -570,9 +581,12 @@ const ComplianceCredentialsForm = ({
                     )}
                     <button
                       type="button"
-                      onClick={() => removeCertificationPreview(index)}
+                      onClick={() => !disabled && removeCertificationPreview(index)}
                       className="absolute top-1.5 right-1.5 p-1.5 bg-white rounded-full shadow-md hover:bg-gray-100"
                       aria-label={`Remove preview ${preview.name}`}
+                      disabled={disabled}
+                      tabIndex={disabled ? -1 : 0}
+                      style={disabled ? { pointerEvents: "none", opacity: 0.5 } : {}}
                     >
                       <X className="h-4 w-4 text-gray-600" />
                     </button>
@@ -581,8 +595,8 @@ const ComplianceCredentialsForm = ({
               )}
               {totalCertifications < 10 && (
                 <div
-                  onClick={triggerCertificationFileInput}
-                  className="group aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#a11770] transition-colors bg-gray-50 hover:bg-gray-100 p-2"
+                  onClick={disabled ? undefined : triggerCertificationFileInput}
+                  className={`group aspect-square border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-[#a11770] transition-colors bg-gray-50 hover:bg-gray-100 p-2 ${disabled ? "pointer-events-none opacity-50" : ""}`}
                 >
                   <input
                     type="file"
@@ -591,6 +605,7 @@ const ComplianceCredentialsForm = ({
                     accept=".pdf,.doc,.docx,image/jpeg,image/png,image/gif,image/webp"
                     multiple
                     className="hidden"
+                    disabled={disabled}
                   />
                   {isUploading.certifications ? (
                     <>
@@ -662,9 +677,11 @@ const ComplianceCredentialsForm = ({
                         type="button"
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleRemoveNotableClient(idx)}
+                        onClick={() => !disabled && handleRemoveNotableClient(idx)}
                         className="text-gray-500 hover:text-red-500 h-7 w-7"
                         aria-label={`Remove client ${idx + 1}`}
+                        disabled={disabled}
+                        tabIndex={disabled ? -1 : 0}
                       >
                         <X className="h-4 w-4" />
                       </Button>
@@ -693,16 +710,18 @@ const ComplianceCredentialsForm = ({
                             onChange={(e) =>
                               handleNotableClientLogoUpload(e, idx)
                             }
+                            disabled={disabled}
                           />
                           <Button
                             asChild
                             variant="outline"
                             size="sm"
                             className="w-full text-xs py-1 h-auto"
+                            disabled={disabled}
                           >
                             <label
                               htmlFor={`notable-client-logo-input-${idx}`}
-                              className="cursor-pointer"
+                              className={`cursor-pointer ${disabled ? "pointer-events-none opacity-50" : ""}`}
                             >
                               {isUploading[`notableClients_${idx}`]
                                 ? "Uploading..."
@@ -724,6 +743,7 @@ const ComplianceCredentialsForm = ({
                               )
                             }
                             className="text-sm"
+                            disabled={disabled}
                           />
                           <Textarea
                             placeholder="Short Description (e.g., project highlights - optional)"
@@ -737,6 +757,7 @@ const ComplianceCredentialsForm = ({
                             }
                             className="text-sm min-h-[60px] sm:min-h-[70px]"
                             rows={2}
+                            disabled={disabled}
                           />
                         </div>
                       </div>
@@ -756,6 +777,7 @@ const ComplianceCredentialsForm = ({
                   variant="outline"
                   className="text-sm py-2 w-full sm:w-auto border-[#a11770] text-[#a11770] hover:bg-[#a11770]/10 hover:text-[#a11770]"
                   onClick={handleAddNotableClient}
+                  disabled={disabled}
                 >
                   + Add Client/Brand
                 </Button>

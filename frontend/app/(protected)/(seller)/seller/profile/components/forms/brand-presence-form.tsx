@@ -24,6 +24,7 @@ type BrandPresenceFormProps = {
   onFileUpload: (file: File, field: string) => Promise<string | null>;
   onDeleteFile: (fileUrl: string, field: string) => void;
   uploadProgress?: Record<string, number>;
+  disabled?: boolean;
 };
 
 const BrandPresenceForm = ({
@@ -35,6 +36,7 @@ const BrandPresenceForm = ({
   onFileUpload,
   onDeleteFile,
   uploadProgress = {},
+  disabled = false,
 }: BrandPresenceFormProps) => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const projectImageFileInputRef = useRef<HTMLInputElement>(null);
@@ -247,6 +249,7 @@ const BrandPresenceForm = ({
   };
 
   const removeProjectImagePreview = (index: number) => {
+    if (disabled) return;
     const updatedPreviews = [...(formState.projectImagePreviews || [])];
     updatedPreviews.splice(index, 1);
 
@@ -257,6 +260,7 @@ const BrandPresenceForm = ({
   };
 
   const removeVideoPreview = () => {
+    if (disabled) return;
     onChange({
       ...formState,
       videoPreview: null,
@@ -265,6 +269,7 @@ const BrandPresenceForm = ({
   };
 
   const deleteExistingProjectImage = (imageUrl: string, index: number) => {
+    if (disabled) return;
     onDeleteFile(imageUrl, "projectImages");
 
     const updatedImages = [...(formState.projectImages || [])];
@@ -360,15 +365,18 @@ const BrandPresenceForm = ({
                       alt={`Project ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        deleteExistingProjectImage(imageUrl, index)
-                      }
-                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 transition-colors"
-                    >
-                      <X className="h-4 w-4 text-gray-600" />
-                    </button>
+                    {disabled ? null : (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          deleteExistingProjectImage(imageUrl, index)
+                        }
+                        className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md hover:bg-gray-100 transition-colors"
+                        disabled={disabled}
+                      >
+                        <X className="h-4 w-4 text-gray-600" />
+                      </button>
+                    )}
                   </div>
                 )
               )}
@@ -385,13 +393,16 @@ const BrandPresenceForm = ({
                       alt={`Preview ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
-                    <button
-                      type="button"
-                      onClick={() => removeProjectImagePreview(index)}
-                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
-                    >
-                      <X className="h-4 w-4 text-gray-600" />
-                    </button>
+                    {disabled ? null : (
+                      <button
+                        type="button"
+                        onClick={() => removeProjectImagePreview(index)}
+                        className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-md"
+                        disabled={disabled}
+                      >
+                        <X className="h-4 w-4 text-gray-600" />
+                      </button>
+                    )}
                   </div>
                 )
               )}
@@ -401,8 +412,10 @@ const BrandPresenceForm = ({
                 (formState.projectImagePreviews?.length || 0) <
                 10 && (
                 <div
-                  onClick={triggerProjectImageFileInput}
-                  className="h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
+                  onClick={disabled ? undefined : triggerProjectImageFileInput}
+                  className={`h-24 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770] ${
+                    disabled ? "pointer-events-none opacity-50" : ""
+                  }`}
                 >
                   <input
                     type="file"
@@ -411,6 +424,7 @@ const BrandPresenceForm = ({
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     multiple
                     className="hidden"
+                    disabled={disabled}
                   />
                   {isUploading.projectImages ? (
                     <div className="flex flex-col items-center">
@@ -471,6 +485,7 @@ const BrandPresenceForm = ({
                 onChange={handleVideoUpload}
                 accept="video/mp4,video/quicktime,video/x-msvideo"
                 className="hidden"
+                disabled={disabled}
               />
               {formState.videoPreview || formState.brandVideo ? (
                 <div className="relative w-full max-w-md border rounded-md overflow-hidden">
@@ -499,18 +514,23 @@ const BrandPresenceForm = ({
                     />
                     Your browser does not support the video tag.
                   </video>
-                  <button
-                    type="button"
-                    onClick={removeVideoPreview}
-                    className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-1.5 shadow-md transition-colors"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  {disabled ? null : (
+                    <button
+                      type="button"
+                      onClick={removeVideoPreview}
+                      className="absolute top-2 right-2 bg-black/70 hover:bg-black/90 text-white rounded-full p-1.5 shadow-md transition-colors"
+                      disabled={disabled}
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div
-                  onClick={triggerVideoFileInput}
-                  className="w-full max-w-md h-48 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770]"
+                  onClick={disabled ? undefined : triggerVideoFileInput}
+                  className={`w-full max-w-md h-48 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center cursor-pointer hover:border-[#a11770] ${
+                    disabled ? "pointer-events-none opacity-50" : ""
+                  }`}
                   style={{ aspectRatio: "16/9" }}
                 >
                   {isUploading.video ? (
@@ -584,6 +604,7 @@ const BrandPresenceForm = ({
                     className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
                       errors.instagram ? "border-red-500" : ""
                     }`}
+                    disabled={disabled}
                   />
                 </div>
                 {errors.instagram && (
@@ -606,6 +627,7 @@ const BrandPresenceForm = ({
                     className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
                       errors.website ? "border-red-500" : ""
                     }`}
+                    disabled={disabled}
                   />
                 </div>
                 {errors.website && (
@@ -628,6 +650,7 @@ const BrandPresenceForm = ({
                     className={`h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50 ${
                       errors.linkedin ? "border-red-500" : ""
                     }`}
+                    disabled={disabled}
                   />
                 </div>
                 {errors.linkedin && (
@@ -661,6 +684,7 @@ const BrandPresenceForm = ({
                 });
               }}
               className="min-h-[150px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
+              disabled={disabled}
             />
           </div>
         </div>

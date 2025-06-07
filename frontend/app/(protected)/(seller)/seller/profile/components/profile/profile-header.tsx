@@ -62,6 +62,7 @@ type ProfileHeaderProps = {
   isLoading: boolean;
   visibleStepsCount: number;
   steps: string[];
+  lock?: { isLocked: boolean; lockedAt: Date | null }; // Add lock prop
 };
 
 export const ProfileHeader = ({
@@ -74,8 +75,45 @@ export const ProfileHeader = ({
   isLoading,
   visibleStepsCount,
   steps,
+  lock,
 }: ProfileHeaderProps) => {
   const pendingStepNames = getPendingStepNames();
+
+  if (lock?.isLocked) {
+    return (
+      <div className="bg-yellow-50 border-b border-yellow-200 rounded-t-lg px-4 py-3 flex items-center gap-3">
+        <svg
+          className="h-6 w-6 text-yellow-500"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="2"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M12 8v4m0 4h.01"
+          />
+        </svg>
+        <div>
+          <div className="font-semibold text-yellow-900">
+            Profile Under Review
+          </div>
+          <div className="text-sm text-yellow-800">
+            Your profile is locked and cannot be edited until admin approval or
+            rejection.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     // Determine which skeleton to show based on an optimistic guess
