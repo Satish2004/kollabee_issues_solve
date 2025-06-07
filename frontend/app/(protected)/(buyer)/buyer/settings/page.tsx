@@ -341,7 +341,7 @@ const Settings: React.FC = () => {
 
   const getUser = useCallback(async () => {
     const response: any = await profileApi.getCurrentUser();
-    console.log("User", response);
+    // console.log("User", response);
     setFormData(response);
   }, []);
 
