@@ -310,7 +310,7 @@ const BusinessOverviewForm = ({
           {/* Business Logo Upload */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Logo (Optional)
               </label>
               <p className="text-sm font-futura italic">
@@ -397,7 +397,7 @@ const BusinessOverviewForm = ({
           {/* Pre-filled fields */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Name<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -416,7 +416,7 @@ const BusinessOverviewForm = ({
 
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Description
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
@@ -436,7 +436,7 @@ const BusinessOverviewForm = ({
 
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Website Link<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -455,7 +455,7 @@ const BusinessOverviewForm = ({
 
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Address<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -501,6 +501,7 @@ const BusinessOverviewForm = ({
             }}
             isRequired={true}
             error={errors.businessTypes}
+            lableBold={true}
           />
 
           {/* Business Category using the MultiSelectDropdown component */}
@@ -517,6 +518,7 @@ const BusinessOverviewForm = ({
             customValueCategory="Other"
             customValues={customCategories}
             onCustomValuesChange={handleCustomCategoriesChange}
+            lableBold={true}
           />
         </div>
 
@@ -524,7 +526,7 @@ const BusinessOverviewForm = ({
           {/* Business Year Founded */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Year Founded
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
@@ -548,7 +550,7 @@ const BusinessOverviewForm = ({
           {/* Business Team Size - Using MultiSelectDropdown */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Team Size<span className="text-red-500 ml-0.5">*</span>
               </label>
             </div>
@@ -580,7 +582,7 @@ const BusinessOverviewForm = ({
           {/* Business Annual Revenue - Using MultiSelectDropdown */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Business Annual Revenue
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
@@ -630,6 +632,7 @@ const BusinessOverviewForm = ({
             customValueCategory="Other"
             customValues={customLanguages}
             onCustomValuesChange={handleCustomLanguagesChange}
+            lableBold={true}
           />
 
           {/* Business Attributes - Using MultiSelectDropdown */}
@@ -650,6 +653,7 @@ const BusinessOverviewForm = ({
             customValueCategory="Other"
             customValues={customAttributes}
             onCustomValuesChange={handleCustomAttributesChange}
+            lableBold={true}
           />
         </div>
       </div>

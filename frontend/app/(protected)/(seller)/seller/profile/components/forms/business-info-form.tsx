@@ -148,7 +148,7 @@ export default function BusinessInfoForm({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <p>
                 Business Name
                 <Star />
@@ -173,7 +173,7 @@ export default function BusinessInfoForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <span>
                 Business Description
                 <Star />
@@ -197,7 +197,7 @@ export default function BusinessInfoForm({
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <span>
                 Business Website/Instagram
                 <Star />
@@ -247,12 +247,13 @@ export default function BusinessInfoForm({
             customValueCategory="Other"
             customValues={customBusinessTypes}
             onCustomValuesChange={handleCustomBusinessTypesChange}
+            lableBold={true}
           />
         </div>
 
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               <span>
                 Business Address
                 <Star />
@@ -289,10 +290,11 @@ export default function BusinessInfoForm({
             customValueCategory="Other"
             customValues={customCategories}
             onCustomValuesChange={handleCustomCategoriesChange}
+            lableBold={true}
           />
 
           <div className="space-y-2">
-            <label className="text-sm font-medium flex items-center ">
+            <label className="text-sm font-bold flex items-center ">
               Describe your Role within the Company
               <span className="text-destructive text-red-500">*</span>
             </label>
@@ -325,7 +327,7 @@ export default function BusinessInfoForm({
 
             {formState.roleInCompany === "Other" && (
               <>
-                <label className="text-sm font-medium">
+                <label className="text-sm font-bold">
                   Please specify your role
                 </label>
                 <Input

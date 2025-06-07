@@ -334,7 +334,7 @@ const BrandPresenceForm = ({
           {/* Project Images */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 <p>
                   Project/Product Images
                   <span className="text-red-500 ml-0.5">*</span>
@@ -455,7 +455,7 @@ const BrandPresenceForm = ({
           {/* Brand Video */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center gap-1">
+              <label className="text-sm font-bold flex items-center gap-1">
                 Brand/Product Video
               </label>
               <p className="text-sm font-futura italic">
@@ -563,7 +563,7 @@ const BrandPresenceForm = ({
           {/* Social Media Links */}
           <div className="space-y-3">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center gap-1">
+              <label className="text-sm font-bold flex items-center gap-1">
                 Social Media Links
               </label>
               <p className="text-sm font-futura italic">
@@ -643,7 +643,7 @@ const BrandPresenceForm = ({
           {/* Additional Notes */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center gap-1">
+              <label className="text-sm font-bold flex items-center gap-1">
                 Additional Preferences/Notes
               </label>
               <p className="text-sm font-futura italic">

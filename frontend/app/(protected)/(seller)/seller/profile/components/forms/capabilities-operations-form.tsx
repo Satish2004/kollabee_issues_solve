@@ -289,12 +289,13 @@ const CapabilitiesOperationsForm = ({
             customValueCategory="Other"
             customValues={customServices}
             onCustomValuesChange={handleCustomServicesChange}
+            lableBold={true}
           />
 
           {/* Minimum Order Quantity (MOQ) */}
           <div className="space-y-2">
             <div className="space-y-1">
-              <label className="text-sm font-medium flex items-center  ">
+              <label className="text-sm font-bold flex items-center  ">
                 Minimum Order Quantity (MOQ)
                 <span className="text-red-500 ml-0.5">*</span>
               </label>
@@ -319,7 +320,7 @@ const CapabilitiesOperationsForm = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <label className="text-sm font-medium flex items-center gap-1">
+                <label className="text-sm font-bold flex items-center gap-1">
                   MOQ Flexibility
                 </label>
                 <p className="text-sm font-futura italic">
@@ -353,6 +354,7 @@ const CapabilitiesOperationsForm = ({
             onChange={handleProductionModelChange}
             isRequired={true}
             error={errors.productionModel}
+            lableBold={true}
           />
         </div>
 
@@ -375,13 +377,14 @@ const CapabilitiesOperationsForm = ({
             customValueCategory="Other"
             customValues={customCountries}
             onCustomValuesChange={handleCustomCountriesChange}
+            lableBold={true}
           />
 
           {/* Sample & Production Timelines */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <label className="text-sm font-medium flex items-center gap-1">
+                <label className="text-sm font-bold flex items-center gap-1">
                   Do you provide samples?
                 </label>
                 <p className="text-sm font-futura italic">
@@ -402,7 +405,7 @@ const CapabilitiesOperationsForm = ({
 
             {formState.providesSamples && (
               <div className="space-y-2 mt-4">
-                <label className="text-sm font-medium">
+                <label className="text-sm font-bold">
                   Post-Purchase Sample Dispatch Time
                 </label>
                 <p className="text-sm font-futura italic">
@@ -425,7 +428,7 @@ const CapabilitiesOperationsForm = ({
             )}
 
             <div className="space-y-2 mt-4">
-              <label className="text-sm font-medium">Production Timeline</label>
+              <label className="text-sm font-bold">Production Timeline</label>
               <p className="text-sm font-futura italic">
                 How long does it typically take to complete full production
                 after confirming the order?
@@ -447,7 +450,7 @@ const CapabilitiesOperationsForm = ({
 
           {/* Factory Images */}
           <div className="space-y-3">
-            <label className="text-sm font-medium flex items-center gap-1">
+            <label className="text-sm font-bold flex items-center gap-1">
               Factory Images (Optional)
             </label>
 

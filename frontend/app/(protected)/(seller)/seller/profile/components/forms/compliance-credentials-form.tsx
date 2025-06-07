@@ -644,7 +644,7 @@ const ComplianceCredentialsForm = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-sm font-bold">
-                Notable Clients or Collaborations (Max 5)
+                Notable Clients or Collaborations
               </label>
               <p className="text-sm font-futura italic text-gray-600">
                 List well-known brands or partners to build credibility.

@@ -119,7 +119,7 @@ const KollaBeeProfile = () => {
   };
 
   return (
-    <div className="h-screen w-full flex flex-col bg-red-500">
+    <div className="h-screen w-full flex flex-col bg-gray-50">
       {/* Sticky header and ProfileHeader */}
       <div className="sticky top-0 z-40 ">
         <ProfileHeader
