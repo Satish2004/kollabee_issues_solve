@@ -146,21 +146,13 @@ export function BuyerSidebar({ className }: SidebarProps) {
     {
       label: "OTHERS",
       routes: [
-        {
-          label: "Invite",
-          icon: Share,
-          href: "/buyer/invite",
-        },
+      
         {
           label: "Calendar",
           icon: Calendar,
           href: "/buyer/appointment",
         },
-        {
-          label: "Feedback",
-          icon: NotebookPen,
-          href: "/buyer/contact",
-        },
+       
         {
           label: "FAQ",
           icon: MessageCircleQuestion,

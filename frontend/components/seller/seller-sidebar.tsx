@@ -1,8 +1,10 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Button } from "@/components/ui/button";
+import { authApi } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
+import { removeToken } from "@/lib/utils/token";
 import {
   Home,
   Store,
@@ -24,15 +26,13 @@ import {
   Calendar,
   MessageCircleQuestion,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { authApi } from "@/lib/api/auth";
-import { removeToken } from "@/lib/utils/token";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { HiChatBubbleLeftRight } from "react-icons/hi2";
-import { PiChatCenteredDotsFill } from "react-icons/pi";
 import { IoStorefront } from "react-icons/io5";
+import { PiChatCenteredDotsFill } from "react-icons/pi";
 
 type SidebarProps = {
   className?: string;
@@ -130,20 +130,11 @@ export function SellerSidebar({ className }: SidebarProps) {
       label: "OTHERS",
       routes: [
         {
-          label: "Invite",
-          icon: Share,
-          href: "/seller/invite",
-        },
-        {
           label: "Calendar",
           icon: Calendar,
           href: "/seller/appointment",
         },
-        {
-          label: "Feedback",
-          icon: NotebookPen,
-          href: "/seller/contact",
-        },
+
         {
           label: "FAQ",
           icon: MessageCircleQuestion,

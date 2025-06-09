@@ -11,7 +11,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronDown, LogOut, Settings, User } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  NotebookPen,
+  Settings,
+  Share,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -113,6 +120,20 @@ export function UserDropdown({ currentUser, onLogout }: UserDropdownProps) {
           >
             <Settings className="mr-2 h-4 w-4" />
             <span>Settings</span>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem asChild>
+            <Link href="/buyer/invite" className="flex">
+              <Share className="mr-2 h-4 w-4" />
+              <span>Invite</span>
+            </Link>
+          </DropdownMenuItem>
+          {/* Always active Feedback */}
+          <DropdownMenuItem asChild>
+            <Link href="/buyer/contact" className="flex">
+              <NotebookPen className="mr-2 h-4 w-4" />
+              <span>Feedback</span>
+            </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
