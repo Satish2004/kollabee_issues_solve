@@ -3,266 +3,328 @@
 import Star from "@/app/(auth)/signup/seller/onboarding/Star";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useEffect, useState } from "react";
 
 const objectives = [
-	"Expand into new markets",
-	"Connect with high-quality buyers",
-	"Increase brand visibility",
-	"Build relationships with startups or emerging brands",
-	"Promote sustainable or ethical practices",
-	"Grow export volume",
+  "Expand into new markets",
+  "Connect with high-quality buyers",
+  "Increase brand visibility",
+  "Build relationships with startups or emerging brands",
+  "Promote sustainable or ethical practices",
+  "Grow export volume",
 ];
 
 const challenges = [
-	"Difficulty reaching serious buyers",
-	"Low brand visibility",
-	"Price pressure and margin squeeze",
-	"Long lead times for closing deals",
-	"Managing small batch/MOQ efficiently",
-	"Complex compliance or certification demands",
+  "Difficulty reaching serious buyers",
+  "Low brand visibility",
+  "Price pressure and margin squeeze",
+  "Long lead times for closing deals",
+  "Managing small batch/MOQ efficiently",
+  "Complex compliance or certification demands",
 ];
 
 const metrics = [
-	"Number of quality leads",
-	"Volume/value of confirmed orders",
-	"New market penetration",
-	"Repeat buyers and customer loyalty",
-	"Brand visibility and recognition",
-	"Speed of response and deal closure",
+  "Number of quality leads",
+  "Volume/value of confirmed orders",
+  "New market penetration",
+  "Repeat buyers and customer loyalty",
+  "Brand visibility and recognition",
+  "Speed of response and deal closure",
 ];
 
 type GoalsMetricsFormProps = {
-	formState: any;
-	onChange: (newValue: any) => void;
-	onSave: () => void;
-	hasChanges: boolean;
-	isSaving: boolean;
-	disabled?: boolean;
+  formState: any;
+  onChange: (newValue: any) => void;
+  onSave: () => void;
+  hasChanges: boolean;
+  isSaving: boolean;
+  disabled?: boolean;
 };
 
+const requiredFields = [
+  "selectedObjectives",
+  "selectedChallenges",
+  "selectedMetrics",
+  "agreement1",
+  "agreement2",
+];
+
 const GoalsMetricsForm = ({
-	formState,
-	onChange,
-	onSave,
-	hasChanges,
-	isSaving,
-	disabled = false,
+  formState,
+  onChange,
+  onSave,
+  hasChanges,
+  isSaving,
+  disabled = false,
 }: GoalsMetricsFormProps) => {
-	const handleObjectiveToggle = (objective: string) => {
-		if (disabled) return;
-		onChange({
-			...formState,
-			selectedObjectives: formState.selectedObjectives?.includes(objective)
-				? formState.selectedObjectives.filter((o: string) => o !== objective)
-				: [...(formState.selectedObjectives || []), objective],
-		});
-	};
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
-	const handleChallengeToggle = (challenge: string) => {
-		if (disabled) return;
-		onChange({
-			...formState,
-			selectedChallenges: formState.selectedChallenges?.includes(challenge)
-				? formState.selectedChallenges.filter((c: string) => c !== challenge)
-				: [...(formState.selectedChallenges || []), challenge],
-		});
-	};
+  useEffect(() => {
+    validateFields();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState]);
 
-	const handleMetricToggle = (metric: string) => {
-		if (disabled) return;
-		onChange({
-			...formState,
-			selectedMetrics: formState.selectedMetrics?.includes(metric)
-				? formState.selectedMetrics.filter((m: string) => m !== metric)
-				: [...(formState.selectedMetrics || []), metric],
-		});
-	};
+  const validateFields = () => {
+    console.log("Validating fields", formState);
+    const newErrors: Record<string, string> = { ...errors };
+    requiredFields.forEach((field) => {
+      if (
+        !formState[field] ||
+        (Array.isArray(formState[field]) && formState[field].length === 0)
+      ) {
+        newErrors[field] = "This field is required.";
+      } else {
+        delete newErrors[field];
+      }
+    });
+    setErrors(newErrors);
+  };
 
-	return (
-		<div className="space-y-8">
-			<div className="space-y-8">
-				<div className="">
-					<h3 className="font-bold">
-						1. What are your main goals on KollaBee?
-						<Star /> (Choose up to 3)
-					</h3>
-					<p className="text-sm font-futura italic">
-						Select up to 3 goals that best reflect what you're hoping to achieve
-						on the platform.
-					</p>
-					<div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
-						{objectives.map((objective) => (
-							<div key={objective} className="flex items-start space-x-3">
-								<Checkbox
-									id={`objective-${objective}`}
-									checked={formState.selectedObjectives?.includes(objective)}
-									onCheckedChange={() => handleObjectiveToggle(objective)}
-									disabled={
-										disabled ||
-										(!formState.selectedObjectives?.includes(objective) &&
-											(formState.selectedObjectives?.length || 0) >= 3)
-									}
-								/>
-								<label
-									htmlFor={`objective-${objective}`}
-									className={`text-sm leading-none cursor-pointer ${
-										disabled
-											? "opacity-50 cursor-not-allowed"
-											: "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-									}`}
-								>
-									{objective}
-								</label>
-							</div>
-						))}
-					</div>
-				</div>
+  const handleObjectiveToggle = (objective: string) => {
+    if (disabled) return;
+    const updated = formState.selectedObjectives?.includes(objective)
+      ? formState.selectedObjectives.filter((o: string) => o !== objective)
+      : [...(formState.selectedObjectives || []), objective];
+    onChange({
+      ...formState,
+      selectedObjectives: updated,
+    });
+    if (updated.length > 0)
+      setErrors((prev) => ({ ...prev, selectedObjectives: "" }));
+  };
 
-				<div className="">
-					<h3 className="font-bold">
-						2. What challenges are you looking to overcome?
-						<Star /> (Select all that apply)
-					</h3>
-					<p className="text-sm font-futura italic">
-						Select the most relevant challenges you face in your current
-						operations or sales strategy.
-					</p>
-					<div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
-						{challenges.map((challenge) => (
-							<div key={challenge} className="flex items-start space-x-3">
-								<Checkbox
-									id={`challenge-${challenge}`}
-									checked={formState.selectedChallenges?.includes(challenge)}
-									onCheckedChange={() => handleChallengeToggle(challenge)}
-									disabled={disabled}
-								/>
-								<label
-									htmlFor={`challenge-${challenge}`}
-									className={`text-sm leading-none cursor-pointer ${
-										disabled
-											? "opacity-50 cursor-not-allowed"
-											: "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-									}`}
-								>
-									{challenge}
-								</label>
-							</div>
-						))}
-					</div>
-				</div>
+  const handleChallengeToggle = (challenge: string) => {
+    if (disabled) return;
+    onChange({
+      ...formState,
+      selectedChallenges: formState.selectedChallenges?.includes(challenge)
+        ? formState.selectedChallenges.filter((c: string) => c !== challenge)
+        : [...(formState.selectedChallenges || []), challenge],
+    });
+  };
 
-				<div className="">
-					<h3 className="font-bold">
-						3. What success metrics matter most to you?
-						<Star /> (Select your top 3){" "}
-					</h3>
-					<p className="text-sm text-muted-foreground font-futura italic">
-						Select the metrics you value the most to evaluate your success on
-						KollaBee.
-					</p>
-					<div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
-						{metrics.map((metric) => (
-							<div key={metric} className="flex items-start space-x-3">
-								<Checkbox
-									id={`metric-${metric}`}
-									checked={formState.selectedMetrics?.includes(metric)}
-									onCheckedChange={() => handleMetricToggle(metric)}
-									disabled={
-										disabled ||
-										(!formState.selectedMetrics?.includes(metric) &&
-											(formState.selectedMetrics?.length || 0) >= 3)
-									}
-								/>
-								<label
-									htmlFor={`metric-${metric}`}
-									className={`text-sm leading-none cursor-pointer ${
-										disabled
-											? "opacity-50 cursor-not-allowed"
-											: "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-									}`}
-								>
-									{metric}
-								</label>
-							</div>
-						))}
-					</div>
-				</div>
+  const handleMetricToggle = (metric: string) => {
+    if (disabled) return;
+    const updated = formState.selectedMetrics?.includes(metric)
+      ? formState.selectedMetrics.filter((m: string) => m !== metric)
+      : [...(formState.selectedMetrics || []), metric];
+    onChange({
+      ...formState,
+      selectedMetrics: updated,
+    });
+    if (updated.length > 0)
+      setErrors((prev) => ({ ...prev, selectedMetrics: "" }));
+  };
 
-				<div className="space-y-3">
-					<h3 className="font-bold">
-						Agreement Statement:<span className="text-red-500">*</span>
-					</h3>
-					<div className="flex items-start space-x-3">
-						<Checkbox
-							id="agreement1"
-							checked={formState.agreement1}
-							onCheckedChange={(checked) =>
-								!disabled &&
-								onChange({
-									...formState,
-									agreement1: checked as boolean,
-								})
-							}
-							disabled={disabled}
-						/>
-						<label
-							htmlFor="agreement1"
-							className={`text-sm leading-none cursor-pointer ${
-								disabled
-									? "opacity-50 cursor-not-allowed"
-									: "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-							}`}
-						>
-							I agree to KollaBee’s{" "}
-							<a
-								href="/terms-conditions"
-								target="_blank"
-								className="text-blue-500"
-							>
-								{" "}
-								Terms & Conditions{" "}
-							</a>{" "}
-							and{" "}
-							<a
-								href="/privacy-policy"
-								target="_blank"
-								className="text-blue-500"
-							>
-								{" "}
-								Privacy Policy.
-							</a>
-						</label>
-					</div>
-					<div className="flex items-start space-x-3">
-						<Checkbox
-							id="agreement"
-							checked={formState.agreement2}
-							onCheckedChange={(checked) =>
-								!disabled &&
-								onChange({
-									...formState,
-									agreement2: checked as boolean,
-								})
-							}
-							disabled={disabled}
-						/>
-						<label
-							htmlFor="agreement"
-							className={`text-sm leading-none cursor-pointer ${
-								disabled
-									? "opacity-50 cursor-not-allowed"
-									: "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-							}`}
-						>
-							I give KollaBee permission to store my business information and
-							send updates about relevant buyers, opportunities, and platform
-							features.
-						</label>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+  return (
+    <div className="space-y-8">
+      <div className="space-y-8">
+        <div className="">
+          <h3 className="font-bold">
+            1. What are your main goals on KollaBee?
+            <Star /> (Choose up to 3)
+          </h3>
+          <p className="text-sm font-futura italic">
+            Select up to 3 goals that best reflect what you're hoping to achieve
+            on the platform.
+          </p>
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
+            {objectives.map((objective) => (
+              <div key={objective} className="flex items-start space-x-3">
+                <Checkbox
+                  id={`objective-${objective}`}
+                  checked={formState.selectedObjectives?.includes(objective)}
+                  onCheckedChange={() => handleObjectiveToggle(objective)}
+                  disabled={
+                    disabled ||
+                    (!formState.selectedObjectives?.includes(objective) &&
+                      (formState.selectedObjectives?.length || 0) >= 3)
+                  }
+                />
+                <label
+                  htmlFor={`objective-${objective}`}
+                  className={`text-sm leading-none cursor-pointer ${
+                    disabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  }`}
+                >
+                  {objective}
+                </label>
+              </div>
+            ))}
+          </div>
+          {errors.selectedObjectives && (
+            <div className="text-sm text-red-500 mt-1">
+              {errors.selectedObjectives}
+            </div>
+          )}
+        </div>
+
+        <div className="">
+          <h3 className="font-bold">
+            2. What challenges are you looking to overcome?
+            <Star /> (Select all that apply)
+          </h3>
+          <p className="text-sm font-futura italic">
+            Select the most relevant challenges you face in your current
+            operations or sales strategy.
+          </p>
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
+            {challenges.map((challenge) => (
+              <div key={challenge} className="flex items-start space-x-3">
+                <Checkbox
+                  id={`challenge-${challenge}`}
+                  checked={formState.selectedChallenges?.includes(challenge)}
+                  onCheckedChange={() => handleChallengeToggle(challenge)}
+                  disabled={disabled}
+                />
+                <label
+                  htmlFor={`challenge-${challenge}`}
+                  className={`text-sm leading-none cursor-pointer ${
+                    disabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  }`}
+                >
+                  {challenge}
+                </label>
+              </div>
+            ))}
+
+            {errors.selectedChallenges && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.selectedChallenges}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="">
+          <h3 className="font-bold">
+            3. What success metrics matter most to you?
+            <Star /> (Select your top 3){" "}
+          </h3>
+          <p className="text-sm text-muted-foreground font-futura italic">
+            Select the metrics you value the most to evaluate your success on
+            KollaBee.
+          </p>
+          <div className="grid grid-cols-1 mt-3 sm:grid-cols-2 gap-3">
+            {metrics.map((metric) => (
+              <div key={metric} className="flex items-start space-x-3">
+                <Checkbox
+                  id={`metric-${metric}`}
+                  checked={formState.selectedMetrics?.includes(metric)}
+                  onCheckedChange={() => handleMetricToggle(metric)}
+                  disabled={
+                    disabled ||
+                    (!formState.selectedMetrics?.includes(metric) &&
+                      (formState.selectedMetrics?.length || 0) >= 3)
+                  }
+                />
+                <label
+                  htmlFor={`metric-${metric}`}
+                  className={`text-sm leading-none cursor-pointer ${
+                    disabled
+                      ? "opacity-50 cursor-not-allowed"
+                      : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  }`}
+                >
+                  {metric}
+                </label>
+              </div>
+            ))}
+          </div>
+          {errors.selectedMetrics && (
+            <div className="text-sm text-red-500 mt-1">
+              {errors.selectedMetrics}
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-3">
+          <h3 className="font-bold">
+            Agreement Statement:<span className="text-red-500">*</span>
+          </h3>
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="agreement1"
+              checked={formState.agreement1}
+              onCheckedChange={(checked) => {
+                !disabled &&
+                  onChange({
+                    ...formState,
+                    agreement1: checked as boolean,
+                  });
+                if (checked) setErrors((prev) => ({ ...prev, agreement1: "" }));
+              }}
+              disabled={disabled}
+            />
+            <label
+              htmlFor="agreement1"
+              className={`text-sm leading-none cursor-pointer ${
+                disabled
+                  ? "opacity-50 cursor-not-allowed"
+                  : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              }`}
+            >
+              I agree to KollaBee’s{" "}
+              <a
+                href="/terms-conditions"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Terms & Conditions{" "}
+              </a>{" "}
+              and{" "}
+              <a
+                href="/privacy-policy"
+                target="_blank"
+                className="text-blue-500"
+              >
+                {" "}
+                Privacy Policy.
+              </a>
+            </label>
+          </div>
+          {errors.agreement1 && (
+            <div className="text-sm text-red-500 mt-1">{errors.agreement1}</div>
+          )}
+          <div className="flex items-start space-x-3">
+            <Checkbox
+              id="agreement"
+              checked={formState.agreement2}
+              onCheckedChange={(checked) => {
+                !disabled &&
+                  onChange({
+                    ...formState,
+                    agreement2: checked as boolean,
+                  });
+                if (checked) setErrors((prev) => ({ ...prev, agreement2: "" }));
+              }}
+              disabled={disabled}
+            />
+            <label
+              htmlFor="agreement"
+              className={`text-sm leading-none cursor-pointer ${
+                disabled
+                  ? "opacity-50 cursor-not-allowed"
+                  : "peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              }`}
+            >
+              I give KollaBee permission to store my business information and
+              send updates about relevant buyers, opportunities, and platform
+              features.
+            </label>
+          </div>
+          {errors.agreement2 && (
+            <div className="text-sm text-red-500 mt-1">{errors.agreement2}</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default GoalsMetricsForm;

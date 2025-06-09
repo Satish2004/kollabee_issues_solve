@@ -14,7 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CategoryEnum, BusinessType } from "@/types/api";
 import { X, ImageIcon, Upload, AlertCircle } from "lucide-react";
 import type React from "react";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
@@ -113,6 +113,19 @@ type BusinessOverviewFormProps = {
   disabled?: boolean;
 };
 
+// Update requiredFields to match all fields with * or Star
+const requiredFields = [
+  "businessName",
+  "businessDescription",
+  "websiteLink",
+  "businessAddress",
+  "businessTypes",
+  "businessCategories",
+  "yearFounded",
+  "teamSize",
+  "annualRevenue",
+];
+
 const BusinessOverviewForm = ({
   formState,
   onChange,
@@ -136,6 +149,27 @@ const BusinessOverviewForm = ({
     formState.customAttributes || []
   );
 
+  // Validation: check required fields on mount and whenever formState changes
+  useEffect(() => {
+    validateFields();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState]);
+
+  const validateFields = () => {
+    const newErrors: Record<string, string> = { ...errors };
+    requiredFields.forEach((field) => {
+      if (
+        !formState[field] ||
+        (Array.isArray(formState[field]) && formState[field].length === 0)
+      ) {
+        newErrors[field] = "This field is required.";
+      } else {
+        delete newErrors[field];
+      }
+    });
+    setErrors(newErrors);
+  };
+
   const handleBusinessTypeClick = (type: BusinessType) => {
     onChange({
       ...formState,
@@ -145,17 +179,36 @@ const BusinessOverviewForm = ({
     });
   };
 
+  const handleBusinessTypeChange = (selectedLabels: string[]) => {
+    // Convert the display labels back to enum values for the API
+    const enumValues = selectedLabels.map((label) => {
+      const businessType = businessTypes.find((bt) => bt.label === label);
+      return businessType ? businessType.value : label;
+    });
+    onChange({
+      ...formState,
+      businessTypes: enumValues,
+    });
+    // Clear error if filled
+    if (enumValues.length > 0) {
+      setErrors((prev) => ({ ...prev, businessTypes: "" }));
+    }
+  };
+
   const handleBusinessCategoryChange = (selectedCategories: string[]) => {
     // Convert the display labels back to enum values for the API
     const enumValues = selectedCategories.map((label) => {
       const category = businessCategories.find((c) => c.label === label);
       return category ? category.value : label;
     });
-
     onChange({
       ...formState,
       businessCategories: enumValues,
     });
+    // Clear error if filled
+    if (enumValues.length > 0) {
+      setErrors((prev) => ({ ...prev, businessCategories: "" }));
+    }
   };
 
   const handleCustomCategoriesChange = (newCustomCategories: string[]) => {
@@ -308,7 +361,7 @@ const BusinessOverviewForm = ({
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-sm font-bold flex items-center  ">
-                Business Logo (Optional)
+                Business Logo
               </label>
               <p className="text-sm font-futura italic">
                 Upload your company logo to enhance your brand presence
@@ -397,6 +450,7 @@ const BusinessOverviewForm = ({
 
           {/* Pre-filled fields */}
           <div className="space-y-2">
+            {/* Business Name */}
             <div className="space-y-1">
               <label className="text-sm font-bold flex items-center  ">
                 Business Name<span className="text-red-500 ml-0.5">*</span>
@@ -410,13 +464,21 @@ const BusinessOverviewForm = ({
                   ...formState,
                   businessName: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, businessName: "" }));
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.businessName && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.businessName}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
+            {/* Business Description */}
             <div className="space-y-1">
               <label className="text-sm font-bold flex items-center  ">
                 Business Description
@@ -431,13 +493,21 @@ const BusinessOverviewForm = ({
                   ...formState,
                   businessDescription: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, businessDescription: "" }));
               }}
               className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.businessDescription && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.businessDescription}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
+            {/* Website Link */}
             <div className="space-y-1">
               <label className="text-sm font-bold flex items-center  ">
                 Website Link<span className="text-red-500 ml-0.5">*</span>
@@ -451,13 +521,21 @@ const BusinessOverviewForm = ({
                   ...formState,
                   websiteLink: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, websiteLink: "" }));
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.websiteLink && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.websiteLink}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
+            {/* Business Address */}
             <div className="space-y-1">
               <label className="text-sm font-bold flex items-center  ">
                 Business Address<span className="text-red-500 ml-0.5">*</span>
@@ -471,10 +549,17 @@ const BusinessOverviewForm = ({
                   ...formState,
                   businessAddress: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, businessAddress: "" }));
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.businessAddress && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.businessAddress}
+              </div>
+            )}
           </div>
 
           {/* Business Type using the MultiSelectDropdown component */}
@@ -490,25 +575,13 @@ const BusinessOverviewForm = ({
                 return businessType ? businessType.label : type;
               }) || []
             }
-            onChange={(selectedLabels) => {
-              // Convert the display labels back to enum values for the API
-              const enumValues = selectedLabels.map((label) => {
-                const businessType = businessTypes.find(
-                  (bt) => bt.label === label
-                );
-                return businessType ? businessType.value : label;
-              });
-
-              onChange({
-                ...formState,
-                businessTypes: enumValues,
-              });
-            }}
+            onChange={handleBusinessTypeChange}
             isRequired={true}
             error={errors.businessTypes}
             lableBold={true}
             disabled={disabled}
           />
+          
 
           {/* Business Category using the MultiSelectDropdown component */}
           <MultiSelectDropdown
@@ -527,6 +600,7 @@ const BusinessOverviewForm = ({
             lableBold={true}
             disabled={disabled}
           />
+       
         </div>
 
         <div className="space-y-6">
@@ -547,12 +621,19 @@ const BusinessOverviewForm = ({
                   ...formState,
                   yearFounded: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, yearFounded: "" }));
               }}
               min="1900"
               max={new Date().getFullYear()}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.yearFounded && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.yearFounded}
+              </div>
+            )}
           </div>
 
           {/* Business Team Size - Using MultiSelectDropdown */}
@@ -569,6 +650,7 @@ const BusinessOverviewForm = ({
                   ...formState,
                   teamSize: value,
                 });
+                if (value) setErrors((prev) => ({ ...prev, teamSize: "" }));
               }}
               disabled={disabled}
             >
@@ -603,6 +685,8 @@ const BusinessOverviewForm = ({
                   ...formState,
                   annualRevenue: value,
                 });
+                if (value)
+                  setErrors((prev) => ({ ...prev, annualRevenue: "" }));
               }}
               disabled={disabled}
             >

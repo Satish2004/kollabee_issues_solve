@@ -19,6 +19,8 @@ import {
   Plus,
   Menu,
   X,
+  Share,
+  NotebookPen,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -99,7 +101,6 @@ export default function SellerLayoutHeader() {
       icon: MessageSquare,
       href: "/seller/messages",
     },
-    
     {
       label: "Requests",
       icon: Store,
@@ -134,6 +135,16 @@ export default function SellerLayoutHeader() {
       label: "Notifications",
       icon: Bell,
       href: "/seller/notifications",
+    },
+    {
+      label: "Invite",
+      icon: Share,
+      href: "/seller/invite",
+    },
+    {
+      label: "Feedback",
+      icon: NotebookPen,
+      href: "/seller/contact",
     },
   ];
 
@@ -244,8 +255,6 @@ export default function SellerLayoutHeader() {
                   </Button>
                   <span className="text-xs font-medium">Notifications</span>
                 </Link>
-
-              
 
                 <Link
                   href="/seller/chat"

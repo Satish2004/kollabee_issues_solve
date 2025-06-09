@@ -275,9 +275,7 @@ export const ProfileFormContent = ({
       </div>
 
       {/* Form content */}
-      <div className="p-6 min-h-[400px] relative">
-        {renderStepContent()}
-      </div>
+      <div className="p-6">{renderStepContent()}</div>
 
       {/* Navigation buttons */}
       <div className="p-6 border-t flex flex-wrap md:flex-nowrap gap-4 justify-between items-center">
@@ -296,7 +294,7 @@ export const ProfileFormContent = ({
           )}
         </div>
 
-        <div className="w-full md:w-auto flex justify-center">
+        {/* <div className="w-full md:w-auto flex justify-center">
           {hasFormChanges(steps[activeStep].id) &&
             steps[activeStep].id !== "final-review" && (
               <Button
@@ -316,7 +314,7 @@ export const ProfileFormContent = ({
                 )}
               </Button>
             )}
-        </div>
+        </div> */}
 
         <div className="w-full md:w-auto flex justify-end">
           {activeStep < steps.length - 1 && (
@@ -326,7 +324,7 @@ export const ProfileFormContent = ({
               disabled={activeStep === steps.length - 1 || isSaving}
               className="flex items-center w-full md:w-auto bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white hover:opacity-90"
             >
-              Next
+              {isSaving ? "Saving..." : "Next"}
               <ChevronRight className="w-4 h-4 ml-2" />
             </Button>
           )}

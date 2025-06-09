@@ -144,7 +144,7 @@ const KollaBeeProfile = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:flex-row overflow-y-scroll relative">
+      <div className="flex-1 flex flex-col md:flex-row h-full overflow-auto">
         {/* Overlay when locked */}
        
         <div className="flex-1">

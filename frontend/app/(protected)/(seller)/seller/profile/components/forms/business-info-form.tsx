@@ -14,7 +14,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { CategoryEnum, BusinessType } from "@/types/api";
 import { ArrowLeft } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const businessTypes = Object.values(BusinessType).map((type) => ({
   value: type,
@@ -39,6 +39,16 @@ const companyRoles = [
   "Team Member",
   "Intern",
   "Other",
+];
+
+const requiredFields = [
+  "businessName",
+  "businessDescription",
+  "websiteLink",
+  "businessAddress",
+  "businessTypes",
+  "businessCategories",
+  "roleInCompany",
 ];
 
 type BusinessInfoFormProps = {
@@ -145,6 +155,26 @@ export default function BusinessInfoForm({
     });
   };
 
+  useEffect(() => {
+    validateFields();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState]);
+
+  const validateFields = () => {
+    const newErrors: any = { ...errors };
+    requiredFields.forEach((field) => {
+      if (
+        !formState[field] ||
+        (Array.isArray(formState[field]) && formState[field].length === 0)
+      ) {
+        newErrors[field] = "This field is required.";
+      } else {
+        newErrors[field] = "";
+      }
+    });
+    setErrors(newErrors);
+  };
+
   return (
     <div className="space-y-8" id="business-info-form">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12">
@@ -169,10 +199,17 @@ export default function BusinessInfoForm({
                   ...formState,
                   businessName: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, businessName: "" }));
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.businessName && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.businessName}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -194,10 +231,17 @@ export default function BusinessInfoForm({
                   ...formState,
                   businessDescription: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, businessDescription: "" }));
               }}
               className="min-h-[100px] bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.businessDescription && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.businessDescription}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -220,6 +264,8 @@ export default function BusinessInfoForm({
                   ...formState,
                   websiteLink: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, websiteLink: "" }));
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
@@ -244,6 +290,8 @@ export default function BusinessInfoForm({
                 ...formState,
                 businessTypes: enumValues,
               });
+              if (enumValues.length > 0)
+                setErrors((prev) => ({ ...prev, businessTypes: "" }));
             }}
             isRequired={true}
             error={errors.businessTypes}
@@ -278,10 +326,17 @@ export default function BusinessInfoForm({
                   ...formState,
                   businessAddress: e.target.value,
                 });
+                if (e.target.value)
+                  setErrors((prev) => ({ ...prev, businessAddress: "" }));
               }}
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.businessAddress && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.businessAddress}
+              </div>
+            )}
           </div>
 
           <MultiSelectDropdown
@@ -300,6 +355,7 @@ export default function BusinessInfoForm({
             lableBold={true}
             disabled={disabled}
           />
+        
 
           <div className="space-y-2">
             <label className="text-sm font-bold flex items-center ">
@@ -312,9 +368,9 @@ export default function BusinessInfoForm({
                 onChange({
                   ...formState,
                   roleInCompany: value,
-                  otherRole: value !== "Other" ? "" : formState.otherRole,
                 });
-                setErrors({ ...errors, rolesInCompany: "" });
+                if (value)
+                  setErrors((prev) => ({ ...prev, rolesInCompany: "" }));
               }}
               disabled={disabled}
             >
@@ -333,7 +389,6 @@ export default function BusinessInfoForm({
                 ))}
               </SelectContent>
             </Select>
-
             {formState.roleInCompany === "Other" && (
               <>
                 <label className="text-sm font-bold">
@@ -359,9 +414,9 @@ export default function BusinessInfoForm({
               </>
             )}
             {errors.rolesInCompany && (
-              <p className="text-sm text-red-500 mt-1">
+              <div className="text-sm text-red-500 mt-1">
                 {errors.rolesInCompany}
-              </p>
+              </div>
             )}
           </div>
         </div>
