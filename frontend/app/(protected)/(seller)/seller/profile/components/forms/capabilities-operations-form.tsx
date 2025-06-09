@@ -1,5 +1,6 @@
 "use client";
 
+import Star from "@/app/(auth)/signup/seller/onboarding/Star";
 import { countries } from "@/app/(auth)/signup/seller/onboarding/signup-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +9,7 @@ import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import { Upload, X, Trash2, AlertCircle } from "lucide-react";
 import type React from "react";
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 const servicesOptions = [
@@ -51,6 +52,15 @@ type CapabilitiesOperationsFormProps = {
   disabled?: boolean;
 };
 
+const requiredFields = [
+  "servicesProvided",
+  "productionModel",
+  "productionCountries",
+  "minimumOrderQuantity",
+  "productionTimeline",
+  "sampleDispatchTime",
+];
+
 const CapabilitiesOperationsForm = ({
   formState,
   onChange,
@@ -72,6 +82,26 @@ const CapabilitiesOperationsForm = ({
     formState.customCountries || []
   );
 
+  useEffect(() => {
+    validateFields();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formState]);
+
+  const validateFields = () => {
+    const newErrors: Record<string, string> = { ...errors };
+    requiredFields.forEach((field) => {
+      if (
+        !formState[field] ||
+        (Array.isArray(formState[field]) && formState[field].length === 0)
+      ) {
+        newErrors[field] = "This field is required.";
+      } else {
+        delete newErrors[field];
+      }
+    });
+    setErrors(newErrors);
+  };
+
   const handleServicesChange = (selectedServices: string[]) => {
     onChange({
       ...formState,
@@ -80,6 +110,8 @@ const CapabilitiesOperationsForm = ({
       ),
       otherServiceSelected: selectedServices.includes("Other"),
     });
+    if (selectedServices.length > 0)
+      setErrors((prev) => ({ ...prev, servicesProvided: "" }));
   };
 
   const handleCustomServicesChange = (newCustomServices: string[]) => {
@@ -91,7 +123,6 @@ const CapabilitiesOperationsForm = ({
   };
 
   const handleProductionModelChange = (selectedModels: string[]) => {
-    // For radio-like behavior, we only keep the last selected value
     const productionModel =
       selectedModels.length > 0
         ? selectedModels[selectedModels.length - 1]
@@ -100,6 +131,8 @@ const CapabilitiesOperationsForm = ({
       ...formState,
       productionModel,
     });
+    if (productionModel)
+      setErrors((prev) => ({ ...prev, productionModel: "" }));
   };
 
   const handleCountriesChange = (selectedCountries: string[]) => {
@@ -110,6 +143,8 @@ const CapabilitiesOperationsForm = ({
       ),
       otherCountrySelected: selectedCountries.includes("Other"),
     });
+    if (selectedCountries.length > 0)
+      setErrors((prev) => ({ ...prev, productionCountries: "" }));
   };
 
   const handleCustomCountriesChange = (newCustomCountries: string[]) => {
@@ -296,13 +331,16 @@ const CapabilitiesOperationsForm = ({
             lableBold={true}
             disabled={disabled}
           />
+         
 
           {/* Minimum Order Quantity (MOQ) */}
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-sm font-bold flex items-center  ">
-                Minimum Order Quantity (MOQ)
-                <span className="text-red-500 ml-0.5">*</span>
+                <span>
+                  Minimum Order Quantity (MOQ)
+                  <Star />
+                </span>
               </label>
               <p className="text-sm font-futura italic">
                 Enter the minimum quantity a buyer must order
@@ -320,6 +358,11 @@ const CapabilitiesOperationsForm = ({
               className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
               disabled={disabled}
             />
+            {errors.minimumOrderQuantity && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.minimumOrderQuantity}
+              </div>
+            )}
           </div>
 
           {/* MOQ Flexibility */}
@@ -327,7 +370,10 @@ const CapabilitiesOperationsForm = ({
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <label className="text-sm font-bold flex items-center gap-1">
-                  MOQ Flexibility
+                  <span>
+                    MOQ Flexibility
+                    <Star />
+                  </span>
                 </label>
                 <p className="text-sm font-futura italic">
                   Indicate if you're willing to work with lower order quantities
@@ -348,6 +394,11 @@ const CapabilitiesOperationsForm = ({
             <p className="text-sm text-gray-500 ml-1">
               Willing to work with low MOQs
             </p>
+            {errors.lowMoqFlexibility && (
+              <div className="text-sm text-red-500 mt-1">
+                {errors.lowMoqFlexibility}
+              </div>
+            )}
           </div>
 
           {/* Production Model - Using MultiSelectDropdown */}
@@ -378,7 +429,7 @@ const CapabilitiesOperationsForm = ({
                 : formState.productionCountries || []
             }
             onChange={handleCountriesChange}
-            isRequired={false}
+            isRequired={true}
             error={errors.productionCountries}
             allowCustomValues={true}
             customValuesLabel="Add other countries:"
@@ -394,7 +445,10 @@ const CapabilitiesOperationsForm = ({
             <div className="flex items-center justify-between">
               <div className="space-y-1">
                 <label className="text-sm font-bold flex items-center gap-1">
-                  Do you provide samples?
+                  <span>
+                    Do you provide samples?
+                    <Star />
+                  </span>
                 </label>
                 <p className="text-sm font-futura italic">
                   Indicate if you provide product samples to potential buyers
@@ -411,12 +465,20 @@ const CapabilitiesOperationsForm = ({
                 className="data-[state=checked]:bg-[#a11770]"
                 disabled={disabled}
               />
+              {errors.providesSamples && (
+                <div className="text-sm text-red-500 mt-1">
+                  {errors.providesSamples}
+                </div>
+              )}
             </div>
 
             {formState.providesSamples && (
               <div className="space-y-2 mt-4">
                 <label className="text-sm font-bold">
-                  Post-Purchase Sample Dispatch Time
+                  <span>
+                    Post-Purchase Sample Dispatch Time
+                    <Star />
+                  </span>
                 </label>
                 <p className="text-sm font-futura italic">
                   How many days after order confirmation do you send product
@@ -435,11 +497,21 @@ const CapabilitiesOperationsForm = ({
                   className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
                   disabled={disabled}
                 />
+                {errors.sampleDispatchTime && (
+                  <div className="text-sm text-red-500 mt-1">
+                    {errors.sampleDispatchTime}
+                  </div>
+                )}
               </div>
             )}
 
             <div className="space-y-2 mt-4">
-              <label className="text-sm font-bold">Production Timeline</label>
+              <label className="text-sm font-bold">
+                <span>
+                  Production Timeline
+                  <Star />
+                </span>
+              </label>
               <p className="text-sm font-futura italic">
                 How long does it typically take to complete full production
                 after confirming the order?
@@ -457,6 +529,12 @@ const CapabilitiesOperationsForm = ({
                 className="h-11 bg-[#fcfcfc] border-[#e5e5e5] rounded-[6px] placeholder:text-black/50"
                 disabled={disabled}
               />
+
+              {errors.productionTimeline && (
+                <div className="text-sm text-red-500 mt-1">
+                  {errors.productionTimeline}
+                </div>
+              )}
             </div>
           </div>
 
