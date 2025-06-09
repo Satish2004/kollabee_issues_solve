@@ -308,7 +308,7 @@ const BusinessOverviewForm = ({
           <div className="space-y-2">
             <div className="space-y-1">
               <label className="text-sm font-bold flex items-center  ">
-                Business Logo (Optional)
+                Business Logo
               </label>
               <p className="text-sm font-futura italic">
                 Upload your company logo to enhance your brand presence

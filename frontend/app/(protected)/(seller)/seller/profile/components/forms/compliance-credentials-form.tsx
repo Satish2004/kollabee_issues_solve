@@ -531,7 +531,7 @@ const ComplianceCredentialsForm = ({
           <div className="space-y-3">
             <div className="space-y-1">
               <label className="text-sm font-bold">
-                Certification Documents (Optional)
+                Certification Documents 
               </label>
               <p className="text-sm font-futura italic text-gray-600">
                 Upload documents proving your certifications (up to 10 files).

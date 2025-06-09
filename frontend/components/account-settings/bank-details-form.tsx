@@ -117,7 +117,7 @@ export function BankDetailForm({ initialBankDetails }: BankDetailFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="upiId">UPI ID (Optional)</Label>
+            <Label htmlFor="upiId">UPI ID</Label>
             <Input
               id="upiId"
               value={bankDetails.upiId}

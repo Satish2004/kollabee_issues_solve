@@ -463,7 +463,7 @@ const CapabilitiesOperationsForm = ({
           {/* Factory Images */}
           <div className="space-y-3">
             <label className="text-sm font-bold flex items-center gap-1">
-              Factory Images (Optional)
+              Factory Images
             </label>
 
             <div className="grid grid-cols-3 gap-3">

@@ -51,7 +51,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Account Holder (Optional)
+              Account Holder 
             </label>
             <input
               type="text"

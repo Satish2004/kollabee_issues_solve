@@ -543,7 +543,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
 
         <div className="space-y-2">
           <Label className="text-sm font-normal">
-            Upload references (Optional)
+            Upload references
           </Label>
           <div className="border-2 border-dashed rounded-md p-4 text-center">
             <input
@@ -600,7 +600,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
         <div className="space-y-2">
           <div className="flex justify-start gap-4 items-center">
             <Label className="text-sm font-futura font-normal">
-              What certifications should the supplier have? (Optional)
+              What certifications should the supplier have? 
             </Label>
             {/* <Button
               type="button"
@@ -691,7 +691,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-2">
             <Label className="text-sm font-normal">
-              Do You Have a Target Retail Price for Your Product? (Optional)
+              Do You Have a Target Retail Price for Your Product? 
             </Label>
             <RadioGroup
               value={formData.hasTargetPrice || ""}
@@ -916,7 +916,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
 
         <div className="space-y-2">
           <Label htmlFor="productForPackaging" className="text-sm font-normal">
-            What product is this packaging for? (optional)
+            What product is this packaging for? 
           </Label>
           <Textarea
             id="productForPackaging"
@@ -969,7 +969,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
 
         <div className="space-y-2">
           <Label className="text-sm font-normal">
-            Upload any references for your packaging (Optional)
+            Upload any references for your packaging 
           </Label>
           <div className="border-2 border-dashed rounded-md p-4 text-center">
             <input
@@ -1050,7 +1050,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label className="text-sm font-normal">
-              Do you need labeling or printing services? (optional)
+              Do you need labeling or printing services? 
             </Label>
             <RadioGroup
               value={formData.needsLabeling || ""}
@@ -1074,7 +1074,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
 
           <div className="space-y-2 mt-4">
             <Label className="text-sm font-normal">
-              Do you already have a packaging design ready? (optional)
+              Do you already have a packaging design ready? 
             </Label>
             <RadioGroup
               value={formData.hasPackagingDesign || ""}
@@ -1126,7 +1126,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <Label className="text-sm font-normal">
-                What certifications should the supplier have? (optional)
+                What certifications should the supplier have? 
               </Label>
             </div>
 
@@ -1295,7 +1295,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label className="text-sm font-normal">
-            Please upload any reference materials (Optional)
+            Please upload any reference materials 
           </Label>
           <div className="border-2 border-dashed rounded-md p-7 text-center">
             <input
