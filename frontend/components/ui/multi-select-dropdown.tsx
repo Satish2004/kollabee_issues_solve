@@ -143,7 +143,10 @@ const MultiSelectDropdown = ({
         </Button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full bottom-full mb-1 bg-white border rounded-md shadow-lg max-h-60 overflow-auto">
+          <div
+            className="absolute z-100 w-full bottom-full mt-3 mb-3  bg-white border rounded-md shadow-lg max-h-60 overflow-auto"
+            style={{ marginLeft: 4, marginRight: 4 }}
+          >
             <div className="p-2">
               {flattenedOptions.map((option) => {
                 const isSelected = selectedValues.includes(option);
