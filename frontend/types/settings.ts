@@ -22,6 +22,7 @@ export interface FormData {
   accountNumber: string;
   upinId: string;
   imageUrl: string;
+  isActive?: boolean;
 }
 
 export interface BankDetails {
@@ -35,6 +36,7 @@ export interface BankDetails {
   upinId?: string;
   firstName?: string;
   userId?: string;
+  country: string;
 }
 
 export interface PasswordResponse {

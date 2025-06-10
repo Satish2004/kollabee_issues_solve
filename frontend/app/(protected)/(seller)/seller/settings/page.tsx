@@ -7,19 +7,25 @@ import PaymentMethod from "./components/payment-method";
 import { authApi } from "@/lib/api/auth";
 import { profileApi } from "@/lib/api/profile";
 import { countries } from "@/lib/country";
-import type {
-  TabType,
-  FormData,
-  BankDetails,
-  PasswordResponse,
-  Alert,
-} from "@/types/settings";
-import type React from "react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import type { TabType, FormData, BankDetails, PasswordResponse, Alert } from "@/types/settings";
+import { useSearchParams, useRouter } from "next/navigation";
+import React from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { toast } from "sonner";
 
+
+const tabList: TabType[] = ["account", "password", "payment"];
+
 const Settings: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<TabType>("account");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  // Get tab from query, fallback to "account" if not present or invalid
+  const queryTab = searchParams?.get("tab");
+  const initialTab: TabType = tabList.includes(queryTab as TabType)
+    ? (queryTab as TabType)
+    : "account";
+
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab);
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -47,6 +53,7 @@ const Settings: React.FC = () => {
     zipCode: "",
     accountNumber: "",
     upinId: "",
+    country: "",
   });
   const [originalBankDetails, setOriginalBankDetails] = useState<BankDetails>({
     fullName: "",
@@ -57,6 +64,7 @@ const Settings: React.FC = () => {
     zipCode: "",
     accountNumber: "",
     upinId: "",
+    country: "",
   });
   const [alert, setAlert] = useState<Alert>({
     show: false,
@@ -88,6 +96,7 @@ const Settings: React.FC = () => {
     accountNumber: "",
     upinId: "",
     imageUrl: "",
+    isActive: true, // Default to true if not provided
   });
   const [originalFormData, setOriginalFormData] = useState<FormData>({
     currentPassword: "",
@@ -111,6 +120,7 @@ const Settings: React.FC = () => {
     accountNumber: "",
     upinId: "",
     imageUrl: "",
+    isActive: true, // Default to true if not provided
   });
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -313,103 +323,131 @@ const Settings: React.FC = () => {
     }
   };
 
+  // Sync tab with query changes
+  useEffect(() => {
+    if (queryTab && tabList.includes(queryTab as TabType)) {
+      setActiveTab(queryTab as TabType);
+    } else {
+      setActiveTab("account");
+    }
+  }, [queryTab]);
+
+  // Update query when tab changes
+  const handleTabChange = (tab: TabType) => {
+    const params = new URLSearchParams(searchParams?.toString() || "");
+    params.set("tab", tab);
+    router.replace(`?${params.toString()}`);
+    console.log("Tab changed to:", tab);
+    setActiveTab(tab);
+  };
+
   return (
-    <div className="">
-      <div className=" bg-white rounded-xl mb-4">
-        <div className="flex space-x-6 px-6 py-4">
-          <button
-            className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
-              activeTab === "account"
-                ? "bg-rose-100"
-                : "border-transparent text-gray-500"
-            }`}
-            onClick={() => setActiveTab("account")}
-          >
-            Account Settings
-          </button>
-          <button
-            className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
-              activeTab === "password"
-                ? "bg-rose-100"
-                : "border-transparent text-gray-500"
-            }`}
-            onClick={() => setActiveTab("password")}
-          >
-            Password Management
-          </button>
-          <button
-            className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
-              activeTab === "payment"
-                ? "bg-rose-100"
-                : "border-transparent text-gray-500"
-            }`}
-            onClick={() => setActiveTab("payment")}
-          >
-            Payment Method
-          </button>
+    <Suspense fallback={<div>Loading...</div>}>
+      <div className="">
+        <div className=" bg-white rounded-xl mb-4">
+          <div className="flex space-x-6 px-6 py-4">
+            <button
+              className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
+                activeTab === "account"
+                  ? "bg-rose-100"
+                  : "border-transparent text-gray-500"
+              }`}
+              onClick={() => handleTabChange("account")}
+            >
+              Account Settings
+            </button>
+            <button
+              className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
+                activeTab === "password"
+                  ? "bg-rose-100"
+                  : "border-transparent text-gray-500"
+              }`}
+              onClick={() => handleTabChange("password")}
+            >
+              Password Management
+            </button>
+            <button
+              className={`rounded-md text-sm shadow-none py-1.5 px-2 font-medium ${
+                activeTab === "payment"
+                  ? "bg-rose-100"
+                  : "border-transparent text-gray-500"
+              }`}
+              onClick={() => handleTabChange("payment")}
+            >
+              Payment Method
+            </button>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl p-4">
+          {activeTab === "account" && (
+            <AccountSettings
+              formData={formData}
+              setFormData={setFormData}
+              originalFormData={originalFormData}
+              isLoading={isLoading}
+              fileInputRef={fileInputRef}
+              handleInputChange={handleInputChange}
+              handleSelectChange={handleSelectChange}
+              handleImageChange={handleImageChange}
+              handleDeleteImage={handleDeleteImage}
+              loading={loading}
+              updateProfileData={updateProfileData}
+              showCountryDropdown={showCountryDropdown}
+              setShowCountryDropdown={setShowCountryDropdown}
+              search={search}
+              setSearch={setSearch}
+              filteredCountries={filteredCountries}
+              setIsSelecting={setIsSelecting}
+              isSelecting={isSelecting}
+            />
+          )}
+          {activeTab === "password" &&
+            (forgotPassoword ? (
+              <ForgotPassword
+                emailSent={emailSent}
+                formData={formData}
+                handleInputChange={handleInputChange}
+                handleForgotPasswordSubmit={handleForgotPasswordSubmit}
+                isLoading={isLoading}
+              />
+            ) : (
+              <PasswordManagement
+                passwordResponse={passwordResponse}
+                originalPasswordResponse={originalPasswordResponse}
+                showPassword={showPassword}
+                setShowPassword={setShowPassword}
+                showNewPassword={showNewPassword}
+                setShowNewPassword={setShowNewPassword}
+                showConfirmPassword={showConfirmPassword}
+                setShowConfirmPassword={setShowConfirmPassword}
+                handlePasswordChange={handlePasswordChange}
+                setForgotPassword={setForgotPassword}
+                updatePassword={updatePassword}
+                loading={passwordLoading}
+              />
+            ))}
+          {activeTab === "payment" && (
+            <PaymentMethod
+              bankDetails={bankDetails}
+              originalBankDetails={originalBankDetails}
+              handleBankDetailsChange={handleBankDetailsChange}
+              updateBankDetails={updateBankDetails}
+              loading={bankLoading}
+            />
+          )}
         </div>
       </div>
-
-      <div className="bg-white rounded-xl p-4">
-        {activeTab === "account" && (
-          <AccountSettings
-            formData={formData}
-            setFormData={setFormData}
-            originalFormData={originalFormData}
-            isLoading={isLoading}
-            fileInputRef={fileInputRef}
-            handleInputChange={handleInputChange}
-            handleSelectChange={handleSelectChange}
-            handleImageChange={handleImageChange}
-            handleDeleteImage={handleDeleteImage}
-            loading={loading}
-            updateProfileData={updateProfileData}
-            showCountryDropdown={showCountryDropdown}
-            setShowCountryDropdown={setShowCountryDropdown}
-            search={search}
-            setSearch={setSearch}
-            filteredCountries={filteredCountries}
-            setIsSelecting={setIsSelecting}
-            isSelecting={isSelecting}
-          />
-        )}
-        {activeTab === "password" &&
-          (forgotPassoword ? (
-            <ForgotPassword
-              emailSent={emailSent}
-              formData={formData}
-              handleInputChange={handleInputChange}
-              handleForgotPasswordSubmit={handleForgotPasswordSubmit}
-              isLoading={isLoading}
-            />
-          ) : (
-            <PasswordManagement
-              passwordResponse={passwordResponse}
-              originalPasswordResponse={originalPasswordResponse}
-              showPassword={showPassword}
-              setShowPassword={setShowPassword}
-              showNewPassword={showNewPassword}
-              setShowNewPassword={setShowNewPassword}
-              showConfirmPassword={showConfirmPassword}
-              setShowConfirmPassword={setShowConfirmPassword}
-              handlePasswordChange={handlePasswordChange}
-              setForgotPassword={setForgotPassword}
-              updatePassword={updatePassword}
-              loading={passwordLoading}
-            />
-          ))}
-        {activeTab === "payment" && (
-          <PaymentMethod
-            bankDetails={bankDetails}
-            originalBankDetails={originalBankDetails}
-            handleBankDetailsChange={handleBankDetailsChange}
-            updateBankDetails={updateBankDetails}
-            loading={bankLoading}
-          />
-        )}
-      </div>
-    </div>
+    </Suspense>
   );
 };
 
-export default Settings;
+const SuspenseSetting = () => {
+  return (
+    <React.Suspense fallback={<div>Loading settings...</div>}>
+      <Settings />
+    </React.Suspense>
+  );
+};
+
+export default SuspenseSetting;
