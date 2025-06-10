@@ -45,6 +45,7 @@ interface ChatWindowProps {
   isLoading: boolean;
   conversation: Conversation | undefined;
   isBlocked?: boolean;
+  isActive?: boolean;
 }
 
 export default function ChatWindow({
@@ -55,6 +56,7 @@ export default function ChatWindow({
   isLoading,
   conversation,
   isBlocked,
+  isActive,
 }: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -836,6 +838,15 @@ export default function ChatWindow({
                 <div className="flex items-center space-x-1 bg-neutral-100 px-2 rounded-xl py-0.5">
                   <div className="h-1.5 w-1.5 bg-neutral-500 rounded-full"></div>
                   <span className="text-neutral-500">Offline</span>
+                </div>
+              )}
+
+              {isActive === false && (
+                <div className="flex items-center space-x-1 bg-neutral-100 px-2 rounded-xl py-0.5">
+                  <div className="h-1.5 w-1.5 bg-neutral-500 rounded-full"></div>
+                  <span className="text-neutral-500">
+                    User may not reply or May late reply (User is inactive)
+                  </span>
                 </div>
               )}
             </div>
