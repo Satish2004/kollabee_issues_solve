@@ -684,6 +684,7 @@ model BankDetail {
   cvCode        String
   upiId         String?
   zipCode       String
+  country       String?
   user          User     @relation(fields: [userId], references: [id])
 }
 

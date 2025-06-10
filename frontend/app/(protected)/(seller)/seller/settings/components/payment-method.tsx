@@ -89,7 +89,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
             </label>
             <select
               name="country"
-              value={bankDetails.country}
+              value={bankDetails.country || ""}
               onChange={handleBankDetailsChange}
               className="w-full px-3 py-2 border rounded-lg"
             >
@@ -107,7 +107,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               <input
                 type="text"
                 name="fullName"
-                value={bankDetails.fullName}
+                value={bankDetails.fullName || ""}
                 onChange={handleBankDetailsChange}
                 placeholder="Enter your Full Name"
                 className="w-full px-3 py-2 border rounded-lg"
@@ -121,7 +121,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
             <input
               type="text"
               name="holderName"
-              value={bankDetails.holderName}
+              value={bankDetails.holderName || ""}
               onChange={handleBankDetailsChange}
               placeholder="Text Here"
               className="w-full px-3 py-2 border rounded-lg"
@@ -204,7 +204,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
             <input
               type="text"
               name="cvCode"
-              value={bankDetails.cvCode}
+              value={bankDetails.cvCode || ""}
               onChange={handleBankDetailsChange}
               placeholder="XXX"
               className="w-full px-3 py-2 border rounded-lg"
@@ -218,7 +218,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
             <input
               type="text"
               name="zipCode"
-              value={bankDetails.zipCode}
+              value={bankDetails.zipCode || ""}
               onChange={handleBankDetailsChange}
               placeholder="XXXXX"
               className="w-full px-3 py-2 border rounded-lg"
@@ -232,7 +232,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
             <input
               type="text"
               name="accountNumber"
-              value={bankDetails.accountNumber}
+              value={bankDetails.accountNumber || ""}
               onChange={handleBankDetailsChange}
               placeholder="Enter your Account Number"
               className="w-full px-3 py-2 border rounded-lg"
@@ -245,7 +245,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
             <input
               type="text"
               name="upinId"
-              value={bankDetails.upinId}
+              value={bankDetails.upinId || ""}
               onChange={handleBankDetailsChange}
               placeholder="Text Here"
               className="w-full px-3 py-2 border rounded-lg"

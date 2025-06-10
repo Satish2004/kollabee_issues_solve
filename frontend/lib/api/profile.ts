@@ -36,6 +36,7 @@ export interface BankDetailsData {
   cvvCode: string;
   upiId?: string;
   zipCode: string;
+  country?: string;
 }
 
 const authUrl = process.env.NEXT_PUBLIC_API_URL;
