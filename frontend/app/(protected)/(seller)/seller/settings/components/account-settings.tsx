@@ -16,6 +16,7 @@ import { Country, State } from "country-state-city";
 import { User, Loader2, AlertCircle } from "lucide-react";
 import React, { useMemo, useState, useEffect } from "react";
 import ReactCountryFlag from "react-country-flag";
+import { Switch } from "@/components/ui/switch";
 
 interface AccountSettingsProps {
   formData: FormData;
@@ -662,6 +663,30 @@ const AccountSettings: React.FC<AccountSettingsProps> = React.memo(
                   </div>
                 )}
               </div>
+            </div>
+
+            {/* isActive Switch */}
+            <div className="flex items-center mt-6">
+              <Switch
+                checked={!!formData.isActive}
+                onCheckedChange={(checked) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    isActive: checked,
+                  }))
+                }
+                id="isActive"
+              />
+              <label
+                htmlFor="isActive"
+                className="ml-3 text-sm font-medium text-gray-700"
+              >
+                Active Seller Account
+              </label>
+            </div>
+            <div className="ml-9 mt-1 text-xs text-gray-500">
+              Disabling this will remove all your active products from listing on
+              our platform.
             </div>
           </div>
         </div>

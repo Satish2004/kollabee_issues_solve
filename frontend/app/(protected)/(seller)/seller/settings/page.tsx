@@ -99,6 +99,7 @@ const Settings: React.FC = () => {
     accountNumber: "",
     upinId: "",
     imageUrl: "",
+    isActive: true, // Default to true if not provided
   });
   const [originalFormData, setOriginalFormData] = useState<FormData>({
     currentPassword: "",
@@ -122,6 +123,7 @@ const Settings: React.FC = () => {
     accountNumber: "",
     upinId: "",
     imageUrl: "",
+    isActive: true, // Default to true if not provided
   });
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);

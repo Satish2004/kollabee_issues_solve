@@ -47,6 +47,7 @@ model User {
   blockedAsTarget      BlockedCommunication[]  @relation("target")
   approvals        Approved[]        
   invites          Invite[]
+  isActive         Boolean?                  @default(true)
 }
 
 model Address {

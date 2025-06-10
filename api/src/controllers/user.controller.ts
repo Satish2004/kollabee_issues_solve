@@ -46,6 +46,7 @@ export const updateUserProfile = async (req: any, res: Response) => {
         companyWebsite: req.body.companyWebsite,
         zipCode: req.body.zipCode,
         imageUrl: req.body.imageUrl,
+        isActive: req.body.isActive ?? true, // Default to true if not provided
       },
     });
 

@@ -1,6 +1,6 @@
 import { api } from "../axios";
-import type { User } from "@/types/api";
 import { removeToken } from "../utils/token";
+import type { User } from "@/types/api";
 import Cookies from "js-cookie";
 // Add these functions to your existing profile API file
 
@@ -20,6 +20,7 @@ export interface ProfileUpdateData {
   state?: string;
   address?: string;
   zipCode?: string;
+  isActive?: boolean; // Optional, defaults to true if not provided
 }
 
 export interface PasswordUpdateData {
