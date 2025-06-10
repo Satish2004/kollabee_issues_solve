@@ -98,6 +98,11 @@ export function SellerSidebar({ className }: SidebarProps) {
           href: "/seller/request",
           className: "tour-requests",
         },
+        {
+          label: "Help",
+          icon: MessageCircleQuestion,
+          href: "/seller/help",
+        },
         // {
         //   label: "Orders",
         //   icon: ShoppingCart,
@@ -115,33 +120,7 @@ export function SellerSidebar({ className }: SidebarProps) {
         // },
       ],
     },
-    {
-      label: "GUIDES",
-      routes: [
-        {
-          label: "Advertise",
-          icon: Headphones,
-          href: "/seller/advertise",
-          target: "advertise",
-        },
-      ],
-    },
-    {
-      label: "OTHERS",
-      routes: [
-        {
-          label: "Calendar",
-          icon: Calendar,
-          href: "/seller/appointment",
-        },
-
-        {
-          label: "FAQ",
-          icon: MessageCircleQuestion,
-          href: "/seller/faq",
-        },
-      ],
-    },
+ 
   ];
 
   const menuItems: string = [

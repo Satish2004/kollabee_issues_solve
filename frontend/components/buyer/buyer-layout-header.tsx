@@ -137,6 +137,11 @@ export default function BuyerLayoutHeader() {
         patterns: ["/buyer/support/"],
       },
       {
+        label: "Help",
+        icon: MessageCircleQuestion,
+        patterns: ["/buyer/help"],
+      },
+      {
         label: "Settings",
         icon: Settings,
         href: "/buyer/settings",
