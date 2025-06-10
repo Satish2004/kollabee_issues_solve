@@ -25,6 +25,16 @@ interface PaymentMethodProps {
   loading: boolean;
 }
 
+const REQUIRED_FIELDS = [
+  "country",
+  "fullName",
+  "bankName",
+  "bankType",
+  "cvCode",
+  "zipCode",
+  "accountNumber",
+];
+
 const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
   ({
     bankDetails,
@@ -45,6 +55,9 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
     const allBanks = BANKS[selectedCountry] || [];
     const [bankSearch, setBankSearch] = useState("");
     const [isBankSelectOpen, setIsBankSelectOpen] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState<{ [key: string]: string }>(
+      {}
+    );
 
     // Filter banks by search
     const availableBanks = useMemo(() => {
@@ -78,6 +91,94 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
       if (!isBankSelectOpen) setBankSearch("");
     }, [isBankSelectOpen]);
 
+    // Validation for required fields and numeric fields
+    const validateFields = () => {
+      const errors: { [key: string]: string } = {};
+      REQUIRED_FIELDS.forEach((field) => {
+        const value = bankDetails[field as keyof BankDetails]?.toString() || "";
+        if (!value.trim()) {
+          errors[field] = "This field is required";
+        }
+      });
+
+      // CVV: only numbers, 3-4 digits
+      const cvCode = bankDetails.cvCode || "";
+      if (cvCode && !/^\d{3,4}$/.test(cvCode)) {
+        errors.cvCode = "CVV must be 3 or 4 digits";
+      }
+
+      // Zip Code: only numbers, 3-6 digits
+      const zipCode = bankDetails.zipCode || "";
+      if (zipCode && !/^\d{3,6}$/.test(zipCode)) {
+        errors.zipCode = "Zip code must be 3 to 6 digits";
+      }
+
+      // Account Number: only numbers, 6-18 digits (typical range)
+      const accountNumber = bankDetails.accountNumber || "";
+      if (accountNumber && !/^\d{6,18}$/.test(accountNumber)) {
+        errors.accountNumber = "Account number must be 6 to 18 digits";
+      }
+
+      setFieldErrors(errors);
+      return Object.keys(errors).length === 0;
+    };
+
+    // Check if all required fields are filled
+    const isFormValid = useMemo(() => {
+      return REQUIRED_FIELDS.every(
+        (field) =>
+          bankDetails[field as keyof BankDetails] &&
+          bankDetails[field as keyof BankDetails].toString().trim() !== ""
+      );
+    }, [bankDetails]);
+
+    // Show error on blur or on save attempt
+    const handleBlur = (
+      e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+    ) => {
+      const { name, value } = e.target;
+      if (REQUIRED_FIELDS.includes(name) && (!value || value.trim() === "")) {
+        setFieldErrors((prev) => ({
+          ...prev,
+          [name]: "This field is required",
+        }));
+      } else {
+        setFieldErrors((prev) => {
+          const copy = { ...prev };
+          delete copy[name];
+          return copy;
+        });
+      }
+    };
+
+    const handleSave = () => {
+      if (!validateFields()) {
+        // Scroll to first error field
+        const firstErrorField = REQUIRED_FIELDS.find(
+          (field) => fieldErrors[field]
+        );
+        if (firstErrorField) {
+          const el = document.querySelector(`[name="${firstErrorField}"]`);
+          if (el) (el as HTMLElement).focus();
+        }
+        return;
+      }
+      updateBankDetails();
+    };
+
+    // Restrict input for numeric fields
+    const handleNumberInput = (
+      e: React.ChangeEvent<HTMLInputElement>,
+      maxLength: number
+    ) => {
+      const { name, value } = e.target;
+      // Only allow digits, trim to maxLength
+      const digits = value.replace(/\D/g, "").slice(0, maxLength);
+      handleBankDetailsChange({
+        target: { name, value: digits },
+      } as any);
+    };
+
     return (
       <div className="p-6">
         <div className="grid grid-cols-2 gap-6">
@@ -91,12 +192,20 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               name="country"
               value={bankDetails.country || ""}
               onChange={handleBankDetailsChange}
-              className="w-full px-3 py-2 border rounded-lg"
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border rounded-lg ${
+                fieldErrors.country ? "border-red-500" : ""
+              }`}
             >
               <option value="">Select Country</option>
               <option value="india">India</option>
               <option value="us">US</option>
             </select>
+            {fieldErrors.country && (
+              <div className="text-red-500 text-xs mt-1">
+                {fieldErrors.country}
+              </div>
+            )}
           </div>
           <div className="w-full flex gap-4 items-center">
             <div className="w-full">
@@ -109,9 +218,17 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
                 name="fullName"
                 value={bankDetails.fullName || ""}
                 onChange={handleBankDetailsChange}
+                onBlur={handleBlur}
                 placeholder="Enter your Full Name"
-                className="w-full px-3 py-2 border rounded-lg"
+                className={`w-full px-3 py-2 border rounded-lg ${
+                  fieldErrors.fullName ? "border-red-500" : ""
+                }`}
               />
+              {fieldErrors.fullName && (
+                <div className="text-red-500 text-xs mt-1">
+                  {fieldErrors.fullName}
+                </div>
+              )}
             </div>
           </div>
           <div>
@@ -144,7 +261,9 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               open={isBankSelectOpen}
               onOpenChange={setIsBankSelectOpen}
             >
-              <SelectTrigger>
+              <SelectTrigger
+                className={fieldErrors.bankName ? "border-red-500" : ""}
+              >
                 <SelectValue placeholder="Select Bank" />
               </SelectTrigger>
               <SelectContent className="max-h-56 z-100 bg-white overflow-y-auto">
@@ -173,6 +292,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
                 )}
               </SelectContent>
             </Select>
+            {fieldErrors.bankName && (
+              <div className="text-red-500 text-xs mt-1">
+                {fieldErrors.bankName}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -183,7 +307,10 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               name="bankType"
               value={bankDetails.bankType}
               onChange={handleBankDetailsChange}
-              className="w-full px-3 py-2 border rounded-lg"
+              onBlur={handleBlur}
+              className={`w-full px-3 py-2 border rounded-lg ${
+                fieldErrors.bankType ? "border-red-500" : ""
+              }`}
             >
               <option value="">Select Type</option>
               {[
@@ -195,6 +322,11 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
                 </option>
               ))}
             </select>
+            {fieldErrors.bankType && (
+              <div className="text-red-500 text-xs mt-1">
+                {fieldErrors.bankType}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -205,10 +337,21 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               type="text"
               name="cvCode"
               value={bankDetails.cvCode || ""}
-              onChange={handleBankDetailsChange}
+              onChange={(e) => handleNumberInput(e, 4)}
+              onBlur={handleBlur}
               placeholder="XXX"
-              className="w-full px-3 py-2 border rounded-lg"
+              maxLength={4}
+              className={`w-full px-3 py-2 border rounded-lg ${
+                fieldErrors.cvCode ? "border-red-500" : ""
+              }`}
+              inputMode="numeric"
+              pattern="\d*"
             />
+            {fieldErrors.cvCode && (
+              <div className="text-red-500 text-xs mt-1">
+                {fieldErrors.cvCode}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -219,10 +362,21 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               type="text"
               name="zipCode"
               value={bankDetails.zipCode || ""}
-              onChange={handleBankDetailsChange}
+              onChange={(e) => handleNumberInput(e, 6)}
+              onBlur={handleBlur}
               placeholder="XXXXX"
-              className="w-full px-3 py-2 border rounded-lg"
+              maxLength={6}
+              className={`w-full px-3 py-2 border rounded-lg ${
+                fieldErrors.zipCode ? "border-red-500" : ""
+              }`}
+              inputMode="numeric"
+              pattern="\d*"
             />
+            {fieldErrors.zipCode && (
+              <div className="text-red-500 text-xs mt-1">
+                {fieldErrors.zipCode}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -233,10 +387,21 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               type="text"
               name="accountNumber"
               value={bankDetails.accountNumber || ""}
-              onChange={handleBankDetailsChange}
+              onChange={(e) => handleNumberInput(e, 18)}
+              onBlur={handleBlur}
               placeholder="Enter your Account Number"
-              className="w-full px-3 py-2 border rounded-lg"
+              maxLength={18}
+              className={`w-full px-3 py-2 border rounded-lg ${
+                fieldErrors.accountNumber ? "border-red-500" : ""
+              }`}
+              inputMode="numeric"
+              pattern="\d*"
             />
+            {fieldErrors.accountNumber && (
+              <div className="text-red-500 text-xs mt-1">
+                {fieldErrors.accountNumber}
+              </div>
+            )}
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -255,7 +420,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
         <div className="pt-4 flex justify-end">
           <button
             disabled={loading || !hasChanges}
-            onClick={updateBankDetails}
+            onClick={handleSave}
             className={`bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white px-6 py-2 rounded-[6px] ${
               loading || !hasChanges ? "opacity-50 cursor-not-allowed" : ""
             }`}
