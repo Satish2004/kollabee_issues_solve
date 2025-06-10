@@ -36,6 +36,7 @@ export interface BankDetails {
   upinId?: string;
   firstName?: string;
   userId?: string;
+  country: string;
 }
 
 export interface PasswordResponse {

@@ -7,17 +7,12 @@ import PaymentMethod from "./components/payment-method";
 import { authApi } from "@/lib/api/auth";
 import { profileApi } from "@/lib/api/profile";
 import { countries } from "@/lib/country";
-import type {
-  TabType,
-  FormData,
-  BankDetails,
-  PasswordResponse,
-  Alert,
-} from "@/types/settings";
+import type { TabType, FormData, BankDetails, PasswordResponse, Alert } from "@/types/settings";
 import { useSearchParams, useRouter } from "next/navigation";
 import React from "react";
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
 import { toast } from "sonner";
+
 
 const tabList: TabType[] = ["account", "password", "payment"];
 
@@ -58,6 +53,7 @@ const Settings: React.FC = () => {
     zipCode: "",
     accountNumber: "",
     upinId: "",
+    country: "",
   });
   const [originalBankDetails, setOriginalBankDetails] = useState<BankDetails>({
     fullName: "",
@@ -68,6 +64,7 @@ const Settings: React.FC = () => {
     zipCode: "",
     accountNumber: "",
     upinId: "",
+    country: "",
   });
   const [alert, setAlert] = useState<Alert>({
     show: false,

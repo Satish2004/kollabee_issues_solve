@@ -1,9 +1,19 @@
 "use client";
 
-import type { BankDetails } from "@/types/settings";
+import BANKS from "./banks";
 import Star from "@/app/(auth)/signup/seller/onboarding/Star";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import type { BankDetails } from "@/types/settings";
 import { Loader2 } from "lucide-react";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+
+// Expanded bank lists for India and US
 
 interface PaymentMethodProps {
   bankDetails: BankDetails;
@@ -30,9 +40,64 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
       );
     }, [bankDetails, originalBankDetails]);
 
+    // Get available banks for selected country
+    const selectedCountry = bankDetails.country?.toLowerCase() || "";
+    const allBanks = BANKS[selectedCountry] || [];
+    const [bankSearch, setBankSearch] = useState("");
+    const [isBankSelectOpen, setIsBankSelectOpen] = useState(false);
+
+    // Filter banks by search
+    const availableBanks = useMemo(() => {
+      if (!bankSearch.trim()) return allBanks;
+      return allBanks.filter((bank) =>
+        bank.name.toLowerCase().includes(bankSearch.trim().toLowerCase())
+      );
+    }, [allBanks, bankSearch]);
+
+    // Keyboard search handler
+    React.useEffect(() => {
+      if (!isBankSelectOpen) return;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        // Ignore navigation keys and Enter/Escape
+        if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+          setBankSearch((prev) => prev + e.key);
+        } else if (e.key === "Backspace") {
+          setBankSearch((prev) => prev.slice(0, -1));
+        } else if (e.key === "Escape") {
+          setBankSearch("");
+        }
+      };
+
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [isBankSelectOpen]);
+
+    // Reset search when select closes
+    React.useEffect(() => {
+      if (!isBankSelectOpen) setBankSearch("");
+    }, [isBankSelectOpen]);
+
     return (
       <div className="p-6">
         <div className="grid grid-cols-2 gap-6">
+          {/* Country select */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Country
+              <Star />
+            </label>
+            <select
+              name="country"
+              value={bankDetails.country}
+              onChange={handleBankDetailsChange}
+              className="w-full px-3 py-2 border rounded-lg"
+            >
+              <option value="">Select Country</option>
+              <option value="india">India</option>
+              <option value="us">US</option>
+            </select>
+          </div>
           <div className="w-full flex gap-4 items-center">
             <div className="w-full">
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -42,7 +107,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               <input
                 type="text"
                 name="fullName"
-                value={bankDetails.firstName}
+                value={bankDetails.fullName}
                 onChange={handleBankDetailsChange}
                 placeholder="Enter your Full Name"
                 className="w-full px-3 py-2 border rounded-lg"
@@ -51,7 +116,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Account Holder 
+              Account Holder
             </label>
             <input
               type="text"
@@ -62,19 +127,52 @@ const PaymentMethod: React.FC<PaymentMethodProps> = React.memo(
               className="w-full px-3 py-2 border rounded-lg"
             />
           </div>
+          {/* Bank Name as select dropdown */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Bank
+              Bank Name
               <Star />
             </label>
-            <input
-              type="text"
-              name="bankName"
+            <Select
               value={bankDetails.bankName}
-              onChange={handleBankDetailsChange}
-              placeholder="Enter your Bank Name"
-              className="w-full px-3 py-2 border rounded-lg"
-            />
+              onValueChange={(value) =>
+                handleBankDetailsChange({
+                  target: { name: "bankName", value },
+                } as any)
+              }
+              disabled={!selectedCountry}
+              open={isBankSelectOpen}
+              onOpenChange={setIsBankSelectOpen}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Bank" />
+              </SelectTrigger>
+              <SelectContent className="max-h-56 z-100 bg-white overflow-y-auto">
+                {/* Bank search input */}
+                <div className="sticky top-0 z-10 bg-white px-2 py-2 border-b">
+                  <input
+                    type="text"
+                    placeholder="Search bank..."
+                    value={bankSearch}
+                    onChange={(e) => setBankSearch(e.target.value)}
+                    className="w-full px-2 py-1 border rounded text-sm"
+                    autoFocus
+                  />
+                </div>
+                <SelectItem value="null">Select Bank</SelectItem>
+                {availableBanks.length === 0 ? (
+                  <div className="px-3 py-2 text-gray-500 text-sm">
+                    No banks found
+                  </div>
+                ) : (
+                  availableBanks.map((bank) => (
+                    <SelectItem key={bank.value} value={bank.value}>
+                      {bank.name}
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
