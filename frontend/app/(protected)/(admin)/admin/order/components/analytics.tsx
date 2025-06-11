@@ -22,7 +22,6 @@ import {
 } from "recharts";
 import { ordersApi } from "@/lib/api/orders";
 
-// Define the type for our formatted top buyer data
 type FormattedTopBuyer = {
   id: string;
   name: string;
@@ -60,55 +59,6 @@ export default function Analytics() {
         sortBy: "totalAmount",
         sortOrder: "desc",
       };
-
-      // // For now, use dummy data that matches the screenshot
-      // const dummyData: FormattedTopBuyer[] = [
-      //   {
-      //     id: "1",
-      //     name: "Naomi Craig",
-      //     avatar: "/north-carolina-landscape.png",
-      //     productOrdered: "Lux",
-      //     address: "Meadow Lane Oakland",
-      //     orderDate: "12/09/23",
-      //     status: "Active Buying",
-      //   },
-      //   {
-      //     id: "2",
-      //     name: "Kate Morrison",
-      //     avatar: "/abstract-geometric-km.png",
-      //     productOrdered: "Life Ray",
-      //     address: "Larry San Francisco",
-      //     orderDate: "21/09/23",
-      //     status: "Active Buying",
-      //   },
-      //   {
-      //     id: "3",
-      //     name: "Drew Cross",
-      //     avatar: "/comic-book-cityscape.png",
-      //     productOrdered: "Oil",
-      //     address: "Boyard Avenue Oasis",
-      //     orderDate: "31/10/24",
-      //     status: "Not Active",
-      //   },
-      //   {
-      //     id: "4",
-      //     name: "Orlando Diggs",
-      //     avatar: "/abstract-geometric-shapes.png",
-      //     productOrdered: "Almond",
-      //     address: "Houlihan Baton Rouge",
-      //     orderDate: "21/01/24",
-      //     status: "Not Active",
-      //   },
-      // ];
-
-      // setTopBuyers(dummyData);
-      // setPagination({
-      //   total: dummyData.length,
-      //   pageSize: pagination.pageSize,
-      //   currentPage: 1,
-      //   totalPages: 1,
-      //   hasMore: false,
-      // });
 
       const response = await ordersApi.getTopBuyers(params);
 
@@ -153,7 +103,6 @@ export default function Analytics() {
     // Implement export logic here
   };
 
-  // Define columns for the DataTable with proper accessorKey values
   const columns: Column<FormattedTopBuyer>[] = [
     {
       header: "Buyer Name",
@@ -220,7 +169,7 @@ export default function Analytics() {
       header: "",
       className: "w-[50px]",
       cell: (buyer) => (
-        <button className="p-1">
+        <button title="view" className="p-1">
           <Eye className="h-4 w-4 text-muted-foreground" />
         </button>
       ),
@@ -231,60 +180,7 @@ export default function Analytics() {
     <div className="space-y-6">
       <h2 className="text-lg font-medium">Order Analytics</h2>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">
-              Order Analytics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex items-center gap-4 mb-4">
-              <div className="flex items-center gap-1">
-                <span className="h-3 w-3 rounded-full bg-rose-500"></span>
-                <span className="text-sm">Bulk Quantity</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="h-3 w-3 rounded-full bg-amber-400"></span>
-                <span className="text-sm">Single Quantity</span>
-              </div>
-              <div className="ml-auto">
-                <select className="text-sm border rounded px-2 py-1">
-                  <option>Monthly</option>
-                  <option>Weekly</option>
-                  <option>Daily</option>
-                </select>
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground">16 Aug 2023</div>
-            <div className="text-xl font-semibold">$59,492.10</div>
-            <div className="h-[200px] mt-4">
-              <OrderAnalyticsChart />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Order Summary</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
-              <OrderSummaryChart />
-            </div>
-            <div className="flex items-center justify-center gap-6 mt-2">
-              <div className="flex items-center gap-1">
-                <span className="h-3 w-3 rounded-full bg-amber-400"></span>
-                <span className="text-sm">Repeated Customers</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <span className="h-3 w-3 rounded-full bg-rose-500"></span>
-                <span className="text-sm">New Customers</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <OrderAnalytics />
 
       <Card className="p-4">
         <DataTable
@@ -320,8 +216,66 @@ export default function Analytics() {
   );
 }
 
+export function OrderAnalytics() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium">
+            Order Analytics
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="flex items-center gap-1">
+              <span className="h-3 w-3 rounded-full bg-rose-500"></span>
+              <span className="text-sm">Bulk Quantity</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="h-3 w-3 rounded-full bg-amber-400"></span>
+              <span className="text-sm">Single Quantity</span>
+            </div>
+            <div className="ml-auto">
+              <select title="time" className="text-sm border rounded px-2 py-1">
+                <option>Monthly</option>
+                <option>Weekly</option>
+                <option>Daily</option>
+              </select>
+            </div>
+          </div>
+          <div className="text-sm text-muted-foreground">16 Aug 2023</div>
+          <div className="text-xl font-semibold">$59,492.10</div>
+          <div className="h-[200px] mt-4">
+            <OrderAnalyticsChart />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg font-medium">Order Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[200px]">
+            <OrderSummaryChart />
+          </div>
+          <div className="flex items-center justify-center gap-6 mt-2">
+            <div className="flex items-center gap-1">
+              <span className="h-3 w-3 rounded-full bg-amber-400"></span>
+              <span className="text-sm">Repeated Customers</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <span className="h-3 w-3 rounded-full bg-rose-500"></span>
+              <span className="text-sm">New Customers</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
 function OrderAnalyticsChart() {
-  // Updated data to match the screenshot more closely
   const data = [
     { month: "Jan", bulk: 20, single: 30 },
     { month: "Feb", bulk: 25, single: 40 },
@@ -374,8 +328,7 @@ function OrderAnalyticsChart() {
   );
 }
 
-function OrderSummaryChart() {
-  // Updated data to match the screenshot more closely
+export function OrderSummaryChart() {
   const data = [
     { month: "Jan", repeated: 1000, new: 2000 },
     { month: "Feb", repeated: 2000, new: 1500 },
@@ -442,7 +395,6 @@ function CustomerStatusBadge({ status }) {
   );
 }
 
-// These components are used for the empty state rendering
 const TableRow = ({ children }) => <tr>{children}</tr>;
 const TableCell = ({ colSpan, className, children }) => (
   <td colSpan={colSpan} className={className}>
