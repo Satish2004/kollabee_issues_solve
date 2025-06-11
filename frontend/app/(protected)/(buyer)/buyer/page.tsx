@@ -90,7 +90,7 @@ const Dashboard = () => {
   };
 
   return (
-    <main className="min-h-screen md:px-6 max-w-screen  overflow-x-hidden">
+    <main className="min-h-screen md:px-6 max-w-screen overflow-x-hidden overflow-hidden">
       <div className=" space-y-3 sm:space-y-6">
         {/* Top section with 4 feature boxes */}
         <FeatureBoxes />
@@ -130,8 +130,8 @@ const Dashboard = () => {
         </div>
 
         {/* Bottom section with Recommended Supplier */}
-        <div className="bg-white rounded-xl p-3 sm:p-6">
-          <h2 className="text-base sm:text-lg font-medium mb-2 sm:mb-4">
+        <div className="bg-white rounded-xl sm:p-6">
+          <h2 className="text-base sm:text-lg max-md:p-2 font-medium mb-2 sm:mb-4">
             Recommended Supplier
           </h2>
           <SupplierCards sellers={sellers} />
