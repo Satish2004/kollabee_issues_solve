@@ -404,7 +404,6 @@ export const login = async (req: Request, res: Response) => {
       });
     }
 
-    // Verify password
     const validPassword = await bcrypt.compare(
       validatedData.password,
       user.password!

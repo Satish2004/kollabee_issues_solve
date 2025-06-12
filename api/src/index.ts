@@ -9,13 +9,10 @@ import prisma from "./db/index";
 import { setupRoutes } from "./routes";
 import { Server } from "socket.io";
 import { handleSocketConnection } from "./sockets";
-import bcrypt from "bcryptjs";
 
 const app: Application = express();
 
-// Hash password
 
-// Basic middleware
 app.use(
   cors({
     origin: (origin, callback) => {

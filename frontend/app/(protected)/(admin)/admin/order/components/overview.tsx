@@ -26,15 +26,12 @@ import { AdminApi } from "@/lib/api";
 import MetricCard from "@/components/admin-dashboard/metric-card";
 
 export default function Overview() {
-
   const [orderMetrics, setOrderMetrics] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchOrderMetrics = async () => {
       const metricsRes = await AdminApi.getOrderMetrics()
       setOrderMetrics(metricsRes)
-      setIsLoading(false)
     }
     fetchOrderMetrics()
   }, [])
@@ -53,60 +50,72 @@ export default function Overview() {
 
       <div className="pt-4">
         <h2 className="text-lg font-medium mb-4">Order Analytics</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="flex items-center gap-1">
-                    <span className="h-3 w-3 rounded-full bg-rose-500"></span>
-                    <span className="text-sm">Bulk Quantity</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="h-3 w-3 rounded-full bg-amber-400"></span>
-                    <span className="text-sm">Single Quantity</span>
-                  </div>
-                  <div className="ml-auto">
-                    <select className="text-sm border rounded px-2 py-1">
-                      <option>Monthly</option>
-                      <option>Weekly</option>
-                      <option>Daily</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="text-sm text-muted-foreground">16 Aug 2023</div>
-                <div className="text-xl font-semibold">$59,492.10</div>
-                <div className="h-[200px] mt-4">
-                  <OrderAnalyticsChart />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <StatCard
-              title="Customers"
-              value="3,781"
-              change="+11.01%"
-              trend="up"
-            />
-            <StatCard
-              title="Revenue"
-              value="$695"
-              change="+15.03%"
-              trend="up"
-            />
-            <StatCard
-              title="Orders"
-              value="1,219"
-              change="-0.03%"
-              trend="down"
-            />
-            <StatCard title="Growth" value="30.1%" change="+6.08%" trend="up" />
-          </div>
-        </div>
+        <OrderOverview />
       </div>
     </div>
+  );
+}
+
+function OrderOverview() {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="lg:col-span-2">
+        <BulkOrder/>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <StatCard
+          title="Customers"
+          value="3,781"
+          change="+11.01%"
+          trend="up"
+        />
+        <StatCard
+          title="Revenue"
+          value="$695"
+          change="+15.03%"
+          trend="up"
+        />
+        <StatCard
+          title="Orders"
+          value="1,219"
+          change="-0.03%"
+          trend="down"
+        />
+        <StatCard title="Growth" value="30.1%" change="+6.08%" trend="up" />
+      </div>
+    </div>
+  );
+}
+
+export function   BulkOrder(){
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-full bg-rose-500"></span>
+            <span className="text-sm">Bulk Quantity</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="h-3 w-3 rounded-full bg-amber-400"></span>
+            <span className="text-sm">Single Quantity</span>
+          </div>
+          <div className="ml-auto">
+            <select title="time" className="text-sm border rounded px-2 py-1">
+              <option>Monthly</option>
+              <option>Weekly</option>
+              <option>Daily</option>
+            </select>
+          </div>
+        </div>
+        <div className="text-sm text-muted-foreground">16 Aug 2023</div>
+        <div className="text-xl font-semibold">$59,492.10</div>
+        <div className="h-[200px] mt-4">
+          <OrderAnalyticsChart />
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
