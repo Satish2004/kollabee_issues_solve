@@ -26,14 +26,17 @@ import {
   NotebookPen,
   MessageCircleQuestion,
   Share,
+  Search,
 } from "lucide-react";
 import { User2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { HiChatBubbleLeftRight } from "react-icons/hi2";
 import { IoStorefront } from "react-icons/io5";
+import { Input } from "../ui/input";
+import { IconType } from "react-icons";
 
 export default function BuyerLayoutHeader() {
   const pathname = usePathname();
@@ -41,6 +44,8 @@ export default function BuyerLayoutHeader() {
   const { products } = useCheckout();
   const [user, setUser] = useState<any>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
   // Comprehensive routes array with proper ordering (most specific first)
   const routes = useMemo(
@@ -309,16 +314,53 @@ export default function BuyerLayoutHeader() {
 
   const numberOfCartItems = products.length;
 
+  // Instant search as you type
+  useEffect(() => {
+    if (!searchTerm.trim()) return;
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    debounceTimeout.current = setTimeout(() => {
+      router.push(`/buyer/search?query=${encodeURIComponent(searchTerm.trim())}`);
+    }, 400);
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
+  }, [searchTerm]);
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (searchTerm.trim()) {
+      router.push(`/buyer/search?query=${encodeURIComponent(searchTerm.trim())}`);
+    }
+  };
+
   console.log("Current route:", currentRoute, "Pathname:", pathname);
 
   return (
     <div className="w-[95%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6">
       <div className="flex items-center justify-between gap-2">
         {currentRoute && (
-          <IconRenderer icon={currentRoute.icon} className="w-5 h-5" />
+          <IconRenderer icon={currentRoute.icon as IconType} className="w-5 h-5" />
         )}
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
+
+      {/* Search Bar */}
+      <form
+        onSubmit={handleSearch}
+        className="flex-1 max-w-xl mx-4 flex items-center bg-[#fafafa] rounded-lg border border-gray-200 px-2 py-1 shadow-sm"
+        style={{ minWidth: 250 }}
+      >
+        <Input
+          type="text"
+          placeholder="Search for product you are looking for"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="border-none bg-transparent focus:ring-0 flex-1 text-base"
+        />
+        <button type="submit" className="p-2 text-gray-500 hover:text-black">
+          <Search className="w-5 h-5" />
+        </button>
+      </form>
 
       {/* Mobile menu button */}
       <div className="md:hidden">
