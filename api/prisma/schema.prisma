@@ -8,46 +8,46 @@ datasource db {
 }
 
 model User {
-  id               String                    @id @default(uuid())
-  email            String                    @unique
-  name             String?
-  firstName        String?
-  lastName         String?
-  role             Role                      @default(BUYER)
-  companyName      String?
-  createdAt        DateTime                  @default(now())
-  updatedAt        DateTime                  @updatedAt
-  companyWebsite   String?
-  country          String?
-  countryCode     String?
-  displayName      String?
-  fullName         String?
-  imageUrl         String?
-  phoneNumber      String?
-  secondaryEmail   String?
-  state            String?
-  address          String?
-  zipCode          String?
-  lastLogin        DateTime?
-  password         String?
-  provider         String?
-  aiPreferences    AIMatchingPreference?
-  addresses        Address[]
-  admin            Admin?
-  analytics        Analytics[]
-  bankDetails      BankDetail[]
-  buyer            Buyer?
-  notifications    Notification[]
-  seller           Seller?
-  subscription     Subscription?
-  subscribe        SubscriptionTransaction[]
-  messages         Message[]
-  conversations    ConversationParticipant[]
-  blockedAsInitiator   BlockedCommunication[]  @relation("initiator")
-  blockedAsTarget      BlockedCommunication[]  @relation("target")
-  approvals        Approved[]        
-  invites          Invite[]
-  isActive         Boolean?                  @default(true)
+  id                 String                    @id @default(uuid())
+  email              String                    @unique
+  name               String?
+  firstName          String?
+  lastName           String?
+  role               Role                      @default(BUYER)
+  companyName        String?
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+  companyWebsite     String?
+  country            String?
+  countryCode        String?
+  displayName        String?
+  fullName           String?
+  imageUrl           String?
+  phoneNumber        String?
+  secondaryEmail     String?
+  state              String?
+  address            String?
+  zipCode            String?
+  lastLogin          DateTime?
+  password           String?
+  provider           String?
+  aiPreferences      AIMatchingPreference?
+  addresses          Address[]
+  admin              Admin?
+  analytics          Analytics[]
+  bankDetails        BankDetail[]
+  buyer              Buyer?
+  notifications      Notification[]
+  seller             Seller?
+  subscription       Subscription?
+  subscribe          SubscriptionTransaction[]
+  messages           Message[]
+  conversations      ConversationParticipant[]
+  blockedAsInitiator BlockedCommunication[]    @relation("initiator")
+  blockedAsTarget    BlockedCommunication[]    @relation("target")
+  approvals          Approved[]
+  invites            Invite[]
+  isActive           Boolean?                  @default(true)
 }
 
 model Address {
@@ -78,13 +78,13 @@ model Category {
 }
 
 model Conversation {
-  id            String                  @id @default(uuid())
-  status        conversationStatus      @default(PENDING)
-  initiatedBy   String?         
-  createdAt     DateTime                @default(now())
-  updatedAt     DateTime                @default(now())
-  participants  ConversationParticipant[]
-  messages      Message[]
+  id           String                    @id @default(uuid())
+  status       conversationStatus        @default(PENDING)
+  initiatedBy  String?
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @default(now())
+  participants ConversationParticipant[]
+  messages     Message[]
 }
 
 model ConversationParticipant {
@@ -115,38 +115,38 @@ model Message {
 }
 
 model BlockedCommunication {
-  id          String    @id @default(uuid())
-  initiatorId String    
-  targetId    String    
+  id          String   @id @default(uuid())
+  initiatorId String
+  targetId    String
   reason      String?
-  blockedBy   String    
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now())
-  initiator   User      @relation("initiator", fields: [initiatorId], references: [id], onDelete: Cascade)
-  target      User      @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
+  blockedBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  initiator   User     @relation("initiator", fields: [initiatorId], references: [id], onDelete: Cascade)
+  target      User     @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
 
   @@unique([initiatorId, targetId])
 }
 
 model Order {
-  id                String           @id @default(uuid())
-  buyerId           String?
-  sellerId          String?
-  status            OrderStatus
-  totalAmount       Float
-  isAccepted        Boolean          @default(false)
-  stripePaymentId   String?
+  id                    String           @id @default(uuid())
+  buyerId               String?
+  sellerId              String?
+  status                OrderStatus
+  totalAmount           Float
+  isAccepted            Boolean          @default(false)
+  stripePaymentId       String?
   stripePaymentIntentId String?
-  trackingNumber    String?
-  carrier           String?
-  trackingHistory   Json[]
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @default(now())
-  buyer             Buyer?           @relation(fields: [buyerId], references: [id])
-  seller            Seller?          @relation(fields: [sellerId], references: [id])
-  items             OrderItem[]
-  return            Return?
-  shippingAddress   ShippingAddress?
+  trackingNumber        String?
+  carrier               String?
+  trackingHistory       Json[]
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @default(now())
+  buyer                 Buyer?           @relation(fields: [buyerId], references: [id])
+  seller                Seller?          @relation(fields: [sellerId], references: [id])
+  items                 OrderItem[]
+  return                Return?
+  shippingAddress       ShippingAddress?
 
   @@index([trackingNumber])
 }
@@ -172,12 +172,12 @@ model Cart {
 }
 
 model CartItem {
-  id        String  @id @default(uuid())
+  id        String   @id @default(uuid())
   cartId    String
   productId String
   quantity  Int
-  cart      Cart    @relation(fields: [cartId], references: [id])
-  product   Product @relation(fields: [productId], references: [id])
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
   createdAt DateTime @default(now())
 }
 
@@ -347,32 +347,30 @@ model Notification {
 //   @@index([userId])
 // }
 
-
 model Client {
-  id          String   @id @default(uuid())
+  id          String  @id @default(uuid())
   name        String
   logo        String?
   description String?
   website     String?
   phone       String?
 
-  sellerId    String
-  seller      Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  sellerId  String
+  seller    Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
 
-
 model Seller {
-  id                 String          @id @default(uuid())
-  userId             String          @unique
-  businessName       String?
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  businessName        String?
   businessDescription String?
-  businessAddress    String?
-  websiteLink        String?
-  businessCategories String[]
-  businessTypes      String[]
-  
+  businessAddress     String?
+  websiteLink         String?
+  businessCategories  String[]
+  businessTypes       String[]
+
   // Business Overview (Step 4)
   businessLogo       String?
   yearFounded        Int?
@@ -380,115 +378,111 @@ model Seller {
   annualRevenue      String?
   languagesSpoken    String[]
   businessAttributes String[]
-  
+
   // Capabilities & Operations (Step 5)
   bussinessRegistration String[]
-  servicesProvided   String[]
-  minimumOrderQuantity String?
-  lowMoqFlexibility  Boolean?        @default(false)
-  productionModel    String?
-  productionCountries String[]
-  providesSamples    Boolean?        @default(false)
-  sampleDispatchTime String?
-  productionTimeline String?
-  factoryImages      String[]
-  
+  servicesProvided      String[]
+  minimumOrderQuantity  String?
+  lowMoqFlexibility     Boolean? @default(false)
+  productionModel       String?
+  productionCountries   String[]
+  providesSamples       Boolean? @default(false)
+  sampleDispatchTime    String?
+  productionTimeline    String?
+  factoryImages         String[]
+
   // Compliance & Credentials (Step 6)
   businessRegistration String[] // changed from String? to String[]
-  certificationTypes String[]
-  notableClients     Client[]
-  certificates       String[]
-  
-  // Brand Presence (Step 7)
-  projectImages      String[]
-  brandVideo         String?
-  socialMediaLinks   Json?           // Store as { instagram: "", linkedin: "", website: "" }
-  additionalNotes    String?
-  
-  // Existing fields
-  employeeCount      Int?
-  exportPercentage   Float?
-  moq                Int?
-  yearEstablished    Int?
-  rating             Float?          @default(0)
-  location           String?
-  country            String?
-  state              String?
-  qualityControl     String?
-  rd                 String?
-  roleInCompany      String?
-  subCategories      Json?
-  productionServices String[]
-  productionManagementType productionManaged?
-  manufacturingLocations String[]
-  targetAudience     audience[]
-  comments           String?
-  challenges         String[]
-  profileCompletion  Int[]
-  metrics            String[]
-  objectives         String[]
-  mainMarkets        String[]
-  
-  // Approval fields
-  approvalRequested  Boolean         @default(false)
-  approvalReqestAt   DateTime?
-  approved           Boolean?        @default(false)
-  ApprovedId         String?
-  Approved           Approved?
+  certificationTypes   String[]
+  notableClients       Client[]
+  certificates         String[]
 
+  // Brand Presence (Step 7)
+  projectImages    String[]
+  brandVideo       String?
+  socialMediaLinks Json? // Store as { instagram: "", linkedin: "", website: "" }
+  additionalNotes  String?
+
+  // Existing fields
+  employeeCount            Int?
+  exportPercentage         Float?
+  moq                      Int?
+  yearEstablished          Int?
+  rating                   Float?             @default(0)
+  location                 String?
+  country                  String?
+  state                    String?
+  qualityControl           String?
+  rd                       String?
+  roleInCompany            String?
+  subCategories            Json?
+  productionServices       String[]
+  productionManagementType productionManaged?
+  manufacturingLocations   String[]
+  targetAudience           audience[]
+  comments                 String?
+  challenges               String[]
+  profileCompletion        Int[]
+  metrics                  String[]
+  objectives               String[]
+  mainMarkets              String[]
+
+  // Approval fields
+  approvalRequested Boolean   @default(false)
+  approvalReqestAt  DateTime?
+  approved          Boolean?  @default(false)
+  ApprovedId        String?
+  Approved          Approved?
 
   // lock stage
 
-  lock               Boolean         @default(false)
-  lockedAt           DateTime?
+  lock     Boolean   @default(false)
+  lockedAt DateTime?
 
-  
   // Relations
-  advertisements     Advertisement[]
-  inquiries          Inquiry[]
-  orders             Order[]
-  orderItems         OrderItem[]
-  returns            Return[]
-  products           Product[]
-  requests           Request[]
-  user               User            @relation(fields: [userId], references: [id])
-  favoritedBy        Buyer[]         @relation(name: "BuyerToSeller")
-  certifications     Certification[] @relation("CertificationToSeller")
-  trustBadges        TrustBadge[]    @relation("SellerToTrustBadge")
-  projects           Project[]       @relation("ProjectToSeller")
-  savedByProjects    Project[]       @relation("SavedSeller")
-  projectReq         projectReq[]
-  
-  agrrement1         Boolean?        @default(false)
-  agrrement2         Boolean?        @default(false)
+  advertisements  Advertisement[]
+  inquiries       Inquiry[]
+  orders          Order[]
+  orderItems      OrderItem[]
+  returns         Return[]
+  products        Product[]
+  requests        Request[]
+  user            User            @relation(fields: [userId], references: [id])
+  favoritedBy     Buyer[]         @relation(name: "BuyerToSeller")
+  certifications  Certification[] @relation("CertificationToSeller")
+  trustBadges     TrustBadge[]    @relation("SellerToTrustBadge")
+  projects        Project[]       @relation("ProjectToSeller")
+  savedByProjects Project[]       @relation("SavedSeller")
+  projectReq      projectReq[]
 
-  createdAt         DateTime?        @default(now())
-  updatedAt         DateTime?        @default(now())
+  agrrement1 Boolean? @default(false)
+  agrrement2 Boolean? @default(false)
+
+  createdAt DateTime? @default(now())
+  updatedAt DateTime? @default(now())
 
   @@index([userId])
 }
 
-
 model Invite {
-  id          String   @id @default(uuid())
-  email       String[]  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
-  userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  email     String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
-
 
 model Approved {
   id           String   @id @default(uuid())
   approvedAt   DateTime @default(now())
-  approvedById String  @unique
-  approvedBy   User    @relation(fields: [approvedById], references: [id], onDelete: Cascade)
+  approvedById String   @unique
+  approvedBy   User     @relation(fields: [approvedById], references: [id], onDelete: Cascade)
   status       Boolean
   sellerId     String   @unique
   seller       Seller   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
 }
 
 model Buyer {
@@ -507,18 +501,17 @@ model Buyer {
   reviews                Review[]
   savedSearches          SavedSearch[]
   Wishlist               Wishlist?
-  businessName String?
-  businessDescription String?
-  businessType String?
-  otherBusinessType String?
-  lookingFor String[]
+  businessName           String?
+  businessDescription    String?
+  businessType           String?
+  otherBusinessType      String?
+  lookingFor             String[]
   requiredCertifications Certification[] @relation("BuyerToCertification")
   products               Product[]       @relation("BuyerToProduct")
   favoriteSuppliers      Seller[]        @relation("BuyerToSeller")
   interestedCategories   Category[]      @relation("InterestedCategories")
-  projects               Project[]  
+  projects               Project[]
   projectReq             projectReq[]
-    
 }
 
 model Certification {
@@ -530,7 +523,7 @@ model Certification {
   issuerName  String?
   approved    Boolean   @default(false)
   productId   String?
-  product     Product?   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product     Product?  @relation(fields: [productId], references: [id], onDelete: Cascade)
   buyers      Buyer[]   @relation("BuyerToCertification")
   suppliers   Seller[]  @relation("CertificationToSeller")
   createdAt   DateTime  @default(now())
@@ -563,9 +556,8 @@ model Admin {
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-
 model Product {
-  id                     String             @id @default(uuid())
+  id                     String          @id @default(uuid())
   name                   String
   description            String
   price                  Float
@@ -573,12 +565,12 @@ model Product {
   minOrderQuantity       Int
   availableQuantity      Int
   images                 String[]
-  isDraft                Boolean            @default(true)
-  status                 ProductStatus      @default(DRAFT)
-  stockStatus            StockStatus        @default(IN_STOCK)
-  rating                 Float              @default(0)
-  reviewCount            Int                @default(0)
-  attributes             Json?              // JSON field for storing all attributes
+  isDraft                Boolean         @default(true)
+  status                 ProductStatus   @default(DRAFT)
+  stockStatus            StockStatus     @default(IN_STOCK)
+  rating                 Float           @default(0)
+  reviewCount            Int             @default(0)
+  attributes             Json? // JSON field for storing all attributes
   dimensions             String?
   material               String?
   artistName             String?
@@ -590,7 +582,7 @@ model Product {
   fabricType             String?
   fabricWeight           String?
   fitType                String?
-  documents               String[]
+  documents              String[]
   discount               Float?
   deliveryCost           Float?
   certificateIssueDate   DateTime?
@@ -598,25 +590,24 @@ model Product {
   sellerId               String
   categoryId             String?
   pickupAddressId        String?
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @default(now())
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @default(now())
   advertisements         Advertisement[]
   cartItems              CartItem[]
   productCertificates    Certification[]
   orderItems             OrderItem[]
   returnItems            ReturnItem[]
-  pickupAddress          PickupAddress?     @relation(fields: [pickupAddressId], references: [id])
-  seller                 Seller             @relation(fields: [sellerId], references: [id])
+  pickupAddress          PickupAddress?  @relation(fields: [pickupAddressId], references: [id])
+  seller                 Seller          @relation(fields: [sellerId], references: [id])
   reviews                Review[]
   wishlistItems          WishlistItem[]
-  interestedBuyers       Buyer[]            @relation("BuyerToProduct")
+  interestedBuyers       Buyer[]         @relation("BuyerToProduct")
   thumbnail              String[]
 
   @@index([sellerId])
   @@index([categoryId])
   @@index([pickupAddressId])
 }
-
 
 enum ReturnStatus {
   REQUESTED
@@ -628,34 +619,33 @@ enum ReturnStatus {
 }
 
 model Return {
-  id          String       @id @default(uuid())
-  order       Order        @relation(fields: [orderId], references: [id])
-  orderId     String       @unique
-  buyerId     String
-  sellerId    String
-  buyer       Buyer        @relation(fields: [buyerId], references: [id])
-  seller      Seller       @relation(fields: [sellerId], references: [id])
-  returnItems ReturnItem[]
-  reason      String
-  status      ReturnStatus @default(REQUESTED)
+  id           String       @id @default(uuid())
+  order        Order        @relation(fields: [orderId], references: [id])
+  orderId      String       @unique
+  buyerId      String
+  sellerId     String
+  buyer        Buyer        @relation(fields: [buyerId], references: [id])
+  seller       Seller       @relation(fields: [sellerId], references: [id])
+  returnItems  ReturnItem[]
+  reason       String
+  status       ReturnStatus @default(REQUESTED)
   refundAmount Float
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now())
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @default(now())
 }
 
 model ReturnItem {
-  id          String   @id @default(uuid())
-  return      Return   @relation(fields: [returnId], references: [id])
-  returnId    String
-  product     Product  @relation(fields: [productId], references: [id])
-  productId   String
-  quantity    Int
-  reason      String?
+  id           String   @id @default(uuid())
+  return       Return   @relation(fields: [returnId], references: [id])
+  returnId     String
+  product      Product  @relation(fields: [productId], references: [id])
+  productId    String
+  quantity     Int
+  reason       String?
   refundAmount Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @default(now())
 }
-
 
 model PickupAddress {
   id           String    @id @default(uuid())
@@ -775,16 +765,14 @@ model AdvertisementMetrics {
   @@index([advertisementId])
 }
 
-
-
 model Project {
-  id                     String     @id @default(uuid())
+  id               String   @id @default(uuid())
   // Core fields
-  selectedServices       String[]
-  category               String
-  businessName           String
-  productType            String
-  
+  selectedServices String[]
+  category         String
+  businessName     String
+  productType      String
+
   // Legacy fields for backward compatibility
   formulationType        String?
   targetBenefit          String?
@@ -798,87 +786,83 @@ model Project {
   minimumOrderQuantity   String?
   certificationsRequired String?
   sampleRequirements     String?
-  
+
   // Timeline and budget
-  projectTimeline        DateTime[]
-  budget                 Float
-  pricingCurrency        String @default("USD")
-  
+  projectTimeline DateTime[]
+  budget          Float
+  pricingCurrency String     @default("USD")
+
   // New fields 
-  projectTitle           String?
-  productCategory        String[]
-  packagingCategory      String?
-  productDescription     String?     
-  hasDesignOrFormula     String?
-  customizationLevel     String?
-  hasTargetPrice         String?
-  targetPrice            String?
-  needsSample            String?
-  needsPackaging         String?
-  needsDesign            String?
-  packagingDescription   String?     
-  productForPackaging    String?     
-  ecoFriendly            String?
-  packagingDimensions    String?     
-  needsLabeling          String?
-  hasPackagingDesign     String?
-  projectDescription     String?     
-  brandVision            String?     
-  brandStatus            String?
-  quantity               Int?
-  budgetType             String?
-  budgetFlexibility      String?
-  receiveDate            DateTime?
-  launchDate             DateTime?
-  serviceStartDate       DateTime?
-  serviceEndDate         DateTime?
-  supplierLocation       String?
-  additionalDetails      String?     
-  referenceFiles         Json?      // Store file references as JSON
-  certifications         String[]   // Store certifications as array
-  
+  projectTitle         String?
+  productCategory      String[]
+  packagingCategory    String?
+  productDescription   String?
+  hasDesignOrFormula   String?
+  customizationLevel   String?
+  hasTargetPrice       String?
+  targetPrice          String?
+  needsSample          String?
+  needsPackaging       String?
+  needsDesign          String?
+  packagingDescription String?
+  productForPackaging  String?
+  ecoFriendly          String?
+  packagingDimensions  String?
+  needsLabeling        String?
+  hasPackagingDesign   String?
+  projectDescription   String?
+  brandVision          String?
+  brandStatus          String?
+  quantity             Int?
+  budgetType           String?
+  budgetFlexibility    String?
+  receiveDate          DateTime?
+  launchDate           DateTime?
+  serviceStartDate     DateTime?
+  serviceEndDate       DateTime?
+  supplierLocation     String?
+  additionalDetails    String?
+  referenceFiles       Json? // Store file references as JSON
+  certifications       String[] // Store certifications as array
+
   // Relations
-  milestones             Milestone[]
-  ownerId                String
-  owner                  Buyer      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  sellers                Seller[]   @relation("ProjectToSeller")
-  savedSeller            Seller[]   @relation("SavedSeller")
-  requestedSeller        projectReq[]
+  milestones      Milestone[]
+  ownerId         String
+  owner           Buyer        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sellers         Seller[]     @relation("ProjectToSeller")
+  savedSeller     Seller[]     @relation("SavedSeller")
+  requestedSeller projectReq[]
 
   // Timestamps
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 }
-
-
 
 model projectReq {
-  id             String        @id @default(uuid())
-  buyerId        String
-  sellerId       String
-  projectId      String
-  status         RequestStatus @default(PENDING)
-  approvedAt     DateTime?
-  rejectedAt     DateTime? 
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now())
-  project        Project         @relation(fields: [projectId], references: [id])
-  buyer          Buyer         @relation(fields: [buyerId], references: [id])
-  seller         Seller        @relation(fields: [sellerId], references: [id])
+  id         String        @id @default(uuid())
+  buyerId    String
+  sellerId   String
+  projectId  String
+  status     RequestStatus @default(PENDING)
+  approvedAt DateTime?
+  rejectedAt DateTime?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @default(now())
+  project    Project       @relation(fields: [projectId], references: [id])
+  buyer      Buyer         @relation(fields: [buyerId], references: [id])
+  seller     Seller        @relation(fields: [sellerId], references: [id])
 }
 
-
-
 model Milestone {
-  id          String   @id @default(uuid())
-  name        String
-  description String
+  id                String   @id @default(uuid())
+  name              String
+  description       String
   paymentPercentage Float
-  dueDate     DateTime
-  projectId   String
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now())
+  dueDate           DateTime
+  projectId         String
+  project           Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @default(now())
 }
 
 enum StockStatus {
@@ -907,7 +891,7 @@ enum CategoryEnum {
   HEALTH_WELLNESS
   OTHER
 
-   BRAND_STRATEGY_DEVELOPMENT
+  BRAND_STRATEGY_DEVELOPMENT
   DESIGN_CREATIVE_SERVICES
   DIGITAL_MARKETING
   WEB_ECOMMERCE_DEVELOPMENT
@@ -943,8 +927,6 @@ enum CategoryEnum {
   TEA_COFFEE
   TEXTILES_APPAREL
   TOYS
-
-  
 }
 
 enum OrderStatus {

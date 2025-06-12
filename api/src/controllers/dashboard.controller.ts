@@ -407,283 +407,47 @@ export const getMetrics = async (req: any, res: Response) => {
 };
 
 export const getOrderAnalytics = async (req: any, res: Response) => {
+  console.log("Get order analytics called");
   try {
     const { userId } = req.user;
-    const { period } = req.query; // 'today', 'week', 'month', or 'year'
-
-    const seller = await prisma.seller.findFirst({ where: { userId } });
+    const { period = 'month' } = req.query; // Default to 'month' if not specified
+    console.log("User ID:", userId);
+    // Validate seller exists
+    const seller = await prisma.seller.findFirst({
+      where: { userId },
+      select: { id: true }
+    });
     if (!seller) return res.status(404).json({ error: "Seller not found" });
 
     // Calculate date ranges based on period
-    const currentDate = new Date();
-    let currentPeriodStart: Date;
-    let previousPeriodStart: Date;
-    let previousPeriodEnd: Date;
+    const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } = getDateRanges(period);
 
-    switch (period) {
-      case "today":
-        currentPeriodStart = new Date(currentDate);
-        currentPeriodStart.setHours(0, 0, 0, 0);
-
-        previousPeriodStart = new Date(currentPeriodStart);
-        previousPeriodStart.setDate(previousPeriodStart.getDate() - 1);
-        previousPeriodEnd = new Date(previousPeriodStart);
-        previousPeriodEnd.setHours(23, 59, 59, 999);
-        break;
-
-      case "week":
-        currentPeriodStart = new Date(currentDate);
-        currentPeriodStart.setDate(
-          currentDate.getDate() - currentDate.getDay()
-        ); // Start of current week (Sunday)
-        currentPeriodStart.setHours(0, 0, 0, 0);
-
-        previousPeriodStart = new Date(currentPeriodStart);
-        previousPeriodStart.setDate(previousPeriodStart.getDate() - 7);
-        previousPeriodEnd = new Date(previousPeriodStart);
-        previousPeriodEnd.setDate(previousPeriodEnd.getDate() + 6);
-        previousPeriodEnd.setHours(23, 59, 59, 999);
-        break;
-
-      case "month":
-        currentPeriodStart = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          1
-        );
-
-        previousPeriodStart = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth() - 1,
-          1
-        );
-        previousPeriodEnd = new Date(
-          currentDate.getFullYear(),
-          currentDate.getMonth(),
-          0
-        );
-        previousPeriodEnd.setHours(23, 59, 59, 999);
-        break;
-
-      case "year":
-        currentPeriodStart = new Date(currentDate.getFullYear(), 0, 1);
-
-        previousPeriodStart = new Date(currentDate.getFullYear() - 1, 0, 1);
-        previousPeriodEnd = new Date(currentDate.getFullYear() - 1, 11, 31);
-        previousPeriodEnd.setHours(23, 59, 59, 999);
-        break;
-
-      default:
-        return res.status(400).json({ error: "Invalid period parameter" });
-    }
-
-    // Function to generate chart data based on period
-    const generateChartData = async (periodType: string) => {
-      let chartData: Array<{ name: string; orders: number; requests: number }> =
-        [];
-      const now = new Date();
-
-      if (periodType === "today") {
-        // Today by hours
-        for (let i = 0; i < 24; i++) {
-          const hourStart = new Date(now);
-          hourStart.setHours(i, 0, 0, 0);
-          const hourEnd = new Date(hourStart);
-          hourEnd.setHours(i, 59, 59, 999);
-
-          const [orders, requests] = await Promise.all([
-            prisma.order.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: hourStart, lte: hourEnd },
-              },
-            }),
-            prisma.request.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: hourStart, lte: hourEnd },
-              },
-            }),
-          ]);
-
-          chartData.push({
-            name: `${i}:00`,
-            orders,
-            requests,
-          });
-        }
-      } else if (periodType === "week") {
-        // Week by days
-        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        for (let i = 0; i < 7; i++) {
-          const dayStart = new Date(currentPeriodStart);
-          dayStart.setDate(dayStart.getDate() + i);
-          const dayEnd = new Date(dayStart);
-          dayEnd.setHours(23, 59, 59, 999);
-
-          const [orders, requests] = await Promise.all([
-            prisma.order.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: dayStart, lte: dayEnd },
-              },
-            }),
-            prisma.request.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: dayStart, lte: dayEnd },
-              },
-            }),
-          ]);
-
-          chartData.push({
-            name: days[i],
-            orders,
-            requests,
-          });
-        }
-      } else if (periodType === "month") {
-        // Month by weeks
-        const weeksInMonth = Math.ceil(
-          (currentDate.getDate() +
-            new Date(
-              currentDate.getFullYear(),
-              currentDate.getMonth(),
-              1
-            ).getDay()) /
-            7
-        );
-
-        for (let i = 0; i < weeksInMonth; i++) {
-          const weekStart = new Date(
-            currentDate.getFullYear(),
-            currentDate.getMonth(),
-            i * 7 + 1
-          );
-          const weekEnd = new Date(weekStart);
-          weekEnd.setDate(weekEnd.getDate() + 6);
-          weekEnd.setHours(23, 59, 59, 999);
-
-          const [orders, requests] = await Promise.all([
-            prisma.order.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: weekStart, lte: weekEnd },
-              },
-            }),
-            prisma.request.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: weekStart, lte: weekEnd },
-              },
-            }),
-          ]);
-
-          chartData.push({
-            name: `Week ${i + 1}`,
-            orders,
-            requests,
-          });
-        }
-      } else if (periodType === "year") {
-        // Year by months
-        const months = [
-          "Jan",
-          "Feb",
-          "Mar",
-          "Apr",
-          "May",
-          "Jun",
-          "Jul",
-          "Aug",
-          "Sep",
-          "Oct",
-          "Nov",
-          "Dec",
-        ];
-
-        for (let i = 0; i < 12; i++) {
-          const monthStart = new Date(currentDate.getFullYear(), i, 1);
-          const monthEnd = new Date(currentDate.getFullYear(), i + 1, 0);
-          monthEnd.setHours(23, 59, 59, 999);
-
-          const [orders, requests] = await Promise.all([
-            prisma.order.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: monthStart, lte: monthEnd },
-              },
-            }),
-            prisma.request.count({
-              where: {
-                sellerId: seller.id,
-                createdAt: { gte: monthStart, lte: monthEnd },
-              },
-            }),
-          ]);
-
-          chartData.push({
-            name: months[i],
-            orders,
-            requests,
-          });
-        }
-      }
-
-      return chartData;
-    };
-
-    // Get all metrics
+    // Fetch all data in parallel for better performance
     const [
       currentRequests,
       previousRequests,
       messages,
       activeProducts,
       chartData,
+      topProducts,
+      lowSellingProducts,
+      responseMetrics,
     ] = await Promise.all([
-      // Current period requests
-      prisma.request.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: currentPeriodStart,
-          },
-        },
-      }),
-
-      // Previous period requests
-      prisma.request.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: previousPeriodStart,
-            lte: previousPeriodEnd,
-          },
-        },
-      }),
-
-      // Messages
-      prisma.conversationParticipant.count({
-        where: {
-          userId,
-        },
-      }),
-
-      // Active products
-      prisma.product.count({
-        where: {
-          sellerId: seller.id,
-          isDraft: false,
-          stockStatus: "IN_STOCK",
-          createdAt: {
-            gte: currentPeriodStart,
-          },
-        },
-      }),
-
-      // Generate chart data
-      generateChartData(period),
+      getRequestCount(seller.id, currentPeriodStart),
+      getRequestCount(seller.id, previousPeriodStart, previousPeriodEnd),
+      getMessageCount(userId),
+      getActiveProductCount(seller.id, currentPeriodStart),
+      generateChartData(period, seller.id),
+      getTopProductss(seller.id),
+      getLowSellingProducts(seller.id),
+      getResponseMetrics(seller.id, currentPeriodStart),
     ]);
+
+    // Calculate percentage changes
+    const requestPercentageChange = calculatePercentageChange(
+      currentRequests,
+      previousRequests
+    );
 
     res.json({
       period,
@@ -692,38 +456,382 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
           current: currentRequests,
           previous: previousRequests,
           difference: currentRequests - previousRequests,
-          percentageChange:
-            previousRequests === 0
-              ? currentRequests > 0
-                ? 100
-                : 0
-              : parseFloat(
-                  (
-                    ((currentRequests - previousRequests) / previousRequests) *
-                    100
-                  ).toFixed(2)
-                ),
+          percentageChange: requestPercentageChange,
         },
         messages,
         activeProducts,
+        responseMetrics
       },
       chartData,
       dateRanges: {
-        current: {
-          start: currentPeriodStart,
-          end: currentDate,
-        },
-        previous: {
-          start: previousPeriodStart,
-          end: previousPeriodEnd,
-        },
+        current: { start: currentPeriodStart, end: new Date() },
+        previous: { start: previousPeriodStart, end: previousPeriodEnd },
       },
+      topProducts,
+      lowSellingProducts,
     });
   } catch (error) {
     console.error("Get seller metrics error:", error);
     res.status(500).json({ error: "Failed to get seller metrics" });
   }
 };
+
+// Helper Functions
+
+
+async function getOrdersByOrderType(userId: string) {
+  const orders = await prisma.order.findMany({
+    where: {
+      sellerId: userId
+    },
+    include: {
+      items: true,
+      buyer: {
+        include: {
+          user: true
+        }
+      }
+    }
+  });
+
+  const result = {
+    singleProductOrders: orders.filter(order => order.items.length === 1),
+    multiProductOrders: orders.filter(order => order.items.length > 1)
+  };
+
+  return result;
+}
+
+
+
+async function getOrderSummary(userId: string) {
+  // Get all orders for this seller
+  const orders = await prisma.order.findMany({
+    where: {
+      sellerId: userId
+    },
+    include: {
+      buyer: {
+        include: {
+          user: true
+        }
+      },
+      items: true
+    },
+    orderBy: {
+      createdAt: 'desc'
+    }
+  });
+
+  // Analyze customer types
+  const buyerOrderCounts: Record<string, number> = {};
+  orders.forEach(order => {
+    if (order.buyerId) {
+      buyerOrderCounts[order.buyerId] = (buyerOrderCounts[order.buyerId] || 0) + 1;
+    }
+  });
+
+  const repeatedCustomers = Object.values(buyerOrderCounts).filter(count => count > 1).length;
+  const newCustomers = Object.keys(buyerOrderCounts).length - repeatedCustomers;
+
+  // Analyze order types (single vs bulk)
+  let singleOrders = 0;
+  let bulkOrders = 0;
+
+  orders.forEach(order => {
+    if (order.items.length === 1) {
+      singleOrders++;
+    } else {
+      bulkOrders++;
+    }
+  });
+
+  return {
+    totalOrders: orders.length,
+    repeatedCustomers,
+    newCustomers,
+    singleOrders,
+    bulkOrders,
+    orders // optional: include the actual orders if needed
+  };
+}
+
+function getDateRanges(period: string) {
+  const currentDate = new Date();
+  let currentPeriodStart: Date;
+  let previousPeriodStart: Date;
+  let previousPeriodEnd: Date;
+
+  switch (period) {
+    case "today":
+      currentPeriodStart = new Date(currentDate);
+      currentPeriodStart.setHours(0, 0, 0, 0);
+
+      previousPeriodStart = new Date(currentPeriodStart);
+      previousPeriodStart.setDate(previousPeriodStart.getDate() - 1);
+      previousPeriodEnd = new Date(previousPeriodStart);
+      previousPeriodEnd.setHours(23, 59, 59, 999);
+      break;
+
+    case "week":
+      currentPeriodStart = new Date(currentDate);
+      currentPeriodStart.setDate(currentDate.getDate() - currentDate.getDay());
+      currentPeriodStart.setHours(0, 0, 0, 0);
+
+      previousPeriodStart = new Date(currentPeriodStart);
+      previousPeriodStart.setDate(previousPeriodStart.getDate() - 7);
+      previousPeriodEnd = new Date(previousPeriodStart);
+      previousPeriodEnd.setDate(previousPeriodEnd.getDate() + 6);
+      previousPeriodEnd.setHours(23, 59, 59, 999);
+      break;
+
+    case "month":
+      currentPeriodStart = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        1
+      );
+
+      previousPeriodStart = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() - 1,
+        1
+      );
+      previousPeriodEnd = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth(),
+        0
+      );
+      previousPeriodEnd.setHours(23, 59, 59, 999);
+      break;
+
+    case "year":
+      currentPeriodStart = new Date(currentDate.getFullYear(), 0, 1);
+
+      previousPeriodStart = new Date(currentDate.getFullYear() - 1, 0, 1);
+      previousPeriodEnd = new Date(currentDate.getFullYear() - 1, 11, 31);
+      previousPeriodEnd.setHours(23, 59, 59, 999);
+      break;
+
+    default:
+      throw new Error("Invalid period parameter");
+  }
+
+  return { currentPeriodStart, previousPeriodStart, previousPeriodEnd };
+}
+
+async function generateChartData(period: string, sellerId: string) {
+  const chartData: Array<{ name: string; orders: number; requests: number }> = [];
+  const now = new Date();
+
+  if (period === "today") {
+    // Hourly data for today
+    for (let i = 0; i < 24; i++) {
+      const hourStart = new Date(now);
+      hourStart.setHours(i, 0, 0, 0);
+      const hourEnd = new Date(hourStart);
+      hourEnd.setHours(i, 59, 59, 999);
+
+      const [orders, requests] = await Promise.all([
+        getOrderCount(sellerId, hourStart, hourEnd),
+        getRequestCount(sellerId, hourStart, hourEnd)
+      ]);
+
+      chartData.push({ name: `${i}:00`, orders, requests });
+    }
+  } else if (period === "week") {
+    // Daily data for week
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    for (let i = 0; i < 7; i++) {
+      const dayStart = new Date();
+      dayStart.setDate(dayStart.getDate() - dayStart.getDay() + i);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+
+      const [orders, requests] = await Promise.all([
+        getOrderCount(sellerId, dayStart, dayEnd),
+        getRequestCount(sellerId, dayStart, dayEnd)
+      ]);
+
+      chartData.push({ name: days[i], orders, requests });
+    }
+  } else if (period === "month") {
+    // Weekly data for month
+    const weeksInMonth = Math.ceil(
+      (now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7
+    );
+
+    for (let i = 0; i < weeksInMonth; i++) {
+      const weekStart = new Date(now.getFullYear(), now.getMonth(), i * 7 + 1);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const [orders, requests] = await Promise.all([
+        getOrderCount(sellerId, weekStart, weekEnd),
+        getRequestCount(sellerId, weekStart, weekEnd)
+      ]);
+
+      chartData.push({ name: `Week ${i + 1}`, orders, requests });
+    }
+  } else if (period === "year") {
+    // Monthly data for year
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    for (let i = 0; i < 12; i++) {
+      const monthStart = new Date(now.getFullYear(), i, 1);
+      const monthEnd = new Date(now.getFullYear(), i + 1, 0);
+      monthEnd.setHours(23, 59, 59, 999);
+
+      const [orders, requests] = await Promise.all([
+        getOrderCount(sellerId, monthStart, monthEnd),
+        getRequestCount(sellerId, monthStart, monthEnd)
+      ]);
+
+      chartData.push({ name: months[i], orders, requests });
+    }
+  }
+
+  return chartData;
+}
+
+// Data fetching functions
+async function getOrderCount(sellerId: string, startDate?: Date, endDate?: Date) {
+  const where: any = { sellerId };
+  if (startDate) where.createdAt = { gte: startDate };
+  if (endDate) where.createdAt = { ...where.createdAt, lte: endDate };
+
+  return prisma.order.count({ where });
+}
+
+async function getRequestCount(sellerId: string, startDate?: Date, endDate?: Date) {
+  const where: any = { sellerId };
+  if (startDate) where.createdAt = { gte: startDate };
+  if (endDate) where.createdAt = { ...where.createdAt, lte: endDate };
+
+  return prisma.request.count({ where });
+}
+
+async function getMessageCount(userId: string) {
+  return prisma.conversationParticipant.count({ where: { userId } });
+}
+
+async function getActiveProductCount(sellerId: string, sinceDate?: Date) {
+  const where: any = {
+    sellerId,
+    isDraft: false,
+    stockStatus: "IN_STOCK"
+  };
+  if (sinceDate) where.createdAt = { gte: sinceDate };
+
+  return prisma.product.count({ where });
+}
+
+async function getTopProductss(sellerId: string, limit = 5) {
+  return prisma.product.findMany({
+    where: {
+      sellerId,
+      isDraft: false,
+      stockStatus: "IN_STOCK",
+    },
+    orderBy: {
+      orderItems: { _count: "desc" },
+    },
+    include: {
+      _count: { select: { orderItems: true } },
+      reviews: { select: { rating: true } },
+    },
+    take: limit,
+  });
+}
+
+async function getLowSellingProducts(sellerId: string, limit = 5) {
+  return prisma.product.findMany({
+    where: {
+      sellerId,
+      isDraft: false,
+      stockStatus: "IN_STOCK",
+    },
+    orderBy: [
+      { orderItems: { _count: "asc" } },
+      { availableQuantity: "asc" }
+    ],
+    include: {
+      _count: { select: { orderItems: true } },
+      reviews: { select: { rating: true } },
+    },
+    take: limit,
+  });
+}
+
+async function getResponseMetrics(sellerId: string, sinceDate: Date) {
+  // Get all responded inquiries
+  const inquiries = await prisma.inquiry.findMany({
+    where: {
+      supplierId: sellerId,
+      status: { not: 'PENDING' },
+      createdAt: { gte: sinceDate }
+    },
+    select: {
+      createdAt: true,
+      updatedAt: true,
+      status: true
+    }
+  });
+
+  // Calculate response times in hours
+  const responseTimes = inquiries.map(inquiry => {
+    const responseTimeMs = inquiry.updatedAt.getTime() - inquiry.createdAt.getTime();
+    return responseTimeMs / (1000 * 60 * 60); // Convert to hours
+  });
+
+  // Calculate metrics
+  const averageResponseTime = responseTimes.length > 0
+    ? parseFloat((responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length).toFixed(1))
+    : 0;
+
+  const lateResponses = responseTimes.filter(time => time > 72).length;
+  const onTimeRate = responseTimes.length > 0
+    ? parseFloat((1 - (lateResponses / responseTimes.length)).toFixed(2)) * 100
+    : 100;
+
+  // Response score (0-100)
+  const responseScore = calculateResponseScore(responseTimes);
+
+  return {
+    averageResponseTime,
+    lateResponses,
+    onTimeRate,
+    responseScore,
+    totalInquiries: inquiries.length,
+    respondedInquiries: inquiries.filter(i => i.status !== 'PENDING').length,
+    responseTimes // For charting
+  };
+}
+
+function calculateResponseScore(responseTimes: number[]) {
+  if (responseTimes.length === 0) return 100; // Perfect score if no inquiries
+
+  // Calculate penalty based on response times
+  const avgResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+  const lateResponses = responseTimes.filter(t => t > 72).length;
+
+  // Base score (100 - average hours, capped at 50% penalty)
+  let score = 100 - Math.min(avgResponseTime, 50);
+
+  // Additional penalty for late responses (up to 30% penalty)
+  const latePenalty = (lateResponses / responseTimes.length) * 30;
+  score -= latePenalty;
+
+  // Ensure score is between 0-100
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function calculatePercentageChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return parseFloat((((current - previous) / previous) * 100).toFixed(2));
+}
 
 export const getTopProducts = async (req: any, res: Response) => {
   try {
