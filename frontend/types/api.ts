@@ -228,6 +228,7 @@ export interface Order {
     product: {
       name: string;
       categoryId: string;
+      reviews?: Review[];
     };
     seller: {
       businessName: string;
@@ -245,13 +246,28 @@ export interface Order {
 
 export interface OrderItem {
   id: string;
-  orderId: string;
-  productId: string;
-  sellerId?: string;
   quantity: number;
   price: number;
-  product: Product;
-  seller?: Seller;
+  isAccepted: boolean;
+  product: {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    images: string[];
+    categoryId: string;
+    attributes: Record<string, string>;
+    reviews?: Review[];
+  };
+  seller: {
+    id: string;
+    businessName: string;
+    businessAddress: string;
+    user: {
+      name: string;
+      imageUrl: string | null;
+    };
+  };
 }
 
 export interface Address {
@@ -662,6 +678,7 @@ export interface OrderItem {
     images: string[];
     categoryId: string;
     attributes: Record<string, string>;
+    reviews?: Review[];
   };
   seller: {
     id: string;

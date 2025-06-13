@@ -66,36 +66,170 @@ export const getQuestions = async (req: Request, res: Response) => {
 // Get answer for a specific question
 export const getAnswer = async (req: any, res: Response) => {
   try {
-    const { questionId } = req.body;
+    const { questionId, orderId } = req.body;
 
     if (!questionId) {
       return res
         .status(400)
         .json({ success: false, message: "Question ID is required" });
     }
+   
+    // Special handling for profile status
+    if (questionId === "check_profile_status") {
+      console.log("check_profile_status", req.user.userId);
+      try {
+        const seller = await prisma.seller.findUnique({
+          where: { userId: req.user.userId },
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                phoneNumber: true,
+                country: true,
+                state: true,
+                address: true,
+                companyWebsite: true,
+              },
+            },
+          },
+        });
+        
+        if (!seller) {
+          return res.status(404).json({ success: false, message: "Seller profile not found" });
+        }
 
+        const profileSteps = {
+          1: "Business Information",
+          2: "Contact Details",
+          3: "Business Categories",
+          4: "Business Overview",
+          5: "Capabilities & Operations",
+          6: "Compliance & Credentials",
+          7: "Brand Presence",
+          8: "Additional Information",
+          9: "Team Size",
+          10: "Annual Revenue",
+          11: "Minimum Order",
+          12: "Comments"
+        };
+
+        const completedSteps = seller.profileCompletion || [];
+        const totalSteps = Object.keys(profileSteps).length;
+        const completionPercentage = Math.round((completedSteps.length / totalSteps) * 100);
+        const isReadyForApproval = [1, 2, 3, 4, 5, 6, 7].every(step => completedSteps.includes(step));
+
+        // HTML for step status
+        const stepStatusHtml = Object.entries(profileSteps)
+          .map(([stepNum, stepName]) => {
+            const isCompleted = completedSteps.includes(parseInt(stepNum));
+            return `<li style=\"margin-bottom:4px;\"><span style=\"font-size:18px;vertical-align:middle;\">${isCompleted ? '✅' : '❌'}</span> <span style=\"vertical-align:middle;\">${stepName}</span></li>`;
+          })
+          .join("");
+
+        // HTML for basic details
+        const basicDetailsHtml = `
+          <ul style=\"list-style:none;padding:0;\">
+            <li><span style=\"font-weight:bold;\">👤 Name:</span> ${seller.user.name || '-'} </li>
+            <li><span style=\"font-weight:bold;\">📧 Email:</span> ${seller.user.email || '-'} </li>
+            <li><span style=\"font-weight:bold;\">📱 Phone:</span> ${seller.user.phoneNumber || '-'} </li>
+            <li><span style=\"font-weight:bold;\">🏢 Business Name:</span> ${seller.businessName || '-'} </li>
+            <li><span style=\"font-weight:bold;\">🌐 Website:</span> ${seller.websiteLink || '-'} </li>
+            <li><span style=\"font-weight:bold;\">📍 Location:</span> ${seller.user.country || '-'}, ${seller.user.state || '-'} </li>
+          </ul>
+        `;
+
+        // Main HTML summary
+        const summaryHtml = `
+          <div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:420px;\">
+            <div style=\"font-size:20px;font-weight:bold;margin-bottom:8px;\">Profile Completion Status</div>
+            <div style=\"margin-bottom:8px;\"><span style=\"font-size:18px;\">📊</span> <b>Overall Completion:</b> <span style=\"color:#007bff;font-weight:bold;\">${completionPercentage}%</span> ${isReadyForApproval ? '<span style=\"color:#28a745;font-weight:bold;\">✨ Profile is ready for approval!</span>' : '<span style=\"color:#dc3545;font-weight:bold;\">⚠️ Profile needs more information for approval</span>'}</div>
+            <div style=\"font-size:16px;font-weight:500;margin-bottom:4px;\">Step-by-Step Status</div>
+            <ul style=\"padding-left:18px;margin-bottom:12px;\">${stepStatusHtml}</ul>
+            <div style=\"font-size:16px;font-weight:500;margin-bottom:4px;\">Basic Information</div>
+            ${basicDetailsHtml}
+            ${!isReadyForApproval ? '<div style=\"color:#dc3545;font-weight:bold;margin-top:8px;\">⚠️ Note: Complete steps 1-7 to be eligible for approval.</div>' : ''}
+          </div>
+        `;
+
+        return res.status(200).json({ 
+          success: true, 
+          data: { 
+            id: questionId, 
+            question: "Check Profile Status", 
+            answer: summaryHtml, // HTML answer
+            answerType: "html" // Optionally, let frontend know this is HTML
+          } 
+        });
+      } catch (err) {
+        return res.status(500).json({ success: false, message: "Failed to fetch profile details" });
+      }
+    }
+
+    // Special handling for order status
+    if (questionId === "check_order_status") {
+      // If orderId is provided, fetch order status
+      console.log("check_order_status", req.user.sellerId);
+      console.log("orderId", orderId);
+      if (orderId) {
+        try {
+          const order = await prisma.order.findFirst({
+            where: { id: orderId, items: { some: { sellerId: req.user.sellerId } } },
+            select: {
+              id: true,
+              status: true,
+              createdAt: true,
+              trackingNumber: true,
+              carrier: true,
+              trackingHistory: true,
+            },
+          });
+          if (!order) {
+            return res.status(404).json({ success: false, message: `Order with ID ${orderId} not found.` });
+          }
+
+          // Format tracking history as HTML
+          let trackingHistoryHtml = "";
+          if (order.trackingHistory && order.trackingHistory.length > 0) {
+            trackingHistoryHtml = `<div style=\"margin-top:8px;\"><b>📦 Tracking History:</b><ul style=\"padding-left:18px;\">`;
+            order.trackingHistory.forEach((t, idx) => {
+              if (t && typeof t === 'object' && 'status' in t && 'timestamp' in t) {
+                trackingHistoryHtml += `<li style=\"margin-bottom:2px;\">${idx + 1}. <span style=\"font-weight:500;\">${t.status}</span> at <span style=\"color:#007bff;\">${t.location || "-"}</span> <span style=\"color:#888;\">(${t.timestamp})</span></li>`;
+              }
+            });
+            trackingHistoryHtml += `</ul></div>`;
+          }
+
+          // Main HTML summary
+          const summaryHtml = `
+            <div style=\"font-family:Segoe UI,Arial,sans-serif;max-width:420px;\">
+              <div style=\"font-size:20px;font-weight:bold;margin-bottom:8px;\">Order Status</div>
+              <div style=\"margin-bottom:8px;\"><span style=\"font-size:18px;\">🆔</span> <b>Order ID:</b> <span style=\"color:#007bff;\">${order.id}</span></div>
+              <div style=\"margin-bottom:8px;\"><span style=\"font-size:18px;\">📅</span> <b>Created:</b> ${new Date(order.createdAt).toLocaleString()}</div>
+              <div style=\"margin-bottom:8px;\"><span style=\"font-size:18px;\">🚚</span> <b>Status:</b> <span style=\"color:#28a745;font-weight:bold;\">${order.status}</span></div>
+              <div style=\"margin-bottom:8px;\"><span style=\"font-size:18px;\">🔢</span> <b>Tracking Number:</b> ${order.trackingNumber || "-"}</div>
+              <div style=\"margin-bottom:8px;\"><span style=\"font-size:18px;\">🏷️</span> <b>Carrier:</b> ${order.carrier || "-"}</div>
+              ${trackingHistoryHtml}
+            </div>
+          `;
+
+          return res.status(200).json({ success: true, data: { id: questionId, question: "Check Order Status", answer: summaryHtml, answerType: "html" } });
+        } catch (err) {
+          return res.status(500).json({ success: false, message: "Failed to fetch order status" });
+        }
+      } else {
+        // Prompt for order ID
+        return res.status(200).json({ success: true, data: { id: questionId, question: "Check Order Status", answer: "Please enter your Order ID to check the status." } });
+      }
+    }
+
+    // Default: static FAQ
     const faqItem = faqData.find((item) => item.id === questionId);
-
     if (!faqItem) {
       return res
         .status(404)
         .json({ success: false, message: "Question not found" });
     }
-
-    // If user is authenticated, save this interaction to chat history
-    // if (req.user && req.user.userId) {
-    //   try {
-    //     await saveChatHistory(
-    //       req.user.userId,
-    //       faqItem.question,
-    //       faqItem.answer
-    //     );
-    //   } catch (err) {
-    //     console.error("Error saving chat history:", err);
-    //     // Continue even if saving history fails
-    //   }
-    // }
-
     return res.status(200).json({ success: true, data: faqItem });
   } catch (error) {
     console.error("Error fetching answer:", error);

@@ -6,6 +6,9 @@ import {
   fetchChatHistory,
   createWelcomeMessage,
   processQuestion,
+  fetchOrderStatus,
+  waitingForOrderId,
+  setWaitingForOrderId,
   type ChatMessage,
   type Question,
 } from "@/lib/api/chatbot";
@@ -25,6 +28,7 @@ export function ChatbotWidget() {
   const [hasMore, setHasMore] = useState(false);
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [inputValue, setInputValue] = useState("");
 
   const toggleWidget = () => {
     setIsOpen(!isOpen);
@@ -113,6 +117,45 @@ export function ChatbotWidget() {
     }
   };
 
+  // Handle user input (for order ID or future free text)
+  const handleInputSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+    setInputValue("");
+    if (waitingForOrderId) {
+      setIsTyping(true);
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now().toString(), type: "user", content: trimmed, timestamp: new Date() },
+      ]);
+      try {
+        const answer:any = await fetchOrderStatus(trimmed);
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        setMessages((prev) => [
+          ...prev,
+          { 
+            id: Date.now().toString(), 
+            type: "bot", 
+            content: answer?.answer || "Order not found.", 
+            timestamp: new Date(),
+            answerType: answer?.answerType
+          },
+        ]);
+      } catch (err) {
+        setMessages((prev) => [
+          ...prev,
+          { id: Date.now().toString(), type: "bot", content: "Failed to fetch order status.", timestamp: new Date() },
+        ]);
+      } finally {
+        setIsTyping(false);
+        setWaitingForOrderId(false);
+      }
+      return;
+    }
+    // Default: treat as normal message (could be extended for free text Q&A)
+  };
+
   if (!isOpen) {
     return (
       <Button
@@ -184,7 +227,14 @@ export function ChatbotWidget() {
                           : "bg-white text-gray-800 border border-gray-200"
                       }`}
                     >
-                      {message.content}
+                      {message.type === "bot" && message.answerType === "html" ? (
+                        <div
+                          dangerouslySetInnerHTML={{ __html: message.content }}
+                          style={{ wordBreak: "break-word" }}
+                        />
+                      ) : (
+                        message.content
+                      )}
                     </div>
                   </div>
                 ))}
@@ -299,6 +349,23 @@ export function ChatbotWidget() {
                 </>
               )}
             </div>
+            {/* Input for order ID or future free text */}
+            {waitingForOrderId && (
+              <form onSubmit={handleInputSubmit} className="mt-3 flex gap-2">
+                <input
+                  type="text"
+                  className="flex-1 border rounded px-2 py-1 text-xs sm:text-sm"
+                  placeholder="Enter Order ID"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  disabled={isTyping}
+                  autoFocus
+                />
+                <Button type="submit" size="sm" disabled={isTyping || !inputValue.trim()}>
+                  Check
+                </Button>
+              </form>
+            )}
           </div>
         </Card>
       </div>

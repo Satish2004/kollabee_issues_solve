@@ -6,6 +6,16 @@ export interface FAQItem {
 
 export const faqData: FAQItem[] = [
   {
+    id: "check_profile_status",
+    question: "Check Profile Status",
+    answer: "",
+  },
+  {
+    id: "check_order_status",
+    question: "Check Order Status",
+    answer: "",
+  },
+  {
     id: "q1",
     question: "What is Kollabee?",
     answer:
