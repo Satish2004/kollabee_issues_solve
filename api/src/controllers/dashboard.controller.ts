@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
+import { OrderStatus } from "@prisma/client";
 
 export const getSellerDashboard = async (req: any, res: Response) => {
   try {
@@ -44,22 +45,12 @@ export const getSellerDashboard = async (req: any, res: Response) => {
 
     // Get recent orders
     const recentOrders = await prisma.orderItem.findMany({
-      where: {
-        sellerId,
-      },
+      where: { sellerId },
       include: {
-        order: {
-          include: {
-            buyer: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
+        order: { include: { buyer: { include: { user: true } } } },
         product: true,
       },
-
+      orderBy: { order: { createdAt: "desc" } },
       take: 5,
     });
 
@@ -410,17 +401,18 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
   console.log("Get order analytics called");
   try {
     const { userId } = req.user;
-    const { period = 'month' } = req.query; // Default to 'month' if not specified
+    const { period = "month" } = req.query; // Default to 'month' if not specified
     console.log("User ID:", userId);
     // Validate seller exists
     const seller = await prisma.seller.findFirst({
       where: { userId },
-      select: { id: true }
+      select: { id: true },
     });
     if (!seller) return res.status(404).json({ error: "Seller not found" });
 
     // Calculate date ranges based on period
-    const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } = getDateRanges(period);
+    const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } =
+      getDateRanges(period);
 
     // Fetch all data in parallel for better performance
     const [
@@ -460,7 +452,7 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
         },
         messages,
         activeProducts,
-        responseMetrics
+        responseMetrics,
       },
       chartData,
       dateRanges: {
@@ -478,67 +470,67 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
 
 // Helper Functions
 
-
 async function getOrdersByOrderType(userId: string) {
   const orders = await prisma.order.findMany({
     where: {
-      sellerId: userId
+      sellerId: userId,
     },
     include: {
       items: true,
       buyer: {
         include: {
-          user: true
-        }
-      }
-    }
+          user: true,
+        },
+      },
+    },
   });
 
   const result = {
-    singleProductOrders: orders.filter(order => order.items.length === 1),
-    multiProductOrders: orders.filter(order => order.items.length > 1)
+    singleProductOrders: orders.filter((order) => order.items.length === 1),
+    multiProductOrders: orders.filter((order) => order.items.length > 1),
   };
 
   return result;
 }
 
-
-
 async function getOrderSummary(userId: string) {
   // Get all orders for this seller
   const orders = await prisma.order.findMany({
     where: {
-      sellerId: userId
+      sellerId: userId,
     },
     include: {
       buyer: {
         include: {
-          user: true
-        }
+          user: true,
+        },
       },
-      items: true
+      items: true,
     },
     orderBy: {
-      createdAt: 'desc'
-    }
+      createdAt: "desc",
+    },
   });
 
   // Analyze customer types
   const buyerOrderCounts: Record<string, number> = {};
-  orders.forEach(order => {
+  orders.forEach((order) => {
     if (order.buyerId) {
-      buyerOrderCounts[order.buyerId] = (buyerOrderCounts[order.buyerId] || 0) + 1;
+      buyerOrderCounts[order.buyerId] =
+        (buyerOrderCounts[order.buyerId] || 0) + 1;
     }
   });
 
-  const repeatedCustomers = Object.values(buyerOrderCounts).filter(count => count > 1).length;
+  const repeatedCustomers = Object.values(buyerOrderCounts).filter(
+    (count) => count > 1
+  ).length;
   const newCustomers = Object.keys(buyerOrderCounts).length - repeatedCustomers;
 
   // Analyze order types (single vs bulk)
   let singleOrders = 0;
   let bulkOrders = 0;
 
-  orders.forEach(order => {
+  orders.forEach((order) => {
     if (order.items.length === 1) {
       singleOrders++;
     } else {
@@ -552,7 +544,7 @@ async function getOrderSummary(userId: string) {
     newCustomers,
     singleOrders,
     bulkOrders,
-    orders // optional: include the actual orders if needed
+    orders, // optional: include the actual orders if needed
   };
 }
 
@@ -621,7 +613,8 @@ function getDateRanges(period: string) {
 }
 
 async function generateChartData(period: string, sellerId: string) {
-  const chartData: Array<{ name: string; orders: number; requests: number }> = [];
+  const chartData: Array<{ name: string; orders: number; requests: number }> =
+    [];
   const now = new Date();
 
   if (period === "today") {
@@ -634,7 +627,7 @@ async function generateChartData(period: string, sellerId: string) {
 
       const [orders, requests] = await Promise.all([
         getOrderCount(sellerId, hourStart, hourEnd),
-        getRequestCount(sellerId, hourStart, hourEnd)
+        getRequestCount(sellerId, hourStart, hourEnd),
       ]);
 
       chartData.push({ name: `${i}:00`, orders, requests });
@@ -651,7 +644,7 @@ async function generateChartData(period: string, sellerId: string) {
 
       const [orders, requests] = await Promise.all([
         getOrderCount(sellerId, dayStart, dayEnd),
-        getRequestCount(sellerId, dayStart, dayEnd)
+        getRequestCount(sellerId, dayStart, dayEnd),
       ]);
 
       chartData.push({ name: days[i], orders, requests });
@@ -659,7 +652,9 @@ async function generateChartData(period: string, sellerId: string) {
   } else if (period === "month") {
     // Weekly data for month
     const weeksInMonth = Math.ceil(
-      (now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7
+      (now.getDate() +
+        new Date(now.getFullYear(), now.getMonth(), 1).getDay()) /
+        7
     );
 
     for (let i = 0; i < weeksInMonth; i++) {
@@ -670,14 +665,27 @@ async function generateChartData(period: string, sellerId: string) {
 
       const [orders, requests] = await Promise.all([
         getOrderCount(sellerId, weekStart, weekEnd),
-        getRequestCount(sellerId, weekStart, weekEnd)
+        getRequestCount(sellerId, weekStart, weekEnd),
       ]);
 
       chartData.push({ name: `Week ${i + 1}`, orders, requests });
     }
   } else if (period === "year") {
     // Monthly data for year
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
 
     for (let i = 0; i < 12; i++) {
       const monthStart = new Date(now.getFullYear(), i, 1);
@@ -686,7 +694,7 @@ async function generateChartData(period: string, sellerId: string) {
 
       const [orders, requests] = await Promise.all([
         getOrderCount(sellerId, monthStart, monthEnd),
-        getRequestCount(sellerId, monthStart, monthEnd)
+        getRequestCount(sellerId, monthStart, monthEnd),
       ]);
 
       chartData.push({ name: months[i], orders, requests });
@@ -697,7 +705,11 @@ async function generateChartData(period: string, sellerId: string) {
 }
 
 // Data fetching functions
-async function getOrderCount(sellerId: string, startDate?: Date, endDate?: Date) {
+async function getOrderCount(
+  sellerId: string,
+  startDate?: Date,
+  endDate?: Date
+) {
   const where: any = { sellerId };
   if (startDate) where.createdAt = { gte: startDate };
   if (endDate) where.createdAt = { ...where.createdAt, lte: endDate };
@@ -705,7 +717,11 @@ async function getOrderCount(sellerId: string, startDate?: Date, endDate?: Date)
   return prisma.order.count({ where });
 }
 
-async function getRequestCount(sellerId: string, startDate?: Date, endDate?: Date) {
+async function getRequestCount(
+  sellerId: string,
+  startDate?: Date,
+  endDate?: Date
+) {
   const where: any = { sellerId };
   if (startDate) where.createdAt = { gte: startDate };
   if (endDate) where.createdAt = { ...where.createdAt, lte: endDate };
@@ -721,7 +737,7 @@ async function getActiveProductCount(sellerId: string, sinceDate?: Date) {
   const where: any = {
     sellerId,
     isDraft: false,
-    stockStatus: "IN_STOCK"
+    stockStatus: "IN_STOCK",
   };
   if (sinceDate) where.createdAt = { gte: sinceDate };
 
@@ -753,10 +769,7 @@ async function getLowSellingProducts(sellerId: string, limit = 5) {
       isDraft: false,
       stockStatus: "IN_STOCK",
     },
-    orderBy: [
-      { orderItems: { _count: "asc" } },
-      { availableQuantity: "asc" }
-    ],
+    orderBy: [{ orderItems: { _count: "asc" } }, { availableQuantity: "asc" }],
     include: {
       _count: { select: { orderItems: true } },
       reviews: { select: { rating: true } },
@@ -770,31 +783,38 @@ async function getResponseMetrics(sellerId: string, sinceDate: Date) {
   const inquiries = await prisma.inquiry.findMany({
     where: {
       supplierId: sellerId,
-      status: { not: 'PENDING' },
-      createdAt: { gte: sinceDate }
+      status: { not: "PENDING" },
+      createdAt: { gte: sinceDate },
     },
     select: {
       createdAt: true,
       updatedAt: true,
-      status: true
-    }
+      status: true,
+    },
   });
 
   // Calculate response times in hours
-  const responseTimes = inquiries.map(inquiry => {
-    const responseTimeMs = inquiry.updatedAt.getTime() - inquiry.createdAt.getTime();
+  const responseTimes = inquiries.map((inquiry) => {
+    const responseTimeMs =
+      inquiry.updatedAt.getTime() - inquiry.createdAt.getTime();
     return responseTimeMs / (1000 * 60 * 60); // Convert to hours
   });
 
   // Calculate metrics
-  const averageResponseTime = responseTimes.length > 0
-    ? parseFloat((responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length).toFixed(1))
-    : 0;
+  const averageResponseTime =
+    responseTimes.length > 0
+      ? parseFloat(
+          (
+            responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length
+          ).toFixed(1)
+        )
+      : 0;
 
-  const lateResponses = responseTimes.filter(time => time > 72).length;
-  const onTimeRate = responseTimes.length > 0
-    ? parseFloat((1 - (lateResponses / responseTimes.length)).toFixed(2)) * 100
-    : 100;
+  const lateResponses = responseTimes.filter((time) => time > 72).length;
+  const onTimeRate =
+    responseTimes.length > 0
+      ? parseFloat((1 - lateResponses / responseTimes.length).toFixed(2)) * 100
+      : 100;
 
   // Response score (0-100)
   const responseScore = calculateResponseScore(responseTimes);
@@ -805,8 +825,8 @@ async function getResponseMetrics(sellerId: string, sinceDate: Date) {
     onTimeRate,
     responseScore,
     totalInquiries: inquiries.length,
-    respondedInquiries: inquiries.filter(i => i.status !== 'PENDING').length,
-    responseTimes // For charting
+    respondedInquiries: inquiries.filter((i) => i.status !== "PENDING").length,
+    responseTimes, // For charting
   };
 }
 
@@ -814,8 +834,9 @@ function calculateResponseScore(responseTimes: number[]) {
   if (responseTimes.length === 0) return 100; // Perfect score if no inquiries
 
   // Calculate penalty based on response times
-  const avgResponseTime = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
-  const lateResponses = responseTimes.filter(t => t > 72).length;
+  const avgResponseTime =
+    responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+  const lateResponses = responseTimes.filter((t) => t > 72).length;
 
   // Base score (100 - average hours, capped at 50% penalty)
   let score = 100 - Math.min(avgResponseTime, 50);
@@ -978,3 +999,149 @@ export const getTopBuyers = async (req: any, res: Response) => {
 
 // Example usage:
 // GET /api/sellers/top-buyers?pageNo=1&pageSize=10&search=john&sortBy=totalAmount&sortOrder=desc&filter=US&type=country
+
+export const getDashboard = async (req: any, res: Response) => {
+  try {
+    const { sellerId, userId } = req.user;
+    const { period = "7d" } = req.query;
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(endDate.getDate() - (period === "30d" ? 30 : 7));
+
+    // 1. Get regular orders for this seller (as per your latest logic)
+    const orderWhere = {
+      items: {
+        some: {
+          sellerId,
+        },
+      },
+      status: OrderStatus.DELIVERED,
+      createdAt: { gte: startDate, lte: endDate },
+    };
+    const orders = await prisma.order.findMany({
+      where: orderWhere,
+      include: {
+        items: {
+          where: { sellerId },
+          include: {
+            product: true,
+            seller: {
+              include: {
+                user: { select: { name: true, imageUrl: true } },
+              },
+            },
+          },
+        },
+        shippingAddress: true,
+        buyer: { include: { user: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
+    // 2. Get manufacturing/project requests for this seller
+    const projectRequests = await prisma.projectReq.findMany({
+      where: { sellerId },
+      include: {
+        project: { include: { milestones: true } },
+        buyer: { include: { user: { select: { name: true, country: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
+    // 3. Get regular requests (from Request table)
+    const requests = await prisma.request.findMany({
+      where: { sellerId, createdAt: { gte: startDate, lte: endDate } },
+      include: {
+        buyer: { include: { user: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 5,
+    });
+
+    // 4. Get contacts (buyers the seller has had conversations with)
+    const contactsRaw = await prisma.conversation.findMany({
+      where: { participants: { some: { userId: userId } } },
+      include: { participants: { include: { user: true } } },
+    });
+    const contactsMap = new Map();
+    contactsRaw.forEach((conv) => {
+      conv.participants.forEach((part) => {
+        if (part.userId !== sellerId && part.user.role === "BUYER") {
+          contactsMap.set(part.userId, {
+            id: part.userId,
+            name: part.user.name || part.user.email || "Unknown",
+            image: part.user.imageUrl || null,
+          });
+        }
+      });
+    });
+    const contacts = Array.from(contactsMap.values());
+
+    // 5. Aggregate for charts (orders, requests, manufacturing requests)
+    // Example: group by week/month for charting
+    // We'll use generateChartData for orders/requests, and add projectRequests aggregation
+    const chartData = await generateChartData(period, sellerId);
+
+    // 6. Other metrics (reuse your previous logic as needed)
+    // Example: revenue, topBuyers, topProducts, lowSellingProducts
+    const [totalRevenue, topBuyers, topProducts, lowSellingProducts] =
+      await Promise.all([
+        prisma.order.aggregate({
+          where: {
+            items: { some: { sellerId } },
+            status: OrderStatus.DELIVERED,
+          },
+          _sum: { totalAmount: true },
+        }),
+        prisma.order.groupBy({
+          by: ["buyerId"],
+          where: {
+            items: { some: { sellerId } },
+            status: OrderStatus.DELIVERED,
+          },
+          _sum: { totalAmount: true },
+          orderBy: { _sum: { totalAmount: "desc" } },
+          take: 5,
+        }),
+        prisma.product.findMany({
+          where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" },
+          orderBy: { orderItems: { _count: "desc" } },
+          include: {
+            _count: { select: { orderItems: true } },
+            reviews: { select: { rating: true } },
+          },
+          take: 5,
+        }),
+        prisma.product.findMany({
+          where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" },
+          orderBy: [
+            { orderItems: { _count: "asc" } },
+            { availableQuantity: "asc" },
+          ],
+          include: {
+            _count: { select: { orderItems: true } },
+            reviews: { select: { rating: true } },
+          },
+          take: 5,
+        }),
+      ]);
+
+    res.json({
+      orders, // regular orders
+      requests, // regular requests
+      projectRequests, // manufacturing/project requests
+      contacts,
+      chartData,
+      totalRevenue: totalRevenue._sum?.totalAmount || 0,
+      topBuyers,
+      topProducts,
+      lowSellingProducts,
+      // ...add more metrics as needed
+    });
+  } catch (error) {
+    console.error("Get dashboard error:", error);
+    res.status(500).json({ error: "Failed to fetch dashboard data" });
+  }
+};

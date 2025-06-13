@@ -588,6 +588,9 @@ export default function ChatModule({ userType = "SELLER" }: ChatModuleProps) {
           isBlocked={blockedCommunications.some(
             (comm) => comm.initiatorId === user?.id
           )}
+          isActive={
+            conversations.find((c) => c.id === activeConversation)?.isActive
+          }
         />
       </div>
     </div>

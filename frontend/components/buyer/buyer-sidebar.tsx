@@ -3,19 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { authApi } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
-import {
-  Home,
-  Headphones,
-  HelpCircle,
-  LogOut,
-  ChevronLeft,
-  Package,
-  User2,
-  Share,
-  NotebookPen,
-  Calendar,
-  MessageCircleQuestion,
-} from "lucide-react";
+import { Home, Headphones, HelpCircle, LogOut, ChevronLeft, Package, User2, Share, NotebookPen, Calendar, MessageCircleQuestion } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -23,6 +11,7 @@ import { useState, useEffect, type ElementType } from "react";
 import { BsFillCartCheckFill } from "react-icons/bs";
 import { HiChatBubbleLeftRight } from "react-icons/hi2";
 import { IoStorefront } from "react-icons/io5";
+
 
 type SidebarProps = {
   className?: string;
@@ -131,35 +120,33 @@ export function BuyerSidebar({ className }: SidebarProps) {
           href: "/buyer/orders",
           // className: "tour-requests"
         },
-      ],
-    },
-    {
-      label: "GUIDES",
-      routes: [
         {
-          label: "Support",
-          icon: Headphones,
-          href: "/buyer/support",
-        },
-      ],
-    },
-    {
-      label: "OTHERS",
-      routes: [
-      
-        {
-          label: "Calendar",
-          icon: Calendar,
-          href: "/buyer/appointment",
-        },
-       
-        {
-          label: "FAQ",
+          label: "Help",
           icon: MessageCircleQuestion,
-          href: "/buyer/faq",
+          href: "/buyer/help",
         },
       ],
     },
+    // {
+    //   label: "GUIDES",
+    //   routes: [
+    //     {
+    //       label: "Support",
+    //       icon: Headphones,
+    //       href: "/buyer/support",
+    //     },
+    //   ],
+    // },
+    // {
+    //   label: "OTHERS",
+    //   routes: [
+    //     {
+    //       label: "Calendar",
+    //       icon: Calendar,
+    //       href: "/buyer/appointment",
+    //     },
+    //   ],
+    // },
   ];
 
   const menuItems = [

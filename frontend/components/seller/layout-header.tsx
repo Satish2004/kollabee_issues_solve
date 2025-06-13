@@ -142,9 +142,9 @@ export default function SellerLayoutHeader() {
       href: "/seller/invite",
     },
     {
-      label: "Feedback",
+      label: "Help",
       icon: NotebookPen,
-      href: "/seller/contact",
+      href: "/seller/help",
     },
   ];
 

@@ -568,6 +568,7 @@ export const getCurrentUser = async (req: any, res: Response) => {
 
     // Return user without sensitive data
     const { password, ...userWithoutPassword } = user;
+
     res.json(userWithoutPassword);
   } catch (error) {
     console.error("Get current user error:", error);

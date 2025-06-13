@@ -109,8 +109,8 @@ export const createProduct = async (req: any, res: Response) => {
               2
             )}</p>
             <p><strong>Seller:</strong> ${product.seller.user.name} (${
-            product.seller.user.email
-          })</p>
+              product.seller.user.email
+            })</p>
             <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
           `,
         });
@@ -171,11 +171,25 @@ export const getProducts = async (req: any, res: Response) => {
       };
     }
 
+    // Only include products from active suppliers
+    const supplierFilter = {
+      seller: {
+        user: {
+          isActive: true,
+        },
+      },
+    };
+
+
+
     console.log("filters", filters);
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
-        where: filters,
+        where: {
+          ...filters,
+          ...(filters.sellerId ? {} : supplierFilter),
+        },
         orderBy: { [(sortBy as string) || "createdAt"]: sortOrder },
         skip: (Number(page) - 1) * Number(limit),
         take: Number(limit),
@@ -192,10 +206,14 @@ export const getProducts = async (req: any, res: Response) => {
           },
         },
       }),
-      prisma.product.count({ where: filters }),
+      prisma.product.count({
+        where: {
+          ...filters,
+          ...supplierFilter,
+        },
+      }),
     ]);
 
-    // No need to transform attributes as they're already in JSON format
     res.json({
       data: products,
       timestamp: Date.now(),
@@ -323,8 +341,8 @@ export const updateProduct = async (req: any, res: Response) => {
             2
           )}</p>
           <p><strong>Seller:</strong> ${updatedProduct.seller.user.name} (${
-              updatedProduct.seller.user.email
-            })</p>
+            updatedProduct.seller.user.email
+          })</p>
           <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
         `,
           });

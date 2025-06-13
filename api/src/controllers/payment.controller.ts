@@ -144,7 +144,8 @@ export const addBankDetail = async (req: any, res: Response) => {
       accountNumber,
       cvCode,
       upiId,
-      zipCode
+      zipCode,
+      country
     } = req.body;
 
     const bankDetail = await prisma.bankDetail.create({
@@ -157,7 +158,8 @@ export const addBankDetail = async (req: any, res: Response) => {
         cvCode,
         upiId: upiId || "",
         zipCode,
-        userId: req.user.userId
+        userId: req.user.userId,
+        country: country || "IN", // Default to India if not provided
       },
     });
 

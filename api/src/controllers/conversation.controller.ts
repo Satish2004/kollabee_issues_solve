@@ -85,6 +85,10 @@ export const conversationController = {
         }
       }
 
+      console.dir(
+        conversations.map((c) => c.participants),
+        { depth: null }
+      );
       // Format conversations for the frontend
       const formattedConversations = conversations
         .map((conversation) => {
@@ -122,6 +126,7 @@ export const conversationController = {
             isOnline: otherParticipant?.isOnline || false,
             status: conversation.status,
             initiatedBy: conversation.initiatedBy,
+            isActive: otherParticipant.user.isActive,
           };
         })
         .filter(Boolean);
