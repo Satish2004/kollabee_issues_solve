@@ -4,31 +4,72 @@ import { useRef, useState, useEffect } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
+import { useSidebar } from "@/contexts/sidebar-context";
 
 export default function SupplierCards({ sellers }) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [debouncedIsCollapsed, setDebouncedIsCollapsed] = useState(false);
+  const { isCollapsed } = useSidebar();
 
-  // Check if we're on mobile
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedIsCollapsed(isCollapsed);
+    }, 100); 
+
+    return () => clearTimeout(timer);
+  }, [isCollapsed]);
+
+  
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 640);
     };
 
-    // Initial check
+    
     checkMobile();
 
-    // Add resize listener
+    
     window.addEventListener("resize", checkMobile);
 
-    // Cleanup
+    
     return () => {
       window.removeEventListener("resize", checkMobile);
     };
   }, []);
 
-  // Handle navigation
+  
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const updateContainerWidth = () => {
+      if (containerRef.current) {
+        const width = containerRef.current.offsetWidth;
+        setContainerWidth(width);
+      }
+    };
+
+    
+    updateContainerWidth();
+
+    
+    const resizeObserver = new ResizeObserver(() => {
+      updateContainerWidth();
+    });
+
+    resizeObserver.observe(containerRef.current);
+
+    
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  
   const handlePrev = () => {
     if (currentIndex > 0) {
       setCurrentIndex(currentIndex - 1);
@@ -36,7 +77,7 @@ export default function SupplierCards({ sellers }) {
       if (scrollContainerRef.current && !isMobile) {
         const cardWidth =
           scrollContainerRef.current.querySelector("div")?.offsetWidth || 0;
-        const gap = 16; // gap-4 = 16px
+        const gap = 16; 
         scrollContainerRef.current.scrollBy({
           left: -(cardWidth + gap),
           behavior: "smooth",
@@ -52,7 +93,7 @@ export default function SupplierCards({ sellers }) {
       if (scrollContainerRef.current && !isMobile) {
         const cardWidth =
           scrollContainerRef.current.querySelector("div")?.offsetWidth || 0;
-        const gap = 16; // gap-4 = 16px
+        const gap = 16; 
         scrollContainerRef.current.scrollBy({
           left: cardWidth + gap,
           behavior: "smooth",
@@ -61,13 +102,18 @@ export default function SupplierCards({ sellers }) {
     }
   };
 
-  // If no sellers, return nothing
+  
   if (!sellers || sellers.length === 0) {
     return null;
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div 
+      ref={containerRef} 
+      className={`w-full mx-auto transition-all duration-300 ${
+        debouncedIsCollapsed ? "max-w-[85vw]" : "max-w-[74vw]"
+      }`}
+    >
       {/* Mobile View - Single Card with Navigation */}
       <div className="sm:hidden w-full">
         <div className="flex items-center justify-between mb-4">
@@ -145,7 +191,11 @@ export default function SupplierCards({ sellers }) {
           <div
             ref={scrollContainerRef}
             className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide flex-1"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            style={{ 
+              scrollbarWidth: "none", 
+              msOverflowStyle: "none",
+              maxWidth: containerWidth > 0 ? `${containerWidth - 120}px` : "auto"
+            }}
           >
             {sellers.map((supplier, index) => (
               <div

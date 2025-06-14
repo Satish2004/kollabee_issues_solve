@@ -7,7 +7,9 @@ import React from "react";
 import OrderStatusTracker from "../components/order-status-tracker";
 import OrderActivity from "../components/order-activity";
 import type { Order } from "@/types/api";
+import type { OrderItem } from "@/types/order";
 import ProductDetailCarousel from "../components/product-detail-carousel";
+import MyProductReview from "@/components/review/my-product-review";
 import { ordersApi } from "@/lib/api/orders";
 
 export default function OrderTrackingPage({
@@ -15,28 +17,70 @@ export default function OrderTrackingPage({
 }: {
   params: Promise<{ orderId: string }>;
 }) {
-  const params = React.use(paramsPromise);
-  const { orderId } = params;
-  const [order, setOrder] = useState<Order | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
-    // In a real implementation, you would fetch the order data from an API
-    // For now, we'll use the data provided in the component props
+    paramsPromise.then(params => {
+      setOrderId(params.orderId);
+      console.log(params.orderId, "orderId 1");
+    });
+  }, [paramsPromise]);
+
+  useEffect(() => {
+    if (!orderId) return;
     const fetchOrderData = async () => {
       try {
-        // For demo purposes, we're using the data directly
-        // In production, you would use: await ordersApi.getOrderDetails(orderId);
-
-        const orderData = await ordersApi.getOrderDetails(orderId);
-
-        setOrder(orderData as Order);
+        const response = await ordersApi.getOrderDetails(orderId);
+        setOrder(response);
       } catch (error) {
         console.error("Failed to fetch order data:", error);
       }
     };
-
     fetchOrderData();
   }, [orderId]);
+
+  // Convert Order items to OrderItem format for ProductDetailCarousel
+  const convertToOrderItems = (order: any): OrderItem[] => {
+    try {
+      if (!order || !order.items) {
+        console.warn("Order or order.items is missing", order);
+        return [];
+      }
+      return order.items.map((item: any, index: number) => ({
+        id: `${order.id}-${index}`,
+        orderId: order.id,
+        productId: item.product?.categoryId || item.product?.id || `unknown-${index}`,
+        quantity: 1,
+        price: order.totalAmount / order.items.length,
+        product: {
+          id: item.product?.id || `unknown-${index}`,
+          name: item.product?.name || 'Unnamed Product',
+          description: item.product?.description || '',
+          price: item.product?.price || 0,
+          images: item.product?.images || [],
+          categoryId: item.product?.categoryId || '',
+          attributes: item.product?.attributes || {},
+          discount: item.product?.discount || 0,
+          deliveryCost: item.product?.deliveryCost || 0,
+        },
+        seller: {
+          id: item.seller?.id || `unknown-seller-${index}`,
+          businessName: item.seller?.businessName || 'Unknown Seller',
+          businessAddress: item.seller?.businessAddress || '',
+          user: {
+            name: item.seller?.user?.name || '',
+            imageUrl: item.seller?.user?.imageUrl,
+            email: item.seller?.user?.email || '',
+            phoneNumber: item.seller?.user?.phoneNumber || '',
+          },
+        },
+      }));
+    } catch (err) {
+      console.error("Error in convertToOrderItems:", err, order);
+      return [];
+    }
+  };
 
   return (
     <div className="w-full rounded-xl bg-white mx-auto min-h-screen">
@@ -54,24 +98,18 @@ export default function OrderTrackingPage({
             <div className="flex justify-between items-start">
               <div>
                 <h2 className="text-lg font-bold text-gray-800">
-                  Order #{order.id.substring(0, 8)}
+                  Order #{order.id?.substring(0, 8)}
                 </h2>
                 <p className="text-xs text-gray-600 mt-1">
-                  {order.items.length}{" "}
-                  {order.items.length === 1 ? "Product" : "Products"} • Order
-                  Placed on {new Date(order.createdAt).toLocaleDateString()}
+                  {order.items?.length ?? 0} {order.items?.length === 1 ? "Product" : "Products"} • Order
+                  Placed on {order.createdAt ? new Date(order.createdAt).toLocaleDateString() : 'N/A'}
                 </p>
                 <p className="text-xs text-gray-600 mt-1">
                   Status: <span className="font-medium">{order.status}</span>
                 </p>
-                {order.stripePaymentIntentId && (
-                  <p className="text-xs text-gray-600 mt-1">
-                    Payment ID: {order.stripePaymentIntentId}
-                  </p>
-                )}
               </div>
               <div className="text-lg font-bold">
-                ${order.totalAmount.toFixed(2)}
+                ${order.totalAmount?.toFixed(2) ?? '0.00'}
               </div>
             </div>
           </div>
@@ -79,13 +117,12 @@ export default function OrderTrackingPage({
           {/* Ordered Products with Carousel */}
           <div className="bg-white p-4 rounded-md border mb-6">
             <h2 className="text-base font-bold mb-4">
-              Ordered Products ({order.items.length.toString().padStart(2, "0")}
-              )
+              Ordered Products ({order.items?.length?.toString().padStart(2, "0") ?? '00'})
             </h2>
 
             {/* Product Items with Toggle Details */}
             <div className="space-y-2">
-              {order.items.map((item) => (
+              {convertToOrderItems(order).map((item) => (
                 <ProductDetailCarousel key={item.id} item={item} />
               ))}
             </div>
@@ -98,27 +135,12 @@ export default function OrderTrackingPage({
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Subtotal:</span>
-                <span>${order.totalAmount.toFixed(2)}</span>
+                <span>${order.totalAmount?.toFixed(2) ?? '0.00'}</span>
               </div>
-
-              {order.items.some((item) => item.product.deliveryCost > 0) && (
-                <div className="flex justify-between text-sm">
-                  <span>Delivery:</span>
-                  <span>
-                    $
-                    {order.items
-                      .reduce(
-                        (sum, item) => sum + (item.product.deliveryCost || 0),
-                        0
-                      )
-                      .toFixed(2)}
-                  </span>
-                </div>
-              )}
 
               <div className="flex justify-between text-sm font-bold pt-2 border-t">
                 <span>Total:</span>
-                <span>${order.totalAmount.toFixed(2)}</span>
+                <span>${order.totalAmount?.toFixed(2) ?? '0.00'}</span>
               </div>
             </div>
           </div>
@@ -127,46 +149,36 @@ export default function OrderTrackingPage({
           <div className="bg-white p-4 rounded-md border mb-6">
             <h2 className="text-base font-bold mb-4">Seller Information</h2>
 
-            {order.items.map((item) => (
-              <div key={item.id} className="mb-4 last:mb-0">
+            {order.items?.map((item: any, index: number) => (
+              <div key={index} className="mb-4 last:mb-0">
                 <div className="flex items-center mb-2">
                   <div className="w-8 h-8 bg-gray-200 rounded-full mr-2 flex items-center justify-center overflow-hidden">
-                    {item.seller.user.imageUrl ? (
-                      <img
-                        src={item.seller.user.imageUrl || "/placeholder.svg"}
-                        alt={item.seller.businessName}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-xs">
-                        {item.seller.businessName.charAt(0)}
-                      </span>
-                    )}
+                    <span className="text-xs">
+                      {item.seller?.businessName?.charAt(0) || '?'}
+                    </span>
                   </div>
                   <div>
                     <p className="text-sm font-medium">
-                      {item.seller.businessName}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {item.seller.user.email}
+                      {item.seller?.businessName || 'Unknown Seller'}
                     </p>
                   </div>
                 </div>
-
-                {item.seller.businessAddress && (
-                  <p className="text-xs text-gray-600 ml-10">
-                    Address: {item.seller.businessAddress}
-                  </p>
-                )}
-
-                {item.seller.user.phoneNumber && (
-                  <p className="text-xs text-gray-600 ml-10">
-                    Phone: {item.seller.user.phoneNumber}
-                  </p>
-                )}
               </div>
             ))}
           </div>
+
+          {/* Product Reviews */}
+          {order.items?.map((item: any, index: number) => (
+            <div key={index} className="mb-6">
+              <MyProductReview
+                productId={item.product?.id || `unknown-${index}`}
+                myReview={item.product?.myReview || null}
+                orderStatus={order.status}
+                productName={item.product?.name || 'Unnamed Product'}
+              />
+            </div>
+          ))}
+
           {/* Order Status Tracker */}
           <OrderStatusTracker />
 

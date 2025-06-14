@@ -6,6 +6,7 @@ import Script from "next/script";
 import { PropsWithChildren } from "react";
 import React from "react"; // Add this line
 import { futura } from "./fonts";
+import { Provider } from "@/components/providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,9 +34,11 @@ export default function RootLayout({ children }: PropsWithChildren) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary overflow-auto`}
       >
-        {children}
-        <Toaster position="top-center" />
-        <Script src="https://example.com/script.js" strategy="lazyOnload" />
+        <Provider>
+          {children}
+          <Toaster position="top-center" />
+          <Script src="https://example.com/script.js" strategy="lazyOnload" />
+        </Provider>
       </body>
     </html>
   );

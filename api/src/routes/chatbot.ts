@@ -13,7 +13,7 @@ const router = Router();
 router.get("/questions", getQuestions);
 
 // Get answer for a specific question
-router.post("/answer", getAnswer);
+router.post("/answer", authMiddleware, getAnswer);
 
 // Protected routes (require authentication)
 router.get("/history", authMiddleware, getChatHistory);

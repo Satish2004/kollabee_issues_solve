@@ -17,6 +17,7 @@ export interface ChatMessage {
   type: "user" | "bot";
   content: string;
   timestamp: Date;
+  answerType?: string; // Optional, for bot messages
 }
 
 export interface PaginatedQuestions {
@@ -26,6 +27,10 @@ export interface PaginatedQuestions {
   totalPages: number;
   hasMore: boolean;
 }
+
+// Track if waiting for order ID
+export let waitingForOrderId = false;
+export const setWaitingForOrderId = (val: boolean) => { waitingForOrderId = val; };
 
 /**
  * Fetch chatbot questions with pagination
@@ -40,8 +45,8 @@ export const fetchChatbotQuestions = async (
     const response = await api.get(
       `/chatbot/questions?page=${page}&limit=${limit}`
     );
-    return response.success
-      ? response
+    return response && (response as any).success
+      ? (response as any)
       : {
           data: [],
           totalCount: 0,
@@ -60,13 +65,15 @@ export const fetchChatbotQuestions = async (
  * @param questionId - The ID of the question
  */
 export const fetchChatbotAnswer = async (
-  questionId: string
+  questionId: string,
+  orderId?: string
 ): Promise<Answer> => {
   try {
-    const response = await api.post(`/chatbot/answer`, {
+    const response: any = await api.post(`/chatbot/answer`, {
       questionId,
+      ...(orderId ? { orderId } : {}),
     });
-    return response.success ? response.data : null;
+    return response && response.success ? response.data : null;
   } catch (error) {
     console.error("Error fetching chatbot answer:", error);
     throw new Error("Failed to fetch answer");
@@ -98,8 +105,8 @@ export const saveChatHistory = async (
  */
 export const fetchChatHistory = async (): Promise<ChatMessage[]> => {
   try {
-    const response = await api.get(`/chatbot/history`);
-    return response.success ? response.data : [];
+    const response: any = await api.get(`/chatbot/history`);
+    return response && response.success ? response.data : [];
   } catch (error) {
     console.error("Error fetching chat history:", error);
     return [];
@@ -206,13 +213,15 @@ export const createUserMessage = (content: string): ChatMessage => {
 /**
  * Create a bot message
  * @param content - The message content
+ * @param answerType - Optional type of answer (e.g., 'html')
  */
-export const createBotMessage = (content: string): ChatMessage => {
+export const createBotMessage = (content: string, answerType?: string): ChatMessage => {
   return {
     id: generateMessageId(),
     type: "bot",
     content,
     timestamp: new Date(),
+    ...(answerType ? { answerType } : {}),
   };
 };
 
@@ -226,6 +235,23 @@ export const createErrorMessage = (): ChatMessage => {
     content: "Sorry, I couldn't retrieve the answer. Please try again later.",
     timestamp: new Date(),
   };
+};
+
+/**
+ * Fetch order status by order ID
+ * @param orderId - The ID of the order
+ */
+export const fetchOrderStatus = async (orderId: string): Promise<Answer> => {
+  try {
+    const response: any = await api.post(`/chatbot/answer`, {
+      questionId: "check_order_status",
+      orderId,
+    });
+    return response && response.success ? response.data : null;
+  } catch (error) {
+    console.error("Error fetching order status:", error);
+    throw new Error("Failed to fetch order status");
+  }
 };
 
 /**
@@ -248,31 +274,32 @@ export const processQuestion = async (
   await saveChatHistory(question.question, true);
 
   try {
+    // Special handling for order status
+    if (question.id === "check_order_status") {
+      setWaitingForOrderId(true);
+    }
     // Fetch answer
     let answerData: Answer;
-
     try {
-      answerData = await fetchChatbotAnswer(question.id);
+      answerData = await fetchChatbotAnswer(
+        question.id,
+        (question as any).orderId
+      );
     } catch (err) {
       console.error("Error fetching answer from API, using dummy data:", err);
       answerData = getDummyAnswer(question.id);
     }
-
     // Simulate typing delay based on answer length
     await simulateTyping(answerData.answer);
-
     // Add bot response
-    const botMessage = createBotMessage(answerData.answer);
+    const botMessage = createBotMessage(answerData.answer, (answerData as any).answerType);
     setMessages((prev) => [...prev, botMessage]);
-
     // Save bot message to history
     await saveChatHistory(answerData.answer, false);
   } catch (err) {
     // Handle error
     const errorMessage = createErrorMessage();
     setMessages((prev) => [...prev, errorMessage]);
-
-    // Save error message to history
     await saveChatHistory(errorMessage.content, false);
   } finally {
     setIsTyping(false);

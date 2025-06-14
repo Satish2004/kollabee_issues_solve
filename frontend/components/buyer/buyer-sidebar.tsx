@@ -7,10 +7,11 @@ import { Home, Headphones, HelpCircle, LogOut, ChevronLeft, Package, User2, Shar
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect, type ElementType } from "react";
+import { useEffect, type ElementType } from "react";
 import { BsFillCartCheckFill } from "react-icons/bs";
 import { HiChatBubbleLeftRight } from "react-icons/hi2";
 import { IoStorefront } from "react-icons/io5";
+import { useSidebar } from "@/contexts/sidebar-context";
 
 
 type SidebarProps = {
@@ -38,25 +39,7 @@ const IconRenderer = ({ icon }: { icon: IconType }) => {
 export function BuyerSidebar({ className }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < 1024) {
-        setIsCollapsed(true);
-      } else {
-        setIsCollapsed(false);
-      }
-    };
-
-    // Set initial state based on screen size
-    if (window.innerWidth < 1024) {
-      setIsCollapsed(true);
-    }
-
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
   const handleLogout = async () => {
     try {

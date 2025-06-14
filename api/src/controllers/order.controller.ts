@@ -212,7 +212,28 @@ export const getOrderDetails = async (req: any, res: Response) => {
       include: {
         items: {
           include: {
-            product: true,
+            product: {
+              include: {
+                reviews: {
+                  where: { buyerId },
+                  include: {
+                    buyer: {
+                      include: {
+                        user: {
+                          select: {
+                            name: true,
+                            imageUrl: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                  orderBy: {
+                    createdAt: "desc",
+                  },
+                },
+              },
+            },
             seller: {
               include: {
                 user: {
@@ -232,8 +253,15 @@ export const getOrderDetails = async (req: any, res: Response) => {
     });
 
     if (!order) {
-      console.log("here is going ?");
       return res.status(404).json({ error: "Order not found" });
+    }
+
+    // Transform: for each item, set product.myReview = product.reviews[0] (if exists), and set product.reviews = undefined
+    for (const item of order.items) {
+      if (item.product && Array.isArray(item.product.reviews)) {
+        (item.product as any).myReview = item.product.reviews[0] || null;
+        (item.product as any).reviews = undefined;
+      }
     }
 
     res.json(order);
