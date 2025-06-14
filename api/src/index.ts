@@ -22,7 +22,7 @@ app.use(
         "https://kollabee-frontend.onrender.com",
         "http://localhost:3000",
         "http://localhost:3001",
-        // For local testing
+        "https://kollabee-1.onrender.com"
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
