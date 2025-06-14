@@ -36,6 +36,10 @@ import {
 import { PieChart, Pie, Cell } from "recharts";
 import { FunnelChart, Funnel, LabelList } from "recharts";
 import { toast } from "sonner";
+import NotificationsList from "@/components/seller/notifications-list";
+import OrdersList from "@/components/seller/orders-list";
+import ContactsList from "@/components/seller/contacts-list";
+import ProfileStrengthCard from "@/components/seller/profile-strength-card";
 
 interface DashboardData {
   totalOrders: number;
@@ -148,10 +152,8 @@ const Dashboard = () => {
   const [monthlyData, setMonthlyData] = useState(monthlyOnboarding);
 
   const [isLoading, setIsLoading] = useState(true);
-  const [chartData, setChartData] = useState([]);
-  const [selectedPeriod, setSelectedPeriod] = useState<
-    "today" | "week" | "month" | "year"
-  >("month");
+  const [chartData, setChartData] = useState<{ name: string; orders: number; requests: number }[]>([]);
+  const [selectedPeriod, setSelectedPeriod] = useState<"today" | "week" | "month" | "year">("month");
   const [periodMetrics, setPeriodMetrics] = useState<any>({
     activeProducts: 0,
     messages: 0,
@@ -181,26 +183,23 @@ const Dashboard = () => {
       console.log("Metrics Response:", metricsRes);
       console.log("All Data Response:", allData);
 
-
-
-      setContact(allData.contacts);
-
+    
       setDashboardData({
-        totalOrders: metricsRes?.totalOrders || 14, // Updated with actual data
-        totalProducts: metricsRes?.totalProducts || 5, // Updated with actual data
-        totalRequests: metricsRes?.totalRequests || 0, // Updated with actual data
-        totalReturns: metricsRes?.totalReturns || 0, // Updated with actual data
-        totalRevenue: metricsRes?.totalRevenue || 0, // Updated with actual data
-        ordersDifference: metricsRes?.ordersDifference || 0,
-        pendingOrders: metricsRes?.pendingOrders || 0,
-        pendingOrdersWorth: metricsRes?.pendingOrdersWorth || 0,
-        requestsDifference: metricsRes?.requestsDifference || 0,
-        returnedProductsWorth: metricsRes?.returnedProductsWorth || 0,
-        returnsDifference: metricsRes?.returnsDifference || 0,
-        revenueDifference: metricsRes?.revenueDifference || 0,
-        totalMessages: metricsRes?.totalMessages || 7, // Updated with actual data
-        requestsRevenue: metricsRes?.requestsRevenue || 0,
-        requestsRevenueDifference: metricsRes?.requestsRevenueDifference || 0,
+        totalOrders: metricsRes.data?.totalOrders || 14, // Updated with actual data
+        totalProducts: metricsRes.data?.totalProducts || 5, // Updated with actual data
+        totalRequests: metricsRes.data?.totalRequests || 0, // Updated with actual data
+        totalReturns: metricsRes.data?.totalReturns || 0, // Updated with actual data
+        totalRevenue: metricsRes.data?.totalRevenue || 0, // Updated with actual data
+        ordersDifference: metricsRes.data?.ordersDifference || 0,
+        pendingOrders: metricsRes.data?.pendingOrders || 0,
+        pendingOrdersWorth: metricsRes.data?.pendingOrdersWorth || 0,
+        requestsDifference: metricsRes.data?.requestsDifference || 0,
+        returnedProductsWorth: metricsRes.data?.returnedProductsWorth || 0,
+        returnsDifference: metricsRes.data?.returnsDifference || 0,
+        revenueDifference: metricsRes.data?.revenueDifference || 0,
+        totalMessages: metricsRes.data?.totalMessages || 7, // Updated with actual data
+        requestsRevenue: metricsRes.data?.requestsRevenue || 0,
+        requestsRevenueDifference: metricsRes.data?.requestsRevenueDifference || 0,
       });
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
@@ -306,7 +305,7 @@ const Dashboard = () => {
         ],
       };
 
-      setChartData(metricsRes.chartData);
+      setChartData(metricsRes.chartData as { name: string; orders: number; requests: number }[]);
       setPeriodMetrics({
         activeProducts: metricsRes.metrics.activeProducts,
         messages: metricsRes.metrics.messages,
@@ -469,12 +468,14 @@ const Dashboard = () => {
                 />
               </div>
             </div>
+            {/* Order Analytics stacked below Orders Overview */}
+            <OrderAnalytics />
 
             <div className="bg-white p-4 rounded-xl">
               <div className="flex flex-row justify-end pb-3">
                 <Select
                   value={selectedPeriod}
-                  onValueChange={(value) => setSelectedPeriod(value)}
+                  onValueChange={(value) => setSelectedPeriod(value as "today" | "week" | "month" | "year")}
                 >
                   <SelectTrigger className="w-fit space-x-2 font-semibold border-none">
                     <SelectValue placeholder={selectedPeriod} />
@@ -732,80 +733,24 @@ const Dashboard = () => {
 
           {/* Right Sidebar */}
           <div className="w-full lg:w-1/3 space-y-4 lg:space-y-6">
+            {/* Profile Strength */}
+            <ProfileStrengthCard />
             {/* Notifications */}
             <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm">
               <h3 className="font-semibold mb-4">Notifications/Event Alerts</h3>
-              <div className="space-y-4">
-                <NotificationItem
-                  icon={<Bug className="w-4 h-4" />}
-                  text="You have a bug that needs to be fixed"
-                  time="Just now"
-                />
-                <NotificationItem
-                  icon={<User className="w-4 h-4" />}
-                  text="New user registered"
-                  time="39 minutes ago"
-                />
-                <NotificationItem
-                  icon={<AlertCircle className="w-4 h-4" />}
-                  text="You have a bug that needs to be fixed"
-                  time="12 hours ago"
-                />
-              </div>
+              <NotificationsList />
             </div>
 
             {/* Latest Orders */}
             <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm">
               <h3 className="font-semibold mb-4">Latest Orders</h3>
-              <div className="space-y-4">
-                <OrderItem
-                  icon={<Bug className="w-4 h-4" />}
-                  text="Order #12345 for raja babu2 (Qty: 2)"
-                  time="Just now"
-                />
-                <OrderItem
-                  icon={<CheckCircle className="w-4 h-4" />}
-                  text="Order #12344 for kollabee (Qty: 1)"
-                  time="39 minutes ago"
-                />
-                <OrderItem
-                  icon={<AlertCircle className="w-4 h-4" />}
-                  text="Order #12343 for Suraj (Qty: 1)"
-                  time="12 hours ago"
-                />
-              </div>
+              <OrdersList />
             </div>
 
             <div className="bg-white rounded-xl p-4 lg:p-5 shadow-sm">
-              <h1 className="font-semibold mb-4 ">Your Contacts</h1>
-
-              <div className="grid grid-cols-1  gap-4">
-                {contact.map((contact) => (
-                  <div
-                    key={contact.id}
-                    className="flex items-center space-x-3 p-3  rounded-lg hover:bg-gray-100 cursor-pointer"
-                    onClick={() => router.push(`/seller/chat`)}
-                  >
-                    <div className="w-10 h-10  rounded-full flex items-center justify-center">
-                      {contact.image ? (
-                        <img
-                          src={contact.image}
-                          alt={contact.name}
-                          className="w-full h-full rounded-full object-cover"
-                        />
-                      ) : (
-                        <span className="text-gray-500">{contact.name[0]}</span>
-                      )}
-                    </div>
-                    <span className="text-sm font-medium">{contact.name}</span>
-                  </div>
-                ))}
-              </div>
+              <ContactsList />
             </div>
           </div>
-        </div>
-        <div className="mt-4 grid grid-cols-1">
-          <OrderAnalytics />
         </div>
       </div>
     </div>
@@ -862,17 +807,5 @@ const StatCard = ({
     </div>
   </div>
 );
-
-const NotificationItem = ({ icon, text, time }) => (
-  <div className="flex items-start space-x-3">
-    <div className="bg-gray-100 p-2 rounded-lg">{icon}</div>
-    <div>
-      <p className="text-sm">{text}</p>
-      <span className="text-xs text-gray-500">{time}</span>
-    </div>
-  </div>
-);
-
-const OrderItem = NotificationItem;
 
 export default Dashboard;

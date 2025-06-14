@@ -25,6 +25,7 @@ import {
   getProfileSummary,
   getPendingStepNames,
   getApproval,
+  getProfileStrength,
 } from "../controllers/seller.controller";
 import { authMiddleware } from "../middleware/auth";
 import { upload } from "../utils/multer";
@@ -112,4 +113,7 @@ router.post("/approval", authMiddleware, requestApproval);
 router.get("/profile/completion", authMiddleware, getProfileCompletion);
 
 router.put("/approval", authMiddleware, requestApproval);
+
+router.get("/profile/strength", authMiddleware, getProfileStrength);
+
 export default router;

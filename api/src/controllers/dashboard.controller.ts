@@ -1132,7 +1132,7 @@ export const getDashboard = async (req: any, res: Response) => {
       orders, // regular orders
       requests, // regular requests
       projectRequests, // manufacturing/project requests
-      contacts,
+      contacts: contacts ?? [],
       chartData,
       totalRevenue: totalRevenue._sum?.totalAmount || 0,
       topBuyers,
@@ -1143,5 +1143,388 @@ export const getDashboard = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Get dashboard error:", error);
     res.status(500).json({ error: "Failed to fetch dashboard data" });
+  }
+};
+
+export const getNotifications = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { page = 1, limit = 10 } = req.query;
+    const pageSize = parseInt(limit as string);
+    const pageNo = parseInt(page as string);
+    const skip = (pageNo - 1) * pageSize;
+
+    // Get notifications from multiple sources
+    const [orders, requests, messages] = await Promise.all([
+      // Recent orders
+      prisma.order.findMany({
+        where: {
+          items: {
+            some: {
+              seller: {
+                userId: userId,
+              },
+            },
+          },
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+            },
+          },
+          buyer: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: pageSize,
+        skip,
+      }),
+      // Recent requests
+      prisma.request.findMany({
+        where: {
+          seller: {
+            userId: userId,
+          },
+        },
+        include: {
+          buyer: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: pageSize,
+        skip,
+      }),
+      // Recent messages
+      prisma.message.findMany({
+        where: {
+          OR: [
+            { senderId: userId },
+            { conversation: { participants: { some: { userId: userId } } } },
+          ],
+        },
+        include: {
+          sender: {
+            select: {
+              name: true,
+              imageUrl: true,
+            },
+          },
+          conversation: {
+            include: {
+              participants: {
+                include: {
+                  user: {
+                    select: {
+                      name: true,
+                      imageUrl: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: pageSize,
+        skip,
+      }),
+    ]);
+
+    // Transform data into notification format
+    const notifications = [
+      ...orders.map((order) => ({
+        id: order.id,
+        message: `New order #${order.id.slice(-6)} received from ${order.buyer?.user?.name || 'Unknown'}`,
+        type: 'ORDER' as const,
+        read: false,
+        createdAt: order.createdAt.toISOString(),
+        metadata: {
+          orderId: order.id,
+        },
+      })),
+      ...requests.map((request) => ({
+        id: request.id,
+        message: `New request for ${request.productName} from ${request.buyer?.user?.name || 'Unknown'}`,
+        type: 'REQUEST' as const,
+        read: false,
+        createdAt: request.createdAt.toISOString(),
+        metadata: {
+          requestId: request.id,
+        },
+      })),
+      ...messages.map((message) => ({
+        id: message.id,
+        message: `New message from ${message.sender?.name || 'Unknown'}`,
+        type: 'MESSAGE' as const,
+        read: false,
+        createdAt: message.createdAt.toISOString(),
+        metadata: {
+          messageId: message.id,
+        },
+      })),
+    ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    // Get total count for pagination
+    const [totalOrders, totalRequests, totalMessages] = await Promise.all([
+      prisma.order.count({
+        where: {
+          items: {
+            some: {
+              seller: {
+                userId: userId,
+              },
+            },
+          },
+        },
+      }),
+      prisma.request.count({
+        where: {
+          seller: {
+            userId: userId,
+          },
+        },
+      }),
+      prisma.message.count({
+        where: {
+          OR: [
+            { senderId: userId },
+            { conversation: { participants: { some: { userId: userId } } } },
+          ],
+        },
+      }),
+    ]);
+
+    const total = totalOrders + totalRequests + totalMessages;
+
+    res.json({
+      data: notifications,
+      pagination: {
+        total,
+        pageSize,
+        currentPage: pageNo,
+        totalPages: Math.ceil(total / pageSize),
+        hasMore: pageNo * pageSize < total,
+      },
+    });
+  } catch (error) {
+    console.error("Get notifications error:", error);
+    res.status(500).json({ error: "Failed to fetch notifications" });
+  }
+};
+
+export const getLatestOrders = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { page = 1, limit = 10 } = req.query;
+    const pageSize = parseInt(limit as string);
+    const pageNo = parseInt(page as string);
+    const skip = (pageNo - 1) * pageSize;
+
+    const seller = await prisma.seller.findFirst({
+      where: { userId },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    const [orders, totalCount] = await Promise.all([
+      prisma.order.findMany({
+        where: {
+          items: {
+            some: {
+              sellerId: seller.id,
+            },
+          },
+        },
+        include: {
+          items: {
+            where: {
+              sellerId: seller.id,
+            },
+            include: {
+              product: {
+                select: {
+                  name: true,
+                  price: true,
+                },
+              },
+            },
+          },
+          buyer: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        take: pageSize,
+        skip,
+      }),
+      prisma.order.count({
+        where: {
+          items: {
+            some: {
+              sellerId: seller.id,
+            },
+          },
+        },
+      }),
+    ]);
+
+    const transformedOrders = orders.map((order) => ({
+      id: order.id,
+      orderNumber: order.id.slice(-6).toUpperCase(),
+      status: order.status,
+      totalAmount: order.totalAmount,
+      createdAt: order.createdAt.toISOString(),
+      buyer: {
+        name: order.buyer?.user?.name || 'Unknown',
+        imageUrl: order.buyer?.user?.imageUrl || null,
+      },
+      items: order.items.map((item) => ({
+        productName: item.product.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+    }));
+
+    res.json({
+      data: transformedOrders,
+      pagination: {
+        total: totalCount,
+        pageSize,
+        currentPage: pageNo,
+        totalPages: Math.ceil(totalCount / pageSize),
+        hasMore: pageNo * pageSize < totalCount,
+      },
+    });
+  } catch (error) {
+    console.error("Get latest orders error:", error);
+    res.status(500).json({ error: "Failed to fetch latest orders" });
+  }
+};
+
+export const getContacts = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { page = 1, limit = 10 } = req.query;
+    const pageSize = parseInt(limit as string);
+    const pageNo = parseInt(page as string);
+    const skip = (pageNo - 1) * pageSize;
+
+    // Get contacts from conversations
+    const conversations = await prisma.conversation.findMany({
+      where: {
+        participants: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+      include: {
+        participants: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                imageUrl: true,
+                role: true,
+              },
+            },
+          },
+        },
+        messages: {
+          orderBy: {
+            createdAt: "desc",
+          },
+          take: 1,
+        },
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      take: pageSize,
+      skip,
+    });
+
+    // Transform conversations to contacts
+    const contacts = conversations
+      .map((conv) => {
+        const otherParticipant = conv.participants.find(
+          (p) => p.userId !== userId && p.user.role === "BUYER"
+        );
+
+        if (!otherParticipant) return null;
+
+        const lastMessage = conv.messages[0];
+        
+        return {
+          id: otherParticipant.userId,
+          name: otherParticipant.user.name || otherParticipant.user.email || "Unknown",
+          image: otherParticipant.user.imageUrl || null,
+          lastMessage: lastMessage?.content || null,
+          lastMessageTime: lastMessage?.createdAt.toISOString() || null,
+          unreadCount: 0, // You can implement unread count logic here
+        };
+      })
+      .filter(Boolean);
+
+    // Get total count
+    const totalCount = await prisma.conversation.count({
+      where: {
+        participants: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+    });
+
+    res.json({
+      data: contacts,
+      pagination: {
+        total: totalCount,
+        pageSize,
+        currentPage: pageNo,
+        totalPages: Math.ceil(totalCount / pageSize),
+        hasMore: pageNo * pageSize < totalCount,
+      },
+    });
+  } catch (error) {
+    console.error("Get contacts error:", error);
+    res.status(500).json({ error: "Failed to fetch contacts" });
   }
 };

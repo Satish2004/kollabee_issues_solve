@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { authApi } from "@/lib/api/auth";
 import { cn } from "@/lib/utils";
@@ -123,7 +123,7 @@ export function SellerSidebar({ className }: SidebarProps) {
  
   ];
 
-  const menuItems: string = [
+  const menuItems: { title: string; icon: React.ElementType }[] = [
     { title: "Dashboard", icon: Home },
     { title: "Products", icon: Package },
   ];

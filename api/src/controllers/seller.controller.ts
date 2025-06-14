@@ -1028,10 +1028,7 @@ export const updateSellerProfileTeamSize = async (req: any, res: Response) => {
   }
 };
 
-export const getSellerProfileAnnualRevenue = async (
-  req: any,
-  res: Response
-) => {
+export const getSellerProfileAnnualRevenue = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
     const seller = await prisma.seller.findUnique({
@@ -2569,5 +2566,54 @@ export const getPendingStepNames = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Get pending step names error:", error);
     res.status(500).json({ error: "Failed to get pending step names" });
+  }
+};
+
+// --- Profile Strength API ---
+export const getProfileStrength = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const seller = await prisma.seller.findUnique({
+      where: { userId },
+      select: { profileCompletion: true },
+    });
+
+    if (!seller) {
+      return res.status(404).json({ error: "Seller not found" });
+    }
+
+    // Step mapping (should match frontend)
+    const stepMap = [
+      { number: 1, name: "Company Details" },
+      { number: 2, name: "Personal Information" },
+      { number: 3, name: "Describe your brand" },
+      { number: 4, name: "Certifications" },
+      { number: 5, name: "Add details" },
+    ];
+    const totalSteps = stepMap.length;
+    const completedSteps = seller.profileCompletion || [];
+    const completedStepNames = stepMap
+      .filter((step) => completedSteps.includes(step.number))
+      .map((step) => step.name);
+    const missingSteps = stepMap
+      .filter((step) => !completedSteps.includes(step.number))
+      .map((step) => step.number);
+    const missingStepNames = stepMap
+      .filter((step) => !completedSteps.includes(step.number))
+      .map((step) => step.name);
+    const percentage = Math.round((completedSteps.length / totalSteps) * 100);
+
+    res.json({
+      percentage,
+      completedSteps,
+      completedStepNames,
+      missingSteps,
+      missingStepNames,
+      totalSteps,
+      steps: stepMap,
+    });
+  } catch (error) {
+    console.error("Get profile strength error:", error);
+    res.status(500).json({ error: "Failed to get profile strength" });
   }
 };
