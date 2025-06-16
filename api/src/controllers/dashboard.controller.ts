@@ -371,6 +371,29 @@ export const getMetrics = async (req: any, res: Response) => {
       (totalRequestsRevenue._sum.targetPrice || 0) -
       (lastMonthTotalRequestsRevenue._sum.targetPrice || 0);
 
+    // Calculate average response time for current and previous month
+    const [currentResponseMetrics, pastResponseMetrics] = await Promise.all([
+      getResponseMetrics(seller.id, currentMonthStart),
+      getResponseMetrics(seller.id, lastMonthStart)
+    ]);
+    function formatDuration(hours: number) {
+      if (!hours) return '0m';
+      const totalMinutes = Math.round(hours * 60);
+      const h = Math.floor(totalMinutes / 60);
+      const m = totalMinutes % 60;
+      return h ? `${h}h ${m}m` : `${m}m`;
+    }
+    function calcPercent(curr: number, prev: number) {
+      if (prev === 0) return curr === 0 ? '0%' : '100%';
+      const change = ((curr - prev) / prev) * 100;
+      return `${Math.round(change)}%`;
+    }
+    const averageResponse = {
+      current: formatDuration(currentResponseMetrics.averageResponseTime),
+      past: formatDuration(pastResponseMetrics.averageResponseTime),
+      percentageChange: calcPercent(currentResponseMetrics.averageResponseTime, pastResponseMetrics.averageResponseTime)
+    };
+
     res.json({
       // Current month metrics
       totalOrders,
@@ -384,12 +407,12 @@ export const getMetrics = async (req: any, res: Response) => {
       returnedProductsWorth: returnedProductsWorth._sum.refundAmount || 0,
       requestsRevenue: totalRequestsRevenue._sum.targetPrice || 0,
       requestsRevenueDifference,
-
       // Differences
       revenueDifference,
       ordersDifference,
       requestsDifference,
       returnsDifference,
+      averageResponse
     });
   } catch (error) {
     console.error("Get dashboard metrics error:", error);

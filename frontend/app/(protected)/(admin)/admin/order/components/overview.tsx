@@ -6,6 +6,7 @@ import {
   Package,
   RefreshCw,
   TrendingDown,
+  Clock,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -46,6 +47,7 @@ export default function Overview() {
       <MetricCard title="Orders Worth" value={orderMetrics?.ordersWorth?.current} percentage={orderMetrics?.ordersWorth?.percentageChange}  icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
       <MetricCard title="Returned Products" value={"0"} percentage={orderMetrics?.ordersWorth?.percentageChange}  icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
       <MetricCard title="Packed Orders" value={orderMetrics?.ordersPacked?.current} percentage={orderMetrics?.ordersPacked?.percentageChange} icon={<ArrowUp className="h-4 w-4" />} iconBg="bg-emerald-100" />
+      <MetricCard title="Average Response" value={orderMetrics?.averageResponse?.current} percentage={orderMetrics?.averageResponse?.percentageChange} icon={<Clock className="h-4 w-4" />} iconBg="bg-blue-100" />
       </div>
 
       <div className="pt-4">

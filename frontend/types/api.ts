@@ -225,24 +225,26 @@ export interface Seller {
 
 export interface Order {
   id: string;
-  items: Array<{
-    product: {
-      name: string;
-      categoryId: string;
-      reviews?: Review[];
-    };
-    seller: {
-      businessName: string;
-    };
-  }>;
-  totalAmount: number;
-  shippingAddress?: {
-    country: string;
-  };
   status: string;
+  totalAmount: number;
   createdAt: string;
-  buyerId: string;
-  sellerId: string;
+  items: OrderItem[];
+  shippingAddress: ShippingAddress | null;
+  isAccepted: boolean;
+  buyer?: {
+    id: string;
+    userId: string;
+    user: {
+      id: string;
+      email: string;
+      name: string;
+      role: string;
+      companyName: string;
+      country: string | null;
+      imageUrl: string | null;
+      phoneNumber: string;
+    };
+  };
 }
 
 export interface OrderItem {
@@ -614,6 +616,11 @@ export interface DashboardMetrics {
   totalMessages: number;
   requestsRevenue: number;
   requestsRevenueDifference: number;
+  averageResponse?: {
+    current: string;
+    past?: string;
+    percentageChange: string;
+  };
 }
 
 export interface OrderAnalytics {
@@ -683,63 +690,6 @@ export interface Project {
     dueDate: Date | undefined;
   }[];
   ownerId: string;
-}
-
-export interface OrderItem {
-  id: string;
-  quantity: number;
-  price: number;
-  isAccepted: boolean;
-  product: {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    images: string[];
-    categoryId: string;
-    attributes: Record<string, string>;
-    reviews?: Review[];
-  };
-  seller: {
-    id: string;
-    businessName: string;
-    businessAddress: string;
-    user: {
-      name: string;
-      imageUrl: string | null;
-    };
-  };
-}
-
-export interface ShippingAddress {
-  fullName: string;
-  address: string;
-  country: string;
-  state: string;
-}
-
-export interface Order {
-  id: string;
-  status: string;
-  totalAmount: number;
-  createdAt: string;
-  items: OrderItem[];
-  shippingAddress: ShippingAddress | null;
-  isAccepted: boolean;
-  buyer?: {
-    id: string;
-    userId: string;
-    user: {
-      id: string;
-      email: string;
-      name: string;
-      role: string;
-      companyName: string;
-      country: string | null;
-      imageUrl: string | null;
-      phoneNumber: string;
-    };
-  };
 }
 
 export interface Milestone {

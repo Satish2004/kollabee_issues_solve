@@ -40,6 +40,7 @@ import NotificationsList from "@/components/seller/notifications-list";
 import OrdersList from "@/components/seller/orders-list";
 import ContactsList from "@/components/seller/contacts-list";
 import ProfileStrengthCard from "@/components/seller/profile-strength-card";
+import React from "react";
 
 interface DashboardData {
   totalOrders: number;
@@ -57,6 +58,7 @@ interface DashboardData {
   totalMessages: number;
   requestsRevenue: number;
   requestsRevenueDifference: number;
+  averageResponse?: { current: string; percentageChange: string };
 }
 
 const monthlyOnboarding = [
@@ -129,6 +131,227 @@ const dummyContact = [
 
 type contact = { id: string | number; name: string; image: string };
 
+function SellerDashboardMainCard({
+  selectedPeriod,
+  setSelectedPeriod,
+  periodMetrics,
+  router,
+  trendingProducts,
+  normalizedData,
+  topSellingProducts,
+  lowSellerData,
+}) {
+  return (
+    <div className="bg-white p-4 rounded-xl">
+      <div className="flex flex-row justify-end pb-3">
+        <Select
+          value={selectedPeriod}
+          onValueChange={(value) => setSelectedPeriod(value as "today" | "week" | "month" | "year")}
+        >
+          <SelectTrigger className="w-fit space-x-2 font-semibold border-none">
+            <SelectValue placeholder={selectedPeriod} />
+          </SelectTrigger>
+          <SelectContent className="bg-white border-none">
+            <SelectItem className="cursor-pointer bg-gray-100" value="today">Today</SelectItem>
+            <SelectItem className="cursor-pointer bg-gray-100" value="week">This Week</SelectItem>
+            <SelectItem className="cursor-pointer bg-gray-100" value="month">This Month</SelectItem>
+            <SelectItem className="cursor-pointer bg-gray-100" value="year">This Year</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {/* Charts and Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
+        <div className="bg-red-50 rounded-xl p-4 lg:p-6 hover:cursor-pointer" onClick={() => router.push("/seller/request")}>
+          <h3 className="font-semibold text-sm">Requests</h3>
+          <div className="flex flex-row items-center justify-between">
+            <div className="text-2xl font-bold mt-2">
+              {periodMetrics.currentRequests}
+            </div>
+            <div className="text-sm flex items-center space-x-2">
+              {periodMetrics.requestPercentageChange}%{" "}
+              <span className="ml-2">
+                {periodMetrics.requestDifference <= 0 ? (
+                  <TrendingUp className="w-4 h-4" />
+                ) : (
+                  <TrendingUp className="w-4 h-4" />
+                )}
+              </span>{" "}
+            </div>
+          </div>
+        </div>
+        <div className="bg-neutral-100 rounded-xl p-4 lg:p-6 hover:cursor-pointer" onClick={() => router.push("/seller/chat")}>
+          <h3 className="font-semibold text-sm">Messages</h3>
+          <div className="text-2xl font-bold mt-2">
+            {periodMetrics.messages}
+          </div>
+        </div>
+        <div className="bg-neutral-100 rounded-xl p-4 lg:p-6 hover:cursor-pointer" onClick={() => router.push("/seller/products")}>
+          <h3 className="font-semibold text-sm">Published Products</h3>
+          <div className="text-2xl font-bold mt-2">
+            {periodMetrics.activeProducts}
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-3 gap-3 mt-10 md:gap-4   ">
+        <div className="h-64 w-full col-span-2 ">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={normalizedData}>
+              <CartesianGrid vertical={false} stroke="#f0f0f0" />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) =>
+                  value === 0 ? "0" : `${value}M`
+                }
+              />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="orders"
+                stroke="#e91e63"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 6, fill: "#e91e63" }}
+              />
+              <Line
+                type="monotone"
+                dataKey="requests"
+                stroke="#ffc107"
+                strokeWidth={2}
+                dot={false}
+                activeDot={{ r: 6, fill: "#ffc107" }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <div className="bg-gray-50 p-6 rounded-lg">
+          <h3 className="text-base font-medium mb-6">
+            Trending Products
+          </h3>
+          <div className="space-y-4">
+            {trendingProducts.map((product) => (
+              <div key={product.name} className="flex items-center">
+                <span className="w-20 text-sm">{product.name}</span>
+                <div className="flex-1 ml-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="h-2 rounded-full bg-black"
+                      style={{ width: `${product.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      {/* Chart */}
+      <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm mt-4">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
+          {/* Top Selling Products */}
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-base font-medium mb-4">
+              Top Selling Products In Marketplace
+            </h3>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-sm text-gray-500 border-b">
+                    <th className="pb-2 font-normal">Name</th>
+                    <th className="pb-2 font-normal">Price</th>
+                    <th className="pb-2 font-normal">Quantity</th>
+                    <th className="pb-2 font-normal">Amount</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {topSellingProducts.map((product, index) => (
+                    <tr
+                      key={index}
+                      className="border-b border-gray-100 last:border-0"
+                    >
+                      <td className="py-3 text-sm">{product.name}</td>
+                      <td className="py-3 text-sm">
+                        ₹{product.price.toFixed(2)}
+                      </td>
+                      <td className="py-3 text-sm">
+                        {product.quantity}
+                      </td>
+                      <td className="py-3 text-sm">
+                        ₹{product.amount.toFixed(2)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+          {/* Low Seller */}
+          <div className="bg-gray-50 p-6 rounded-lg">
+            <h3 className="text-base font-medium mb-4">Low seller</h3>
+            {/* Stack items vertically instead of using flex */}
+            <div className="flex flex-col items-center">
+              {/* Pie chart block */}
+              <div className="w-full h-48 mb-6">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={lowSellerData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={0}
+                      dataKey="value"
+                    >
+                      {lowSellerData.map((entry, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={entry.color}
+                        />
+                      ))}
+                    </Pie>
+                    <text
+                      x="50%"
+                      y="50%"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      className="text-lg font-medium"
+                    >
+                      {lowSellerData[0].value}%
+                    </text>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+              {/* Data list below the chart */}
+              <div className="w-full space-y-3">
+                {lowSellerData.slice(1).map((item, index) => (
+                  <div key={index} className="flex items-center">
+                    <span
+                      className="w-3 h-3 rounded-sm mr-2"
+                      style={{ backgroundColor: item.color }}
+                    ></span>
+                    <span className="text-sm mr-2">{item.name}</span>
+                    <span className="text-sm ml-auto">
+                      ₹{item.amount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     totalOrders: 0,
@@ -200,6 +423,7 @@ const Dashboard = () => {
         totalMessages: metricsRes.data?.totalMessages || 7, // Updated with actual data
         requestsRevenue: metricsRes.data?.requestsRevenue || 0,
         requestsRevenueDifference: metricsRes.data?.requestsRevenueDifference || 0,
+        averageResponse: metricsRes.data?.averageResponse,
       });
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
@@ -466,253 +690,30 @@ const Dashboard = () => {
                   )}
                   router={router}
                 />
+                <StatCard
+                  title="AVERAGE RESPONSE"
+                  value={dashboardData.averageResponse?.current || '0m'}
+                  change={dashboardData.averageResponse?.percentageChange || '0%'}
+                  changeText="from last month"
+                  trend={dashboardData.averageResponse?.percentageChange?.startsWith('-') ? 'down' : 'up'}
+                  percentage={parseInt(dashboardData?.averageResponse?.percentageChange || '0') || 0}
+                  router={router}
+                />
               </div>
             </div>
             {/* Order Analytics stacked below Orders Overview */}
             <OrderAnalytics />
 
-            <div className="bg-white p-4 rounded-xl">
-              <div className="flex flex-row justify-end pb-3">
-                <Select
-                  value={selectedPeriod}
-                  onValueChange={(value) => setSelectedPeriod(value as "today" | "week" | "month" | "year")}
-                >
-                  <SelectTrigger className="w-fit space-x-2 font-semibold border-none">
-                    <SelectValue placeholder={selectedPeriod} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border-none">
-                    <SelectItem
-                      className="cursor-pointer bg-gray-100"
-                      value="today"
-                    >
-                      Today
-                    </SelectItem>
-                    <SelectItem
-                      className="cursor-pointer bg-gray-100"
-                      value="week"
-                    >
-                      This Week
-                    </SelectItem>
-                    <SelectItem
-                      className="cursor-pointer bg-gray-100"
-                      value="month"
-                    >
-                      This Month
-                    </SelectItem>
-                    <SelectItem
-                      className="cursor-pointer bg-gray-100"
-                      value="year"
-                    >
-                      This Year
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Charts and Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
-                <div
-                  className="bg-red-50 rounded-xl p-4 lg:p-6 hover:cursor-pointer"
-                  onClick={() => router.push("/seller/request")}
-                >
-                  <h3 className="font-semibold text-sm">Requests</h3>
-                  <div className="flex flex-row items-center justify-between">
-                    <div className="text-2xl font-bold mt-2">
-                      {periodMetrics.currentRequests}
-                    </div>
-                    <div className="text-sm flex items-center space-x-2">
-                      {periodMetrics.requestPercentageChange}%{" "}
-                      <span className="ml-2">
-                        {periodMetrics.requestDifference <= 0 ? (
-                          <TrendingUp className="w-4 h-4" />
-                        ) : (
-                          <TrendingUp className="w-4 h-4" />
-                        )}
-                      </span>{" "}
-                    </div>
-                  </div>
-                </div>
-                <div
-                  className="bg-neutral-100 rounded-xl p-4 lg:p-6 hover:cursor-pointer"
-                  onClick={() => router.push("/seller/chat")}
-                >
-                  <h3 className="font-semibold text-sm">Messages</h3>
-                  <div className="text-2xl font-bold mt-2">
-                    {periodMetrics.messages}
-                  </div>
-                </div>
-                <div
-                  className="bg-neutral-100 rounded-xl p-4 lg:p-6 hover:cursor-pointer"
-                  onClick={() => router.push("/seller/products")}
-                >
-                  <h3 className="font-semibold text-sm">Published Products</h3>
-                  <div className="text-2xl font-bold mt-2">
-                    {periodMetrics.activeProducts}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mt-10 md:gap-4   ">
-                <div className="h-64 w-full col-span-2 ">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={normalizedData}>
-                      <CartesianGrid vertical={false} stroke="#f0f0f0" />
-                      <XAxis
-                        dataKey="name"
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12 }}
-                      />
-                      <YAxis
-                        axisLine={false}
-                        tickLine={false}
-                        tick={{ fontSize: 12 }}
-                        tickFormatter={(value) =>
-                          value === 0 ? "0" : `${value}M`
-                        }
-                      />
-                      <Tooltip />
-                      <Line
-                        type="monotone"
-                        dataKey="orders"
-                        stroke="#e91e63"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 6, fill: "#e91e63" }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="requests"
-                        stroke="#ffc107"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 6, fill: "#ffc107" }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-
-                <div className="bg-gray-50 p-6 rounded-lg">
-                  <h3 className="text-base font-medium mb-6">
-                    Trending Products
-                  </h3>
-                  <div className="space-y-4">
-                    {trendingProducts.map((product) => (
-                      <div key={product.name} className="flex items-center">
-                        <span className="w-20 text-sm">{product.name}</span>
-                        <div className="flex-1 ml-4">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="h-2 rounded-full bg-black"
-                              style={{ width: `${product.progress}%` }}
-                            ></div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Chart */}
-              <div className="bg-white rounded-xl p-4 lg:p-6 shadow-sm mt-4">
-                <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-                  {/* Top Selling Products */}
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <h3 className="text-base font-medium mb-4">
-                      Top Selling Products In Marketplace
-                    </h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="text-left text-sm text-gray-500 border-b">
-                            <th className="pb-2 font-normal">Name</th>
-                            <th className="pb-2 font-normal">Price</th>
-                            <th className="pb-2 font-normal">Quantity</th>
-                            <th className="pb-2 font-normal">Amount</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {topSellingProducts.map((product, index) => (
-                            <tr
-                              key={index}
-                              className="border-b border-gray-100 last:border-0"
-                            >
-                              <td className="py-3 text-sm">{product.name}</td>
-                              <td className="py-3 text-sm">
-                                ₹{product.price.toFixed(2)}
-                              </td>
-                              <td className="py-3 text-sm">
-                                {product.quantity}
-                              </td>
-                              <td className="py-3 text-sm">
-                                ₹{product.amount.toFixed(2)}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-
-                  {/* Low Seller */}
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <h3 className="text-base font-medium mb-4">Low seller</h3>
-
-                    {/* Stack items vertically instead of using flex */}
-                    <div className="flex flex-col items-center">
-                      {/* Pie chart block */}
-                      <div className="w-full h-48 mb-6">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={lowSellerData}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={60}
-                              outerRadius={80}
-                              paddingAngle={0}
-                              dataKey="value"
-                            >
-                              {lowSellerData.map((entry, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={entry.color}
-                                />
-                              ))}
-                            </Pie>
-                            <text
-                              x="50%"
-                              y="50%"
-                              textAnchor="middle"
-                              dominantBaseline="middle"
-                              className="text-lg font-medium"
-                            >
-                              {lowSellerData[0].value}%
-                            </text>
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* Data list below the chart */}
-                      <div className="w-full space-y-3">
-                        {lowSellerData.slice(1).map((item, index) => (
-                          <div key={index} className="flex items-center">
-                            <span
-                              className="w-3 h-3 rounded-sm mr-2"
-                              style={{ backgroundColor: item.color }}
-                            ></span>
-                            <span className="text-sm mr-2">{item.name}</span>
-                            <span className="text-sm ml-auto">
-                              ₹{item.amount}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <SellerDashboardMainCard
+              selectedPeriod={selectedPeriod}
+              setSelectedPeriod={setSelectedPeriod}
+              periodMetrics={periodMetrics}
+              router={router}
+              trendingProducts={trendingProducts}
+              normalizedData={normalizedData}
+              topSellingProducts={topSellingProducts}
+              lowSellerData={lowSellerData}
+            />
 
             {/* <div className="w-full h-[400px]">
               <ResponsiveContainer width="100%" height="100%">

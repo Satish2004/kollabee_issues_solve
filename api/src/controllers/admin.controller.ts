@@ -1426,6 +1426,45 @@ export const adminController = {
         })
       ]);
   
+      // Calculate average response time for current and past period
+      const [currentResponses, pastResponses] = await Promise.all([
+        prisma.order.findMany({
+          where: {
+            createdAt: { gte: currentPeriodStart, lte: now },
+            NOT: { status: 'PENDING' },
+          },
+          select: { createdAt: true, updatedAt: true },
+        }),
+        prisma.order.findMany({
+          where: {
+            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd },
+            NOT: { status: 'PENDING' },
+          },
+          select: { createdAt: true, updatedAt: true },
+        })
+      ]);
+
+      function avgResponseTime(orders: { createdAt: Date; updatedAt: Date }[]): number {
+        if (!orders.length) return 0;
+        const totalMs = orders.reduce((sum: number, o: { createdAt: Date; updatedAt: Date }) => sum + (o.updatedAt.getTime() - o.createdAt.getTime()), 0);
+        return totalMs / orders.length;
+      }
+      const avgCurrent = avgResponseTime(currentResponses);
+      const avgPast = avgResponseTime(pastResponses);
+      // Format as hours and minutes
+      function formatDuration(ms: number): string {
+        if (!ms) return '0m';
+        const totalMinutes = Math.round(ms / 60000);
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+        return hours ? `${hours}h ${minutes}m` : `${minutes}m`;
+      }
+      const averageResponse = {
+        current: formatDuration(avgCurrent),
+        past: formatDuration(avgPast),
+        percentageChange: calculatePercentage(avgCurrent, avgPast)
+      };
+  
       const metrics: OrderMetrics = {
         totalOrders: {
           current: totalOrdersCurrent,
@@ -1444,7 +1483,8 @@ export const adminController = {
           current: packedOrdersCurrent,
           past: packedOrdersPast,
           percentageChange: calculatePercentage(packedOrdersCurrent, packedOrdersPast)
-        }
+        },
+        averageResponse
       };
   
       res.json(metrics);
@@ -1469,6 +1509,11 @@ interface OrderMetrics {
   ordersPacked: {
     current: number;
     past: number;
+    percentageChange: string;
+  };
+  averageResponse: {
+    current: string;
+    past: string;
     percentageChange: string;
   };
 }

@@ -51,6 +51,10 @@ export const ordersApi = {
     return api.post("/orders/approve", data);
   },
 
+  updateOrderStatus: async (orderId: string, status: string) => {
+    return api.patch(`/orders/${orderId}/status`, { status });
+  },
+
   // admin api
 
   getOrdersForAdmin: async (params?: {

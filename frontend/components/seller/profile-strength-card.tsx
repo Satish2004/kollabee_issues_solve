@@ -33,10 +33,31 @@ const ProfileStrengthCard = () => {
   const getSectionColor = (idx: number) => SECTION_COLORS[idx] || "#E5E7EB";
 
   // Donut chart sizing
-  const radius = 36;
-  const stroke = 8;
-  const circumference = 2 * Math.PI * radius;
-  const completedCirc = (completedSteps / totalSteps) * circumference;
+  const radius = 48; // Larger radius
+  const stroke = 24; // Thicker stroke
+  const gapAngle = 4; // More visible gap between segments
+  const totalSegments = steps.length;
+  const stepAngle = (360 - totalSegments * gapAngle) / totalSegments;
+
+  // Helper to convert polar to cartesian
+  const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
+    const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+    return {
+      x: centerX + radius * Math.cos(angleInRadians),
+      y: centerY + radius * Math.sin(angleInRadians),
+    };
+  };
+
+  // Helper to describe an SVG arc
+  const describeArc = (x: number, y: number, radius: number, startAngle: number, endAngle: number) => {
+    const start = polarToCartesian(x, y, radius, endAngle);
+    const end = polarToCartesian(x, y, radius, startAngle);
+    const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+    return [
+      "M", start.x, start.y,
+      "A", radius, radius, 0, largeArcFlag, 0, end.x, end.y
+    ].join(" ");
+  };
 
   return (
     <div className="bg-white rounded-xl p-4 shadow-sm w-full max-w-full flex flex-col items-center">
@@ -45,38 +66,32 @@ const ProfileStrengthCard = () => {
         <span className="font-bold text-base text-black">Your Profile Strength</span>
       </div>
       <div className="relative flex flex-col items-center justify-center my-2">
-        <svg width="90" height="90" viewBox="0 0 100 100" className="block">
-          {/* Background circle */}
-          <circle cx="50" cy="50" r={radius} fill="none" stroke="#F3F4F6" strokeWidth={stroke} />
-          {/* Completed arc */}
-          <circle
-            cx="50"
-            cy="50"
-            r={radius}
-            fill="none"
-            stroke="url(#profileStrengthGradient)"
-            strokeWidth={stroke}
-            strokeDasharray={`${completedCirc} ${circumference}`}
-            strokeDashoffset={circumference - completedCirc}
-            strokeLinecap="round"
-            transform="rotate(-90 50 50)"
-          />
-          <defs>
-            <linearGradient id="profileStrengthGradient" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#6D28D9" />
-              <stop offset="0.5" stopColor="#FBBF24" />
-              <stop offset="1" stopColor="#EC4899" />
-            </linearGradient>
-          </defs>
+        <svg width="140" height="140" viewBox="0 0 140 140" className="block">
+          {/* Segmented arcs for each step */}
+          {steps.map((step, idx) => {
+            const startAngle = idx * (stepAngle + gapAngle);
+            const endAngle = startAngle + stepAngle;
+            const isCompleted = idx < completedSteps;
+            return (
+              <path
+                key={step.id}
+                d={describeArc(70, 70, radius, startAngle, endAngle)}
+                stroke={isCompleted ? getSectionColor(idx) : '#F3F4F6'}
+                strokeWidth={stroke}
+                fill="none"
+                strokeLinecap="round"
+              />
+            );
+          })}
           {/* Percentage text */}
-          <text x="50" y="56" textAnchor="middle" fontSize="20" fontWeight="bold" fill="#222">
+          <text x="70" y="78" textAnchor="middle" fontSize="28" fontWeight="bold" fill="#222">
             {isLoading ? "--" : `${percent}%`}
           </text>
         </svg>
       </div>
       <div className="w-full mt-2 mb-3">
         <div className="font-bold text-xl text-black mb-2">List to updates</div>
-        <div className="flex flex-col gap-1">
+        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
           {steps.map((step, idx) => {
             const isIncomplete = stepsToBeCompleted.includes(idx + 1);
             return (
