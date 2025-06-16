@@ -61,73 +61,9 @@ interface DashboardData {
   averageResponse?: { current: string; percentageChange: string };
 }
 
-const monthlyOnboarding = [
-  {
-    name: "Jul",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Aug",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Sept",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Oct",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Nov",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Dec",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Jan",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Feb",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "Mar",
-    orders: 5,
-    requests: 7,
-  },
-  {
-    name: "Apr",
-    orders: 0,
-    requests: 0,
-  },
-  {
-    name: "May",
-    orders: 11,
-    requests: 7,
-  },
-  {
-    name: "Jun",
-    orders: 2,
-    requests: 9,
-  },
-];
 
-const dummyContact = [
-  { id: 1, name: "Suraj Pandey", image: "" },
-  { id: 2, name: "Raja Babu", image: "" },
-];
+
+
 
 type contact = { id: string | number; name: string; image: string };
 
@@ -141,6 +77,13 @@ function SellerDashboardMainCard({
   topSellingProducts,
   lowSellerData,
 }) {
+  console.log({periodMetrics}); 
+  console.log({normalizedData});
+  console.log({topSellingProducts});
+  console.log({lowSellerData});
+  console.log({trendingProducts});
+
+
   return (
     <div className="bg-white p-4 rounded-xl">
       <div className="flex flex-row justify-end pb-3">
@@ -298,37 +241,43 @@ function SellerDashboardMainCard({
             {/* Stack items vertically instead of using flex */}
             <div className="flex flex-col items-center">
               {/* Pie chart block */}
-              <div className="w-full h-48 mb-6">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={lowSellerData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={0}
-                      dataKey="value"
-                    >
-                      {lowSellerData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={entry.color}
-                        />
-                      ))}
-                    </Pie>
-                    <text
-                      x="50%"
-                      y="50%"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      className="text-lg font-medium"
-                    >
-                      {lowSellerData[0].value}%
-                    </text>
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+              {lowSellerData && lowSellerData.length > 0 && lowSellerData[0] ? (
+                <div className="w-full h-48 mb-6">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={lowSellerData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={0}
+                        dataKey="value"
+                      >
+                        {lowSellerData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={entry.color}
+                          />
+                        ))}
+                      </Pie>
+                      <text
+                        x="50%"
+                        y="50%"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        className="text-lg font-medium"
+                      >
+                        {lowSellerData[0].value}%
+                      </text>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="w-full h-48 mb-6 flex items-center justify-center text-gray-400">
+                  No low seller data available.
+                </div>
+              )}
               {/* Data list below the chart */}
               <div className="w-full space-y-3">
                 {lowSellerData.slice(1).map((item, index) => (
@@ -371,8 +320,8 @@ const Dashboard = () => {
     requestsRevenueDifference: 0,
   });
 
-  const [contact, setContact] = useState<contact[]>(dummyContact);
-  const [monthlyData, setMonthlyData] = useState(monthlyOnboarding);
+  const [contact, setContact] = useState<contact[]>();
+  const [monthlyData, setMonthlyData] = useState();
 
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState<{ name: string; orders: number; requests: number }[]>([]);
@@ -387,6 +336,12 @@ const Dashboard = () => {
   });
 
   const router = useRouter();
+
+  const [trendingProducts, setTrendingProducts] = useState<any[]>([]);
+  const [topSellingProducts, setTopSellingProducts] = useState<any[]>([]);
+  const [lowSellerData, setLowSellerData] = useState<any[]>([]);
+
+  const [normalizedData, setNormalizedData] = useState<Array<{ name: string; orders: number; requests: number }>>([]);
 
   useEffect(() => {
     loadDashboardData();
@@ -433,115 +388,80 @@ const Dashboard = () => {
     }
   };
 
-  const loadPeriodMetrics = async (
-    period: "today" | "week" | "month" | "year"
-  ) => {
+  const loadPeriodMetrics = async (period: "today" | "week" | "month" | "year") => {
     try {
-      // Use the provided data directly
-      const metricsRes = {
-        period: "month",
-        metrics: {
-          requests: {
-            current: 0,
-            previous: 0,
-            difference: 0,
-            percentageChange: 0,
-          },
-          messages: 7,
-          activeProducts: 5,
-          responseMetrics: {
-            averageResponseTime: 0,
-            lateResponses: 0,
-            onTimeRate: 100,
-            responseScore: 100,
-            totalInquiries: 0,
-            respondedInquiries: 0,
-            responseTimes: [],
-          },
-        },
-        chartData: [
-          {
-            name: "Week 1",
-            orders: 0,
-            requests: 0,
-          },
-          {
-            name: "Week 2",
-            orders: 0,
-            requests: 0,
-          },
-        ],
-        dateRanges: {
-          current: {
-            start: "2025-05-31T18:30:00.000Z",
-            end: "2025-06-11T20:50:08.538Z",
-          },
-          previous: {
-            start: "2025-04-30T18:30:00.000Z",
-            end: "2025-05-31T18:29:59.999Z",
-          },
-        },
-        topProducts: [
-          {
-            id: "22172baa-1937-4ea4-aff0-de2169c1f14e",
-            name: "raja babu2",
-            price: 20,
-            quantity: 7,
-            amount: 140,
-          },
-          {
-            id: "5fa207c8-bf92-4b56-ae8c-695e8e244868",
-            name: "kollabee",
-            price: 20,
-            quantity: 5,
-            amount: 100,
-          },
-          {
-            id: "f1923231-547b-4873-9140-dd495065e28d",
-            name: "Suraj",
-            price: 55,
-            quantity: 2,
-            amount: 110,
-          },
-        ],
-        lowSellingProducts: [
-          {
-            id: "3616f517-da7a-438c-ad28-bb5756c8fe96",
-            name: "suraj",
-            price: 1200,
-            quantity: 0,
-            amount: 0,
-          },
-          {
-            id: "73f1d6d4-dee7-4fd0-9280-aff82ca49252",
-            name: "new Suraj",
-            price: 1200,
-            quantity: 0,
-            amount: 0,
-          },
-          {
-            id: "8447b5f2-56d2-47fd-8545-66abca94b836",
-            name: "Raja babu",
-            price: 1200,
-            quantity: 0,
-            amount: 0,
-          },
-        ],
-      };
-
-      setChartData(metricsRes.chartData as { name: string; orders: number; requests: number }[]);
+      const response = await dashboardApi.getDashboard(period);
+      const data :any= response;
+      
+      // Transform chartData into normalizedData format
+      const transformedData = data.chartData.map((item: any) => ({
+        name: item.name,
+        orders: item.bulk + item.single, // Combine bulk and single orders
+        requests: 0 // If you have requests data in the API, use that instead
+      }));
+      setNormalizedData(transformedData);
+      console.log("transformedData",transformedData);
+      
+      setChartData(data.chartData);
       setPeriodMetrics({
-        activeProducts: metricsRes.metrics.activeProducts,
-        messages: metricsRes.metrics.messages,
-        currentRequests: metricsRes.metrics.requests.current,
-        requestDifference: metricsRes.metrics.requests.difference,
-        requestPercentageChange: metricsRes.metrics.requests.percentageChange,
-        previousRequests: metricsRes.metrics.requests.previous,
+        activeProducts: data.metrics.activeProducts,
+        messages: data.metrics.messages,
+        currentRequests: data.metrics.requests.current,
+        requestDifference: data.metrics.requests.difference,
+        requestPercentageChange: data.metrics.requests.percentageChange,
+        previousRequests: data.metrics.requests.previous,
       });
+
+      // Transform lowSellingProducts into the format expected by the pie chart
+      const totalAmount = data.lowSellingProducts.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      let transformedLowSellers = data.lowSellingProducts
+        .filter((p: any) => p.amount > 0) // Only show products with sales
+        .map((product: any, index: number) => {
+          const percentage = totalAmount > 0 ? Math.round((product.amount / totalAmount) * 100) : 0;
+          return {
+            name: product.name,
+            value: percentage,
+            color: ['#e91e63', '#8884d8', '#82ca9d', '#8dd1e1', '#ffc107'][index % 5],
+            amount: product.amount,
+            quantity: product.quantity
+          };
+        });
+
+      // If no products have sales, show a default "No Sales" segment
+      if (transformedLowSellers.length === 0) {
+        transformedLowSellers = [{
+          name: "No Sales",
+          value: 100,
+          color: "#e0e0e0",
+          amount: 0,
+          quantity: 0
+        }];
+      }
+
+      setLowSellerData(transformedLowSellers);
+      console.log("Low Seller Data:", transformedLowSellers);
+      
+      setTopSellingProducts(data.topProducts || []);
+      
+      // Calculate trending products based on top products
+      const maxQuantity = Math.max(...(data.topProducts?.map((p: any) => p.quantity) || [0]));
+      const trending = data.topProducts?.map((p: any) => ({
+        name: p.name,
+        progress: maxQuantity ? Math.round((p.quantity / maxQuantity) * 100) : 0
+      })) || [];
+      setTrendingProducts(trending);
     } catch (error) {
-      console.error("Failed to load period metrics:", error);
-      toast.error("Failed to load period metrics");
+      console.error("Failed to load dashboard data:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setIsLoading(false);
     }
+  };
+
+  // Helper function to generate random colors for the pie chart
+  const getRandomColor = () => {
+    const colors = ['#e91e63', '#8884d8', '#82ca9d', '#8dd1e1', '#ffc107'];
+    return colors[Math.floor(Math.random() * colors.length)];
   };
 
   const calculatePercentageChange = (
@@ -553,58 +473,6 @@ const Dashboard = () => {
     }
     return parseFloat((((current - previous) / previous) * 100).toFixed(2));
   };
-
-  const trendingProducts = [
-    { name: "raja babu2", progress: 85 },
-    { name: "kollabee", progress: 70 },
-    { name: "Suraj", progress: 40 },
-  ];
-
-  const topSellingProducts = [
-    { name: "raja babu2", price: 20, quantity: 7, amount: 140 },
-    { name: "kollabee", price: 20, quantity: 5, amount: 100 },
-    { name: "Suraj", price: 55, quantity: 2, amount: 110 },
-  ];
-
-  const lowSellerData = [
-    { name: "Other", value: 38.6, color: "#000000" },
-    { name: "suraj", value: 25, color: "#8884d8", amount: 0 },
-    { name: "new Suraj", value: 15, color: "#82ca9d", amount: 0 },
-    { name: "Raja babu", value: 15, color: "#8dd1e1", amount: 0 },
-  ];
-
-  const funnelData = [
-    { label: "Page Views", count: 1200, color: "#60A5FA" },
-    { label: "Engaged Buyers", count: 850, color: "#38BDF8" },
-    { label: "Viewed Product(s)", count: 600, color: "#0EA5E9" },
-    { label: "Last Interaction < 7d", count: 450, color: "#0284C7" },
-    { label: "Interest Score > 70", count: 320, color: "#0369A1" },
-    { label: "Taken Action", count: 120, color: "#075985" },
-  ];
-
-  const allMonths = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
-  ];
-
-  const normalizedData = allMonths.map((month) => {
-    const existing = monthlyOnboarding.find((d) => d.name === month);
-    return {
-      name: month,
-      orders: existing?.orders || 0,
-      requests: existing?.requests || 0,
-    };
-  });
 
   return (
     <div className="min-h-screen">

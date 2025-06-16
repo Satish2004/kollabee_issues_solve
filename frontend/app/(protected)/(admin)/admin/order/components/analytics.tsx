@@ -21,6 +21,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { ordersApi } from "@/lib/api/orders";
+import { dashboardApi } from "@/lib/api/dashboard";
 
 type FormattedTopBuyer = {
   id: string;
@@ -64,7 +65,7 @@ export default function Analytics() {
 
       if (response && response.data) {
         // Format the data to make it compatible with the DataTable component
-        const formattedData: FormattedTopBuyer[] = response.data.map(
+        const formattedData: FormattedTopBuyer[] = (response.data.data || []).map(
           (buyer) => ({
             id: buyer.buyerId,
             name: buyer.details.user.name || "Unknown",
@@ -78,11 +79,11 @@ export default function Analytics() {
 
         setTopBuyers(formattedData);
         setPagination({
-          total: response.pagination.total,
-          pageSize: response.pagination.pageSize,
-          currentPage: response.pagination.currentPage,
-          totalPages: response.pagination.totalPages,
-          hasMore: response.pagination.hasMore,
+          total: response.data.pagination.total,
+          pageSize: response.data.pagination.pageSize,
+          currentPage: response.data.pagination.currentPage,
+          totalPages: response.data.pagination.totalPages,
+          hasMore: response.data.pagination.hasMore,
         });
       }
     } catch (error) {
@@ -217,6 +218,35 @@ export default function Analytics() {
 }
 
 export function OrderAnalytics() {
+  const [period, setPeriod] = useState<'month' | 'week' | 'today'>('month');
+  const [chartData, setChartData] = useState<{ name: string; bulk: number; single: number }[]>([]);
+  const [orderSummaryData, setOrderSummaryData] = useState<{ name: string; repeated: number; new: number }[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    dashboardApi.getOrderAnalytics(period)
+      .then(res => {
+        const raw = res.data.data?.chartData || [];
+        setChartData(
+          raw.map((item: any) => ({
+            name: item.name,
+            bulk: item.bulk ?? 0,
+            single: item.single ?? 0,
+          }))
+        );
+        const summaryRaw = res.data.data?.orderSummaryData || [];
+        setOrderSummaryData(
+          summaryRaw.map((item: any) => ({
+            name: item.name,
+            repeated: item.repeated ?? 0,
+            new: item.new ?? 0,
+          }))
+        );
+      })
+      .finally(() => setIsLoading(false));
+  }, [period]);
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
@@ -236,17 +266,20 @@ export function OrderAnalytics() {
               <span className="text-sm">Single Quantity</span>
             </div>
             <div className="ml-auto">
-              <select title="time" className="text-sm border rounded px-2 py-1">
-                <option>Monthly</option>
-                <option>Weekly</option>
-                <option>Daily</option>
+              <select
+                title="time"
+                className="text-sm border rounded px-2 py-1"
+                value={period}
+                onChange={e => setPeriod(e.target.value as any)}
+              >
+                <option value="month">Monthly</option>
+                <option value="week">Weekly</option>
+                <option value="today">Daily</option>
               </select>
             </div>
           </div>
-          <div className="text-sm text-muted-foreground">16 Aug 2023</div>
-          <div className="text-xl font-semibold">$59,492.10</div>
           <div className="h-[200px] mt-4">
-            <OrderAnalyticsChart />
+            <OrderAnalyticsChart data={chartData} isLoading={isLoading} />
           </div>
         </CardContent>
       </Card>
@@ -257,7 +290,7 @@ export function OrderAnalytics() {
         </CardHeader>
         <CardContent>
           <div className="h-[200px]">
-            <OrderSummaryChart />
+            <OrderSummaryChart data={orderSummaryData} isLoading={isLoading} />
           </div>
           <div className="flex items-center justify-center gap-6 mt-2">
             <div className="flex items-center gap-1">
@@ -275,27 +308,27 @@ export function OrderAnalytics() {
   );
 }
 
-function OrderAnalyticsChart() {
-  const data = [
-    { month: "Jan", bulk: 20, single: 30 },
-    { month: "Feb", bulk: 25, single: 40 },
-    { month: "Mar", bulk: 30, single: 35 },
-    { month: "Apr", bulk: 35, single: 30 },
-    { month: "May", bulk: 40, single: 45 },
-    { month: "Jun", bulk: 45, single: 40 },
-    { month: "Jul", bulk: 50, single: 45 },
-  ];
+function OrderAnalyticsChart({ data, isLoading }) {
+  const hasData = data.some(d => d.bulk > 0 || d.single > 0);
+
+  if (!isLoading && !hasData) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-400">
+        No data for this period.
+      </div>
+    );
+  }
 
   return (
     <ChartContainer
       config={{
         bulk: {
           label: "Bulk Quantity",
-          color: "hsl(346, 84%, 61%)", // Rose color
+          color: "hsl(346, 84%, 61%)",
         },
         single: {
           label: "Single Quantity",
-          color: "hsl(43, 96%, 58%)", // Amber color
+          color: "hsl(43, 96%, 58%)",
         },
       }}
       className="h-full"
@@ -303,13 +336,13 @@ function OrderAnalyticsChart() {
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis dataKey="month" tickLine={false} axisLine={false} />
+          <XAxis dataKey="name" tickLine={false} axisLine={false} />
           <YAxis tickLine={false} axisLine={false} />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Line
             type="monotone"
             dataKey="bulk"
-            stroke="hsl(346, 84%, 61%)" // Rose color
+            stroke="hsl(346, 84%, 61%)"
             strokeWidth={2}
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
@@ -317,7 +350,7 @@ function OrderAnalyticsChart() {
           <Line
             type="monotone"
             dataKey="single"
-            stroke="hsl(43, 96%, 58%)" // Amber color
+            stroke="hsl(43, 96%, 58%)"
             strokeWidth={2}
             dot={{ r: 4 }}
             activeDot={{ r: 6 }}
@@ -328,25 +361,25 @@ function OrderAnalyticsChart() {
   );
 }
 
-export function OrderSummaryChart() {
-  const data = [
-    { month: "Jan", repeated: 1000, new: 2000 },
-    { month: "Feb", repeated: 2000, new: 1500 },
-    { month: "Mar", repeated: 3000, new: 1800 },
-    { month: "Apr", repeated: 3500, new: 2200 },
-    { month: "May", repeated: 3000, new: 2000 },
-  ];
-
+function OrderSummaryChart({ data, isLoading }) {
+  const hasData = data.some(d => d.repeated > 0 || d.new > 0);
+  if (!isLoading && !hasData) {
+    return (
+      <div className="flex items-center justify-center h-full text-gray-400">
+        No data for this period.
+      </div>
+    );
+  }
   return (
     <ChartContainer
       config={{
         repeated: {
           label: "Repeated Customers",
-          color: "hsl(43, 96%, 58%)", // Amber color
+          color: "hsl(43, 96%, 58%)",
         },
         new: {
           label: "New Customers",
-          color: "hsl(346, 84%, 61%)", // Rose color
+          color: "hsl(346, 84%, 61%)",
         },
       }}
       className="h-full"
@@ -354,21 +387,21 @@ export function OrderSummaryChart() {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis dataKey="month" tickLine={false} axisLine={false} />
+          <XAxis dataKey="name" tickLine={false} axisLine={false} />
           <YAxis tickLine={false} axisLine={false} />
           <ChartTooltip content={<ChartTooltipContent />} />
           <Area
             type="monotone"
             dataKey="repeated"
-            stroke="hsl(43, 96%, 58%)" // Amber color
-            fill="hsl(43, 96%, 58%)" // Amber color
+            stroke="hsl(43, 96%, 58%)"
+            fill="hsl(43, 96%, 58%)"
             fillOpacity={0.2}
           />
           <Area
             type="monotone"
             dataKey="new"
-            stroke="hsl(346, 84%, 61%)" // Rose color
-            fill="hsl(346, 84%, 61%)" // Rose color
+            stroke="hsl(346, 84%, 61%)"
+            fill="hsl(346, 84%, 61%)"
             fillOpacity={0.2}
           />
         </AreaChart>

@@ -464,26 +464,102 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
       previousRequests
     );
 
+    // Add after generateChartData
+    async function generateOrderSummaryData(period: string, sellerId: string) {
+      const summaryData: Array<{ name: string; repeated: number; new: number }> = [];
+      const now = new Date();
+
+      // Helper to get repeated/new customers in a date range
+      async function getRepeatedNewCounts(start: Date, end: Date) {
+        const orders = await prisma.order.findMany({
+          where: {
+            sellerId,
+            createdAt: { gte: start, lte: end },
+          },
+          include: { buyer: true },
+        });
+        const buyerOrderCounts: Record<string, number> = {};
+        orders.forEach(order => {
+          if (order.buyerId) {
+            buyerOrderCounts[order.buyerId] = (buyerOrderCounts[order.buyerId] || 0) + 1;
+          }
+        });
+        let repeated = 0, newly = 0;
+        Object.values(buyerOrderCounts).forEach(count => {
+          if (count > 1) repeated++;
+          else if (count === 1) newly++;
+        });
+        return { repeated, new: newly };
+      }
+
+      if (period === "today") {
+        for (let i = 0; i < 24; i++) {
+          const hourStart = new Date(now);
+          hourStart.setHours(i, 0, 0, 0);
+          const hourEnd = new Date(hourStart);
+          hourEnd.setHours(i, 59, 59, 999);
+          const { repeated, new: newly } = await getRepeatedNewCounts(hourStart, hourEnd);
+          summaryData.push({ name: `${i}:00`, repeated, new: newly });
+        }
+      } else if (period === "week") {
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        for (let i = 0; i < 7; i++) {
+          const dayStart = new Date();
+          dayStart.setDate(dayStart.getDate() - dayStart.getDay() + i);
+          dayStart.setHours(0, 0, 0, 0);
+          const dayEnd = new Date(dayStart);
+          dayEnd.setHours(23, 59, 59, 999);
+          const { repeated, new: newly } = await getRepeatedNewCounts(dayStart, dayEnd);
+          summaryData.push({ name: days[i], repeated, new: newly });
+        }
+      } else if (period === "month") {
+        const weeksInMonth = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
+        for (let i = 0; i < weeksInMonth; i++) {
+          const weekStart = new Date(now.getFullYear(), now.getMonth(), i * 7 + 1);
+          const weekEnd = new Date(weekStart);
+          weekEnd.setDate(weekEnd.getDate() + 6);
+          weekEnd.setHours(23, 59, 59, 999);
+          const { repeated, new: newly } = await getRepeatedNewCounts(weekStart, weekEnd);
+          summaryData.push({ name: `Week ${i + 1}`, repeated, new: newly });
+        }
+      } else if (period === "year") {
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        for (let i = 0; i < 12; i++) {
+          const monthStart = new Date(now.getFullYear(), i, 1);
+          const monthEnd = new Date(now.getFullYear(), i + 1, 0);
+          monthEnd.setHours(23, 59, 59, 999);
+          const { repeated, new: newly } = await getRepeatedNewCounts(monthStart, monthEnd);
+          summaryData.push({ name: months[i], repeated, new: newly });
+        }
+      }
+      return summaryData;
+    }
+
+    const orderSummaryData = await generateOrderSummaryData(period, seller.id);
+
     res.json({
-      period,
-      metrics: {
-        requests: {
-          current: currentRequests,
-          previous: previousRequests,
-          difference: currentRequests - previousRequests,
-          percentageChange: requestPercentageChange,
+      data: {
+        period,
+        metrics: {
+          requests: {
+            current: currentRequests,
+            previous: previousRequests,
+            difference: currentRequests - previousRequests,
+            percentageChange: requestPercentageChange,
+          },
+          messages,
+          activeProducts,
+          responseMetrics,
         },
-        messages,
-        activeProducts,
-        responseMetrics,
-      },
-      chartData,
-      dateRanges: {
-        current: { start: currentPeriodStart, end: new Date() },
-        previous: { start: previousPeriodStart, end: previousPeriodEnd },
-      },
-      topProducts,
-      lowSellingProducts,
+        chartData,
+        dateRanges: {
+          current: { start: currentPeriodStart, end: new Date() },
+          previous: { start: previousPeriodStart, end: previousPeriodEnd },
+        },
+        topProducts,
+        lowSellingProducts,
+        orderSummaryData,
+      }
     });
   } catch (error) {
     console.error("Get seller metrics error:", error);
@@ -636,27 +712,36 @@ function getDateRanges(period: string) {
 }
 
 async function generateChartData(period: string, sellerId: string) {
-  const chartData: Array<{ name: string; orders: number; requests: number }> =
-    [];
+  const chartData: Array<{ name: string; bulk: number; single: number }> = [];
   const now = new Date();
 
+  // Helper to count bulk/single orders in a date range
+  async function getBulkSingleCounts(start: Date, end: Date) {
+    const orders = await prisma.order.findMany({
+      where: {
+        sellerId,
+        createdAt: { gte: start, lte: end },
+      },
+      include: { items: true },
+    });
+    let bulk = 0, single = 0;
+    orders.forEach(order => {
+      if (order.items.length > 1) bulk++;
+      else if (order.items.length === 1) single++;
+    });
+    return { bulk, single };
+  }
+
   if (period === "today") {
-    // Hourly data for today
     for (let i = 0; i < 24; i++) {
       const hourStart = new Date(now);
       hourStart.setHours(i, 0, 0, 0);
       const hourEnd = new Date(hourStart);
       hourEnd.setHours(i, 59, 59, 999);
-
-      const [orders, requests] = await Promise.all([
-        getOrderCount(sellerId, hourStart, hourEnd),
-        getRequestCount(sellerId, hourStart, hourEnd),
-      ]);
-
-      chartData.push({ name: `${i}:00`, orders, requests });
+      const { bulk, single } = await getBulkSingleCounts(hourStart, hourEnd);
+      chartData.push({ name: `${i}:00`, bulk, single });
     }
   } else if (period === "week") {
-    // Daily data for week
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     for (let i = 0; i < 7; i++) {
       const dayStart = new Date();
@@ -664,66 +749,29 @@ async function generateChartData(period: string, sellerId: string) {
       dayStart.setHours(0, 0, 0, 0);
       const dayEnd = new Date(dayStart);
       dayEnd.setHours(23, 59, 59, 999);
-
-      const [orders, requests] = await Promise.all([
-        getOrderCount(sellerId, dayStart, dayEnd),
-        getRequestCount(sellerId, dayStart, dayEnd),
-      ]);
-
-      chartData.push({ name: days[i], orders, requests });
+      const { bulk, single } = await getBulkSingleCounts(dayStart, dayEnd);
+      chartData.push({ name: days[i], bulk, single });
     }
   } else if (period === "month") {
-    // Weekly data for month
-    const weeksInMonth = Math.ceil(
-      (now.getDate() +
-        new Date(now.getFullYear(), now.getMonth(), 1).getDay()) /
-        7
-    );
-
+    const weeksInMonth = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
     for (let i = 0; i < weeksInMonth; i++) {
       const weekStart = new Date(now.getFullYear(), now.getMonth(), i * 7 + 1);
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
-
-      const [orders, requests] = await Promise.all([
-        getOrderCount(sellerId, weekStart, weekEnd),
-        getRequestCount(sellerId, weekStart, weekEnd),
-      ]);
-
-      chartData.push({ name: `Week ${i + 1}`, orders, requests });
+      const { bulk, single } = await getBulkSingleCounts(weekStart, weekEnd);
+      chartData.push({ name: `Week ${i + 1}`, bulk, single });
     }
   } else if (period === "year") {
-    // Monthly data for year
-    const months = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     for (let i = 0; i < 12; i++) {
       const monthStart = new Date(now.getFullYear(), i, 1);
       const monthEnd = new Date(now.getFullYear(), i + 1, 0);
       monthEnd.setHours(23, 59, 59, 999);
-
-      const [orders, requests] = await Promise.all([
-        getOrderCount(sellerId, monthStart, monthEnd),
-        getRequestCount(sellerId, monthStart, monthEnd),
-      ]);
-
-      chartData.push({ name: months[i], orders, requests });
+      const { bulk, single } = await getBulkSingleCounts(monthStart, monthEnd);
+      chartData.push({ name: months[i], bulk, single });
     }
   }
-
   return chartData;
 }
 
@@ -1026,142 +1074,145 @@ export const getTopBuyers = async (req: any, res: Response) => {
 export const getDashboard = async (req: any, res: Response) => {
   try {
     const { sellerId, userId } = req.user;
-    const { period = "7d" } = req.query;
-    const endDate = new Date();
-    const startDate = new Date();
-    startDate.setDate(endDate.getDate() - (period === "30d" ? 30 : 7));
+    const { period = "month" } = req.query;
 
-    // 1. Get regular orders for this seller (as per your latest logic)
-    const orderWhere = {
-      items: {
-        some: {
-          sellerId,
-        },
-      },
-      status: OrderStatus.DELIVERED,
-      createdAt: { gte: startDate, lte: endDate },
-    };
-    const orders = await prisma.order.findMany({
-      where: orderWhere,
-      include: {
-        items: {
-          where: { sellerId },
-          include: {
-            product: true,
-            seller: {
-              include: {
-                user: { select: { name: true, imageUrl: true } },
-              },
-            },
-          },
-        },
-        shippingAddress: true,
-        buyer: { include: { user: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+    // Use the same date range logic as getOrderAnalytics
+    function getDateRanges(period: string) {
+      const currentDate = new Date();
+      let currentPeriodStart: Date;
+      let previousPeriodStart: Date;
+      let previousPeriodEnd: Date;
 
-    // 2. Get manufacturing/project requests for this seller
-    const projectRequests = await prisma.projectReq.findMany({
-      where: { sellerId },
-      include: {
-        project: { include: { milestones: true } },
-        buyer: { include: { user: { select: { name: true, country: true } } } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+      switch (period) {
+        case "today":
+          currentPeriodStart = new Date(currentDate);
+          currentPeriodStart.setHours(0, 0, 0, 0);
+          previousPeriodStart = new Date(currentPeriodStart);
+          previousPeriodStart.setDate(previousPeriodStart.getDate() - 1);
+          previousPeriodEnd = new Date(previousPeriodStart);
+          previousPeriodEnd.setHours(23, 59, 59, 999);
+          break;
+        case "week":
+          currentPeriodStart = new Date(currentDate);
+          currentPeriodStart.setDate(currentDate.getDate() - currentDate.getDay());
+          currentPeriodStart.setHours(0, 0, 0, 0);
+          previousPeriodStart = new Date(currentPeriodStart);
+          previousPeriodStart.setDate(previousPeriodStart.getDate() - 7);
+          previousPeriodEnd = new Date(previousPeriodStart);
+          previousPeriodEnd.setDate(previousPeriodEnd.getDate() + 6);
+          previousPeriodEnd.setHours(23, 59, 59, 999);
+          break;
+        case "month":
+          currentPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+          previousPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+          previousPeriodEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+          previousPeriodEnd.setHours(23, 59, 59, 999);
+          break;
+        case "year":
+          currentPeriodStart = new Date(currentDate.getFullYear(), 0, 1);
+          previousPeriodStart = new Date(currentDate.getFullYear() - 1, 0, 1);
+          previousPeriodEnd = new Date(currentDate.getFullYear() - 1, 11, 31);
+          previousPeriodEnd.setHours(23, 59, 59, 999);
+          break;
+        default:
+          currentPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+          previousPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+          previousPeriodEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+          previousPeriodEnd.setHours(23, 59, 59, 999);
+      }
+      return { currentPeriodStart, previousPeriodStart, previousPeriodEnd };
+    }
 
-    // 3. Get regular requests (from Request table)
-    const requests = await prisma.request.findMany({
-      where: { sellerId, createdAt: { gte: startDate, lte: endDate } },
-      include: {
-        buyer: { include: { user: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 5,
-    });
+    const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } = getDateRanges(period);
 
-    // 4. Get contacts (buyers the seller has had conversations with)
-    const contactsRaw = await prisma.conversation.findMany({
-      where: { participants: { some: { userId: userId } } },
-      include: { participants: { include: { user: true } } },
-    });
-    const contactsMap = new Map();
-    contactsRaw.forEach((conv) => {
-      conv.participants.forEach((part) => {
-        if (part.userId !== sellerId && part.user.role === "BUYER") {
-          contactsMap.set(part.userId, {
-            id: part.userId,
-            name: part.user.name || part.user.email || "Unknown",
-            image: part.user.imageUrl || null,
-          });
-        }
-      });
-    });
-    const contacts = Array.from(contactsMap.values());
+    // Metrics
+    const [currentRequests, previousRequests, messages, activeProducts] = await Promise.all([
+      prisma.request.count({
+        where: { sellerId, createdAt: { gte: currentPeriodStart, lte: new Date() } },
+      }),
+      prisma.request.count({
+        where: { sellerId, createdAt: { gte: previousPeriodStart, lte: previousPeriodEnd } },
+      }),
+      prisma.conversationParticipant.count({ where: { userId } }),
+      prisma.product.count({ where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" } }),
+    ]);
+    const requestDifference = currentRequests - previousRequests;
+    const requestPercentageChange = previousRequests === 0 ? (currentRequests === 0 ? 0 : 100) : Math.round(((currentRequests - previousRequests) / previousRequests) * 100);
 
-    // 5. Aggregate for charts (orders, requests, manufacturing requests)
-    // Example: group by week/month for charting
-    // We'll use generateChartData for orders/requests, and add projectRequests aggregation
+    // Chart Data (orders/requests per period bucket)
     const chartData = await generateChartData(period, sellerId);
 
-    // 6. Other metrics (reuse your previous logic as needed)
-    // Example: revenue, topBuyers, topProducts, lowSellingProducts
-    const [totalRevenue, topBuyers, topProducts, lowSellingProducts] =
-      await Promise.all([
-        prisma.order.aggregate({
+    // Top Products
+    const topProducts = await prisma.product.findMany({
+      where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" },
+      include: {
+        orderItems: {
           where: {
-            items: { some: { sellerId } },
-            status: OrderStatus.DELIVERED,
-          },
-          _sum: { totalAmount: true },
-        }),
-        prisma.order.groupBy({
-          by: ["buyerId"],
+            order: {
+              createdAt: { gte: currentPeriodStart, lte: new Date() }
+            }
+          }
+        }
+      },
+      take: 5,
+    });
+    const topProductsFormatted = topProducts
+      .map((product) => {
+        const quantity = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+        const amount = product.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        return {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity,
+          amount,
+        };
+      })
+      .sort((a, b) => b.quantity - a.quantity)
+      .slice(0, 5);
+
+    // Low Selling Products
+    const lowSellingProducts = await prisma.product.findMany({
+      where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" },
+      include: {
+        orderItems: {
           where: {
-            items: { some: { sellerId } },
-            status: OrderStatus.DELIVERED,
-          },
-          _sum: { totalAmount: true },
-          orderBy: { _sum: { totalAmount: "desc" } },
-          take: 5,
-        }),
-        prisma.product.findMany({
-          where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" },
-          orderBy: { orderItems: { _count: "desc" } },
-          include: {
-            _count: { select: { orderItems: true } },
-            reviews: { select: { rating: true } },
-          },
-          take: 5,
-        }),
-        prisma.product.findMany({
-          where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" },
-          orderBy: [
-            { orderItems: { _count: "asc" } },
-            { availableQuantity: "asc" },
-          ],
-          include: {
-            _count: { select: { orderItems: true } },
-            reviews: { select: { rating: true } },
-          },
-          take: 5,
-        }),
-      ]);
+            order: {
+              createdAt: { gte: currentPeriodStart, lte: new Date() }
+            }
+          }
+        }
+      },
+    });
+    const lowSellingProductsFormatted = lowSellingProducts
+      .map((product) => {
+        const quantity = product.orderItems.reduce((sum, item) => sum + item.quantity, 0);
+        const amount = product.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        return {
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          quantity,
+          amount,
+        };
+      })
+      .sort((a, b) => a.quantity - b.quantity)
+      .slice(0, 5);
 
     res.json({
-      orders, // regular orders
-      requests, // regular requests
-      projectRequests, // manufacturing/project requests
-      contacts: contacts ?? [],
+      metrics: {
+        requests: {
+          current: currentRequests,
+          previous: previousRequests,
+          difference: requestDifference,
+          percentageChange: requestPercentageChange,
+        },
+        messages,
+        activeProducts,
+      },
       chartData,
-      totalRevenue: totalRevenue._sum?.totalAmount || 0,
-      topBuyers,
-      topProducts,
-      lowSellingProducts,
-      // ...add more metrics as needed
+      topProducts: topProductsFormatted,
+      lowSellingProducts: lowSellingProductsFormatted,
     });
   } catch (error) {
     console.error("Get dashboard error:", error);
