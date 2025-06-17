@@ -22,6 +22,8 @@ app.use(
         "https://kollabee-frontend.onrender.com",
         "http://localhost:3000",
         "http://localhost:3001",
+        "https://kollabee-frontend-lrsy.onrender.com",
+        "https://kollabee-frontend-k32s.onrender.com",
         "https://kollabee-1.onrender.com"
       ];
       if (!origin || allowedOrigins.includes(origin)) {
