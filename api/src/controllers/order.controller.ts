@@ -568,51 +568,80 @@ export async function approveOrRejectProject(req: any, res: Response) {
 
 export const GetSellerRequest = async (req: any, res: Response) => {
   try {
-    console.log("testing ");
-    const sellerId = req.user.sellerId;
-    if (!sellerId) {
-      return res.status(401).json({ error: "Unauthorized" });
-    }
+    const { sellerId } = req.user;
+    console.log('Getting seller requests for:', { sellerId });
 
-    const requests = await prisma.projectReq.findMany({
-      where: {
-        sellerId: sellerId,
-      },
-      include: {
-        project: {
-          include: {
-            milestones: true,
-          },
+    const [regularRequests, projectRequests] = await Promise.all([
+      prisma.request.findMany({
+        where: {
+          sellerId,
+          status: { not: RequestStatus.REJECTED },
         },
-        buyer: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                country: true,
-              },
+        include: {
+          buyer: {
+            include: {
+              user: true,
             },
           },
         },
-      },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.projectReq.findMany({
+        where: {
+          sellerId,
+          status: { not: RequestStatus.REJECTED },
+        },
+        include: {
+          project: true,
+          buyer: {
+            include: {
+              user: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
+
+    console.log('Request counts:', {
+      regularRequests: regularRequests.length,
+      projectRequests: projectRequests.length,
+      totalRequests: regularRequests.length + projectRequests.length
     });
 
-    // format projects
+    const formattedRequests = [
+      ...regularRequests.map((request) => ({
+        id: request.id,
+        type: "REGULAR",
+        buyerName: request.buyer.user.name,
+        buyerImage: request.buyer.user.imageUrl,
+        productName: request.productName,
+        category: request.category,
+        quantity: request.quantity,
+        status: request.status,
+        createdAt: request.createdAt,
+      })),
+      ...projectRequests.map((request) => ({
+        id: request.id,
+        type: "PROJECT",
+        buyerName: request.buyer.user.name,
+        buyerImage: request.buyer.user.imageUrl,
+        productName: request.project.projectTitle || "Project Request",
+        category: request.project.category,
+        quantity: request.project.quantity || 0,
+        status: request.status,
+        createdAt: request.createdAt,
+      })),
+    ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
-    const formattedRequests = requests.map((request) => ({
-      id: request.id,
-      projectId: request.projectId,
-      projectName: request.project.businessName,
-      buyerId: request.buyerId,
-      createdAt: request.createdAt,
-      updatedAt: request.updatedAt,
-    }));
-
-    console.log("formattedRequests", formattedRequests);
-
-    return res.status(200).json(requests);
+    res.json(formattedRequests);
   } catch (error) {
-    console.log("error :", error);
+    console.error("Get seller requests error:", error);
+    res.status(500).json({ error: "Failed to fetch requests" });
   }
 };
 

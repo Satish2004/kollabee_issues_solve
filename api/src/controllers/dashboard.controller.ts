@@ -1,6 +1,74 @@
-import type { Request, Response } from "express";
+import { Request, Response } from "express";
 import prisma from "../db";
 import { OrderStatus } from "@prisma/client";
+import { Order, Request as PrismaRequest, Message, projectReq, Prisma } from "@prisma/client";
+
+interface User {
+  name: string | null;
+  imageUrl: string | null;
+}
+
+type OrderWithRelations = Prisma.OrderGetPayload<{
+  include: {
+    items: {
+      include: {
+        product: true;
+      };
+    };
+    buyer: {
+      include: {
+        user: {
+          select: {
+            name: true;
+            imageUrl: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+type RequestWithRelations = Prisma.RequestGetPayload<{
+  include: {
+    buyer: {
+      include: {
+        user: {
+          select: {
+            name: true;
+            imageUrl: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+type MessageWithRelations = Prisma.MessageGetPayload<{
+  include: {
+    sender: {
+      select: {
+        name: true;
+        imageUrl: true;
+      };
+    };
+  };
+}>;
+
+type ProjectRequestWithRelations = Prisma.projectReqGetPayload<{
+  include: {
+    seller: {
+      include: {
+        user: {
+          select: {
+            name: true;
+            imageUrl: true;
+          };
+        };
+      };
+    };
+    project: true;
+  };
+}>;
 
 export const getSellerDashboard = async (req: any, res: Response) => {
   try {
@@ -127,7 +195,7 @@ export const getBuyerDashboard = async (req: any, res: Response) => {
 
 export const getMetrics = async (req: any, res: Response) => {
   try {
-    const { userId } = req.user;
+    const { userId, role } = req.user;
     const seller = await prisma.seller.findFirst({ where: { userId } });
     if (!seller) return res.status(404).json({ error: "Seller not found" });
 
@@ -151,269 +219,183 @@ export const getMetrics = async (req: any, res: Response) => {
 
     console.log("seller Id : ", seller);
 
-    const [
-      // Current month metrics
-      totalOrders,
-      totalRevenue,
-      pendingOrders,
-      totalProducts,
-      totalMessages,
-      totalRequests,
-      totalRequestsRevenue,
-      totalReturns,
-      returnedProductsWorth,
-      pendingOrdersWorth,
+    // Helper function to calculate percentage change
+    const calculatePercentageChange = (current: number, past: number): string => {
+      if (past === 0) return current === 0 ? '0%' : '100%';
+      const change = ((current - past) / past) * 100;
+      return `${Math.round(change)}%`;
+    };
 
-      // Last month metrics
-      lastMonthTotalOrders,
-      lastMonthTotalRevenue,
-      lastMonthTotalRequests,
-      lastMonthTotalRequestsRevenue,
-      lastMonthTotalReturns,
-    ] = await Promise.all([
-      // Current month total orders
-      prisma.order.count({
-        where: {
-          items: {
-            some: {
-              sellerId: seller.id,
-            },
-          },
-        },
-      }),
-
-      // Current month total revenue
-      prisma.order.aggregate({
-        where: {
-          sellerId: seller.id,
-          status: "DELIVERED",
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
-        _sum: {
-          totalAmount: true,
-        },
-      }),
-
-      // Current month pending orders
-      prisma.order.count({
-        where: {
-          sellerId: seller.id,
-          status: "PENDING",
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
-      }),
-
-      // Total products (all time)
-      prisma.product.count({
-        where: {
-          sellerId: seller.id,
-        },
-      }),
-
-      // Total messages (all time)
-      prisma.conversationParticipant.count({
-        where: {
-          conversation: {
-            participants: {
-              some: {
-                userId,
-              },
-            },
-          },
-        },
-      }),
-
-      // Current month total requests
-      prisma.projectReq.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
-      }),
-
-      // Current month total request revenue
-      prisma.request.aggregate({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
-        _sum: {
-          targetPrice: true,
-        },
-      }),
-
-      // Current month total returns
-      prisma.return.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
-      }),
-
-      // Current month returned products worth
-      prisma.return.aggregate({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
-        _sum: {
-          refundAmount: true,
-        },
-      }),
-
-      // Current month pending orders worth
-      prisma.order.aggregate({
-        where: {
-          sellerId: seller.id,
-          status: "PENDING",
-          createdAt: {
-            gte: currentMonthStart,
-          },
-        },
-        _sum: {
-          totalAmount: true,
-        },
-      }),
-
-      // Last month total orders
-      prisma.order.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: lastMonthStart,
-            lte: lastMonthEnd,
-          },
-        },
-      }),
-
-      // Last month total revenue
-      prisma.order.aggregate({
-        where: {
-          sellerId: seller.id,
-          status: "DELIVERED",
-          createdAt: {
-            gte: lastMonthStart,
-            lte: lastMonthEnd,
-          },
-        },
-        _sum: {
-          totalAmount: true,
-        },
-      }),
-
-      // Last month total requests
-      prisma.request.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: lastMonthStart,
-            lte: lastMonthEnd,
-          },
-        },
-      }),
-
-      // Last month total request revenue
-      prisma.request.aggregate({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: lastMonthStart,
-            lte: lastMonthEnd,
-          },
-        },
-        _sum: {
-          targetPrice: true,
-        },
-      }),
-
-      // Last month total returns
-      prisma.return.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: {
-            gte: lastMonthStart,
-            lte: lastMonthEnd,
-          },
-        },
-      }),
-    ]);
-
-    console.log("totalOrders: ", totalOrders);
-    console.log("totalRevenue: ", totalRevenue);
-    console.log("pendingOrders: ", pendingOrders);
-    console.log("totalProducts: ", totalProducts);
-    console.log("totalMessages: ", totalMessages);
-    console.log("totalRequests: ", totalRequests);
-    console.log("totalRequestsRevenue: ", totalRequestsRevenue);
-    console.log("totalReturns: ", totalReturns);
-    console.log("returnedProductsWorth: ", returnedProductsWorth);
-
-    // Calculate differences
-    const revenueDifference =
-      (totalRevenue._sum.totalAmount || 0) -
-      (lastMonthTotalRevenue._sum.totalAmount || 0);
-    const ordersDifference = totalOrders - lastMonthTotalOrders;
-    const requestsDifference = totalRequests - lastMonthTotalRequests;
-    const returnsDifference = totalReturns - lastMonthTotalReturns;
-    const requestsRevenueDifference =
-      (totalRequestsRevenue._sum.targetPrice || 0) -
-      (lastMonthTotalRequestsRevenue._sum.targetPrice || 0);
-
-    // Calculate average response time for current and previous month
-    const [currentResponseMetrics, pastResponseMetrics] = await Promise.all([
-      getResponseMetrics(seller.id, currentMonthStart),
-      getResponseMetrics(seller.id, lastMonthStart)
-    ]);
-    function formatDuration(hours: number) {
+    // Helper function to format duration
+    const formatDuration = (hours: number): string => {
       if (!hours) return '0m';
       const totalMinutes = Math.round(hours * 60);
       const h = Math.floor(totalMinutes / 60);
       const m = totalMinutes % 60;
       return h ? `${h}h ${m}m` : `${m}m`;
-    }
-    function calcPercent(curr: number, prev: number) {
-      if (prev === 0) return curr === 0 ? '0%' : '100%';
-      const change = ((curr - prev) / prev) * 100;
-      return `${Math.round(change)}%`;
-    }
-    const averageResponse = {
-      current: formatDuration(currentResponseMetrics.averageResponseTime),
-      past: formatDuration(pastResponseMetrics.averageResponseTime),
-      percentageChange: calcPercent(currentResponseMetrics.averageResponseTime, pastResponseMetrics.averageResponseTime)
     };
 
-    res.json({
+    const [
       // Current month metrics
-      totalOrders,
-      totalRevenue: totalRevenue._sum.totalAmount || 0,
-      pendingOrders,
-      pendingOrdersWorth: pendingOrdersWorth._sum.totalAmount || 0,
-      totalProducts,
-      totalMessages,
-      totalRequests,
-      totalReturns,
-      returnedProductsWorth: returnedProductsWorth._sum.refundAmount || 0,
-      requestsRevenue: totalRequestsRevenue._sum.targetPrice || 0,
-      requestsRevenueDifference,
-      // Differences
-      revenueDifference,
-      ordersDifference,
-      requestsDifference,
-      returnsDifference,
-      averageResponse
-    });
+      currentTotalOrders,
+      currentTotalReceived,
+      currentReturnedOrders,
+      currentOnWayToShip,
+      currentAverageSales,
+      currentResponseMetrics,
+
+      // Last month metrics
+      pastTotalOrders,
+      pastTotalReceived,
+      pastReturnedOrders,
+      pastOnWayToShip,
+      pastAverageSales,
+      pastResponseMetrics,
+    ] = await Promise.all([
+      // Current month total orders (total requests)
+      prisma.request.count({
+        where: {
+              sellerId: seller.id,
+          createdAt: { gte: currentMonthStart }
+        }
+      }),
+
+      // Current month total received (manufacturing requests)
+      prisma.request.count({
+        where: {
+          sellerId: seller.id,
+          status: "APPROVED",
+          createdAt: { gte: currentMonthStart }
+        }
+      }),
+
+      // Current month returned orders (returns from requests)
+      prisma.return.count({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: currentMonthStart }
+        }
+      }),
+
+      // Current month on way to ship (orders with status IN_TRANSIT, OUT_FOR_DELIVERY, SHIPPED)
+      prisma.order.count({
+        where: {
+          sellerId: seller.id,
+          status: { in: ["IN_TRANSIT", "OUT_FOR_DELIVERY", "SHIPPED"] },
+          createdAt: { gte: currentMonthStart }
+        }
+      }),
+
+      // Current month average sales (average price of all orders)
+      prisma.order.aggregate({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: currentMonthStart }
+          },
+        _avg: {
+          totalAmount: true
+        },
+        _count: {
+          totalAmount: true
+        }
+      }),
+
+      // Current month response metrics
+      getResponseMetrics(seller.id, currentMonthStart),
+
+      // Last month total orders (total requests)
+      prisma.request.count({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
+        }
+      }),
+
+      // Last month total received (manufacturing requests)
+      prisma.request.count({
+        where: {
+          sellerId: seller.id,
+          status: "APPROVED",
+          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
+        }
+      }),
+
+      // Last month returned orders (returns from requests)
+      prisma.return.count({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
+        }
+      }),
+
+      // Last month on way to ship (orders with status IN_TRANSIT, OUT_FOR_DELIVERY, SHIPPED)
+      prisma.order.count({
+        where: {
+          sellerId: seller.id,
+          status: { in: ["IN_TRANSIT", "OUT_FOR_DELIVERY", "SHIPPED"] },
+          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
+        }
+      }),
+
+      // Last month average sales (average price of all orders)
+      prisma.order.aggregate({
+        where: {
+          sellerId: seller.id,
+          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
+        },
+        _avg: {
+          totalAmount: true
+        },
+        _count: {
+          totalAmount: true
+        }
+      }),
+
+      // Last month response metrics
+      getResponseMetrics(seller.id, lastMonthStart),
+    ]);
+
+    // Calculate average sales values (handle null cases)
+    const currentAvgSales = currentAverageSales._avg.totalAmount || 0;
+    const pastAvgSales = pastAverageSales._avg.totalAmount || 0;
+
+    // Build response object with the required structure
+    const response = {
+      totalOrders: {
+        current: currentTotalOrders,
+        past: pastTotalOrders,
+        percentageChange: calculatePercentageChange(currentTotalOrders, pastTotalOrders)
+      },
+      totalReceived: {
+        current: currentTotalReceived,
+        past: pastTotalReceived,
+        percentageChange: calculatePercentageChange(currentTotalReceived, pastTotalReceived)
+      },
+      returnedOrders: {
+        current: currentReturnedOrders,
+        past: pastReturnedOrders,
+        percentageChange: calculatePercentageChange(currentReturnedOrders, pastReturnedOrders)
+      },
+      onWayToShip: {
+        current: currentOnWayToShip,
+        past: pastOnWayToShip,
+        percentageChange: calculatePercentageChange(currentOnWayToShip, pastOnWayToShip)
+      },
+      averageSales: {
+        current: Math.round(currentAvgSales),
+        past: Math.round(pastAvgSales),
+        percentageChange: calculatePercentageChange(currentAvgSales, pastAvgSales)
+      },
+      averageResponseTime: {
+      current: formatDuration(currentResponseMetrics.averageResponseTime),
+      past: formatDuration(pastResponseMetrics.averageResponseTime),
+        percentageChange: calculatePercentageChange(currentResponseMetrics.averageResponseTime, pastResponseMetrics.averageResponseTime)
+      }
+    };
+
+    console.log("Dashboard Metrics Response:", response);
+
+    res.json(response);
   } catch (error) {
     console.error("Get dashboard metrics error:", error);
     res.status(500).json({ error: "Failed to get dashboard metrics" });
@@ -423,9 +405,10 @@ export const getMetrics = async (req: any, res: Response) => {
 export const getOrderAnalytics = async (req: any, res: Response) => {
   console.log("Get order analytics called");
   try {
-    const { userId } = req.user;
+    const { userId, role } = req.user;
     const { period = "month" } = req.query; // Default to 'month' if not specified
-    console.log("User ID:", userId);
+    console.log("User ID:", userId, "Period:", period);
+    
     // Validate seller exists
     const seller = await prisma.seller.findFirst({
       where: { userId },
@@ -433,9 +416,17 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
     });
     if (!seller) return res.status(404).json({ error: "Seller not found" });
 
+    console.log("Seller ID:", seller.id);
+
     // Calculate date ranges based on period
     const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } =
       getDateRanges(period);
+
+    console.log("=== ORDER ANALYTICS DATE RANGES ===");
+    console.log("Current Period Start:", currentPeriodStart.toISOString());
+    console.log("Current Period End:", new Date().toISOString());
+    console.log("Previous Period Start:", previousPeriodStart.toISOString());
+    console.log("Previous Period End:", previousPeriodEnd.toISOString());
 
     // Fetch all data in parallel for better performance
     const [
@@ -450,13 +441,18 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
     ] = await Promise.all([
       getRequestCount(seller.id, currentPeriodStart),
       getRequestCount(seller.id, previousPeriodStart, previousPeriodEnd),
-      getMessageCount(userId),
+      getMessageCount(userId, currentPeriodStart, role),
       getActiveProductCount(seller.id, currentPeriodStart),
       generateChartData(period, seller.id),
       getTopProductss(seller.id),
       getLowSellingProducts(seller.id),
       getResponseMetrics(seller.id, currentPeriodStart),
     ]);
+
+    console.log("=== ORDER ANALYTICS CHART DATA ===");
+    console.log("Chart Data:", chartData);
+    console.log("Current Requests:", currentRequests);
+    console.log("Previous Requests:", previousRequests);
 
     // Calculate percentage changes
     const requestPercentageChange = calculatePercentageChange(
@@ -469,27 +465,75 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
       const summaryData: Array<{ name: string; repeated: number; new: number }> = [];
       const now = new Date();
 
-      // Helper to get repeated/new customers in a date range
-      async function getRepeatedNewCounts(start: Date, end: Date) {
+      // Helper to get new/repeated customers in a date range
+      async function getBuyerTypeCounts(start: Date, end: Date) {
         const orders = await prisma.order.findMany({
           where: {
-            sellerId,
+            items: {
+              some: {
+                sellerId: sellerId,
+              },
+            },
+            status: {
+              notIn: ["CANCELLED", "RETURNED"],
+            },
             createdAt: { gte: start, lte: end },
           },
-          include: { buyer: true },
+          include: {
+            buyer: true,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
         });
-        const buyerOrderCounts: Record<string, number> = {};
-        orders.forEach(order => {
-          if (order.buyerId) {
-            buyerOrderCounts[order.buyerId] = (buyerOrderCounts[order.buyerId] || 0) + 1;
+
+        const buyerFirstOrderDates: Record<string, Date> = {};
+        let newBuyers = 0;
+        let repeatedBuyers = 0;
+
+        // First pass: collect all historical orders to determine first order dates
+        const allHistoricalOrders = await prisma.order.findMany({
+          where: {
+            items: {
+              some: {
+                sellerId: sellerId,
+              },
+            },
+            status: {
+              notIn: ["CANCELLED", "RETURNED"],
+            },
+            createdAt: { lt: end },
+          },
+          select: {
+            buyerId: true,
+            createdAt: true,
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        });
+
+        // Build first order dates map
+        allHistoricalOrders.forEach((order) => {
+          if (order.buyerId && !buyerFirstOrderDates[order.buyerId]) {
+            buyerFirstOrderDates[order.buyerId] = order.createdAt;
           }
         });
-        let repeated = 0, newly = 0;
-        Object.values(buyerOrderCounts).forEach(count => {
-          if (count > 1) repeated++;
-          else if (count === 1) newly++;
+
+        // Analyze current period orders
+        orders.forEach((order) => {
+          if (order.buyerId) {
+            const firstOrderDate = buyerFirstOrderDates[order.buyerId];
+            
+            if (firstOrderDate >= start) {
+              newBuyers++;
+            } else {
+              repeatedBuyers++;
+            }
+          }
         });
-        return { repeated, new: newly };
+
+        return { new: newBuyers, repeated: repeatedBuyers };
       }
 
       if (period === "today") {
@@ -498,8 +542,8 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
           hourStart.setHours(i, 0, 0, 0);
           const hourEnd = new Date(hourStart);
           hourEnd.setHours(i, 59, 59, 999);
-          const { repeated, new: newly } = await getRepeatedNewCounts(hourStart, hourEnd);
-          summaryData.push({ name: `${i}:00`, repeated, new: newly });
+          const { new: newBuyers, repeated } = await getBuyerTypeCounts(hourStart, hourEnd);
+          summaryData.push({ name: `${i}:00`, repeated, new: newBuyers });
         }
       } else if (period === "week") {
         const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -509,8 +553,8 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
           dayStart.setHours(0, 0, 0, 0);
           const dayEnd = new Date(dayStart);
           dayEnd.setHours(23, 59, 59, 999);
-          const { repeated, new: newly } = await getRepeatedNewCounts(dayStart, dayEnd);
-          summaryData.push({ name: days[i], repeated, new: newly });
+          const { new: newBuyers, repeated } = await getBuyerTypeCounts(dayStart, dayEnd);
+          summaryData.push({ name: days[i], repeated, new: newBuyers });
         }
       } else if (period === "month") {
         const weeksInMonth = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
@@ -519,18 +563,22 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
           const weekEnd = new Date(weekStart);
           weekEnd.setDate(weekEnd.getDate() + 6);
           weekEnd.setHours(23, 59, 59, 999);
-          const { repeated, new: newly } = await getRepeatedNewCounts(weekStart, weekEnd);
-          summaryData.push({ name: `Week ${i + 1}`, repeated, new: newly });
+          const { new: newBuyers, repeated } = await getBuyerTypeCounts(weekStart, weekEnd);
+          summaryData.push({ name: `Week ${i + 1}`, repeated, new: newBuyers });
         }
       } else if (period === "year") {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        console.log('=== YEAR CHART DATA ===');
+        console.log('Current Year:', now.getFullYear());
         for (let i = 0; i < 12; i++) {
           const monthStart = new Date(now.getFullYear(), i, 1);
           const monthEnd = new Date(now.getFullYear(), i + 1, 0);
           monthEnd.setHours(23, 59, 59, 999);
-          const { repeated, new: newly } = await getRepeatedNewCounts(monthStart, monthEnd);
-          summaryData.push({ name: months[i], repeated, new: newly });
+          console.log(`${months[i]}: ${monthStart.toISOString()} to ${monthEnd.toISOString()}`);
+          const { new: newBuyers, repeated } = await getBuyerTypeCounts(monthStart, monthEnd);
+          summaryData.push({ name: months[i], repeated, new: newBuyers });
         }
+        console.log('=== END YEAR CHART DATA ===');
       }
       return summaryData;
     }
@@ -592,60 +640,7 @@ async function getOrdersByOrderType(userId: string) {
   return result;
 }
 
-async function getOrderSummary(userId: string) {
-  // Get all orders for this seller
-  const orders = await prisma.order.findMany({
-    where: {
-      sellerId: userId,
-    },
-    include: {
-      buyer: {
-        include: {
-          user: true,
-        },
-      },
-      items: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
 
-  // Analyze customer types
-  const buyerOrderCounts: Record<string, number> = {};
-  orders.forEach((order) => {
-    if (order.buyerId) {
-      buyerOrderCounts[order.buyerId] =
-        (buyerOrderCounts[order.buyerId] || 0) + 1;
-    }
-  });
-
-  const repeatedCustomers = Object.values(buyerOrderCounts).filter(
-    (count) => count > 1
-  ).length;
-  const newCustomers = Object.keys(buyerOrderCounts).length - repeatedCustomers;
-
-  // Analyze order types (single vs bulk)
-  let singleOrders = 0;
-  let bulkOrders = 0;
-
-  orders.forEach((order) => {
-    if (order.items.length === 1) {
-      singleOrders++;
-    } else {
-      bulkOrders++;
-    }
-  });
-
-  return {
-    totalOrders: orders.length,
-    repeatedCustomers,
-    newCustomers,
-    singleOrders,
-    bulkOrders,
-    orders, // optional: include the actual orders if needed
-  };
-}
 
 function getDateRanges(period: string) {
   const currentDate = new Date();
@@ -697,9 +692,13 @@ function getDateRanges(period: string) {
       break;
 
     case "year":
+      // For year, we want to show all data from the start of the current year
       currentPeriodStart = new Date(currentDate.getFullYear(), 0, 1);
+      currentPeriodStart.setHours(0, 0, 0, 0);
 
+      // Previous period is the entire previous year
       previousPeriodStart = new Date(currentDate.getFullYear() - 1, 0, 1);
+      previousPeriodStart.setHours(0, 0, 0, 0);
       previousPeriodEnd = new Date(currentDate.getFullYear() - 1, 11, 31);
       previousPeriodEnd.setHours(23, 59, 59, 999);
       break;
@@ -708,6 +707,17 @@ function getDateRanges(period: string) {
       throw new Error("Invalid period parameter");
   }
 
+  console.log('Date Range Details:', {
+    period,
+    currentDate,
+    currentPeriodStart,
+    previousPeriodStart,
+    previousPeriodEnd,
+    currentPeriodStartISO: currentPeriodStart.toISOString(),
+    previousPeriodStartISO: previousPeriodStart.toISOString(),
+    previousPeriodEndISO: previousPeriodEnd.toISOString()
+  });
+
   return { currentPeriodStart, previousPeriodStart, previousPeriodEnd };
 }
 
@@ -715,20 +725,41 @@ async function generateChartData(period: string, sellerId: string) {
   const chartData: Array<{ name: string; bulk: number; single: number }> = [];
   const now = new Date();
 
-  // Helper to count bulk/single orders in a date range
+  // Helper to count bulk (manufacturing requests) and single (product requests) in a date range
   async function getBulkSingleCounts(start: Date, end: Date) {
-    const orders = await prisma.order.findMany({
-      where: {
+    // Get manufacturing requests (project requests) - these are bulk
+    const projectRequestsWhere: any = { 
         sellerId,
-        createdAt: { gte: start, lte: end },
+      status: { not: "REJECTED" }
+    };
+    projectRequestsWhere.createdAt = { gte: start, lte: end };
+
+    // Get product requests (orders) - these are single
+    const ordersWhere: any = {
+      items: {
+        some: {
+          sellerId: sellerId
+        }
       },
-      include: { items: true },
-    });
-    let bulk = 0, single = 0;
-    orders.forEach(order => {
-      if (order.items.length > 1) bulk++;
-      else if (order.items.length === 1) single++;
-    });
+      status: { 
+        notIn: ["CANCELLED", "RETURNED"] 
+      }
+    };
+    ordersWhere.createdAt = { gte: start, lte: end };
+
+    const [bulk, single] = await Promise.all([
+      prisma.projectReq.count({ where: projectRequestsWhere }),
+      prisma.order.count({ where: ordersWhere })
+    ]);
+
+    // Debug logging for chart data
+    console.log('=== CHART DATA DEBUG ===');
+    console.log('Period:', start.toISOString(), 'to', end.toISOString());
+    console.log('Bulk (Manufacturing):', bulk);
+    console.log('Single (Product):', single);
+    console.log('Project Requests Where:', projectRequestsWhere);
+    console.log('Orders Where:', ordersWhere);
+
     return { bulk, single };
   }
 
@@ -764,13 +795,17 @@ async function generateChartData(period: string, sellerId: string) {
     }
   } else if (period === "year") {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    console.log('=== YEAR CHART DATA ===');
+    console.log('Current Year:', now.getFullYear());
     for (let i = 0; i < 12; i++) {
       const monthStart = new Date(now.getFullYear(), i, 1);
       const monthEnd = new Date(now.getFullYear(), i + 1, 0);
       monthEnd.setHours(23, 59, 59, 999);
+      console.log(`${months[i]}: ${monthStart.toISOString()} to ${monthEnd.toISOString()}`);
       const { bulk, single } = await getBulkSingleCounts(monthStart, monthEnd);
       chartData.push({ name: months[i], bulk, single });
     }
+    console.log('=== END YEAR CHART DATA ===');
   }
   return chartData;
 }
@@ -793,15 +828,186 @@ async function getRequestCount(
   startDate?: Date,
   endDate?: Date
 ) {
-  const where: any = { sellerId };
-  if (startDate) where.createdAt = { gte: startDate };
-  if (endDate) where.createdAt = { ...where.createdAt, lte: endDate };
+  // Get regular product/service requests
+  const regularRequestsWhere: any = { 
+    sellerId,
+    status: { not: "REJECTED" }  // Only count non-rejected requests
+  };
+  if (startDate) regularRequestsWhere.createdAt = { gte: startDate };
+  if (endDate) regularRequestsWhere.createdAt = { ...regularRequestsWhere.createdAt, lte: endDate };
 
-  return prisma.request.count({ where });
+  // Get project requests
+  const projectRequestsWhere: any = { 
+    sellerId,
+    status: { not: "REJECTED" }  // Only count non-rejected requests
+  };
+  if (startDate) projectRequestsWhere.createdAt = { gte: startDate };
+  if (endDate) projectRequestsWhere.createdAt = { ...projectRequestsWhere.createdAt, lte: endDate };
+
+  // Get orders (these are also requests from buyers) - exclude cancelled/returned orders
+  const ordersWhere: any = {
+    items: {
+      some: {
+        sellerId: sellerId
+      }
+    },
+    status: { 
+      notIn: ["CANCELLED", "RETURNED"] 
+    }  // Only count non-cancelled/non-returned orders
+  };
+  if (startDate) ordersWhere.createdAt = { gte: startDate };
+  if (endDate) ordersWhere.createdAt = { ...ordersWhere.createdAt, lte: endDate };
+
+  const [regularRequests, projectRequests, orders] = await Promise.all([
+    prisma.request.count({ where: regularRequestsWhere }),
+    prisma.projectReq.count({ where: projectRequestsWhere }),
+    prisma.order.count({ where: ordersWhere })
+  ]);
+
+  const totalRequests = regularRequests + projectRequests + orders;
+
+  console.log('=== REQUEST COUNT DETAILS ===');
+  console.log('Seller ID:', sellerId);
+  console.log('Date Range:', { 
+    startDate: startDate?.toISOString(), 
+    endDate: endDate?.toISOString() 
+  });
+  console.log('Regular Requests (prisma.request):', regularRequests);
+  console.log('Project Requests (prisma.projectReq):', projectRequests);
+  console.log('Orders (prisma.order):', orders);
+  console.log('Total Requests:', totalRequests);
+  console.log('Where Clauses:', {
+    regularRequests: regularRequestsWhere,
+    projectRequests: projectRequestsWhere,
+    orders: ordersWhere
+  });
+  console.log('=============================');
+
+  // Debug: Get actual data to see what's being counted
+  if (totalRequests > 0) {
+    console.log('=== DEBUG: ACTUAL DATA ===');
+    
+    // Get sample orders to see their status
+    const sampleOrders = await prisma.order.findMany({
+      where: ordersWhere,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true,
+        totalAmount: true
+      },
+      take: 5
+    });
+    console.log('Sample Orders:', sampleOrders);
+
+    // Get sample project requests
+    const sampleProjectRequests = await prisma.projectReq.findMany({
+      where: projectRequestsWhere,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true
+      },
+      take: 5
+    });
+    console.log('Sample Project Requests:', sampleProjectRequests);
+
+    // Get sample regular requests
+    const sampleRegularRequests = await prisma.request.findMany({
+      where: regularRequestsWhere,
+      select: {
+        id: true,
+        status: true,
+        createdAt: true
+      },
+      take: 5
+    });
+    console.log('Sample Regular Requests:', sampleRegularRequests);
+    console.log('=== END DEBUG ===');
+  }
+
+  // Additional debug: Get all data for current year to see distribution
+  const currentYearStart = new Date(new Date().getFullYear(), 0, 1);
+  const currentYearEnd = new Date(new Date().getFullYear(), 11, 31, 23, 59, 59, 999);
+  
+  const allProjectRequests = await prisma.projectReq.findMany({
+    where: {
+      sellerId,
+      status: { not: "REJECTED" },
+      createdAt: { gte: currentYearStart, lte: currentYearEnd }
+    },
+    select: {
+      id: true,
+      status: true,
+      createdAt: true
+    }
+  });
+  
+  const allOrders = await prisma.order.findMany({
+    where: {
+      items: {
+        some: {
+          sellerId: sellerId
+        }
+      },
+      status: { notIn: ["CANCELLED", "RETURNED"] },
+      createdAt: { gte: currentYearStart, lte: currentYearEnd }
+    },
+    select: {
+      id: true,
+      status: true,
+      createdAt: true
+    }
+  });
+  
+  console.log('=== YEARLY DATA DISTRIBUTION ===');
+  console.log('All Project Requests in 2025:', allProjectRequests.length);
+  console.log('All Orders in 2025:', allOrders.length);
+  console.log('Project Requests by month:', allProjectRequests.map(r => ({ 
+    month: r.createdAt.getMonth() + 1, 
+    date: r.createdAt.toISOString() 
+  })));
+  console.log('Orders by month:', allOrders.map(o => ({ 
+    month: o.createdAt.getMonth() + 1, 
+    date: o.createdAt.toISOString() 
+  })));
+  console.log('=== END YEARLY DATA ===');
+
+  return totalRequests;
 }
 
-async function getMessageCount(userId: string) {
-  return prisma.conversationParticipant.count({ where: { userId } });
+async function getMessageCount(userId: string, sinceDate?: Date, role?: string) {
+  const conversations = await prisma.conversation.findMany({
+    where: {
+      participants: {
+        some: {
+          userId: userId,
+        },
+      },
+      OR: [{ status: "ACCEPTED" }, { initiatedBy: { not: userId } }],
+      ...(sinceDate ? { updatedAt: { gte: sinceDate } } : {}),
+    },
+    include: {
+      participants: {
+        include: {
+          user: true,
+        },
+      },
+    },
+    orderBy: {
+      updatedAt: 'desc'
+    }
+  });
+
+  // Filter conversations based on having a valid other participant
+  const validConversations = conversations.filter(conversation => {
+    const otherParticipant = conversation.participants.find(
+      (p: any) => p.userId !== userId && p.user.role !== "ADMIN"
+    );
+    return otherParticipant !== undefined;
+  });
+
+  return validConversations.length;
 }
 
 async function getActiveProductCount(sellerId: string, sinceDate?: Date) {
@@ -1073,71 +1279,60 @@ export const getTopBuyers = async (req: any, res: Response) => {
 
 export const getDashboard = async (req: any, res: Response) => {
   try {
-    const { sellerId, userId } = req.user;
+    const { userId, role } = req.user;
     const { period = "month" } = req.query;
+    console.log('=== DASHBOARD REQUEST ===');
+    console.log('User ID:', userId, 'Role:', role, 'Period:', period);
 
-    // Use the same date range logic as getOrderAnalytics
-    function getDateRanges(period: string) {
+    const seller = await prisma.seller.findFirst({ where: { userId } });
+    if (!seller) return res.status(404).json({ error: "Seller not found" });
+
+    const sellerId = seller.id;
+    console.log('Seller ID:', sellerId);
+
+    // For year period, we want to show all data from the start of the current year
       const currentDate = new Date();
-      let currentPeriodStart: Date;
-      let previousPeriodStart: Date;
-      let previousPeriodEnd: Date;
+    let currentPeriodStart, previousPeriodStart, previousPeriodEnd;
 
-      switch (period) {
-        case "today":
-          currentPeriodStart = new Date(currentDate);
-          currentPeriodStart.setHours(0, 0, 0, 0);
-          previousPeriodStart = new Date(currentPeriodStart);
-          previousPeriodStart.setDate(previousPeriodStart.getDate() - 1);
-          previousPeriodEnd = new Date(previousPeriodStart);
-          previousPeriodEnd.setHours(23, 59, 59, 999);
-          break;
-        case "week":
-          currentPeriodStart = new Date(currentDate);
-          currentPeriodStart.setDate(currentDate.getDate() - currentDate.getDay());
-          currentPeriodStart.setHours(0, 0, 0, 0);
-          previousPeriodStart = new Date(currentPeriodStart);
-          previousPeriodStart.setDate(previousPeriodStart.getDate() - 7);
-          previousPeriodEnd = new Date(previousPeriodStart);
-          previousPeriodEnd.setDate(previousPeriodEnd.getDate() + 6);
-          previousPeriodEnd.setHours(23, 59, 59, 999);
-          break;
-        case "month":
-          currentPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-          previousPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-          previousPeriodEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-          previousPeriodEnd.setHours(23, 59, 59, 999);
-          break;
-        case "year":
+    if (period === "year") {
           currentPeriodStart = new Date(currentDate.getFullYear(), 0, 1);
+      currentPeriodStart.setHours(0, 0, 0, 0);
           previousPeriodStart = new Date(currentDate.getFullYear() - 1, 0, 1);
+      previousPeriodStart.setHours(0, 0, 0, 0);
           previousPeriodEnd = new Date(currentDate.getFullYear() - 1, 11, 31);
           previousPeriodEnd.setHours(23, 59, 59, 999);
-          break;
-        default:
-          currentPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-          previousPeriodStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-          previousPeriodEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-          previousPeriodEnd.setHours(23, 59, 59, 999);
-      }
-      return { currentPeriodStart, previousPeriodStart, previousPeriodEnd };
+    } else {
+      const ranges = getDateRanges(period);
+      currentPeriodStart = ranges.currentPeriodStart;
+      previousPeriodStart = ranges.previousPeriodStart;
+      previousPeriodEnd = ranges.previousPeriodEnd;
     }
 
-    const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } = getDateRanges(period);
+    console.log('=== DATE RANGES ===');
+    console.log('Current Date:', currentDate.toISOString());
+    console.log('Current Period Start:', currentPeriodStart.toISOString());
+    console.log('Previous Period Start:', previousPeriodStart.toISOString());
+    console.log('Previous Period End:', previousPeriodEnd.toISOString());
 
     // Metrics
     const [currentRequests, previousRequests, messages, activeProducts] = await Promise.all([
-      prisma.request.count({
-        where: { sellerId, createdAt: { gte: currentPeriodStart, lte: new Date() } },
-      }),
-      prisma.request.count({
-        where: { sellerId, createdAt: { gte: previousPeriodStart, lte: previousPeriodEnd } },
-      }),
-      prisma.conversationParticipant.count({ where: { userId } }),
+      getRequestCount(sellerId, currentPeriodStart, currentDate),
+      getRequestCount(sellerId, previousPeriodStart, previousPeriodEnd),
+      getMessageCount(userId, currentPeriodStart, role),
       prisma.product.count({ where: { sellerId, isDraft: false, stockStatus: "IN_STOCK" } }),
     ]);
+
     const requestDifference = currentRequests - previousRequests;
     const requestPercentageChange = previousRequests === 0 ? (currentRequests === 0 ? 0 : 100) : Math.round(((currentRequests - previousRequests) / previousRequests) * 100);
+
+    console.log('=== FINAL METRICS ===');
+    console.log('Current Requests:', currentRequests);
+    console.log('Previous Requests:', previousRequests);
+    console.log('Request Difference:', requestDifference);
+    console.log('Request Percentage Change:', requestPercentageChange);
+    console.log('Messages:', messages);
+    console.log('Active Products:', activeProducts);
+    console.log('========================');
 
     // Chart Data (orders/requests per period bucket)
     const chartData = await generateChartData(period, sellerId);
@@ -1149,7 +1344,7 @@ export const getDashboard = async (req: any, res: Response) => {
         orderItems: {
           where: {
             order: {
-              createdAt: { gte: currentPeriodStart, lte: new Date() }
+              createdAt: { gte: currentPeriodStart, lte: currentDate }
             }
           }
         }
@@ -1178,7 +1373,7 @@ export const getDashboard = async (req: any, res: Response) => {
         orderItems: {
           where: {
             order: {
-              createdAt: { gte: currentPeriodStart, lte: new Date() }
+              createdAt: { gte: currentPeriodStart, lte: currentDate }
             }
           }
         }
@@ -1223,14 +1418,230 @@ export const getDashboard = async (req: any, res: Response) => {
 export const getNotifications = async (req: any, res: Response) => {
   try {
     const { userId } = req.user;
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, type = 'all' } = req.query;
     const pageSize = parseInt(limit as string);
     const pageNo = parseInt(page as string);
     const skip = (pageNo - 1) * pageSize;
 
-    // Get notifications from multiple sources
-    const [orders, requests, messages] = await Promise.all([
-      // Recent orders
+    // For type-specific queries, use direct pagination
+    if (type !== 'all') {
+      let data: any[] = [];
+      let total = 0;
+
+      switch (type) {
+        case 'ORDER':
+          [data, total] = await Promise.all([
+            prisma.order.findMany({
+              where: {
+                items: {
+                  some: {
+                    seller: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+              include: {
+                items: {
+                  include: {
+                    product: true,
+                  },
+                },
+                buyer: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        imageUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: pageSize,
+              skip,
+            }),
+            prisma.order.count({
+              where: {
+                items: {
+                  some: {
+                    seller: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+            }),
+          ]);
+          break;
+
+        case 'REQUEST':
+          [data, total] = await Promise.all([
+            prisma.request.findMany({
+              where: {
+                seller: {
+                  userId: userId,
+                },
+              },
+              include: {
+                buyer: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        imageUrl: true,
+                      },
+                    },
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: pageSize,
+              skip,
+            }),
+            prisma.request.count({
+              where: {
+                seller: {
+                  userId: userId,
+                },
+              },
+            }),
+          ]);
+          break;
+
+        case 'MESSAGE':
+          [data, total] = await Promise.all([
+            prisma.message.findMany({
+              where: {
+                conversation: {
+                  participants: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+              include: {
+                sender: {
+                  select: {
+                    name: true,
+                    imageUrl: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: pageSize,
+              skip,
+            }),
+            prisma.message.count({
+              where: {
+                conversation: {
+                  participants: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+            }),
+          ]);
+          break;
+
+        case 'PROJECT_REQUEST':
+          [data, total] = await Promise.all([
+            prisma.projectReq.findMany({
+              where: {
+                seller: {
+                  userId: userId,
+                },
+              },
+              include: {
+                seller: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        imageUrl: true,
+                      },
+                    },
+                  },
+                },
+                project: true,
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: pageSize,
+              skip,
+            }),
+            prisma.projectReq.count({
+              where: {
+                seller: {
+                  userId: userId,
+                },
+              },
+            }),
+          ]);
+          break;
+      }
+
+      const notifications = data.map((item) => {
+        switch (type) {
+          case 'ORDER':
+            return {
+              id: item.id,
+              type: 'ORDER',
+              title: `New order from ${item.buyer?.user?.name || 'Unknown'}`,
+              createdAt: item.createdAt,
+              data: item,
+            };
+          case 'REQUEST':
+            return {
+              id: item.id,
+              type: 'REQUEST',
+              title: `New request from ${item.buyer?.user?.name || 'Unknown'}`,
+              createdAt: item.createdAt,
+              data: item,
+            };
+          case 'MESSAGE':
+            return {
+              id: item.id,
+              type: 'MESSAGE',
+              title: `New message from ${item.sender?.name || 'Unknown'}`,
+              createdAt: item.createdAt,
+              data: item,
+            };
+          case 'PROJECT_REQUEST':
+            return {
+              id: item.id,
+              type: 'PROJECT_REQUEST',
+              title: `New project request from ${item.seller?.user?.name || 'Unknown'}`,
+              createdAt: item.createdAt,
+              data: item,
+            };
+          default:
+            return null;
+        }
+      }).filter(Boolean);
+
+      return res.json({
+        notifications,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: pageNo,
+      });
+    }
+
+    // For 'all' type, we need to fetch all data, combine, sort, and then paginate
+    // This is more complex but necessary for proper mixed-type pagination
+    const [orders, requests, messages, projectRequests] = await Promise.all([
       prisma.order.findMany({
         where: {
           items: {
@@ -1261,10 +1672,7 @@ export const getNotifications = async (req: any, res: Response) => {
         orderBy: {
           createdAt: "desc",
         },
-        take: pageSize,
-        skip,
       }),
-      // Recent requests
       prisma.request.findMany({
         where: {
           seller: {
@@ -1286,16 +1694,16 @@ export const getNotifications = async (req: any, res: Response) => {
         orderBy: {
           createdAt: "desc",
         },
-        take: pageSize,
-        skip,
       }),
-      // Recent messages
       prisma.message.findMany({
         where: {
-          OR: [
-            { senderId: userId },
-            { conversation: { participants: { some: { userId: userId } } } },
-          ],
+          conversation: {
+            participants: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
         },
         include: {
           sender: {
@@ -1304,9 +1712,276 @@ export const getNotifications = async (req: any, res: Response) => {
               imageUrl: true,
             },
           },
-          conversation: {
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.projectReq.findMany({
+        where: {
+          seller: {
+            userId: userId,
+          },
+        },
+        include: {
+          seller: {
             include: {
-              participants: {
+              user: {
+                select: {
+                  name: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+          project: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
+
+    // Transform and combine all notifications
+    const allNotifications = [
+      ...orders.map((order) => ({
+        id: order.id,
+        type: 'ORDER',
+        title: `New order from ${order.buyer?.user?.name || 'Unknown'}`,
+        createdAt: order.createdAt,
+        data: order,
+      })),
+      ...requests.map((request) => ({
+        id: request.id,
+        type: 'REQUEST',
+        title: `New request from ${request.buyer?.user?.name || 'Unknown'}`,
+        createdAt: request.createdAt,
+        data: request,
+      })),
+      ...messages.map((message) => ({
+        id: message.id,
+        type: 'MESSAGE',
+        title: `New message from ${message.sender?.name || 'Unknown'}`,
+        createdAt: message.createdAt,
+        data: message,
+      })),
+      ...projectRequests.map((projectRequest) => ({
+        id: projectRequest.id,
+        type: 'PROJECT_REQUEST',
+        title: `New project request from ${projectRequest.seller?.user?.name || 'Unknown'}`,
+        createdAt: projectRequest.createdAt,
+        data: projectRequest,
+      })),
+    ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+
+    // Apply pagination to the combined and sorted results
+    const total = allNotifications.length;
+    const paginatedNotifications = allNotifications.slice(skip, skip + pageSize);
+
+    return res.json({
+      notifications: paginatedNotifications,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+      currentPage: pageNo,
+    });
+  } catch (error) {
+    console.error('Error in getNotifications:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
+export const getBuyerNotifications = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { page = 1, limit = 10, type = 'all' } = req.query;
+    const pageSize = parseInt(limit as string);
+    const pageNo = parseInt(page as string);
+    const skip = (pageNo - 1) * pageSize;
+
+    // For type-specific queries, use direct pagination
+    if (type !== 'all') {
+      let data: any[] = [];
+      let total = 0;
+
+      switch (type) {
+        case 'ORDER':
+          [data, total] = await Promise.all([
+            prisma.order.findMany({
+              where: {
+                buyerId: userId,
+              },
+              include: {
+                items: {
+                  include: {
+                    product: true,
+                    seller: {
+                      include: {
+                        user: {
+                          select: {
+                            name: true,
+                            imageUrl: true,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: pageSize,
+              skip,
+            }),
+            prisma.order.count({
+              where: {
+                buyerId: userId,
+              },
+            }),
+          ]);
+          break;
+
+        case 'MESSAGE':
+          [data, total] = await Promise.all([
+            prisma.message.findMany({
+              where: {
+                conversation: {
+                  participants: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+              include: {
+                sender: {
+                  select: {
+                    name: true,
+                    imageUrl: true,
+                  },
+                },
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: pageSize,
+              skip,
+            }),
+            prisma.message.count({
+              where: {
+                conversation: {
+                  participants: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+            }),
+          ]);
+          break;
+
+        case 'PROJECT_REQUEST':
+          [data, total] = await Promise.all([
+            prisma.projectReq.findMany({
+              where: {
+                buyer: {
+                  userId: userId,
+                },
+              },
+              include: {
+                seller: {
+                  include: {
+                    user: {
+                      select: {
+                        name: true,
+                        imageUrl: true,
+                      },
+                    },
+                  },
+                },
+                project: true,
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+              take: pageSize,
+              skip,
+            }),
+            prisma.projectReq.count({
+              where: {
+                buyer: {
+                  userId: userId,
+                },
+              },
+            }),
+          ]);
+          break;
+      }
+
+      const notifications = data.map((item) => {
+        switch (type) {
+          case 'ORDER':
+            return {
+              id: item.id,
+              type: 'ORDER',
+              title: `Order #${item.id.slice(-6)} status: ${item.status}`,
+              message: `Your order #${item.id.slice(-6)} has been ${item.status.toLowerCase()}`,
+              read: false,
+              createdAt: item.createdAt.toISOString(),
+              metadata: {
+                orderId: item.id,
+              },
+            };
+          case 'MESSAGE':
+            return {
+              id: item.id,
+              type: 'MESSAGE',
+              title: `New message from ${item.sender?.name || 'Unknown'}`,
+              message: `You received a new message from ${item.sender?.name || 'Unknown'}`,
+              read: false,
+              createdAt: item.createdAt.toISOString(),
+              metadata: {
+                messageId: item.id,
+              },
+            };
+          case 'PROJECT_REQUEST':
+            return {
+              id: item.id,
+              type: 'PROJECT_REQUEST',
+              title: `${item.seller?.user?.name || 'Unknown'} responded to your project request`,
+              message: `${item.seller?.user?.name || 'Unknown'} has responded to your project request`,
+              read: false,
+              createdAt: item.createdAt.toISOString(),
+              metadata: {
+                requestId: item.id,
+                projectId: item.projectId,
+              },
+            };
+          default:
+            return null;
+        }
+      }).filter(Boolean);
+
+      return res.json({
+        notifications,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+        currentPage: pageNo,
+      });
+    }
+
+    // For 'all' type, fetch all data, combine, sort, and then paginate
+    const [orders, messages, projectRequests] = await Promise.all([
+      prisma.order.findMany({
+        where: {
+          buyerId: userId,
+        },
+        include: {
+          items: {
+            include: {
+              product: true,
+              seller: {
                 include: {
                   user: {
                     select: {
@@ -1322,90 +1997,105 @@ export const getNotifications = async (req: any, res: Response) => {
         orderBy: {
           createdAt: "desc",
         },
-        take: pageSize,
-        skip,
+      }),
+      prisma.message.findMany({
+        where: {
+          conversation: {
+            participants: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+        },
+        include: {
+          sender: {
+            select: {
+              name: true,
+              imageUrl: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.projectReq.findMany({
+        where: {
+          buyer: {
+            userId: userId,
+          },
+        },
+        include: {
+          seller: {
+            include: {
+              user: {
+                select: {
+                  name: true,
+                  imageUrl: true,
+                },
+              },
+            },
+          },
+          project: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
       }),
     ]);
 
-    // Transform data into notification format
-    const notifications = [
+    // Transform and combine all notifications
+    const allNotifications = [
       ...orders.map((order) => ({
         id: order.id,
-        message: `New order #${order.id.slice(-6)} received from ${order.buyer?.user?.name || 'Unknown'}`,
-        type: 'ORDER' as const,
+        type: 'ORDER',
+        title: `Order #${order.id.slice(-6)} status: ${order.status}`,
+        message: `Your order #${order.id.slice(-6)} has been ${order.status.toLowerCase()}`,
         read: false,
         createdAt: order.createdAt.toISOString(),
         metadata: {
           orderId: order.id,
         },
       })),
-      ...requests.map((request) => ({
-        id: request.id,
-        message: `New request for ${request.productName} from ${request.buyer?.user?.name || 'Unknown'}`,
-        type: 'REQUEST' as const,
-        read: false,
-        createdAt: request.createdAt.toISOString(),
-        metadata: {
-          requestId: request.id,
-        },
-      })),
       ...messages.map((message) => ({
         id: message.id,
-        message: `New message from ${message.sender?.name || 'Unknown'}`,
-        type: 'MESSAGE' as const,
+        type: 'MESSAGE',
+        title: `New message from ${message.sender?.name || 'Unknown'}`,
+        message: `You received a new message from ${message.sender?.name || 'Unknown'}`,
         read: false,
         createdAt: message.createdAt.toISOString(),
         metadata: {
           messageId: message.id,
         },
       })),
+      ...projectRequests.map((request) => ({
+        id: request.id,
+        type: 'PROJECT_REQUEST',
+        title: `${request.seller?.user?.name || 'Unknown'} responded to your project request`,
+        message: `${request.seller?.user?.name || 'Unknown'} has responded to your project request`,
+        read: false,
+        createdAt: request.createdAt.toISOString(),
+        metadata: {
+          requestId: request.id,
+          projectId: request.projectId,
+        },
+      })),
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    // Get total count for pagination
-    const [totalOrders, totalRequests, totalMessages] = await Promise.all([
-      prisma.order.count({
-        where: {
-          items: {
-            some: {
-              seller: {
-                userId: userId,
-              },
-            },
-          },
-        },
-      }),
-      prisma.request.count({
-        where: {
-          seller: {
-            userId: userId,
-          },
-        },
-      }),
-      prisma.message.count({
-        where: {
-          OR: [
-            { senderId: userId },
-            { conversation: { participants: { some: { userId: userId } } } },
-          ],
-        },
-      }),
-    ]);
+    // Apply pagination to the combined and sorted results
+    const total = allNotifications.length;
+    const paginatedNotifications = allNotifications.slice(skip, skip + pageSize);
 
-    const total = totalOrders + totalRequests + totalMessages;
-
-    res.json({
-      data: notifications,
-      pagination: {
-        total,
-        pageSize,
-        currentPage: pageNo,
-        totalPages: Math.ceil(total / pageSize),
-        hasMore: pageNo * pageSize < total,
-      },
+    return res.json({
+      notifications: paginatedNotifications,
+      total,
+      totalPages: Math.ceil(total / pageSize),
+      currentPage: pageNo,
     });
   } catch (error) {
-    console.error("Get notifications error:", error);
-    res.status(500).json({ error: "Failed to fetch notifications" });
+    console.error("Get buyer notifications error:", error);
+    return res.status(500).json({ error: "Failed to fetch buyer notifications" });
   }
 };
 
@@ -1602,3 +2292,404 @@ export const getContacts = async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to fetch contacts" });
   }
 };
+
+export const markNotificationAsRead = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { notificationId } = req.params;
+
+    // For now, we'll just return success since we're not storing read status in the current implementation
+    // In a real implementation, you would update the notification's read status in the database
+    
+    res.json({ 
+      success: true, 
+      message: "Notification marked as read" 
+    });
+  } catch (error) {
+    console.error("Mark notification as read error:", error);
+    res.status(500).json({ error: "Failed to mark notification as read" });
+  }
+};
+
+export const markAllNotificationsAsRead = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+
+    // For now, we'll just return success since we're not storing read status in the current implementation
+    // In a real implementation, you would update all notifications' read status for this user
+    
+    res.json({ 
+      success: true, 
+      message: "All notifications marked as read" 
+    });
+  } catch (error) {
+    console.error("Mark all notifications as read error:", error);
+    res.status(500).json({ error: "Failed to mark all notifications as read" });
+  }
+};
+
+export const getOrderSummary = async (req: any, res: Response) => {
+  try {
+    const { userId } = req.user;
+    const { period = "month" } = req.query;
+
+    // Validate seller exists
+    const seller = await prisma.seller.findFirst({
+      where: { userId },
+      select: { id: true },
+    });
+    if (!seller) return res.status(404).json({ error: "Seller not found" });
+
+    // Calculate date ranges based on period
+    const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } =
+      getDateRanges(period);
+
+    // Get all orders for this seller (both current and previous periods for comparison)
+    const allOrders = await prisma.order.findMany({
+      where: {
+        items: {
+          some: {
+            sellerId: seller.id,
+          },
+        },
+        status: {
+          notIn: ["CANCELLED", "RETURNED"],
+        },
+      },
+      include: {
+        buyer: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+                imageUrl: true,
+              },
+            },
+          },
+        },
+        items: {
+          where: {
+            sellerId: seller.id,
+          },
+          include: {
+            product: {
+              select: {
+                name: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    // Separate orders by period
+    const currentPeriodOrders = allOrders.filter(
+      (order) => order.createdAt >= currentPeriodStart
+    );
+    const previousPeriodOrders = allOrders.filter(
+      (order) =>
+        order.createdAt >= previousPeriodStart &&
+        order.createdAt <= previousPeriodEnd
+    );
+
+    // Helper function to analyze buyer types
+    function analyzeBuyerTypes(orders: any[], allHistoricalOrders: any[]) {
+      const buyerOrderCounts: Record<string, number> = {};
+      const buyerFirstOrderDates: Record<string, Date> = {};
+      const periodBuyers = new Set<string>();
+
+      // Count orders per buyer and track first order dates
+      allHistoricalOrders.forEach((order) => {
+        if (order.buyerId) {
+          buyerOrderCounts[order.buyerId] =
+            (buyerOrderCounts[order.buyerId] || 0) + 1;
+          if (!buyerFirstOrderDates[order.buyerId]) {
+            buyerFirstOrderDates[order.buyerId] = order.createdAt;
+          }
+        }
+      });
+
+      // Analyze current period orders
+      let newBuyers = 0;
+      let repeatedBuyers = 0;
+      const newBuyerDetails: any[] = [];
+      const repeatedBuyerDetails: any[] = [];
+
+      orders.forEach((order) => {
+        if (order.buyerId) {
+          periodBuyers.add(order.buyerId);
+          
+          // Check if this buyer's first order was in the current period
+          const firstOrderDate = buyerFirstOrderDates[order.buyerId];
+          const isNewBuyer = firstOrderDate >= currentPeriodStart;
+          
+          if (isNewBuyer) {
+            newBuyers++;
+            newBuyerDetails.push({
+              buyerId: order.buyerId,
+              buyerName: order.buyer?.user?.name || "Unknown",
+              buyerEmail: order.buyer?.user?.email || "",
+              buyerImage: order.buyer?.user?.imageUrl || null,
+              orderId: order.id,
+              orderAmount: order.totalAmount,
+              orderDate: order.createdAt,
+              totalOrders: buyerOrderCounts[order.buyerId] || 1,
+            });
+          } else {
+            repeatedBuyers++;
+            repeatedBuyerDetails.push({
+              buyerId: order.buyerId,
+              buyerName: order.buyer?.user?.name || "Unknown",
+              buyerEmail: order.buyer?.user?.email || "",
+              buyerImage: order.buyer?.user?.imageUrl || null,
+              orderId: order.id,
+              orderAmount: order.totalAmount,
+              orderDate: order.createdAt,
+              totalOrders: buyerOrderCounts[order.buyerId] || 1,
+              firstOrderDate: firstOrderDate,
+            });
+          }
+        }
+      });
+
+      return {
+        newBuyers,
+        repeatedBuyers,
+        newBuyerDetails,
+        repeatedBuyerDetails,
+        totalBuyers: periodBuyers.size,
+      };
+    }
+
+    // Analyze current and previous periods
+    const currentPeriodAnalysis = analyzeBuyerTypes(
+      currentPeriodOrders,
+      allOrders
+    );
+    const previousPeriodAnalysis = analyzeBuyerTypes(
+      previousPeriodOrders,
+      allOrders.filter((order) => order.createdAt < currentPeriodStart)
+    );
+
+    // Calculate metrics
+    const totalCurrentOrders = currentPeriodOrders.length;
+    const totalPreviousOrders = previousPeriodOrders.length;
+    const totalCurrentRevenue = currentPeriodOrders.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0
+    );
+    const totalPreviousRevenue = previousPeriodOrders.reduce(
+      (sum, order) => sum + order.totalAmount,
+      0
+    );
+
+    // Calculate percentage changes
+    const orderPercentageChange = calculatePercentageChange(
+      totalCurrentOrders,
+      totalPreviousOrders
+    );
+    const revenuePercentageChange = calculatePercentageChange(
+      totalCurrentRevenue,
+      totalPreviousRevenue
+    );
+    const newBuyerPercentageChange = calculatePercentageChange(
+      currentPeriodAnalysis.newBuyers,
+      previousPeriodAnalysis.newBuyers
+    );
+    const repeatedBuyerPercentageChange = calculatePercentageChange(
+      currentPeriodAnalysis.repeatedBuyers,
+      previousPeriodAnalysis.repeatedBuyers
+    );
+
+    // Generate time-based summary data
+    const summaryData = await generateTimeBasedOrderSummary(
+      period,
+      seller.id,
+      currentPeriodStart,
+      previousPeriodStart,
+      previousPeriodEnd
+    );
+
+    res.json({
+      data: {
+        period,
+        currentPeriod: {
+          start: currentPeriodStart,
+          end: new Date(),
+        },
+        previousPeriod: {
+          start: previousPeriodStart,
+          end: previousPeriodEnd,
+        },
+        metrics: {
+          orders: {
+            current: totalCurrentOrders,
+            previous: totalPreviousOrders,
+            difference: totalCurrentOrders - totalPreviousOrders,
+            percentageChange: orderPercentageChange,
+          },
+          revenue: {
+            current: totalCurrentRevenue,
+            previous: totalPreviousRevenue,
+            difference: totalCurrentRevenue - totalPreviousRevenue,
+            percentageChange: revenuePercentageChange,
+          },
+          buyers: {
+            new: {
+              current: currentPeriodAnalysis.newBuyers,
+              previous: previousPeriodAnalysis.newBuyers,
+              difference: currentPeriodAnalysis.newBuyers - previousPeriodAnalysis.newBuyers,
+              percentageChange: newBuyerPercentageChange,
+            },
+            repeated: {
+              current: currentPeriodAnalysis.repeatedBuyers,
+              previous: previousPeriodAnalysis.repeatedBuyers,
+              difference: currentPeriodAnalysis.repeatedBuyers - previousPeriodAnalysis.repeatedBuyers,
+              percentageChange: repeatedBuyerPercentageChange,
+            },
+            total: currentPeriodAnalysis.totalBuyers,
+          },
+        },
+        buyerDetails: {
+          newBuyers: currentPeriodAnalysis.newBuyerDetails,
+          repeatedBuyers: currentPeriodAnalysis.repeatedBuyerDetails,
+        },
+        summaryData,
+      },
+    });
+  } catch (error) {
+    console.error("Get order summary error:", error);
+    res.status(500).json({ error: "Failed to get order summary" });
+  }
+};
+
+// Helper function to generate time-based order summary data
+async function generateTimeBasedOrderSummary(
+  period: string,
+  sellerId: string,
+  currentPeriodStart: Date,
+  previousPeriodStart: Date,
+  previousPeriodEnd: Date
+) {
+  const summaryData: Array<{ name: string; new: number; repeated: number }> = [];
+  const now = new Date();
+
+  // Helper to get new/repeated customers in a date range
+  async function getBuyerTypeCounts(start: Date, end: Date) {
+    const orders = await prisma.order.findMany({
+      where: {
+        items: {
+          some: {
+            sellerId: sellerId,
+          },
+        },
+        status: {
+          notIn: ["CANCELLED", "RETURNED"],
+        },
+        createdAt: { gte: start, lte: end },
+      },
+      include: {
+        buyer: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    const buyerFirstOrderDates: Record<string, Date> = {};
+    let newBuyers = 0;
+    let repeatedBuyers = 0;
+
+    // First pass: collect all historical orders to determine first order dates
+    const allHistoricalOrders = await prisma.order.findMany({
+      where: {
+        items: {
+          some: {
+            sellerId: sellerId,
+          },
+        },
+        status: {
+          notIn: ["CANCELLED", "RETURNED"],
+        },
+        createdAt: { lt: end },
+      },
+      select: {
+        buyerId: true,
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+    });
+
+    // Build first order dates map
+    allHistoricalOrders.forEach((order) => {
+      if (order.buyerId && !buyerFirstOrderDates[order.buyerId]) {
+        buyerFirstOrderDates[order.buyerId] = order.createdAt;
+      }
+    });
+
+    // Analyze current period orders
+    orders.forEach((order) => {
+      if (order.buyerId) {
+        const firstOrderDate = buyerFirstOrderDates[order.buyerId];
+        
+        if (firstOrderDate >= start) {
+          newBuyers++;
+        } else {
+          repeatedBuyers++;
+        }
+      }
+    });
+
+    return { new: newBuyers, repeated: repeatedBuyers };
+  }
+
+  if (period === "today") {
+    for (let i = 0; i < 24; i++) {
+      const hourStart = new Date(now);
+      hourStart.setHours(i, 0, 0, 0);
+      const hourEnd = new Date(hourStart);
+      hourEnd.setHours(i, 59, 59, 999);
+      const { new: newBuyers, repeated } = await getBuyerTypeCounts(hourStart, hourEnd);
+      summaryData.push({ name: `${i}:00`, repeated, new: newBuyers });
+    }
+  } else if (period === "week") {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    for (let i = 0; i < 7; i++) {
+      const dayStart = new Date();
+      dayStart.setDate(dayStart.getDate() - dayStart.getDay() + i);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+      const { new: newBuyers, repeated } = await getBuyerTypeCounts(dayStart, dayEnd);
+      summaryData.push({ name: days[i], repeated, new: newBuyers });
+    }
+  } else if (period === "month") {
+    const weeksInMonth = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
+    for (let i = 0; i < weeksInMonth; i++) {
+      const weekStart = new Date(now.getFullYear(), now.getMonth(), i * 7 + 1);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+      const { new: newBuyers, repeated } = await getBuyerTypeCounts(weekStart, weekEnd);
+      summaryData.push({ name: `Week ${i + 1}`, repeated, new: newBuyers });
+    }
+  } else if (period === "year") {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    for (let i = 0; i < 12; i++) {
+      const monthStart = new Date(now.getFullYear(), i, 1);
+      const monthEnd = new Date(now.getFullYear(), i + 1, 0);
+      monthEnd.setHours(23, 59, 59, 999);
+      const { new: newBuyers, repeated } = await getBuyerTypeCounts(monthStart, monthEnd);
+      summaryData.push({ name: months[i], repeated, new: newBuyers });
+    }
+  }
+
+  return summaryData;
+}

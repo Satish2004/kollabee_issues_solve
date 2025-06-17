@@ -480,13 +480,15 @@ export interface SubscriptionTransaction {
 export interface Notification {
   id: string;
   message: string;
-  type: 'ORDER' | 'REQUEST' | 'MESSAGE' | 'SYSTEM';
+  title?: string;
+  type: 'ORDER' | 'REQUEST' | 'MESSAGE' | 'SYSTEM' | 'PROJECT_REQUEST';
   read: boolean;
   createdAt: string;
   metadata?: {
     orderId?: string;
     requestId?: string;
     messageId?: string;
+    projectId?: string;
   };
 }
 
@@ -640,6 +642,77 @@ export interface OrderAnalytics {
         percentageChange: number;
       };
     };
+  };
+}
+
+export interface OrderSummary {
+  data: {
+    period: string;
+    currentPeriod: {
+      start: string;
+      end: string;
+    };
+    previousPeriod: {
+      start: string;
+      end: string;
+    };
+    metrics: {
+      orders: {
+        current: number;
+        previous: number;
+        difference: number;
+        percentageChange: number;
+      };
+      revenue: {
+        current: number;
+        previous: number;
+        difference: number;
+        percentageChange: number;
+      };
+      buyers: {
+        new: {
+          current: number;
+          previous: number;
+          difference: number;
+          percentageChange: number;
+        };
+        repeated: {
+          current: number;
+          previous: number;
+          difference: number;
+          percentageChange: number;
+        };
+        total: number;
+      };
+    };
+    buyerDetails: {
+      newBuyers: Array<{
+        buyerId: string;
+        buyerName: string;
+        buyerEmail: string;
+        buyerImage: string | null;
+        orderId: string;
+        orderAmount: number;
+        orderDate: string;
+        totalOrders: number;
+      }>;
+      repeatedBuyers: Array<{
+        buyerId: string;
+        buyerName: string;
+        buyerEmail: string;
+        buyerImage: string | null;
+        orderId: string;
+        orderAmount: number;
+        orderDate: string;
+        totalOrders: number;
+        firstOrderDate: string;
+      }>;
+    };
+    summaryData: Array<{
+      name: string;
+      new: number;
+      repeated: number;
+    }>;
   };
 }
 

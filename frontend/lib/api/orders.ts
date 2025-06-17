@@ -80,4 +80,11 @@ export const ordersApi = {
   }) => {
     return api.get("/admin/top-buyer", { params });
   },
+
+  // New order summary API
+  getOrderSummary: async (params?: {
+    period?: string;
+  }) => {
+    return api.get("/dashboard/order-summary", { params });
+  },
 };

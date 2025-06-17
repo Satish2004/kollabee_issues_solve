@@ -43,27 +43,37 @@ import ProfileStrengthCard from "@/components/seller/profile-strength-card";
 import React from "react";
 
 interface DashboardData {
-  totalOrders: number;
-  totalProducts: number;
-  totalRequests: number;
-  totalReturns: number;
-  totalRevenue: number;
-  ordersDifference: number;
-  pendingOrders: number;
-  pendingOrdersWorth: number;
-  requestsDifference: number;
-  returnedProductsWorth: number;
-  returnsDifference: number;
-  revenueDifference: number;
-  totalMessages: number;
-  requestsRevenue: number;
-  requestsRevenueDifference: number;
-  averageResponse?: { current: string; percentageChange: string };
+  totalOrders: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  totalReceived: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  returnedOrders: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  onWayToShip: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  averageSales: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  averageResponseTime: {
+    current: string;
+    past: string;
+    percentageChange: string;
+  };
 }
-
-
-
-
 
 type contact = { id: string | number; name: string; image: string };
 
@@ -303,21 +313,36 @@ function SellerDashboardMainCard({
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData>({
-    totalOrders: 0,
-    totalProducts: 0,
-    totalRequests: 0,
-    totalReturns: 0,
-    totalRevenue: 0,
-    ordersDifference: 0,
-    pendingOrders: 0,
-    pendingOrdersWorth: 0,
-    requestsDifference: 0,
-    returnedProductsWorth: 0,
-    returnsDifference: 0,
-    revenueDifference: 0,
-    totalMessages: 0,
-    requestsRevenue: 0,
-    requestsRevenueDifference: 0,
+    totalOrders: {
+      current: 0,
+      past: 0,
+      percentageChange: "0%",
+    },
+    totalReceived: {
+      current: 0,
+      past: 0,
+      percentageChange: "0%",
+    },
+    returnedOrders: {
+      current: 0,
+      past: 0,
+      percentageChange: "0%",
+    },
+    onWayToShip: {
+      current: 0,
+      past: 0,
+      percentageChange: "0%",
+    },
+    averageSales: {
+      current: 0,
+      past: 0,
+      percentageChange: "0%",
+    },
+    averageResponseTime: {
+      current: "0m",
+      past: "0m",
+      percentageChange: "0%",
+    },
   });
 
   const [contact, setContact] = useState<contact[]>();
@@ -363,22 +388,36 @@ const Dashboard = () => {
 
     
       setDashboardData({
-        totalOrders: metricsRes.data?.totalOrders || 14, // Updated with actual data
-        totalProducts: metricsRes.data?.totalProducts || 5, // Updated with actual data
-        totalRequests: metricsRes.data?.totalRequests || 0, // Updated with actual data
-        totalReturns: metricsRes.data?.totalReturns || 0, // Updated with actual data
-        totalRevenue: metricsRes.data?.totalRevenue || 0, // Updated with actual data
-        ordersDifference: metricsRes.data?.ordersDifference || 0,
-        pendingOrders: metricsRes.data?.pendingOrders || 0,
-        pendingOrdersWorth: metricsRes.data?.pendingOrdersWorth || 0,
-        requestsDifference: metricsRes.data?.requestsDifference || 0,
-        returnedProductsWorth: metricsRes.data?.returnedProductsWorth || 0,
-        returnsDifference: metricsRes.data?.returnsDifference || 0,
-        revenueDifference: metricsRes.data?.revenueDifference || 0,
-        totalMessages: metricsRes.data?.totalMessages || 7, // Updated with actual data
-        requestsRevenue: metricsRes.data?.requestsRevenue || 0,
-        requestsRevenueDifference: metricsRes.data?.requestsRevenueDifference || 0,
-        averageResponse: metricsRes.data?.averageResponse,
+        totalOrders: metricsRes.data?.totalOrders || {
+          current: 0,
+          past: 0,
+          percentageChange: "0%",
+        },
+        totalReceived: metricsRes.data?.totalReceived || {
+          current: 0,
+          past: 0,
+          percentageChange: "0%",
+        },
+        returnedOrders: metricsRes.data?.returnedOrders || {
+          current: 0,
+          past: 0,
+          percentageChange: "0%",
+        },
+        onWayToShip: metricsRes.data?.onWayToShip || {
+          current: 0,
+          past: 0,
+          percentageChange: "0%",
+        },
+        averageSales: metricsRes.data?.averageSales || {
+          current: 0,
+          past: 0,
+          percentageChange: "0%",
+        },
+        averageResponseTime: metricsRes.data?.averageResponseTime || {
+          current: "0m",
+          past: "0m",
+          percentageChange: "0%",
+        },
       });
     } catch (error) {
       console.error("Failed to load dashboard data:", error);
@@ -396,8 +435,8 @@ const Dashboard = () => {
       // Transform chartData into normalizedData format
       const transformedData = data.chartData.map((item: any) => ({
         name: item.name,
-        orders: item.bulk + item.single, // Combine bulk and single orders
-        requests: 0 // If you have requests data in the API, use that instead
+        orders:  item.single, // Combine bulk and single orders
+        requests: item.bulk // If you have requests data in the API, use that instead
       }));
       setNormalizedData(transformedData);
       console.log("transformedData",transformedData);
@@ -486,85 +525,58 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                 <StatCard
                   title="TOTAL ORDERS"
-                  value={dashboardData.totalOrders.toString()}
-                  change={dashboardData.revenueDifference}
+                  value={dashboardData.totalOrders.current.toString()}
+                  change={dashboardData.totalOrders.current - dashboardData.totalOrders.past}
                   changeText="from last month"
-                  trend={dashboardData.revenueDifference <= 0 ? "down" : "up"}
-                  percentage={calculatePercentageChange(
-                    dashboardData.totalRevenue,
-                    dashboardData.totalRevenue - dashboardData.revenueDifference
-                  )}
+                  trend={dashboardData.totalOrders.current > dashboardData.totalOrders.past ? "up" : "down"}
+                  percentage={parseInt(dashboardData.totalOrders.percentageChange.replace('%', ''))}
                   router={router}
                   link="/seller/request"
                 />
                 <StatCard
                   title="TOTAL RECEIVED"
-                  value={dashboardData.totalRequests.toString()}
-                  change={dashboardData.requestsDifference}
+                  value={dashboardData.totalReceived.current.toString()}
+                  change={dashboardData.totalReceived.current - dashboardData.totalReceived.past}
                   changeText="Revenue"
-                  trend={dashboardData.requestsDifference <= 0 ? "down" : "up"}
-                  percentage={calculatePercentageChange(
-                    dashboardData.totalRequests,
-                    dashboardData.totalRequests -
-                      dashboardData.requestsDifference
-                  )}
+                  trend={dashboardData.totalReceived.current > dashboardData.totalReceived.past ? "up" : "down"}
+                  percentage={parseInt(dashboardData.totalReceived.percentageChange.replace('%', ''))}
                   router={router}
                   link="/seller/request"
                 />
                 <StatCard
                   title="RETURNED PRODUCTS"
-                  value={dashboardData.totalReturns.toString()}
-                  change={dashboardData.returnsDifference}
+                  value={dashboardData.returnedOrders.current.toString()}
+                  change={dashboardData.returnedOrders.current - dashboardData.returnedOrders.past}
                   changeText="from last month"
-                  trend={dashboardData.returnsDifference <= 0 ? "down" : "up"}
-                  percentage={calculatePercentageChange(
-                    dashboardData.totalReturns,
-                    dashboardData.totalReturns - dashboardData.returnsDifference
-                  )}
+                  trend={dashboardData.returnedOrders.current > dashboardData.returnedOrders.past ? "up" : "down"}
+                  percentage={parseInt(dashboardData.returnedOrders.percentageChange.replace('%', ''))}
                   router={router}
                 />
                 <StatCard
                   title="ON THE WAY TO SHIP"
-                  value={dashboardData.pendingOrders.toString()}
-                  change={dashboardData.pendingOrdersWorth}
+                  value={dashboardData.onWayToShip.current.toString()}
+                  change={dashboardData.onWayToShip.current - dashboardData.onWayToShip.past}
                   changeText="Products shipping"
                   trend="neutral"
-                  percentage=""
+                  percentage={null}
                   router={router}
                 />
                 <StatCard
                   title="AVERAGE SALES"
-                  value={`₹${(
-                    dashboardData.totalRevenue + dashboardData.requestsRevenue
-                  ).toLocaleString()}`}
-                  change={
-                    dashboardData.revenueDifference +
-                    dashboardData.requestsRevenueDifference
-                  }
+                  value={`₹${dashboardData.averageSales.current.toLocaleString()}`}
+                  change={dashboardData.averageSales.current - dashboardData.averageSales.past}
                   changeText="from last month"
-                  trend={
-                    dashboardData.revenueDifference +
-                      dashboardData.requestsRevenueDifference <=
-                    0
-                      ? "down"
-                      : "up"
-                  }
-                  percentage={calculatePercentageChange(
-                    dashboardData.totalRevenue + dashboardData.requestsRevenue,
-                    dashboardData.totalRevenue +
-                      dashboardData.requestsRevenue -
-                      (dashboardData.revenueDifference +
-                        dashboardData.requestsRevenueDifference)
-                  )}
+                  trend={dashboardData.averageSales.current > dashboardData.averageSales.past ? "up" : "down"}
+                  percentage={parseInt(dashboardData.averageSales.percentageChange.replace('%', ''))}
                   router={router}
                 />
                 <StatCard
                   title="AVERAGE RESPONSE"
-                  value={dashboardData.averageResponse?.current || '0m'}
-                  change={dashboardData.averageResponse?.percentageChange || '0%'}
+                  value={dashboardData.averageResponseTime.current}
+                  change={0} // We'll handle this differently since it's a time string
                   changeText="from last month"
-                  trend={dashboardData.averageResponse?.percentageChange?.startsWith('-') ? 'down' : 'up'}
-                  percentage={parseInt(dashboardData?.averageResponse?.percentageChange || '0') || 0}
+                  trend={dashboardData.averageResponseTime.percentageChange.startsWith('-') ? 'down' : 'up'}
+                  percentage={parseInt(dashboardData.averageResponseTime.percentageChange.replace('%', ''))}
                   router={router}
                 />
               </div>
@@ -650,7 +662,7 @@ const StatCard = ({
     </div>
     <div className="flex items-center space-x-2 flex-wrap">
       <div className="text-xl sm:text-2xl mb-1">{value}</div>
-      {percentage && (
+      {percentage !== undefined && percentage !== null && (
         <span
           className={`ml-2 -mt-1 ${
             percentage <= 0

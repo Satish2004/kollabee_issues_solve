@@ -43,7 +43,7 @@ function groupByDate(notifications: Notification[]) {
   return grouped;
 }
 
-export default function SellerNotificationsPage() {
+export default function BuyerNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -54,12 +54,24 @@ export default function SellerNotificationsPage() {
   const loadNotifications = useCallback(async (pageNum: number, isLoadMore = false) => {
     try {
       setLoading(true);
-      const response: any = await dashboardApi.getNotifications(pageNum, 10, filter);
+      const response: any = await dashboardApi.getBuyerNotifications(pageNum, 10, filter);
       
-      // Handle new API response structure
-      const newNotifications = response?.notifications ?? [];
-      const totalPages = response?.totalPages ?? 1;
-      const currentPage = response?.currentPage ?? 1;
+      // Handle both old and new API response structures
+      let newNotifications = [];
+      let totalPages = 1;
+      let currentPage = 1;
+      
+      if (response?.notifications) {
+        // New API structure
+        newNotifications = response.notifications;
+        totalPages = response.totalPages ?? 1;
+        currentPage = response.currentPage ?? 1;
+      } else if (response?.data) {
+        // Old API structure
+        newNotifications = response.data;
+        totalPages = response.pagination?.totalPages ?? 1;
+        currentPage = response.pagination?.currentPage ?? 1;
+      }
       
       if (isLoadMore) {
         setNotifications(prev => {
@@ -92,10 +104,25 @@ export default function SellerNotificationsPage() {
     setFilter(newFilter);
     setPage(1);
     try {
-      const response: any = await dashboardApi.getNotifications(1, 10, newFilter);
-      const newNotifications = response?.notifications ?? [];
-      const totalPages = response?.totalPages ?? 1;
-      const currentPage = response?.currentPage ?? 1;
+      const response: any = await dashboardApi.getBuyerNotifications(1, 10, newFilter);
+      
+      // Handle both old and new API response structures
+      let newNotifications = [];
+      let totalPages = 1;
+      let currentPage = 1;
+      
+      if (response?.notifications) {
+        // New API structure
+        newNotifications = response.notifications;
+        totalPages = response.totalPages ?? 1;
+        currentPage = response.currentPage ?? 1;
+      } else if (response?.data) {
+        // Old API structure
+        newNotifications = response.data;
+        totalPages = response.pagination?.totalPages ?? 1;
+        currentPage = response.pagination?.currentPage ?? 1;
+      }
+      
       setNotifications(newNotifications);
       setHasMore(currentPage < totalPages);
     } catch (error) {
@@ -145,7 +172,9 @@ export default function SellerNotificationsPage() {
   };
 
   // Only filter, no search
-  const filteredNotifications = notifications;
+  const filteredNotifications = notifications.filter(notification => {
+    return filter === "all" || notification.type === filter;
+  });
 
   // Group notifications by date
   const grouped = groupByDate(filteredNotifications);
@@ -176,7 +205,6 @@ export default function SellerNotificationsPage() {
             <SelectContent className="max-h-[300px] overflow-y-auto z-50 bg-white border shadow-lg">
               <SelectItem value="all" className="hover:bg-gray-100">All Types</SelectItem>
               <SelectItem value="ORDER" className="hover:bg-gray-100">Orders</SelectItem>
-              <SelectItem value="REQUEST" className="hover:bg-gray-100">Requests</SelectItem>
               <SelectItem value="MESSAGE" className="hover:bg-gray-100">Messages</SelectItem>
               <SelectItem value="PROJECT_REQUEST" className="hover:bg-gray-100">Project Requests</SelectItem>
             </SelectContent>
@@ -266,4 +294,4 @@ export default function SellerNotificationsPage() {
       </div>
     </div>
   );
-}
+} 

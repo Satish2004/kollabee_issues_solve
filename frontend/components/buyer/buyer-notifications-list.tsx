@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { dashboardApi } from "@/lib/api/dashboard";
 import { Notification } from "@/types/api";
 import { toast } from "sonner";
@@ -8,11 +8,11 @@ import { Loader2, Bell } from "lucide-react";
 import NotificationItem from "@/components/notifications/notification-item";
 import NotificationSkeleton from "@/components/notifications/notification-skeleton";
 
-interface NotificationsListProps {
+interface BuyerNotificationsListProps {
   limit?: number;
 }
 
-const NotificationsList = ({ limit = 5 }: NotificationsListProps) => {
+const BuyerNotificationsList = ({ limit = 5 }: BuyerNotificationsListProps) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -24,12 +24,24 @@ const NotificationsList = ({ limit = 5 }: NotificationsListProps) => {
   const loadNotifications = useCallback(async (pageNum: number, isLoadMore = false) => {
     try {
       setLoading(true);
-      const response: any = await dashboardApi.getNotifications(pageNum, limit);
+      const response: any = await dashboardApi.getBuyerNotifications(pageNum, limit);
       
-      // Handle new API response structure
-      const newNotifications = response?.notifications ?? [];
-      const totalPages = response?.totalPages ?? 1;
-      const currentPage = response?.currentPage ?? 1;
+      // Handle both old and new API response structures
+      let newNotifications = [];
+      let totalPages = 1;
+      let currentPage = 1;
+      
+      if (response?.notifications) {
+        // New API structure
+        newNotifications = response.notifications;
+        totalPages = response.totalPages ?? 1;
+        currentPage = response.currentPage ?? 1;
+      } else if (response?.data) {
+        // Old API structure
+        newNotifications = response.data;
+        totalPages = response.pagination?.totalPages ?? 1;
+        currentPage = response.pagination?.currentPage ?? 1;
+      }
       
       if (isLoadMore) {
         setNotifications(prev => {
@@ -142,4 +154,4 @@ const NotificationsList = ({ limit = 5 }: NotificationsListProps) => {
   );
 };
 
-export default NotificationsList; 
+export default BuyerNotificationsList; 

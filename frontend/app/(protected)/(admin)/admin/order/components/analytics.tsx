@@ -218,16 +218,21 @@ export default function Analytics() {
 }
 
 export function OrderAnalytics() {
-  const [period, setPeriod] = useState<'month' | 'week' | 'today'>('month');
+  const [period, setPeriod] = useState<'month' | 'week' | 'today' | 'year'>('month');
   const [chartData, setChartData] = useState<{ name: string; bulk: number; single: number }[]>([]);
   const [orderSummaryData, setOrderSummaryData] = useState<{ name: string; repeated: number; new: number }[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
-    dashboardApi.getOrderAnalytics(period)
-      .then(res => {
-        const raw = res.data.data?.chartData || [];
+    // Fetch both order analytics and order summary data
+    Promise.all([
+      dashboardApi.getOrderAnalytics(period),
+      dashboardApi.getOrderSummary(period)
+    ])
+      .then(([analyticsRes, summaryRes]) => {
+        // Handle order analytics data
+        const raw = (analyticsRes.data as any)?.chartData || [];
         setChartData(
           raw.map((item: any) => ({
             name: item.name,
@@ -235,7 +240,9 @@ export function OrderAnalytics() {
             single: item.single ?? 0,
           }))
         );
-        const summaryRaw = res.data.data?.orderSummaryData || [];
+        
+        // Handle order summary data
+        const summaryRaw = (summaryRes.data as any)?.summaryData || [];
         setOrderSummaryData(
           summaryRaw.map((item: any) => ({
             name: item.name,
@@ -243,6 +250,9 @@ export function OrderAnalytics() {
             new: item.new ?? 0,
           }))
         );
+      })
+      .catch((error) => {
+        console.error("Error fetching analytics data:", error);
       })
       .finally(() => setIsLoading(false));
   }, [period]);
@@ -272,6 +282,7 @@ export function OrderAnalytics() {
                 value={period}
                 onChange={e => setPeriod(e.target.value as any)}
               >
+                <option value="year">Yearly</option>
                 <option value="month">Monthly</option>
                 <option value="week">Weekly</option>
                 <option value="today">Daily</option>
