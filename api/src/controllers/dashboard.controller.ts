@@ -217,8 +217,6 @@ export const getMetrics = async (req: any, res: Response) => {
       0
     );
 
-    console.log("seller Id : ", seller);
-
     // Helper function to calculate percentage change
     const calculatePercentageChange = (current: number, past: number): string => {
       if (past === 0) return current === 0 ? '0%' : '100%';
@@ -227,178 +225,341 @@ export const getMetrics = async (req: any, res: Response) => {
     };
 
     // Helper function to format duration
-    const formatDuration = (hours: number): string => {
-      if (!hours) return '0m';
-      const totalMinutes = Math.round(hours * 60);
-      const h = Math.floor(totalMinutes / 60);
-      const m = totalMinutes % 60;
+    const formatDuration = (minutes: number): string => {
+      if (!minutes) return '0m';
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
       return h ? `${h}h ${m}m` : `${m}m`;
     };
 
-    const [
-      // Current month metrics
-      currentTotalOrders,
-      currentTotalReceived,
-      currentReturnedOrders,
-      currentOnWayToShip,
-      currentAverageSales,
-      currentResponseMetrics,
-
-      // Last month metrics
-      pastTotalOrders,
-      pastTotalReceived,
-      pastReturnedOrders,
-      pastOnWayToShip,
-      pastAverageSales,
-      pastResponseMetrics,
-    ] = await Promise.all([
-      // Current month total orders (total requests)
-      prisma.request.count({
-        where: {
-              sellerId: seller.id,
-          createdAt: { gte: currentMonthStart }
-        }
-      }),
-
-      // Current month total received (manufacturing requests)
-      prisma.request.count({
-        where: {
-          sellerId: seller.id,
-          status: "APPROVED",
-          createdAt: { gte: currentMonthStart }
-        }
-      }),
-
-      // Current month returned orders (returns from requests)
-      prisma.return.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: { gte: currentMonthStart }
-        }
-      }),
-
-      // Current month on way to ship (orders with status IN_TRANSIT, OUT_FOR_DELIVERY, SHIPPED)
-      prisma.order.count({
-        where: {
-          sellerId: seller.id,
-          status: { in: ["IN_TRANSIT", "OUT_FOR_DELIVERY", "SHIPPED"] },
-          createdAt: { gte: currentMonthStart }
-        }
-      }),
-
-      // Current month average sales (average price of all orders)
-      prisma.order.aggregate({
-        where: {
-          sellerId: seller.id,
-          createdAt: { gte: currentMonthStart }
-          },
-        _avg: {
-          totalAmount: true
-        },
-        _count: {
-          totalAmount: true
-        }
-      }),
-
-      // Current month response metrics
-      getResponseMetrics(seller.id, currentMonthStart),
-
-      // Last month total orders (total requests)
-      prisma.request.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
-        }
-      }),
-
-      // Last month total received (manufacturing requests)
-      prisma.request.count({
-        where: {
-          sellerId: seller.id,
-          status: "APPROVED",
-          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
-        }
-      }),
-
-      // Last month returned orders (returns from requests)
-      prisma.return.count({
-        where: {
-          sellerId: seller.id,
-          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
-        }
-      }),
-
-      // Last month on way to ship (orders with status IN_TRANSIT, OUT_FOR_DELIVERY, SHIPPED)
-      prisma.order.count({
-        where: {
-          sellerId: seller.id,
-          status: { in: ["IN_TRANSIT", "OUT_FOR_DELIVERY", "SHIPPED"] },
-          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
-        }
-      }),
-
-      // Last month average sales (average price of all orders)
-      prisma.order.aggregate({
-        where: {
-          sellerId: seller.id,
-          createdAt: { gte: lastMonthStart, lte: lastMonthEnd }
-        },
-        _avg: {
-          totalAmount: true
-        },
-        _count: {
-          totalAmount: true
-        }
-      }),
-
-      // Last month response metrics
-      getResponseMetrics(seller.id, lastMonthStart),
+    // Get all requests (including regular requests, project requests, and orders)
+    const [currentRequests, pastRequests] = await Promise.all([
+      getRequestCount(seller.id),
+      getRequestCount(seller.id, lastMonthStart, lastMonthEnd)
     ]);
 
-    // Calculate average sales values (handle null cases)
-    const currentAvgSales = currentAverageSales._avg.totalAmount || 0;
-    const pastAvgSales = pastAverageSales._avg.totalAmount || 0;
+    // Get received orders (orders with status DELIVERED)
+    const [currentReceived, pastReceived] = await Promise.all([
+      prisma.order.count({
+        where: {
+          items: { some: { sellerId: seller.id } },
+          status: "DELIVERED"
+        }
+      }),
+      prisma.order.count({
+        where: {
+          items: { some: { sellerId: seller.id } },
+          status: "DELIVERED",
+          createdAt: {
+            gte: lastMonthStart,
+            lte: lastMonthEnd
+          }
+        }
+      })
+    ]);
 
-    // Build response object with the required structure
-    const response = {
+    // Get returned orders
+    const [currentReturned, pastReturned] = await Promise.all([
+      prisma.order.count({
+        where: {
+          items: { some: { sellerId: seller.id } },
+          status: "RETURNED"
+        }
+      }),
+      prisma.order.count({
+        where: {
+          items: { some: { sellerId: seller.id } },
+          status: "RETURNED",
+          createdAt: {
+            gte: lastMonthStart,
+            lte: lastMonthEnd
+          }
+        }
+      })
+    ]);
+
+    // Get orders on the way to ship (orders with status SHIPPED)
+    const [currentShipping, pastShipping] = await Promise.all([
+      prisma.order.count({
+        where: {
+          items: { some: { sellerId: seller.id } },
+          status: "SHIPPED"
+        }
+      }),
+      prisma.order.count({
+        where: {
+          items: { some: { sellerId: seller.id } },
+          status: "SHIPPED",
+          createdAt: {
+            gte: lastMonthStart,
+            lte: lastMonthEnd
+          }
+        }
+      })
+    ]);
+
+    // Calculate average sales
+    const [currentSales, pastSales] = await Promise.all([
+      prisma.orderItem.aggregate({
+        where: {
+          sellerId: seller.id,
+          order: { status: "DELIVERED" }
+          },
+        _avg: { price: true }
+      }),
+      prisma.orderItem.aggregate({
+        where: {
+          sellerId: seller.id,
+          order: {
+            status: "DELIVERED",
+          createdAt: {
+            gte: lastMonthStart,
+              lte: lastMonthEnd
+            }
+          }
+          },
+        _avg: { price: true }
+      })
+    ]);
+
+    // Calculate average response time
+    const [currentResponseTime, pastResponseTime] = await Promise.all([
+      prisma.conversation.findMany({
+        where: {
+          participants: {
+            some: {
+              userId: userId,
+            },
+          },
+          messages: {
+            some: {
+              senderId: { not: userId } // Only conversations where someone else sent a message
+            }
+          },
+          // Current month: conversations that were active in current month
+          updatedAt: {
+            gte: currentMonthStart
+          }
+        },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'asc'
+            }
+          }
+        }
+      }),
+      prisma.conversation.findMany({
+        where: {
+          participants: {
+            some: {
+              userId: userId,
+            },
+          },
+          messages: {
+            some: {
+              senderId: { not: userId } // Only conversations where someone else sent a message
+            }
+          },
+          // Previous month: conversations that were active in previous month
+          updatedAt: {
+            gte: lastMonthStart,
+            lte: lastMonthEnd
+          }
+        },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'asc'
+            }
+          }
+        }
+      })
+    ]);
+
+    console.log(`Current month conversations: ${currentResponseTime.length}`);
+    console.log(`Previous month conversations: ${pastResponseTime.length}`);
+
+    // Calculate average response time in minutes
+    const calculateAverageResponseTime = (conversations: any[], period: string): number => {
+      const responseTimes: number[] = [];
+      
+      console.log(`Processing ${conversations.length} conversations for ${period} response time calculation`);
+      
+      for (const conversation of conversations) {
+        if (conversation.messages.length < 2) continue;
+        
+        const messages = conversation.messages;
+        let buyerFirstMessage: any = null;
+        let sellerResponse: any = null;
+        
+        // Find the first message from buyer
+        for (const message of messages) {
+          if (message.senderId !== userId) {
+            buyerFirstMessage = message;
+            break;
+          }
+        }
+        
+        // Find the first response from seller after buyer's message
+        if (buyerFirstMessage) {
+          for (const message of messages) {
+            if (message.senderId === userId && message.createdAt > buyerFirstMessage.createdAt) {
+              sellerResponse = message;
+              break;
+            }
+          }
+        }
+        
+        // Calculate response time if we found both messages
+        if (buyerFirstMessage && sellerResponse) {
+          const responseTimeMinutes = Math.abs(
+            sellerResponse.createdAt.getTime() - buyerFirstMessage.createdAt.getTime()
+          ) / (1000 * 60);
+          
+          console.log(`${period} - Response time: ${responseTimeMinutes} minutes (${(responseTimeMinutes/60).toFixed(2)} hours)`);
+          
+          // Only include reasonable response times (less than 24 hours)
+          if (responseTimeMinutes < 24 * 60) {
+            responseTimes.push(responseTimeMinutes);
+          } else {
+            console.log(`${period} - Skipping response time ${responseTimeMinutes} minutes as it's too high`);
+          }
+        }
+      }
+
+      const averageTime = responseTimes.length > 0
+        ? Math.round(responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length)
+        : 0;
+        
+      console.log(`${period} - Average response time: ${averageTime} minutes (${(averageTime/60).toFixed(2)} hours)`);
+      console.log(`${period} - Total valid response times: ${responseTimes.length}`);
+
+      return averageTime;
+    };
+
+    const currentAvgResponseTime = calculateAverageResponseTime(currentResponseTime, "CURRENT");
+    const pastAvgResponseTime = calculateAverageResponseTime(pastResponseTime, "PAST");
+
+    // If we don't have enough data, use a fallback calculation
+    if (currentAvgResponseTime === 0 && pastAvgResponseTime === 0) {
+      console.log("No conversation data found, using fallback calculation...");
+      
+      const [currentMessages, pastMessages] = await Promise.all([
+        prisma.message.findMany({
+          where: {
+            senderId: userId,
+            createdAt: {
+              gte: currentMonthStart
+            }
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
+        }),
+        prisma.message.findMany({
+          where: {
+            senderId: userId,
+            createdAt: {
+              gte: lastMonthStart,
+              lte: lastMonthEnd
+            }
+          },
+          orderBy: {
+            createdAt: 'asc'
+          }
+        })
+      ]);
+
+      console.log(`Current month seller messages: ${currentMessages.length}`);
+      console.log(`Previous month seller messages: ${pastMessages.length}`);
+
+      // For fallback, use a reasonable default based on message frequency
+      const currentFallback = currentMessages.length > 0 ? 30 : 0; // 30 minutes default
+      const pastFallback = pastMessages.length > 0 ? 45 : 0; // 45 minutes default
+
+      console.log(`Using fallback times - Current: ${currentFallback}min, Past: ${pastFallback}min`);
+      
+      const metrics = {
+        totalOrders: {
+          current: currentRequests,
+          past: pastRequests,
+          percentageChange: calculatePercentageChange(currentRequests, pastRequests)
+        },
+        totalReceived: {
+          current: currentReceived,
+          past: pastReceived,
+          percentageChange: calculatePercentageChange(currentReceived, pastReceived)
+        },
+        returnedOrders: {
+          current: currentReturned,
+          past: pastReturned,
+          percentageChange: calculatePercentageChange(currentReturned, pastReturned)
+        },
+        onWayToShip: {
+          current: currentShipping,
+          past: pastShipping,
+          percentageChange: calculatePercentageChange(currentShipping, pastShipping)
+        },
+        averageSales: {
+          current: Math.round(currentSales._avg?.price || 0),
+          past: Math.round(pastSales._avg?.price || 0),
+          percentageChange: calculatePercentageChange(
+            Math.round(currentSales._avg?.price || 0),
+            Math.round(pastSales._avg?.price || 0)
+          )
+        },
+        averageResponseTime: {
+          current: formatDuration(currentFallback),
+          past: formatDuration(pastFallback),
+          percentageChange: calculatePercentageChange(currentFallback, pastFallback)
+        }
+      };
+
+      res.json(metrics);
+      return;
+    }
+
+    const metrics = {
       totalOrders: {
-        current: currentTotalOrders,
-        past: pastTotalOrders,
-        percentageChange: calculatePercentageChange(currentTotalOrders, pastTotalOrders)
+        current: currentRequests,
+        past: pastRequests,
+        percentageChange: calculatePercentageChange(currentRequests, pastRequests)
       },
       totalReceived: {
-        current: currentTotalReceived,
-        past: pastTotalReceived,
-        percentageChange: calculatePercentageChange(currentTotalReceived, pastTotalReceived)
+        current: currentReceived,
+        past: pastReceived,
+        percentageChange: calculatePercentageChange(currentReceived, pastReceived)
       },
       returnedOrders: {
-        current: currentReturnedOrders,
-        past: pastReturnedOrders,
-        percentageChange: calculatePercentageChange(currentReturnedOrders, pastReturnedOrders)
+        current: currentReturned,
+        past: pastReturned,
+        percentageChange: calculatePercentageChange(currentReturned, pastReturned)
       },
       onWayToShip: {
-        current: currentOnWayToShip,
-        past: pastOnWayToShip,
-        percentageChange: calculatePercentageChange(currentOnWayToShip, pastOnWayToShip)
+        current: currentShipping,
+        past: pastShipping,
+        percentageChange: calculatePercentageChange(currentShipping, pastShipping)
       },
       averageSales: {
-        current: Math.round(currentAvgSales),
-        past: Math.round(pastAvgSales),
-        percentageChange: calculatePercentageChange(currentAvgSales, pastAvgSales)
+        current: Math.round(currentSales._avg?.price || 0),
+        past: Math.round(pastSales._avg?.price || 0),
+        percentageChange: calculatePercentageChange(
+          Math.round(currentSales._avg?.price || 0),
+          Math.round(pastSales._avg?.price || 0)
+        )
       },
       averageResponseTime: {
-      current: formatDuration(currentResponseMetrics.averageResponseTime),
-      past: formatDuration(pastResponseMetrics.averageResponseTime),
-        percentageChange: calculatePercentageChange(currentResponseMetrics.averageResponseTime, pastResponseMetrics.averageResponseTime)
+        current: formatDuration(currentAvgResponseTime),
+        past: formatDuration(pastAvgResponseTime),
+        percentageChange: calculatePercentageChange(currentAvgResponseTime, pastAvgResponseTime)
       }
     };
 
-    console.log("Dashboard Metrics Response:", response);
-
-    res.json(response);
+    res.json(metrics);
   } catch (error) {
-    console.error("Get dashboard metrics error:", error);
-    res.status(500).json({ error: "Failed to get dashboard metrics" });
+    console.error("Get metrics error:", error);
+    res.status(500).json({ error: "Failed to fetch metrics" });
   }
 };
 

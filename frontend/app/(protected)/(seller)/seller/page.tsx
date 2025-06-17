@@ -388,32 +388,32 @@ const Dashboard = () => {
 
     
       setDashboardData({
-        totalOrders: metricsRes.data?.totalOrders || {
+        totalOrders: metricsRes?.totalOrders || {
           current: 0,
           past: 0,
           percentageChange: "0%",
         },
-        totalReceived: metricsRes.data?.totalReceived || {
+        totalReceived: metricsRes?.totalReceived || {
           current: 0,
           past: 0,
           percentageChange: "0%",
         },
-        returnedOrders: metricsRes.data?.returnedOrders || {
+        returnedOrders: metricsRes?.returnedOrders || {
           current: 0,
           past: 0,
           percentageChange: "0%",
         },
-        onWayToShip: metricsRes.data?.onWayToShip || {
+        onWayToShip: metricsRes?.onWayToShip || {
           current: 0,
           past: 0,
           percentageChange: "0%",
         },
-        averageSales: metricsRes.data?.averageSales || {
+        averageSales: metricsRes?.averageSales || {
           current: 0,
           past: 0,
           percentageChange: "0%",
         },
-        averageResponseTime: metricsRes.data?.averageResponseTime || {
+        averageResponseTime: metricsRes?.averageResponseTime || {
           current: "0m",
           past: "0m",
           percentageChange: "0%",
@@ -532,16 +532,18 @@ const Dashboard = () => {
                   percentage={parseInt(dashboardData.totalOrders.percentageChange.replace('%', ''))}
                   router={router}
                   link="/seller/request"
+                  isCurrency={false}
                 />
                 <StatCard
                   title="TOTAL RECEIVED"
                   value={dashboardData.totalReceived.current.toString()}
                   change={dashboardData.totalReceived.current - dashboardData.totalReceived.past}
-                  changeText="Revenue"
+                  changeText="from last month"
                   trend={dashboardData.totalReceived.current > dashboardData.totalReceived.past ? "up" : "down"}
                   percentage={parseInt(dashboardData.totalReceived.percentageChange.replace('%', ''))}
                   router={router}
                   link="/seller/request"
+                  isCurrency={false}
                 />
                 <StatCard
                   title="RETURNED PRODUCTS"
@@ -551,6 +553,7 @@ const Dashboard = () => {
                   trend={dashboardData.returnedOrders.current > dashboardData.returnedOrders.past ? "up" : "down"}
                   percentage={parseInt(dashboardData.returnedOrders.percentageChange.replace('%', ''))}
                   router={router}
+                  isCurrency={false}
                 />
                 <StatCard
                   title="ON THE WAY TO SHIP"
@@ -560,6 +563,7 @@ const Dashboard = () => {
                   trend="neutral"
                   percentage={null}
                   router={router}
+                  isCurrency={false}
                 />
                 <StatCard
                   title="AVERAGE SALES"
@@ -569,6 +573,7 @@ const Dashboard = () => {
                   trend={dashboardData.averageSales.current > dashboardData.averageSales.past ? "up" : "down"}
                   percentage={parseInt(dashboardData.averageSales.percentageChange.replace('%', ''))}
                   router={router}
+                  isCurrency={true}
                 />
                 <StatCard
                   title="AVERAGE RESPONSE"
@@ -578,6 +583,7 @@ const Dashboard = () => {
                   trend={dashboardData.averageResponseTime.percentageChange.startsWith('-') ? 'down' : 'up'}
                   percentage={parseInt(dashboardData.averageResponseTime.percentageChange.replace('%', ''))}
                   router={router}
+                  isCurrency={false}
                 />
               </div>
             </div>
@@ -647,6 +653,7 @@ const StatCard = ({
   percentage,
   router,
   link = "",
+  isCurrency = false,
 }) => (
   <div
     className={`border rounded-lg p-2${link ? " hover:cursor-pointer" : ""}`}
@@ -682,7 +689,9 @@ const StatCard = ({
     <hr className="w-full mt-3 mb-1"></hr>
     <div className="flex items-center space-x-2">
       <div className="flex items-center text-xs sm:text-sm">
-        <span className="font-[800]">₹{change}</span>
+        <span className="font-[800]">
+          {isCurrency ? `₹${change.toLocaleString()}` : change}
+        </span>
       </div>
       <div className="text-gray-500 text-xs">{changeText}</div>
     </div>

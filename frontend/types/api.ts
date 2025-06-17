@@ -603,24 +603,34 @@ export enum BusinessType {
 
 // Add this interface with the other interfaces
 export interface DashboardMetrics {
-  totalOrders: number;
-  totalProducts: number;
-  totalRequests: number;
-  totalReturns: number;
-  totalRevenue: number;
-  ordersDifference: number;
-  pendingOrders: number;
-  pendingOrdersWorth: number;
-  requestsDifference: number;
-  returnedProductsWorth: number;
-  returnsDifference: number;
-  revenueDifference: number;
-  totalMessages: number;
-  requestsRevenue: number;
-  requestsRevenueDifference: number;
-  averageResponse?: {
+  totalOrders: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  totalReceived: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  returnedOrders: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  onWayToShip: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  averageSales: {
+    current: number;
+    past: number;
+    percentageChange: string;
+  };
+  averageResponseTime: {
     current: string;
-    past?: string;
+    past: string;
     percentageChange: string;
   };
 }
