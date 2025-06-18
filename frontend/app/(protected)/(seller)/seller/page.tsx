@@ -435,8 +435,8 @@ const Dashboard = () => {
       // Transform chartData into normalizedData format
       const transformedData = data.chartData.map((item: any) => ({
         name: item.name,
-        orders:  item.single, // Combine bulk and single orders
-        requests: item.bulk // If you have requests data in the API, use that instead
+        orders: item.orders || 0, // Use orders field from API
+        requests: item.requests || 0 // Use requests field from API
       }));
       setNormalizedData(transformedData);
       console.log("transformedData",transformedData);

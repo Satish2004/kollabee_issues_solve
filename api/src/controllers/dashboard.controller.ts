@@ -240,22 +240,48 @@ export const getMetrics = async (req: any, res: Response) => {
 
     // Get received orders (orders with status DELIVERED)
     const [currentReceived, pastReceived] = await Promise.all([
-      prisma.order.count({
-        where: {
-          items: { some: { sellerId: seller.id } },
-          status: "DELIVERED"
-        }
-      }),
-      prisma.order.count({
-        where: {
-          items: { some: { sellerId: seller.id } },
-          status: "DELIVERED",
-          createdAt: {
-            gte: lastMonthStart,
-            lte: lastMonthEnd
+      // Current period total received requests
+      prisma.$transaction([
+        // Regular requests
+        prisma.request.count({
+          where: {
+            sellerId: seller.id,
+            status: { not: "REJECTED" }
           }
-        }
-      })
+        }),
+        // Manufacturing requests (project requests)
+        prisma.projectReq.count({
+          where: {
+            sellerId: seller.id,
+            status: { not: "REJECTED" }
+          }
+        })
+      ]).then(([regularRequests, manufacturingRequests]) => regularRequests + manufacturingRequests),
+      // Past period total received requests
+      prisma.$transaction([
+        // Regular requests
+        prisma.request.count({
+          where: {
+            sellerId: seller.id,
+            status: { not: "REJECTED" },
+            createdAt: {
+              gte: lastMonthStart,
+              lte: lastMonthEnd
+            }
+          }
+        }),
+        // Manufacturing requests (project requests)
+        prisma.projectReq.count({
+          where: {
+            sellerId: seller.id,
+            status: { not: "REJECTED" },
+            createdAt: {
+              gte: lastMonthStart,
+              lte: lastMonthEnd
+            }
+          }
+        })
+      ]).then(([regularRequests, manufacturingRequests]) => regularRequests + manufacturingRequests)
     ]);
 
     // Get returned orders
@@ -300,27 +326,50 @@ export const getMetrics = async (req: any, res: Response) => {
 
     // Calculate average sales
     const [currentSales, pastSales] = await Promise.all([
-      prisma.orderItem.aggregate({
+      prisma.order.findMany({
         where: {
-          sellerId: seller.id,
-          order: { status: "DELIVERED" }
+          items: {
+            some: {
+              sellerId: seller.id
+            }
           },
-        _avg: { price: true }
+          status: {
+            notIn: ["CANCELLED", "RETURNED"]
+          }
+        },
+        select: {
+          totalAmount: true
+        }
       }),
-      prisma.orderItem.aggregate({
+      prisma.order.findMany({
         where: {
-          sellerId: seller.id,
-          order: {
-            status: "DELIVERED",
+          items: {
+            some: {
+              sellerId: seller.id
+            }
+          },
+          status: {
+            notIn: ["CANCELLED", "RETURNED"]
+          },
           createdAt: {
             gte: lastMonthStart,
-              lte: lastMonthEnd
-            }
+            lte: lastMonthEnd
           }
-          },
-        _avg: { price: true }
+        },
+        select: {
+          totalAmount: true
+        }
       })
     ]);
+
+    // Calculate average order value
+    const currentAvgOrderValue = currentSales.length > 0 
+      ? currentSales.reduce((sum, order) => sum + (order.totalAmount || 0), 0) / currentSales.length
+      : 0;
+    
+    const pastAvgOrderValue = pastSales.length > 0
+      ? pastSales.reduce((sum, order) => sum + (order.totalAmount || 0), 0) / pastSales.length
+      : 0;
 
     // Calculate average response time
     const [currentResponseTime, pastResponseTime] = await Promise.all([
@@ -502,11 +551,11 @@ export const getMetrics = async (req: any, res: Response) => {
           percentageChange: calculatePercentageChange(currentShipping, pastShipping)
         },
         averageSales: {
-          current: Math.round(currentSales._avg?.price || 0),
-          past: Math.round(pastSales._avg?.price || 0),
+          current: Math.round(currentAvgOrderValue),
+          past: Math.round(pastAvgOrderValue),
           percentageChange: calculatePercentageChange(
-            Math.round(currentSales._avg?.price || 0),
-            Math.round(pastSales._avg?.price || 0)
+            Math.round(currentAvgOrderValue),
+            Math.round(pastAvgOrderValue)
           )
         },
         averageResponseTime: {
@@ -542,11 +591,11 @@ export const getMetrics = async (req: any, res: Response) => {
         percentageChange: calculatePercentageChange(currentShipping, pastShipping)
       },
       averageSales: {
-        current: Math.round(currentSales._avg?.price || 0),
-        past: Math.round(pastSales._avg?.price || 0),
+        current: Math.round(currentAvgOrderValue),
+        past: Math.round(pastAvgOrderValue),
         percentageChange: calculatePercentageChange(
-          Math.round(currentSales._avg?.price || 0),
-          Math.round(pastSales._avg?.price || 0)
+          Math.round(currentAvgOrderValue),
+          Math.round(pastAvgOrderValue)
         )
       },
       averageResponseTime: {
@@ -3034,13 +3083,13 @@ async function generateTimeBasedOrderSummary(
 }
 
 async function generateChartData(period: string, sellerId: string) {
-  const chartData: Array<{ name: string; bulk: number; single: number }> = [];
+  const chartData: Array<{ name: string; orders: number; requests: number }> = [];
   const now = new Date();
 
-  // Helper to count bulk (orders with multiple items) and single (orders with 1 item) in a date range
-  async function getBulkSingleCounts(start: Date, end: Date) {
-    // Get all orders for this seller in the date range
-    const orders = await prisma.order.findMany({
+  // Helper to count orders and manufacturing requests in a date range
+  async function getOrdersAndRequestsCounts(start: Date, end: Date) {
+    // Get orders
+    const orders = await prisma.order.count({
       where: {
         items: {
           some: {
@@ -3051,37 +3100,25 @@ async function generateChartData(period: string, sellerId: string) {
           notIn: ["CANCELLED", "RETURNED"] 
         },
         createdAt: { gte: start, lte: end }
-      },
-      include: {
-        items: {
-          where: {
-            sellerId: sellerId
-          }
-        }
       }
     });
 
-    // Categorize orders as single (1 item) or bulk (more than 1 item)
-    let single = 0;
-    let bulk = 0;
-
-    orders.forEach(order => {
-      const itemCount = order.items.length;
-      if (itemCount === 1) {
-        single++;
-      } else if (itemCount > 1) {
-        bulk++;
+    // Get manufacturing requests
+    const manufacturingRequests = await prisma.projectReq.count({
+      where: {
+        sellerId: sellerId,
+        status: { not: "REJECTED" },
+        createdAt: { gte: start, lte: end }
       }
     });
 
     // Debug logging for chart data
     console.log('=== CHART DATA DEBUG ===');
     console.log('Period:', start.toISOString(), 'to', end.toISOString());
-    console.log('Total Orders:', orders.length);
-    console.log('Single (1 item):', single);
-    console.log('Bulk (>1 item):', bulk);
+    console.log('Orders:', orders);
+    console.log('Manufacturing Requests:', manufacturingRequests);
 
-    return { bulk, single };
+    return { orders, requests: manufacturingRequests };
   }
 
   if (period === "today") {
@@ -3090,8 +3127,8 @@ async function generateChartData(period: string, sellerId: string) {
       hourStart.setHours(i, 0, 0, 0);
       const hourEnd = new Date(hourStart);
       hourEnd.setHours(i, 59, 59, 999);
-      const { bulk, single } = await getBulkSingleCounts(hourStart, hourEnd);
-      chartData.push({ name: `${i}:00`, bulk, single });
+      const { orders, requests } = await getOrdersAndRequestsCounts(hourStart, hourEnd);
+      chartData.push({ name: `${i}:00`, orders, requests });
     }
   } else if (period === "week") {
     const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -3101,8 +3138,8 @@ async function generateChartData(period: string, sellerId: string) {
       dayStart.setHours(0, 0, 0, 0);
       const dayEnd = new Date(dayStart);
       dayEnd.setHours(23, 59, 59, 999);
-      const { bulk, single } = await getBulkSingleCounts(dayStart, dayEnd);
-      chartData.push({ name: days[i], bulk, single });
+      const { orders, requests } = await getOrdersAndRequestsCounts(dayStart, dayEnd);
+      chartData.push({ name: days[i], orders, requests });
     }
   } else if (period === "month") {
     const weeksInMonth = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
@@ -3111,8 +3148,8 @@ async function generateChartData(period: string, sellerId: string) {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
-      const { bulk, single } = await getBulkSingleCounts(weekStart, weekEnd);
-      chartData.push({ name: `Week ${i + 1}`, bulk, single });
+      const { orders, requests } = await getOrdersAndRequestsCounts(weekStart, weekEnd);
+      chartData.push({ name: `Week ${i + 1}`, orders, requests });
     }
   } else if (period === "year") {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -3123,8 +3160,8 @@ async function generateChartData(period: string, sellerId: string) {
       const monthEnd = new Date(now.getFullYear(), i + 1, 0);
       monthEnd.setHours(23, 59, 59, 999);
       console.log(`${months[i]}: ${monthStart.toISOString()} to ${monthEnd.toISOString()}`);
-      const { bulk, single } = await getBulkSingleCounts(monthStart, monthEnd);
-      chartData.push({ name: months[i], bulk, single });
+      const { orders, requests } = await getOrdersAndRequestsCounts(monthStart, monthEnd);
+      chartData.push({ name: months[i], orders, requests });
     }
     console.log('=== END YEAR CHART DATA ===');
   }
