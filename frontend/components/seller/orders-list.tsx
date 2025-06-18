@@ -5,6 +5,7 @@ import { dashboardApi } from "@/lib/api/dashboard";
 import { DashboardOrder } from "@/types/api";
 import { toast } from "sonner";
 import { Loader2, Package, CheckCircle, Clock, Truck } from "lucide-react";
+import { getUserCurrency, convertCurrency, formatCurrency } from "@/lib/utils/currency";
 
 interface OrdersListProps {
   limit?: number;
@@ -15,7 +16,35 @@ const OrdersList = ({ limit = 5 }: OrdersListProps) => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
+  const [userCurrency, setUserCurrency] = useState<string>("USD");
   const loadingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const initializeCurrency = async () => {
+      const currency = await getUserCurrency();
+      setUserCurrency(currency);
+      console.log("User currency set to:", currency);
+    };
+    initializeCurrency();
+  }, []);
+
+  const convertOrderAmounts = async (orders: DashboardOrder[]) => {
+    return Promise.all(
+      orders.map(async (order) => {
+        const convertedAmount = await convertCurrency(order.totalAmount, "USD", userCurrency);
+        return {
+          ...order,
+          totalAmount: convertedAmount,
+          items: await Promise.all(
+            order.items.map(async (item) => ({
+              ...item,
+              price: await convertCurrency(item.price, "USD", userCurrency),
+            }))
+          ),
+        };
+      })
+    );
+  };
 
   const loadOrders = useCallback(async (pageNum: number, isLoadMore = false) => {
     try {
@@ -26,10 +55,15 @@ const OrdersList = ({ limit = 5 }: OrdersListProps) => {
       const hasMore = !!(response?.pagination && typeof response.pagination.hasMore === 'boolean'
         ? response.pagination.hasMore
         : false);
+
+      // Convert currency for new orders
+      const convertedOrders = await convertOrderAmounts(newOrders);
+      console.log("Converted orders:", convertedOrders);
+
       if (isLoadMore) {
-        setOrders(prev => [...prev, ...newOrders]);
+        setOrders(prev => [...prev, ...convertedOrders]);
       } else {
-        setOrders(newOrders);
+        setOrders(convertedOrders);
       }
       setHasMore(hasMore);
     } catch (error) {
@@ -40,7 +74,7 @@ const OrdersList = ({ limit = 5 }: OrdersListProps) => {
     } finally {
       setLoading(false);
     }
-  }, [limit]);
+  }, [limit, userCurrency]);
 
   useEffect(() => {
     loadOrders(1);
@@ -133,7 +167,7 @@ const OrdersList = ({ limit = 5 }: OrdersListProps) => {
               </span>
             </div>
             <p className="text-sm text-gray-600 mb-1">
-              {order.buyer.name} • ₹{order.totalAmount.toLocaleString()}
+              {order.buyer.name} • {formatCurrency(order.totalAmount, userCurrency)}
             </p>
             <div className="text-xs text-gray-500">
               {order.items?.length} item{order.items?.length !== 1 ? 's' : ''} • {formatTime(order.createdAt)}

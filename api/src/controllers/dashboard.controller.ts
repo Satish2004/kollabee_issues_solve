@@ -244,15 +244,15 @@ export const getMetrics = async (req: any, res: Response) => {
       prisma.$transaction([
         // Regular requests
         prisma.request.count({
-          where: {
-            sellerId: seller.id,
+        where: {
+              sellerId: seller.id,
             status: { not: "REJECTED" }
           }
-        }),
+      }),
         // Manufacturing requests (project requests)
         prisma.projectReq.count({
-          where: {
-            sellerId: seller.id,
+        where: {
+          sellerId: seller.id,
             status: { not: "REJECTED" }
           }
         })
@@ -261,10 +261,10 @@ export const getMetrics = async (req: any, res: Response) => {
       prisma.$transaction([
         // Regular requests
         prisma.request.count({
-          where: {
-            sellerId: seller.id,
+        where: {
+          sellerId: seller.id,
             status: { not: "REJECTED" },
-            createdAt: {
+          createdAt: {
               gte: lastMonthStart,
               lte: lastMonthEnd
             }
@@ -272,8 +272,8 @@ export const getMetrics = async (req: any, res: Response) => {
         }),
         // Manufacturing requests (project requests)
         prisma.projectReq.count({
-          where: {
-            sellerId: seller.id,
+        where: {
+          sellerId: seller.id,
             status: { not: "REJECTED" },
             createdAt: {
               gte: lastMonthStart,

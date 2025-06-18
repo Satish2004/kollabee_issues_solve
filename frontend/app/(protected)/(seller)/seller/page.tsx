@@ -41,6 +41,9 @@ import OrdersList from "@/components/seller/orders-list";
 import ContactsList from "@/components/seller/contacts-list";
 import ProfileStrengthCard from "@/components/seller/profile-strength-card";
 import React from "react";
+import { getUserCurrency, convertCurrency, formatCurrency } from "@/lib/utils/currency";
+import { DashboardMetrics, OrderAnalytics as OrderAnalyticsType } from "@/types/api";
+import { a } from "framer-motion/dist/types.d-CQt5spQA";
 
 interface DashboardData {
   totalOrders: {
@@ -86,13 +89,13 @@ function SellerDashboardMainCard({
   normalizedData,
   topSellingProducts,
   lowSellerData,
+  userCurrency,
 }) {
   console.log({periodMetrics}); 
   console.log({normalizedData});
   console.log({topSellingProducts});
   console.log({lowSellerData});
   console.log({trendingProducts});
-
 
   return (
     <div className="bg-white p-4 rounded-xl">
@@ -231,13 +234,13 @@ function SellerDashboardMainCard({
                     >
                       <td className="py-3 text-sm">{product.name}</td>
                       <td className="py-3 text-sm">
-                        ₹{product.price.toFixed(2)}
+                        {formatCurrency(product.price, userCurrency)}
                       </td>
                       <td className="py-3 text-sm">
                         {product.quantity}
                       </td>
                       <td className="py-3 text-sm">
-                        ₹{product.amount.toFixed(2)}
+                        {formatCurrency(product.amount, userCurrency)}
                       </td>
                     </tr>
                   ))}
@@ -298,7 +301,7 @@ function SellerDashboardMainCard({
                     ></span>
                     <span className="text-sm mr-2">{item.name}</span>
                     <span className="text-sm ml-auto">
-                      ₹{item.amount}
+                      {formatCurrency(item.amount, userCurrency)}
                     </span>
                   </div>
                 ))}
@@ -368,6 +371,17 @@ const Dashboard = () => {
 
   const [normalizedData, setNormalizedData] = useState<Array<{ name: string; orders: number; requests: number }>>([]);
 
+  const [userCurrency, setUserCurrency] = useState<string>();
+  useEffect(() => {
+    const initializeCurrency = async () => {
+      const currency = await getUserCurrency();
+      setUserCurrency(currency);
+      console.log("User currency set to:", currency);
+    };
+    initializeCurrency();
+  }, []);
+  
+
   useEffect(() => {
     loadDashboardData();
   }, []);
@@ -375,6 +389,8 @@ const Dashboard = () => {
   useEffect(() => {
     loadPeriodMetrics(selectedPeriod);
   }, [selectedPeriod]);
+
+
 
   const loadDashboardData = async () => {
     try {
@@ -385,38 +401,54 @@ const Dashboard = () => {
 
       console.log("Metrics Response:", metricsRes);
       console.log("All Data Response:", allData);
+      const currency = await getUserCurrency();
+      setUserCurrency(currency);
+      // alert(currency);
+      const metrics:any = metricsRes || {};
+      console.log("Metrics average sales current:", metrics?.averageSales?.current);
+      console.log("User currency:", currency);
+      const convertedAverageSales = await convertCurrency(
+        metrics?.averageSales?.current || 0,
+        "USD",
+        currency
+      );
+      console.log("Converted average sales:", convertedAverageSales);
+      const convertedPastAverageSales = await convertCurrency(
+        metrics?.averageSales?.past || 0,
+        "USD",
+        currency
+      );
 
-    
       setDashboardData({
-        totalOrders: metricsRes?.totalOrders || {
-          current: 0,
-          past: 0,
-          percentageChange: "0%",
+        totalOrders: {
+          current: metrics?.totalOrders?.current || 0,
+          past: metrics?.totalOrders?.past || 0,
+          percentageChange: metrics?.totalOrders?.percentageChange || "0%",
         },
-        totalReceived: metricsRes?.totalReceived || {
-          current: 0,
-          past: 0,
-          percentageChange: "0%",
+        totalReceived: {
+          current: metrics?.totalReceived?.current || 0,
+          past: metrics?.totalReceived?.past || 0,
+          percentageChange: metrics?.totalReceived?.percentageChange || "0%",
         },
-        returnedOrders: metricsRes?.returnedOrders || {
-          current: 0,
-          past: 0,
-          percentageChange: "0%",
+        returnedOrders: {
+          current: metrics?.returnedOrders?.current || 0,
+          past: metrics?.returnedOrders?.past || 0,
+          percentageChange: metrics?.returnedOrders?.percentageChange || "0%",
         },
-        onWayToShip: metricsRes?.onWayToShip || {
-          current: 0,
-          past: 0,
-          percentageChange: "0%",
+        onWayToShip: {
+          current: metrics?.onWayToShip?.current || 0,
+          past: metrics?.onWayToShip?.past || 0,
+          percentageChange: metrics?.onWayToShip?.percentageChange || "0%",
         },
-        averageSales: metricsRes?.averageSales || {
-          current: 0,
-          past: 0,
-          percentageChange: "0%",
+        averageSales: {
+          current: convertedAverageSales,
+          past: convertedPastAverageSales,
+          percentageChange: metrics?.averageSales?.percentageChange || "0%",
         },
-        averageResponseTime: metricsRes?.averageResponseTime || {
-          current: "0m",
-          past: "0m",
-          percentageChange: "0%",
+        averageResponseTime: {
+          current: metrics?.averageResponseTime?.current || "0m",
+          past: metrics?.averageResponseTime?.past || "0m",
+          percentageChange: metrics?.averageResponseTime?.percentageChange || "0%",
         },
       });
     } catch (error) {
@@ -430,43 +462,64 @@ const Dashboard = () => {
   const loadPeriodMetrics = async (period: "today" | "week" | "month" | "year") => {
     try {
       const response = await dashboardApi.getDashboard(period);
-      const data :any= response;
+      const data: any = response;
       
+      // Convert currency for top products
+      const convertedTopProducts = await Promise.all(
+        (data.topProducts || []).map(async (product: any) => ({
+          ...product,
+          price: await convertCurrency(product.price || 0, "USD", userCurrency),
+          amount: await convertCurrency(product.amount || 0, "USD", userCurrency),
+          quantity: product.quantity || 0,
+          name: product.name || 'Unknown Product'
+        }))
+      );
+
+      // Convert currency for low selling products
+      const convertedLowSellers = await Promise.all(
+        (data.lowSellingProducts || []).map(async (product: any) => ({
+          ...product,
+          amount: await convertCurrency(product.amount || 0, "USD", userCurrency),
+          quantity: product.quantity || 0,
+          name: product.name || 'Unknown Product'
+        }))
+      );
+
       // Transform chartData into normalizedData format
-      const transformedData = data.chartData.map((item: any) => ({
-        name: item.name,
-        orders: item.orders || 0, // Use orders field from API
-        requests: item.requests || 0 // Use requests field from API
+      const transformedData = (data.chartData || []).map((item: any) => ({
+        name: item.name || '',
+        orders: item.orders || 0,
+        requests: item.requests || 0
       }));
-      setNormalizedData(transformedData);
-      console.log("transformedData",transformedData);
       
-      setChartData(data.chartData);
+      setNormalizedData(transformedData);
+      console.log("transformedData", transformedData);
+      
+      setChartData(data.chartData || []);
       setPeriodMetrics({
-        activeProducts: data.metrics.activeProducts,
-        messages: data.metrics.messages,
-        currentRequests: data.metrics.requests.current,
-        requestDifference: data.metrics.requests.difference,
-        requestPercentageChange: data.metrics.requests.percentageChange,
-        previousRequests: data.metrics.requests.previous,
+        activeProducts: data.metrics?.activeProducts || 0,
+        messages: data.metrics?.messages || 0,
+        currentRequests: data.metrics?.requests?.current || 0,
+        requestDifference: data.metrics?.requests?.difference || 0,
+        requestPercentageChange: data.metrics?.requests?.percentageChange || 0,
+        previousRequests: data.metrics?.requests?.previous || 0,
       });
 
       // Transform lowSellingProducts into the format expected by the pie chart
-      const totalAmount = data.lowSellingProducts.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
-      let transformedLowSellers = data.lowSellingProducts
-        .filter((p: any) => p.amount > 0) // Only show products with sales
+      const totalAmount = convertedLowSellers.reduce((sum: number, p: any) => sum + (p.amount || 0), 0);
+      let transformedLowSellers = convertedLowSellers
+        .filter((p: any) => p.amount > 0)
         .map((product: any, index: number) => {
           const percentage = totalAmount > 0 ? Math.round((product.amount / totalAmount) * 100) : 0;
           return {
-            name: product.name,
+            name: product.name || 'Unknown Product',
             value: percentage,
             color: ['#e91e63', '#8884d8', '#82ca9d', '#8dd1e1', '#ffc107'][index % 5],
-            amount: product.amount,
-            quantity: product.quantity
+            amount: product.amount || 0,
+            quantity: product.quantity || 0
           };
         });
 
-      // If no products have sales, show a default "No Sales" segment
       if (transformedLowSellers.length === 0) {
         transformedLowSellers = [{
           name: "No Sales",
@@ -480,13 +533,13 @@ const Dashboard = () => {
       setLowSellerData(transformedLowSellers);
       console.log("Low Seller Data:", transformedLowSellers);
       
-      setTopSellingProducts(data.topProducts || []);
+      setTopSellingProducts(convertedTopProducts || []);
       
       // Calculate trending products based on top products
-      const maxQuantity = Math.max(...(data.topProducts?.map((p: any) => p.quantity) || [0]));
-      const trending = data.topProducts?.map((p: any) => ({
-        name: p.name,
-        progress: maxQuantity ? Math.round((p.quantity / maxQuantity) * 100) : 0
+      const maxQuantity = Math.max(...(convertedTopProducts?.map((p: any) => p.quantity || 0) || [0]));
+      const trending = convertedTopProducts?.map((p: any) => ({
+        name: p.name || 'Unknown Product',
+        progress: maxQuantity ? Math.round(((p.quantity || 0) / maxQuantity) * 100) : 0
       })) || [];
       setTrendingProducts(trending);
     } catch (error) {
@@ -533,6 +586,7 @@ const Dashboard = () => {
                   router={router}
                   link="/seller/request"
                   isCurrency={false}
+                  userCurrency={userCurrency}
                 />
                 <StatCard
                   title="TOTAL RECEIVED"
@@ -544,6 +598,7 @@ const Dashboard = () => {
                   router={router}
                   link="/seller/request"
                   isCurrency={false}
+                  userCurrency={userCurrency}
                 />
                 <StatCard
                   title="RETURNED PRODUCTS"
@@ -554,6 +609,7 @@ const Dashboard = () => {
                   percentage={parseInt(dashboardData.returnedOrders.percentageChange.replace('%', ''))}
                   router={router}
                   isCurrency={false}
+                  userCurrency={userCurrency}
                 />
                 <StatCard
                   title="ON THE WAY TO SHIP"
@@ -564,26 +620,29 @@ const Dashboard = () => {
                   percentage={null}
                   router={router}
                   isCurrency={false}
+                  userCurrency={userCurrency}
                 />
                 <StatCard
                   title="AVERAGE SALES"
-                  value={`₹${dashboardData.averageSales.current.toLocaleString()}`}
+                  value={`${dashboardData.averageSales.current}`}
                   change={dashboardData.averageSales.current - dashboardData.averageSales.past}
                   changeText="from last month"
                   trend={dashboardData.averageSales.current > dashboardData.averageSales.past ? "up" : "down"}
                   percentage={parseInt(dashboardData.averageSales.percentageChange.replace('%', ''))}
                   router={router}
                   isCurrency={true}
+                  userCurrency={userCurrency}
                 />
                 <StatCard
                   title="AVERAGE RESPONSE"
                   value={dashboardData.averageResponseTime.current}
-                  change={0} // We'll handle this differently since it's a time string
+                  change={0}
                   changeText="from last month"
                   trend={dashboardData.averageResponseTime.percentageChange.startsWith('-') ? 'down' : 'up'}
                   percentage={parseInt(dashboardData.averageResponseTime.percentageChange.replace('%', ''))}
                   router={router}
                   isCurrency={false}
+                  userCurrency={userCurrency}
                 />
               </div>
             </div>
@@ -599,6 +658,7 @@ const Dashboard = () => {
               normalizedData={normalizedData}
               topSellingProducts={topSellingProducts}
               lowSellerData={lowSellerData}
+              userCurrency={userCurrency}
             />
 
             {/* <div className="w-full h-[400px]">
@@ -644,6 +704,19 @@ const Dashboard = () => {
   );
 };
 
+interface StatCardProps {
+  title: string;
+  value: string;
+  change: number;
+  changeText: string;
+  trend: "up" | "down" | "neutral";
+  percentage: number | null;
+  router: any;
+  link?: string;
+  isCurrency?: boolean;
+  userCurrency?: string;
+}
+
 const StatCard = ({
   title,
   value,
@@ -654,7 +727,8 @@ const StatCard = ({
   router,
   link = "",
   isCurrency = false,
-}) => (
+  userCurrency = "USD"
+}: StatCardProps) => (
   <div
     className={`border rounded-lg p-2${link ? " hover:cursor-pointer" : ""}`}
     onClick={() => link && router.push(link)}
@@ -668,7 +742,9 @@ const StatCard = ({
       ) : null}
     </div>
     <div className="flex items-center space-x-2 flex-wrap">
-      <div className="text-xl sm:text-2xl mb-1">{value}</div>
+      <div className="text-xl sm:text-2xl mb-1">
+        {isCurrency ? formatCurrency(parseFloat(value), userCurrency) : value}
+      </div>
       {percentage !== undefined && percentage !== null && (
         <span
           className={`ml-2 -mt-1 ${
@@ -690,7 +766,7 @@ const StatCard = ({
     <div className="flex items-center space-x-2">
       <div className="flex items-center text-xs sm:text-sm">
         <span className="font-[800]">
-          {isCurrency ? `₹${change.toLocaleString()}` : change}
+          {isCurrency ? formatCurrency(change, userCurrency) : change}
         </span>
       </div>
       <div className="text-gray-500 text-xs">{changeText}</div>
