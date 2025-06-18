@@ -354,8 +354,8 @@ export const getMetrics = async (req: any, res: Response) => {
           participants: {
             some: {
               userId: userId,
-            },
           },
+        },
           messages: {
             some: {
               senderId: { not: userId } // Only conversations where someone else sent a message
@@ -447,21 +447,21 @@ export const getMetrics = async (req: any, res: Response) => {
       
       const [currentMessages, pastMessages] = await Promise.all([
         prisma.message.findMany({
-          where: {
+        where: {
             senderId: userId,
-            createdAt: {
+          createdAt: {
               gte: currentMonthStart
             }
-          },
+        },
           orderBy: {
             createdAt: 'asc'
           }
-        }),
+      }),
         prisma.message.findMany({
-          where: {
+        where: {
             senderId: userId,
-            createdAt: {
-              gte: lastMonthStart,
+          createdAt: {
+            gte: lastMonthStart,
               lte: lastMonthEnd
             }
           },
@@ -604,7 +604,7 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
       getRequestCount(seller.id, previousPeriodStart, previousPeriodEnd),
       getMessageCount(userId, currentPeriodStart, role),
       getActiveProductCount(seller.id, currentPeriodStart),
-      generateChartData(period, seller.id),
+      generateOrderAnalyticsChartData(period, seller.id),
       getTopProductss(seller.id),
       getLowSellingProducts(seller.id),
       getResponseMetrics(seller.id, currentPeriodStart),
@@ -628,6 +628,9 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
 
       // Helper to get new/repeated customers in a date range
       async function getBuyerTypeCounts(start: Date, end: Date) {
+        console.log(`=== GET BUYER TYPE COUNTS DEBUG (${start.toISOString()} to ${end.toISOString()}) ===`);
+        
+        // Get orders only
         const orders = await prisma.order.findMany({
           where: {
             items: {
@@ -648,11 +651,22 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
           },
         });
 
-        const buyerFirstOrderDates: Record<string, Date> = {};
+        console.log('Orders found:', orders.length);
+
+        // Convert orders to transactions format
+        const transactions = orders.map(order => ({
+          buyerId: order.buyerId,
+          createdAt: order.createdAt,
+          type: 'ORDER'
+        }));
+
+        console.log('Transactions:', transactions.length);
+
+        const buyerFirstTransactionDates: Record<string, Date> = {};
         let newBuyers = 0;
         let repeatedBuyers = 0;
 
-        // First pass: collect all historical orders to determine first order dates
+        // First pass: collect all historical orders to determine first transaction dates
         const allHistoricalOrders = await prisma.order.findMany({
           where: {
             items: {
@@ -674,25 +688,55 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
           },
         });
 
-        // Build first order dates map
-        allHistoricalOrders.forEach((order) => {
-          if (order.buyerId && !buyerFirstOrderDates[order.buyerId]) {
-            buyerFirstOrderDates[order.buyerId] = order.createdAt;
+        console.log('Historical orders:', allHistoricalOrders.length);
+
+        // Build first transaction dates map (considering orders only)
+        allHistoricalOrders.forEach((transaction) => {
+          if (transaction.buyerId && !buyerFirstTransactionDates[transaction.buyerId]) {
+            buyerFirstTransactionDates[transaction.buyerId] = transaction.createdAt;
           }
         });
 
-        // Analyze current period orders
-        orders.forEach((order) => {
-          if (order.buyerId) {
-            const firstOrderDate = buyerFirstOrderDates[order.buyerId];
-            
-            if (firstOrderDate >= start) {
-              newBuyers++;
-            } else {
-              repeatedBuyers++;
+        console.log('Buyer first transaction dates:', Object.fromEntries(
+          Object.entries(buyerFirstTransactionDates).map(([buyerId, date]) => [
+            buyerId, 
+            { date: date.toISOString(), isNew: date >= start }
+          ])
+        ));
+
+        // Analyze current period transactions
+        const periodBuyerFirstTransaction: Record<string, Date> = {};
+        
+        // Track first transaction in current period for each buyer
+        transactions.forEach((transaction) => {
+          if (transaction.buyerId) {
+            if (!periodBuyerFirstTransaction[transaction.buyerId]) {
+              periodBuyerFirstTransaction[transaction.buyerId] = transaction.createdAt;
             }
           }
         });
+
+        transactions.forEach((transaction) => {
+          if (transaction.buyerId) {
+            const firstTransactionDate = buyerFirstTransactionDates[transaction.buyerId];
+            const isFirstInPeriod = periodBuyerFirstTransaction[transaction.buyerId]?.getTime() === transaction.createdAt.getTime();
+            
+            // Check if this buyer's first transaction ever was in the current period
+            const isNewCustomer = firstTransactionDate >= start;
+            
+            // Only count as NEW if it's their first transaction in this period AND they're a new customer
+            if (isFirstInPeriod && isNewCustomer) {
+              newBuyers++;
+              console.log(`NEW BUYER: ${transaction.buyerId} (${transaction.type}) - First transaction: ${firstTransactionDate.toISOString()}`);
+            } else {
+              repeatedBuyers++;
+              console.log(`REPEATED BUYER: ${transaction.buyerId} (${transaction.type}) - First transaction: ${firstTransactionDate.toISOString()}`);
+            }
+          }
+        });
+
+        console.log(`Final counts - New: ${newBuyers}, Repeated: ${repeatedBuyers}`);
+        console.log('=== END GET BUYER TYPE COUNTS DEBUG ===');
 
         return { new: newBuyers, repeated: repeatedBuyers };
       }
@@ -882,44 +926,68 @@ function getDateRanges(period: string) {
   return { currentPeriodStart, previousPeriodStart, previousPeriodEnd };
 }
 
-async function generateChartData(period: string, sellerId: string) {
+async function generateOrderAnalyticsChartData(period: string, sellerId: string) {
   const chartData: Array<{ name: string; bulk: number; single: number }> = [];
   const now = new Date();
 
-  // Helper to count bulk (manufacturing requests) and single (product requests) in a date range
+  // Helper to count bulk and single orders in a date range
   async function getBulkSingleCounts(start: Date, end: Date) {
-    // Get manufacturing requests (project requests) - these are bulk
-    const projectRequestsWhere: any = { 
-        sellerId,
-      status: { not: "REJECTED" }
-    };
-    projectRequestsWhere.createdAt = { gte: start, lte: end };
-
-    // Get product requests (orders) - these are single
+    // Use the same query structure as /api/orders/seller
     const ordersWhere: any = {
       items: {
         some: {
-          sellerId: sellerId
-        }
+          sellerId: sellerId,
+        },
       },
       status: { 
         notIn: ["CANCELLED", "RETURNED"] 
-      }
+      },
+      createdAt: { gte: start, lte: end }
     };
-    ordersWhere.createdAt = { gte: start, lte: end };
 
-    const [bulk, single] = await Promise.all([
-      prisma.projectReq.count({ where: projectRequestsWhere }),
-      prisma.order.count({ where: ordersWhere })
-    ]);
+    // Get all orders for this seller in the date range
+    const orders = await prisma.order.findMany({
+      where: ordersWhere,
+      include: {
+        items: {
+      where: {
+            sellerId: sellerId,
+          },
+          select: {
+            id: true,
+            quantity: true,
+          }
+        }
+      }
+    });
+
+    // Categorize based on number of items
+    let bulk = 0;
+    let single = 0;
+
+    orders.forEach(order => {
+      // Count total items for this seller in this order
+      const totalItems = order.items.length;
+      
+      if (totalItems === 1) {
+        single++;
+      } else if (totalItems > 1) {
+        bulk++;
+      }
+    });
 
     // Debug logging for chart data
-    console.log('=== CHART DATA DEBUG ===');
+    console.log('=== ORDER ANALYTICS CHART DATA DEBUG ===');
     console.log('Period:', start.toISOString(), 'to', end.toISOString());
-    console.log('Bulk (Manufacturing):', bulk);
-    console.log('Single (Product):', single);
-    console.log('Project Requests Where:', projectRequestsWhere);
+    console.log('Total Orders Found:', orders.length);
+    console.log('Bulk (items > 1):', bulk);
+    console.log('Single (items = 1):', single);
     console.log('Orders Where:', ordersWhere);
+    console.log('Sample Orders:', orders.slice(0, 3).map(order => ({
+      id: order.id,
+      itemCount: order.items.length,
+      status: order.status
+    })));
 
     return { bulk, single };
   }
@@ -956,7 +1024,7 @@ async function generateChartData(period: string, sellerId: string) {
     }
   } else if (period === "year") {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    console.log('=== YEAR CHART DATA ===');
+    console.log('=== YEAR ORDER ANALYTICS CHART DATA ===');
     console.log('Current Year:', now.getFullYear());
     for (let i = 0; i < 12; i++) {
       const monthStart = new Date(now.getFullYear(), i, 1);
@@ -966,7 +1034,7 @@ async function generateChartData(period: string, sellerId: string) {
       const { bulk, single } = await getBulkSingleCounts(monthStart, monthEnd);
       chartData.push({ name: months[i], bulk, single });
     }
-    console.log('=== END YEAR CHART DATA ===');
+    console.log('=== END YEAR ORDER ANALYTICS CHART DATA ===');
   }
   return chartData;
 }
@@ -2548,75 +2616,141 @@ export const getOrderSummary = async (req: any, res: Response) => {
       },
     });
 
-    // Separate orders by period
-    const currentPeriodOrders = allOrders.filter(
-      (order) => order.createdAt >= currentPeriodStart
+    // Convert orders to transactions format for consistency
+    const allTransactions = allOrders.map(order => ({
+      id: order.id,
+      type: 'ORDER',
+      buyerId: order.buyerId,
+      buyer: order.buyer,
+      createdAt: order.createdAt,
+      totalAmount: order.totalAmount,
+      status: order.status,
+      items: order.items,
+    }));
+
+    // Separate transactions by period
+    const currentPeriodTransactions = allTransactions.filter(
+      (transaction) => transaction.createdAt >= currentPeriodStart
     );
-    const previousPeriodOrders = allOrders.filter(
-      (order) =>
-        order.createdAt >= previousPeriodStart &&
-        order.createdAt <= previousPeriodEnd
+    const previousPeriodTransactions = allTransactions.filter(
+      (transaction) =>
+        transaction.createdAt >= previousPeriodStart &&
+        transaction.createdAt <= previousPeriodEnd
     );
 
     // Helper function to analyze buyer types
-    function analyzeBuyerTypes(orders: any[], allHistoricalOrders: any[]) {
-      const buyerOrderCounts: Record<string, number> = {};
-      const buyerFirstOrderDates: Record<string, Date> = {};
+    function analyzeBuyerTypes(transactions: any[], allHistoricalTransactions: any[]) {
+      const buyerTransactionCounts: Record<string, number> = {};
+      const buyerFirstTransactionDates: Record<string, Date> = {};
       const periodBuyers = new Set<string>();
+      const periodBuyerFirstTransaction: Record<string, Date> = {};
 
-      // Count orders per buyer and track first order dates
-      allHistoricalOrders.forEach((order) => {
-        if (order.buyerId) {
-          buyerOrderCounts[order.buyerId] =
-            (buyerOrderCounts[order.buyerId] || 0) + 1;
-          if (!buyerFirstOrderDates[order.buyerId]) {
-            buyerFirstOrderDates[order.buyerId] = order.createdAt;
+      console.log('=== ANALYZE BUYER TYPES DEBUG ===');
+      console.log('Current Period Start:', currentPeriodStart.toISOString());
+      console.log('Total Historical Transactions:', allHistoricalTransactions.length);
+      console.log('Current Period Transactions:', transactions.length);
+
+      // Count transactions per buyer and track first transaction dates (from all time)
+      allHistoricalTransactions.forEach((transaction) => {
+        if (transaction.buyerId) {
+          buyerTransactionCounts[transaction.buyerId] =
+            (buyerTransactionCounts[transaction.buyerId] || 0) + 1;
+          if (!buyerFirstTransactionDates[transaction.buyerId]) {
+            buyerFirstTransactionDates[transaction.buyerId] = transaction.createdAt;
           }
         }
       });
 
-      // Analyze current period orders
+      // Track first transaction in current period for each buyer
+      transactions.forEach((transaction) => {
+        if (transaction.buyerId) {
+          if (!periodBuyerFirstTransaction[transaction.buyerId]) {
+            periodBuyerFirstTransaction[transaction.buyerId] = transaction.createdAt;
+          }
+        }
+      });
+
+      console.log('Buyer Transaction Counts:', buyerTransactionCounts);
+      console.log('Buyer First Transaction Dates (All Time):', Object.fromEntries(
+        Object.entries(buyerFirstTransactionDates).map(([buyerId, date]) => [
+          buyerId, 
+          { date: date.toISOString(), isNew: date >= currentPeriodStart }
+        ])
+      ));
+      console.log('Buyer First Transaction Dates (Current Period):', Object.fromEntries(
+        Object.entries(periodBuyerFirstTransaction).map(([buyerId, date]) => [
+          buyerId, 
+          { date: date.toISOString() }
+        ])
+      ));
+
+      // Analyze current period transactions
       let newBuyers = 0;
       let repeatedBuyers = 0;
       const newBuyerDetails: any[] = [];
       const repeatedBuyerDetails: any[] = [];
 
-      orders.forEach((order) => {
-        if (order.buyerId) {
-          periodBuyers.add(order.buyerId);
+      transactions.forEach((transaction) => {
+        if (transaction.buyerId) {
+          periodBuyers.add(transaction.buyerId);
           
-          // Check if this buyer's first order was in the current period
-          const firstOrderDate = buyerFirstOrderDates[order.buyerId];
-          const isNewBuyer = firstOrderDate >= currentPeriodStart;
+          // Check if this is the buyer's first transaction in the current period
+          const isFirstInPeriod = periodBuyerFirstTransaction[transaction.buyerId]?.getTime() === transaction.createdAt.getTime();
           
-          if (isNewBuyer) {
+          // Check if this buyer's first transaction ever was in the current period
+          const firstTransactionDate = buyerFirstTransactionDates[transaction.buyerId];
+          const isNewCustomer = firstTransactionDate >= currentPeriodStart;
+          
+          console.log(`Transaction ${transaction.id} (${transaction.type}):`, {
+            buyerId: transaction.buyerId,
+            transactionDate: transaction.createdAt.toISOString(),
+            firstTransactionDate: firstTransactionDate?.toISOString(),
+            isFirstInPeriod,
+            isNewCustomer,
+            buyerName: transaction.buyer?.user?.name
+          });
+          
+          if (isFirstInPeriod && isNewCustomer) {
+            // This is their first transaction ever AND first in this period
             newBuyers++;
             newBuyerDetails.push({
-              buyerId: order.buyerId,
-              buyerName: order.buyer?.user?.name || "Unknown",
-              buyerEmail: order.buyer?.user?.email || "",
-              buyerImage: order.buyer?.user?.imageUrl || null,
-              orderId: order.id,
-              orderAmount: order.totalAmount,
-              orderDate: order.createdAt,
-              totalOrders: buyerOrderCounts[order.buyerId] || 1,
+              buyerId: transaction.buyerId,
+              buyerName: transaction.buyer?.user?.name || "Unknown",
+              buyerEmail: transaction.buyer?.user?.email || "",
+              buyerImage: transaction.buyer?.user?.imageUrl || null,
+              transactionId: transaction.id,
+              transactionType: transaction.type,
+              transactionAmount: transaction.totalAmount,
+              transactionDate: transaction.createdAt,
+              totalTransactions: buyerTransactionCounts[transaction.buyerId] || 1,
             });
           } else {
+            // Either not their first in period OR not their first ever
             repeatedBuyers++;
             repeatedBuyerDetails.push({
-              buyerId: order.buyerId,
-              buyerName: order.buyer?.user?.name || "Unknown",
-              buyerEmail: order.buyer?.user?.email || "",
-              buyerImage: order.buyer?.user?.imageUrl || null,
-              orderId: order.id,
-              orderAmount: order.totalAmount,
-              orderDate: order.createdAt,
-              totalOrders: buyerOrderCounts[order.buyerId] || 1,
-              firstOrderDate: firstOrderDate,
+              buyerId: transaction.buyerId,
+              buyerName: transaction.buyer?.user?.name || "Unknown",
+              buyerEmail: transaction.buyer?.user?.email || "",
+              buyerImage: transaction.buyer?.user?.imageUrl || null,
+              transactionId: transaction.id,
+              transactionType: transaction.type,
+              transactionAmount: transaction.totalAmount,
+              transactionDate: transaction.createdAt,
+              totalTransactions: buyerTransactionCounts[transaction.buyerId] || 1,
+              firstTransactionDate: firstTransactionDate,
             });
           }
         }
       });
+
+      console.log('Final Results:', {
+        newBuyers,
+        repeatedBuyers,
+        totalBuyers: periodBuyers.size,
+        newBuyerDetails: newBuyerDetails.map(d => ({ buyerId: d.buyerId, buyerName: d.buyerName, transactionType: d.transactionType })),
+        repeatedBuyerDetails: repeatedBuyerDetails.map(d => ({ buyerId: d.buyerId, buyerName: d.buyerName, transactionType: d.transactionType }))
+      });
+      console.log('=== END ANALYZE BUYER TYPES DEBUG ===');
 
       return {
         newBuyers,
@@ -2629,30 +2763,30 @@ export const getOrderSummary = async (req: any, res: Response) => {
 
     // Analyze current and previous periods
     const currentPeriodAnalysis = analyzeBuyerTypes(
-      currentPeriodOrders,
-      allOrders
+      currentPeriodTransactions,
+      allTransactions
     );
     const previousPeriodAnalysis = analyzeBuyerTypes(
-      previousPeriodOrders,
-      allOrders.filter((order) => order.createdAt < currentPeriodStart)
+      previousPeriodTransactions,
+      allTransactions.filter((transaction) => transaction.createdAt < currentPeriodStart)
     );
 
     // Calculate metrics
-    const totalCurrentOrders = currentPeriodOrders.length;
-    const totalPreviousOrders = previousPeriodOrders.length;
-    const totalCurrentRevenue = currentPeriodOrders.reduce(
-      (sum, order) => sum + order.totalAmount,
+    const totalCurrentTransactions = currentPeriodTransactions.length;
+    const totalPreviousTransactions = previousPeriodTransactions.length;
+    const totalCurrentRevenue = currentPeriodTransactions.reduce(
+      (sum, transaction) => sum + transaction.totalAmount,
       0
     );
-    const totalPreviousRevenue = previousPeriodOrders.reduce(
-      (sum, order) => sum + order.totalAmount,
+    const totalPreviousRevenue = previousPeriodTransactions.reduce(
+      (sum, transaction) => sum + transaction.totalAmount,
       0
     );
 
     // Calculate percentage changes
-    const orderPercentageChange = calculatePercentageChange(
-      totalCurrentOrders,
-      totalPreviousOrders
+    const transactionPercentageChange = calculatePercentageChange(
+      totalCurrentTransactions,
+      totalPreviousTransactions
     );
     const revenuePercentageChange = calculatePercentageChange(
       totalCurrentRevenue,
@@ -2689,10 +2823,10 @@ export const getOrderSummary = async (req: any, res: Response) => {
         },
         metrics: {
           orders: {
-            current: totalCurrentOrders,
-            previous: totalPreviousOrders,
-            difference: totalCurrentOrders - totalPreviousOrders,
-            percentageChange: orderPercentageChange,
+            current: totalCurrentTransactions,
+            previous: totalPreviousTransactions,
+            difference: totalCurrentTransactions - totalPreviousTransactions,
+            percentageChange: transactionPercentageChange,
           },
           revenue: {
             current: totalCurrentRevenue,
@@ -2742,6 +2876,9 @@ async function generateTimeBasedOrderSummary(
 
   // Helper to get new/repeated customers in a date range
   async function getBuyerTypeCounts(start: Date, end: Date) {
+    console.log(`=== GET BUYER TYPE COUNTS DEBUG (${start.toISOString()} to ${end.toISOString()}) ===`);
+    
+    // Get orders only
     const orders = await prisma.order.findMany({
       where: {
         items: {
@@ -2762,11 +2899,22 @@ async function generateTimeBasedOrderSummary(
       },
     });
 
-    const buyerFirstOrderDates: Record<string, Date> = {};
+    console.log('Orders found:', orders.length);
+
+    // Convert orders to transactions format
+    const transactions = orders.map(order => ({
+      buyerId: order.buyerId,
+      createdAt: order.createdAt,
+      type: 'ORDER'
+    }));
+
+    console.log('Transactions:', transactions.length);
+
+    const buyerFirstTransactionDates: Record<string, Date> = {};
     let newBuyers = 0;
     let repeatedBuyers = 0;
 
-    // First pass: collect all historical orders to determine first order dates
+    // First pass: collect all historical orders to determine first transaction dates
     const allHistoricalOrders = await prisma.order.findMany({
       where: {
         items: {
@@ -2788,25 +2936,55 @@ async function generateTimeBasedOrderSummary(
       },
     });
 
-    // Build first order dates map
-    allHistoricalOrders.forEach((order) => {
-      if (order.buyerId && !buyerFirstOrderDates[order.buyerId]) {
-        buyerFirstOrderDates[order.buyerId] = order.createdAt;
+    console.log('Historical orders:', allHistoricalOrders.length);
+
+    // Build first transaction dates map (considering orders only)
+    allHistoricalOrders.forEach((transaction) => {
+      if (transaction.buyerId && !buyerFirstTransactionDates[transaction.buyerId]) {
+        buyerFirstTransactionDates[transaction.buyerId] = transaction.createdAt;
       }
     });
 
-    // Analyze current period orders
-    orders.forEach((order) => {
-      if (order.buyerId) {
-        const firstOrderDate = buyerFirstOrderDates[order.buyerId];
-        
-        if (firstOrderDate >= start) {
-          newBuyers++;
-        } else {
-          repeatedBuyers++;
+    console.log('Buyer first transaction dates:', Object.fromEntries(
+      Object.entries(buyerFirstTransactionDates).map(([buyerId, date]) => [
+        buyerId, 
+        { date: date.toISOString(), isNew: date >= start }
+      ])
+    ));
+
+    // Analyze current period transactions
+    const periodBuyerFirstTransaction: Record<string, Date> = {};
+    
+    // Track first transaction in current period for each buyer
+    transactions.forEach((transaction) => {
+      if (transaction.buyerId) {
+        if (!periodBuyerFirstTransaction[transaction.buyerId]) {
+          periodBuyerFirstTransaction[transaction.buyerId] = transaction.createdAt;
         }
       }
     });
+
+    transactions.forEach((transaction) => {
+      if (transaction.buyerId) {
+        const firstTransactionDate = buyerFirstTransactionDates[transaction.buyerId];
+        const isFirstInPeriod = periodBuyerFirstTransaction[transaction.buyerId]?.getTime() === transaction.createdAt.getTime();
+        
+        // Check if this buyer's first transaction ever was in the current period
+        const isNewCustomer = firstTransactionDate >= start;
+        
+        // Only count as NEW if it's their first transaction in this period AND they're a new customer
+        if (isFirstInPeriod && isNewCustomer) {
+          newBuyers++;
+          console.log(`NEW BUYER: ${transaction.buyerId} (${transaction.type}) - First transaction: ${firstTransactionDate.toISOString()}`);
+        } else {
+          repeatedBuyers++;
+          console.log(`REPEATED BUYER: ${transaction.buyerId} (${transaction.type}) - First transaction: ${firstTransactionDate.toISOString()}`);
+        }
+      }
+    });
+
+    console.log(`Final counts - New: ${newBuyers}, Repeated: ${repeatedBuyers}`);
+    console.log('=== END GET BUYER TYPE COUNTS DEBUG ===');
 
     return { new: newBuyers, repeated: repeatedBuyers };
   }
@@ -2853,4 +3031,102 @@ async function generateTimeBasedOrderSummary(
   }
 
   return summaryData;
+}
+
+async function generateChartData(period: string, sellerId: string) {
+  const chartData: Array<{ name: string; bulk: number; single: number }> = [];
+  const now = new Date();
+
+  // Helper to count bulk (orders with multiple items) and single (orders with 1 item) in a date range
+  async function getBulkSingleCounts(start: Date, end: Date) {
+    // Get all orders for this seller in the date range
+    const orders = await prisma.order.findMany({
+      where: {
+        items: {
+          some: {
+            sellerId: sellerId
+          }
+        },
+        status: { 
+          notIn: ["CANCELLED", "RETURNED"] 
+        },
+        createdAt: { gte: start, lte: end }
+      },
+      include: {
+        items: {
+          where: {
+            sellerId: sellerId
+          }
+        }
+      }
+    });
+
+    // Categorize orders as single (1 item) or bulk (more than 1 item)
+    let single = 0;
+    let bulk = 0;
+
+    orders.forEach(order => {
+      const itemCount = order.items.length;
+      if (itemCount === 1) {
+        single++;
+      } else if (itemCount > 1) {
+        bulk++;
+      }
+    });
+
+    // Debug logging for chart data
+    console.log('=== CHART DATA DEBUG ===');
+    console.log('Period:', start.toISOString(), 'to', end.toISOString());
+    console.log('Total Orders:', orders.length);
+    console.log('Single (1 item):', single);
+    console.log('Bulk (>1 item):', bulk);
+
+    return { bulk, single };
+  }
+
+  if (period === "today") {
+    for (let i = 0; i < 24; i++) {
+      const hourStart = new Date(now);
+      hourStart.setHours(i, 0, 0, 0);
+      const hourEnd = new Date(hourStart);
+      hourEnd.setHours(i, 59, 59, 999);
+      const { bulk, single } = await getBulkSingleCounts(hourStart, hourEnd);
+      chartData.push({ name: `${i}:00`, bulk, single });
+    }
+  } else if (period === "week") {
+    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    for (let i = 0; i < 7; i++) {
+      const dayStart = new Date();
+      dayStart.setDate(dayStart.getDate() - dayStart.getDay() + i);
+      dayStart.setHours(0, 0, 0, 0);
+      const dayEnd = new Date(dayStart);
+      dayEnd.setHours(23, 59, 59, 999);
+      const { bulk, single } = await getBulkSingleCounts(dayStart, dayEnd);
+      chartData.push({ name: days[i], bulk, single });
+    }
+  } else if (period === "month") {
+    const weeksInMonth = Math.ceil((now.getDate() + new Date(now.getFullYear(), now.getMonth(), 1).getDay()) / 7);
+    for (let i = 0; i < weeksInMonth; i++) {
+      const weekStart = new Date(now.getFullYear(), now.getMonth(), i * 7 + 1);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+      const { bulk, single } = await getBulkSingleCounts(weekStart, weekEnd);
+      chartData.push({ name: `Week ${i + 1}`, bulk, single });
+    }
+  } else if (period === "year") {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    console.log('=== YEAR CHART DATA ===');
+    console.log('Current Year:', now.getFullYear());
+    for (let i = 0; i < 12; i++) {
+      const monthStart = new Date(now.getFullYear(), i, 1);
+      const monthEnd = new Date(now.getFullYear(), i + 1, 0);
+      monthEnd.setHours(23, 59, 59, 999);
+      console.log(`${months[i]}: ${monthStart.toISOString()} to ${monthEnd.toISOString()}`);
+      const { bulk, single } = await getBulkSingleCounts(monthStart, monthEnd);
+      chartData.push({ name: months[i], bulk, single });
+    }
+    console.log('=== END YEAR CHART DATA ===');
+  }
+  return chartData;
 }

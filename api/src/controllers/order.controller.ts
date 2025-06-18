@@ -573,16 +573,16 @@ export const GetSellerRequest = async (req: any, res: Response) => {
 
     const [regularRequests, projectRequests] = await Promise.all([
       prisma.request.findMany({
-        where: {
+      where: {
           sellerId,
           status: { not: RequestStatus.REJECTED },
-        },
-        include: {
+      },
+      include: {
           buyer: {
-            include: {
+          include: {
               user: true,
-            },
           },
+        },
         },
         orderBy: {
           createdAt: "desc",
@@ -595,15 +595,15 @@ export const GetSellerRequest = async (req: any, res: Response) => {
         },
         include: {
           project: true,
-          buyer: {
-            include: {
+        buyer: {
+          include: {
               user: true,
+              },
             },
           },
-        },
         orderBy: {
           createdAt: "desc",
-        },
+      },
       }),
     ]);
 
@@ -615,7 +615,7 @@ export const GetSellerRequest = async (req: any, res: Response) => {
 
     const formattedRequests = [
       ...regularRequests.map((request) => ({
-        id: request.id,
+      id: request.id,
         type: "REGULAR",
         buyerName: request.buyer.user.name,
         buyerImage: request.buyer.user.imageUrl,
@@ -623,7 +623,7 @@ export const GetSellerRequest = async (req: any, res: Response) => {
         category: request.category,
         quantity: request.quantity,
         status: request.status,
-        createdAt: request.createdAt,
+      createdAt: request.createdAt,
       })),
       ...projectRequests.map((request) => ({
         id: request.id,
