@@ -21,6 +21,7 @@ import projectRoutes from "./project";
 import adminRoutes from "./admin";
 import inviteRoute from "./invite";
 import chatBotRoute from "./chatbot";
+import mySuppliersRoutes from "./my-suppliers";
 
 export const setupRoutes = (app: Application) => {
   // API Routes
@@ -46,6 +47,7 @@ export const setupRoutes = (app: Application) => {
   app.use("/api/admin", adminRoutes);
   app.use("/api/invite", inviteRoute);
   app.use("/api/chatbot", chatBotRoute);
+  app.use("/api/my-suppliers", mySuppliersRoutes);
 
   // Health check route
   app.get("/health", (req, res) => {
