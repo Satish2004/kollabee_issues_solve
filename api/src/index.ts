@@ -12,7 +12,6 @@ import { handleSocketConnection } from "./sockets";
 
 const app: Application = express();
 
-
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -24,7 +23,7 @@ app.use(
         "http://localhost:3001",
         "https://kollabee-frontend-lrsy.onrender.com",
         "https://kollabee-frontend-k32s.onrender.com",
-        "https://kollabee-1.onrender.com"
+        "https://kollabee-1.onrender.com",
       ];
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
@@ -81,13 +80,15 @@ const server = app.listen(port, () => {
 // Initialize Socket.IO and attach it to the server
 const io = new Server(server, {
   cors: {
-   origin: (origin, callback) => {
+    origin: (origin, callback) => {
       console.log("Incoming request from:", origin);
       const allowedOrigins = [
         "https://kollabee-theta.vercel.app",
         "https://kollabee-frontend.onrender.com",
         "http://localhost:3000",
         "http://localhost:3001",
+        "https://kollabee-frontend-lrsy.onrender.com",
+        "https://kollabee-frontend-k32s.onrender.com",
         // For local testing
       ];
       if (!origin || allowedOrigins.includes(origin)) {
