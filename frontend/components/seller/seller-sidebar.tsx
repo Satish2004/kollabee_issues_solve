@@ -120,7 +120,6 @@ export function SellerSidebar({ className }: SidebarProps) {
         // },
       ],
     },
- 
   ];
 
   const menuItems: { title: string; icon: React.ElementType }[] = [
@@ -195,13 +194,13 @@ export function SellerSidebar({ className }: SidebarProps) {
         </div>
 
         <div className="flex flex-col gap-2 border-t pt-4">
-          <Link
+          {/* <Link
             href="#"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent"
           >
             <HelpCircle className="h-4 w-4" />
             {!isCollapsed && <span>Help</span>}
-          </Link>
+          </Link> */}
           <Button
             variant="ghost"
             className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-red-500 transition-all hover:bg-accent justify-start"

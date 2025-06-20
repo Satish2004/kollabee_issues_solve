@@ -129,12 +129,12 @@ export function UserDropdown({ currentUser, onLogout }: UserDropdownProps) {
             </Link>
           </DropdownMenuItem>
           {/* Always active Feedback */}
-          <DropdownMenuItem asChild>
+          {/* <DropdownMenuItem asChild>
             <Link href="/buyer/contact" className="flex">
               <NotebookPen className="mr-2 h-4 w-4" />
               <span>Feedback</span>
             </Link>
-          </DropdownMenuItem>
+          </DropdownMenuItem> */}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
