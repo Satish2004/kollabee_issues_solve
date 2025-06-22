@@ -61,7 +61,6 @@ const isNameValid = (name: string) => {
   return "";
 };
 
-// Convert business categories to string array for the dropdown
 const businessCategoryOptions = businessCategories.map(({ label }) => label);
 
 interface BusinessInfoFormProps {
@@ -97,7 +96,6 @@ export function BusinessInfoForm({
     businessCategories: "",
   });
 
-  // Add state for custom business types
   const [customBusinessTypes, setCustomBusinessTypes] = useState<string[]>([]);
 
   useEffect(() => {
@@ -146,7 +144,6 @@ export function BusinessInfoForm({
   };
 
   const validateForm = () => {
-    const nameRegex = /^[a-zA-Z0-9][a-zA-Z0-9\s]*$/; // At least one alphanumeric character, no leading spaces
     const websiteRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-]*)*$/; // Valid URL format
 
     const newErrors = {
@@ -185,7 +182,6 @@ export function BusinessInfoForm({
     }
   };
 
-  // Convert enum values to display labels for the dropdowns
   const getSelectedTypeLabels = () => {
     return (formData.businessTypes || []).map((value: BusinessType) => {
       const type = businessTypes.find((t) => t.value === value);
@@ -318,22 +314,19 @@ export function BusinessInfoForm({
             onChange={handleBusinessTypeChange}
             isRequired={true}
             error={errors.businessTypes}
-            infoText="Match with the right buyers by selecting one or more categories that best describe your business."
+            // infoText="Match with the right buyers by selecting one or more categories that best describe your business."
             allowCustomValues={true}
             customValueCategory="Other"
             customValues={customBusinessTypes}
             onCustomValuesChange={(values) => {
               setCustomBusinessTypes(values);
 
-              // Update the form data with custom business types
               setFormData((prev) => {
-                // Get existing business types excluding any custom ones
                 const standardTypes = prev.businessTypes.filter(
                   (type) =>
                     !customBusinessTypes.includes(type as unknown as string)
                 );
 
-                // Add the new custom values as business types
                 return {
                   ...prev,
                   businessTypes: [

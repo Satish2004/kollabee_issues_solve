@@ -319,29 +319,11 @@ export default function SignupSellerPage() {
     }
   };
 
-  const handleSignup = async (formData: FormData) => {
-    try {
-      const data = {
-        email: formData.get("email") as string,
-        password: formData.get("password") as string,
-        name: formData.get("name") as string,
-        role: "SELLER" as const,
-      };
 
-      await authApi.signup(data);
-      router.push("/seller/onboarding");
-    } catch (error) {
-      console.error("Signup failed:", error);
-    }
-  };
-
-  // Add this after the other useEffect hooks
   useEffect(() => {
-    // Reset any validation errors when form data changes
     if (currentStage === 2) {
       const businessInfoForm = document.getElementById("business-info-form");
       if (businessInfoForm) {
-        // This will trigger a re-render of the BusinessInfoForm component
         businessInfoForm.dispatchEvent(
           new Event("reset-validation", { bubbles: true })
         );
@@ -383,15 +365,6 @@ export default function SignupSellerPage() {
               <div className="flex justify-center">
                 <ProgressStepper steps={steps} />
               </div>
-              {/* <div className="flex justify-end">
-                <Link
-                  href="#"
-                  className="flex items-center gap-2 text-sm text-[#FF9900]"
-                >
-                  <Info className="w-4 h-4" />
-                  Registration Guide
-                </Link>
-              </div> */}
             </div>
 
             <Card className="md:p-8 shadow-none border-none">

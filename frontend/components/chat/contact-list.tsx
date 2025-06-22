@@ -41,6 +41,12 @@ export default function ContactList({
     conv.participantName.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Calculate total unread messages
+  const totalUnreadMessages = conversations.reduce(
+    (total, conv) => total + (conv.unreadCount || 0),
+    0
+  );
+
   // Handle accepting a conversation request
   const handleAcceptRequest = async (
     conversationId: string,
@@ -160,74 +166,20 @@ export default function ContactList({
       (conv.status === "PENDING" && conv.initiatedBy === currentUserId)
   );
 
-  if (isLoading) {
-    return (
-      <div className="w-80 rounded-xl h-100vh flex flex-col bg-white">
-        {/* Top bar skeleton */}
-        <div className="px-6 py-4 flex items-center space-x-2">
-          <div className="h-6 w-24 bg-gray-200 rounded animate-pulse" />
-          <div className="h-5 w-8 bg-gray-100 rounded-full animate-pulse" />
-        </div>
-        <hr className="w-full" />
-        <div className="p-2">
-          <div className="relative">
-            <div className="h-9 w-full bg-gray-100 rounded animate-pulse" />
-            <div className="absolute right-2.5 top-1.5 h-6 w-6 bg-gray-200 rounded-full animate-pulse" />
-          </div>
-        </div>
-        {/* Pending Requests Skeleton */}
-        <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-400 uppercase tracking-wider">
-          <div className="h-4 w-32 bg-gray-100 rounded animate-pulse" />
-        </div>
-        {Array(2)
-          .fill(0)
-          .map((_, i) => (
-            <div key={i} className="flex flex-col p-4 border-b">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
-                </div>
-                <div className="ml-3 flex-1">
-                  <div className="flex items-center justify-between">
-                    <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
-                    <div className="h-4 w-12 bg-gray-100 rounded animate-pulse" />
-                  </div>
-                  <div className="h-3 w-32 bg-gray-100 rounded mt-2 animate-pulse" />
-                </div>
-              </div>
-            </div>
-          ))}
-        {/* Conversations Skeleton */}
-        <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-400 uppercase tracking-wider">
-          <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
-        </div>
-        {Array(4)
-          .fill(0)
-          .map((_, i) => (
-            <div key={i} className="flex items-center p-4 border-b">
-              <div className="flex-shrink-0">
-                <div className="h-10 w-10 rounded-full bg-gray-200 animate-pulse" />
-              </div>
-              <div className="ml-3 flex-1">
-                <div className="flex items-center justify-between">
-                  <div className="h-4 w-24 bg-gray-100 rounded animate-pulse" />
-                  <div className="h-3 w-10 bg-gray-100 rounded animate-pulse" />
-                </div>
-                <div className="h-3 w-32 bg-gray-100 rounded mt-2 animate-pulse" />
-              </div>
-            </div>
-          ))}
-      </div>
-    );
-  }
-
   return (
     <div className="w-80 rounded-xl h-100vh flex flex-col bg-white">
       <div className="px-6 py-4 flex items-center space-x-2">
         <h1 className="font-semibold text-lg">Messages</h1>
-        <span className="rounded-full bg-gray-100 text-xs font-semibold px-2">
-          {conversations.length}
-        </span>
+        <div className="flex space-x-1">
+          <Badge variant="outline" className="rounded-full">
+            {conversations.length}
+          </Badge>
+          {totalUnreadMessages > 0 && (
+            <Badge className="rounded-full bg-red-500 text-white">
+              {totalUnreadMessages} unread
+            </Badge>
+          )}
+        </div>
       </div>
       <hr className="w-full"></hr>
       <div className="p-2">
@@ -248,7 +200,20 @@ export default function ContactList({
           <Accordion type="single" collapsible defaultValue="pending">
             <AccordionItem value="pending">
               <AccordionTrigger className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Message Requests ({pendingRequests.length})
+                <div className="flex items-center">
+                  <span>Message Requests</span>
+                  <Badge className="ml-2 bg-amber-500 text-white">
+                    {pendingRequests.length}
+                  </Badge>
+                  {/* Show unread count for pending requests */}
+                  <Badge className="ml-2 bg-red-500 text-white">
+                    {pendingRequests.reduce(
+                      (total, conv) => total + (conv.unreadCount || 0),
+                      0
+                    )}{" "}
+                    unread
+                  </Badge>
+                </div>
               </AccordionTrigger>
               <AccordionContent>
                 {pendingRequests.map((conversation) => (
@@ -277,6 +242,11 @@ export default function ContactList({
                         {conversation.isOnline && (
                           <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
                         )}
+                        {(conversation.unreadCount || 0) > 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                            {conversation.unreadCount}
+                          </span>
+                        )}
                       </div>
 
                       <div className="ml-3 flex-1">
@@ -293,22 +263,18 @@ export default function ContactList({
                           </Badge>
                         </div>
 
-                        <div className="flex items-center">
+                        <div className="flex items-center justify-between mt-1">
                           <p className="text-sm text-gray-500 truncate flex-1">
                             {conversation.lastMessage || "New message request"}
                           </p>
+                          {(conversation.unreadCount || 0) > 0 && (
+                            <Badge className="ml-2 bg-red-500 text-white">
+                              {conversation.unreadCount}
+                            </Badge>
+                          )}
                         </div>
                       </div>
                     </div>
-
-                    {/* <div className="flex justify-end mt-2 space-x-2">
-                  <Button size="sm" variant="outline" onClick={(e) => handleDeclineRequest(conversation.id, e)}>
-                    Decline
-                  </Button>
-                  <Button size="sm" onClick={(e) => handleAcceptRequest(conversation.id, e)}>
-                    Accept
-                  </Button>
-                </div> */}
                   </div>
                 ))}
               </AccordionContent>
@@ -321,7 +287,17 @@ export default function ContactList({
           <div>
             {pendingRequests.length > 0 && (
               <div className="px-4 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Conversations
+                <div className="flex items-center justify-between">
+                  <span>Conversations</span>
+                  {/* Show unread count for accepted conversations */}
+                  <Badge className="bg-red-500 text-white">
+                    {acceptedConversations.reduce(
+                      (total, conv) => total + (conv.unreadCount || 0),
+                      0
+                    )}{" "}
+                    unread
+                  </Badge>
+                </div>
               </div>
             )}
 
@@ -350,6 +326,11 @@ export default function ContactList({
                   {conversation.isOnline && (
                     <span className="absolute top-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white"></span>
                   )}
+                  {(conversation.unreadCount || 0) > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {conversation.unreadCount}
+                    </span>
+                  )}
                 </div>
 
                 <div className="ml-3 flex-1">
@@ -364,14 +345,14 @@ export default function ContactList({
                     )}
                   </div>
 
-                  <div className="flex items-center">
+                  <div className="flex items-center justify-between mt-1">
                     <p className="text-sm text-gray-500 truncate flex-1">
                       {conversation.lastMessage || "No messages yet"}
                     </p>
                     {(conversation.unreadCount || 0) > 0 && (
-                      <span className="ml-2 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded-full">
+                      <Badge className="ml-2 bg-red-500 text-white">
                         {conversation.unreadCount}
-                      </span>
+                      </Badge>
                     )}
                   </div>
                 </div>

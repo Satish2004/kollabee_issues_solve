@@ -402,15 +402,13 @@ export const suggestedSellers = async (req: Request, res: Response) => {
     if (!project) {
       return res.status(404).json({ error: "Project not found" });
     }
-
-    // Build the where clause for filtering
     const where: any = {
       businessCategories: {
         has: getCategoryFromProjectCategory(project.category),
       },
     };
 
-    // Add country filter if provided, otherwise use project owner's location
+    console.log("Where clause:", where);
     if (country && country !== "all") {
       where.country = country;
     } else if (project.owner?.location) {
@@ -480,8 +478,6 @@ export const suggestedSellers = async (req: Request, res: Response) => {
       orderBy.rating = "desc"; // Default sort
     }
 
-    console.log("Order by:", orderBy);
-
     // Fetch sellers that match the criteria
     const sellers = await prisma.seller.findMany({
       where,
@@ -549,15 +545,29 @@ export const suggestedSellers = async (req: Request, res: Response) => {
     }));
 
     console.log(`Returning ${sellerList.length} formatted sellers`);
-    res.status(200).json(sellerList);
+
+    return res.status(200).json({
+      sellers,
+      project,
+      where
+    });
+    
   } catch (error) {
     console.error("Error fetching suggested sellers:", error);
     res.status(500).json({ error: "Failed to fetch suggested sellers" });
   }
 };
 
-function getCategoryFromProjectCategory(projectCategory: string): CategoryEnum {
-  const categoryMap: Record<string, CategoryEnum> = {
+function getCategoryFromProjectCategory(projectCategory: string): string {
+  const categoryMap: Record<string, string> = {
+    professional: "PROFESSIONAL_SERVICES",
+    services: "PROFESSIONAL_SERVICES",
+    service: "PROFESSIONAL_SERVICES",
+    consulting: "PROFESSIONAL_SERVICES",
+    agency: "PROFESSIONAL_SERVICES",
+    strategy: "PROFESSIONAL_SERVICES",
+    marketing: "PROFESSIONAL_SERVICES",
+    development: "PROFESSIONAL_SERVICES",
     beauty: "BEAUTY_COSMETICS",
     cosmetics: "BEAUTY_COSMETICS",
     fashion: "FASHION_APPAREL_ACCESSORIES",
@@ -572,14 +582,19 @@ function getCategoryFromProjectCategory(projectCategory: string): CategoryEnum {
     natural: "HERBAL_NATURAL_PRODUCTS",
   };
 
-  for (const [key, value] of Object.entries(categoryMap)) {
-    if (projectCategory.toLowerCase().includes(key.toLowerCase())) {
-      return value;
+  // Get keys sorted by length descending for more specific matches first
+  const patterns = Object.keys(categoryMap).sort((a, b) => b.length - a.length);
+  const lowerProjectCategory = projectCategory.toLowerCase();
+
+  for (const pattern of patterns) {
+    if (lowerProjectCategory.includes(pattern)) {
+      return categoryMap[pattern];
     }
   }
 
   return "OTHER";
 }
+
 
 function getSellerDescription(seller: Seller, project: any): string {
   const descriptions = [

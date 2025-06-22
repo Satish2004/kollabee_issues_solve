@@ -11,7 +11,6 @@ const Step0 = ({ handleNext }: { handleNext: () => void }) => {
   const [error, setError] = useState("");
 
   const handleServiceSelect = (value: string) => {
-    // Only allow one selection at a time
     updateFormData("selectedServices", [value]);
     setError(""); // Clear error when a service is selected
   };

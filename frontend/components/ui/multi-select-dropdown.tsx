@@ -66,7 +66,6 @@ const MultiSelectDropdown = ({
     };
   }, [isOpen]);
 
-  // Function to add a custom value
   const addCustomValue = () => {
     if (disabled) return;
     if (newCustomValue.trim() && onCustomValuesChange) {

@@ -20,9 +20,6 @@ export default function ChatModule({ userType = "SELLER" }: ChatModuleProps) {
   const [activeTab, setActiveTab] = useState<"BUYER" | "SELLER" | "ADMIN">(
     userType === "BUYER" ? "SELLER" : userType === "SELLER" ? "BUYER" : "BUYER"
   );
-  const [filteredConversations, setFilteredConversations] = useState<
-    Conversation[]
-  >([]);
   const [activeConversation, setActiveConversation] = useState<string | null>(
     null
   );
@@ -426,34 +423,6 @@ export default function ChatModule({ userType = "SELLER" }: ChatModuleProps) {
     fetchMessages(conversationId);
   };
 
-  // Create new conversation
-  const createConversation = async (
-    participantId: string,
-    participantType: "BUYER" | "SELLER" | "ADMIN"
-  ) => {
-    try {
-      const response = await chatApi.createConversation({
-        participantId,
-        participantType,
-      });
-
-      if (!response.data.conversation) {
-        throw new Error("Failed to create conversation");
-      }
-
-      // Add new conversation to state and set it as active
-      setConversations((prev) => [response.data.conversation, ...prev]);
-      setActiveConversation(response.data.conversation.id);
-      setMessages([]);
-    } catch (error) {
-      console.error("Failed to create conversation:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create conversation",
-        variant: "destructive",
-      });
-    }
-  };
 
   const getAvailableTabs = () => {
     if (userType === "ADMIN") {
@@ -495,7 +464,6 @@ export default function ChatModule({ userType = "SELLER" }: ChatModuleProps) {
   };
 
   useEffect(() => {
-    // Auto-select first conversation when activeTab is ADMIN and user is BUYER or SELLER
     if (
       activeTab === "ADMIN" &&
       (user?.role === "BUYER" || user?.role === "SELLER")
@@ -519,6 +487,7 @@ export default function ChatModule({ userType = "SELLER" }: ChatModuleProps) {
         <div className="flex space-x-8">
           {availableTabs.map((tab) => (
             <button
+              type="button"
               key={tab.value}
               className={`py-1 text-sm ${
                 activeTab === tab.value

@@ -38,7 +38,6 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
 
   const [newCustomCategory, setNewCustomCategory] = useState("");
 
-  // Product categories based on project type
   const productCategories = {
     "custom-manufacturing": [
       "Ayurveda & Herbal",
