@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useCheckout } from "../../../../../../contexts/checkout-context"
 import { useForm } from "react-hook-form"
+import { toast } from 'sonner'
 
 // Define the form schema with Zod
 const formSchema = z.object({
@@ -65,18 +66,7 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
 
   useEffect(() => {
     if (currentAddress) {
-      form.reset({
-        firstName:  "",
-        lastName: "",
-        email: "",
-        companyName:  "",
-        address: "",
-        city:  "",
-        state: "",
-        country: "",
-        zipCode: "",
-        phoneNumber: "",
-      })
+      form.reset(currentAddress);
     }
   }, [currentAddress, form])
 
@@ -118,7 +108,7 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
     })
   }
 
-  const onSubmit = (values: z.infer<typeof formSchema>) => {
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (selectedAddressId) {
       onNext()
     } else if (showNewAddressForm) {
@@ -126,8 +116,13 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
         id: currentAddress?.id || `new-${Date.now()}`,
         ...values,
       }
-      addNewAddress(newAddress)
-      onNext()
+      try {
+        await addNewAddress(newAddress)
+        toast('Address added successfully')
+        onNext()
+      } catch (error) {
+        toast('Failed to add address')
+      }
     } else {
       alert("Please select a shipping address or add a new one")
     }
@@ -416,6 +411,11 @@ export function ShippingAddress({ onNext }: ShippingAddressProps) {
                   </FormItem>
                 )}
               />
+              <div className="flex justify-end pt-2">
+                <Button type="submit" className="bg-green-600 hover:bg-green-700 text-white font-semibold">
+                  Submit Address
+                </Button>
+              </div>
             </form>
           </Form>
         )}

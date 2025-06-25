@@ -101,9 +101,19 @@ const CreateProjects = ({
       }
     } else if (step === 1) {
       // Validation for Step 1 based on service type
+      // --- Project Title Validation ---
+      const title = formData.projectTitle || "";
+      if (!title.trim()) {
+        newErrors.projectTitle = "Project Title cannot be empty";
+      } else if (/^[^a-zA-Z0-9]+$/.test(title)) {
+        newErrors.projectTitle = "Project Title cannot contain only special characters";
+      } else if (title.trim().length < 3) {
+        newErrors.projectTitle = "Project Title must be at least 3 characters long";
+      } else if (title.length > 100) {
+        newErrors.projectTitle = "Project Title cannot exceed 100 characters";
+      }
+      // --- End Project Title Validation ---
       if (serviceType === "custom-manufacturing") {
-        if (!formData.projectTitle)
-          newErrors.projectTitle = "Project title is required.";
         if (!formData.productCategory || formData.productCategory.length === 0)
           newErrors.productCategory = "Select Atleast One Category.";
         if (!formData.productDescription)
@@ -119,8 +129,6 @@ const CreateProjects = ({
         if (!formData.needsDesign)
           newErrors.needsDesign = "This field is required.";
       } else if (serviceType === "packaging-only") {
-        if (!formData.projectTitle)
-          newErrors.projectTitle = "Project title is required.";
         if (!formData.packagingCategory)
           newErrors.packagingCategory = "Packaging category is required.";
         if (!formData.packagingDescription)
@@ -132,8 +140,6 @@ const CreateProjects = ({
         if (!formData.needsSample)
           newErrors.needsSample = "This field is required.";
       } else if (serviceType === "services-brand-support") {
-        if (!formData.projectTitle)
-          newErrors.projectTitle = "Project title is required.";
         if (!formData.projectDescription)
           newErrors.projectDescription = "Project description is required.";
         if (
@@ -195,6 +201,27 @@ const CreateProjects = ({
     return Object.keys(newErrors).length === 0;
   };
 
+  const validateAllSteps = (): boolean => {
+    // Validate all steps before submission
+    let valid = true;
+    let firstErrorStep: number | null = null;
+    for (let step = 0; step <= 3; step++) {
+      if (!validateStep(step)) {
+        valid = false;
+        if (firstErrorStep === null) firstErrorStep = step;
+      }
+    }
+    if (firstErrorStep !== null) {
+      setCurrentStage(firstErrorStep);
+      // Optionally scroll to top or error field
+      setTimeout(() => {
+        const errorEl = document.querySelector('.text-red-500');
+        if (errorEl) errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+    return valid;
+  };
+
   const handlePrev = () => {
     setErrors({});
     if (currentStage === 0) {
@@ -248,21 +275,28 @@ const CreateProjects = ({
   };
 
   const handleSubmit = async () => {
-    console.log("Submitting form data:", formData);
+    // Validate all steps before actual submission
+    if (!validateAllSteps()) {
+      toast({
+        title: "Invalid Project Details",
+        description: "Please correct the highlighted errors before submitting.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsLoading(true);
     setIsSubmitting(true);
-
     try {
+      // Use the same mapping as the context
+      const mapFormDataToApiFormat = (window as any).mapFormDataToApiFormat || ((formData: any) => formData);
+      const apiData = mapFormDataToApiFormat(formData);
       if (initialData) {
         try {
-          const response = await projectApi.updateProject(
-            initialData?.id,
-            formData
-          );
+          const response = await projectApi.updateProject(initialData?.id, apiData);
           if (response.status < 200 || response.status >= 300) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           } else {
-            setId(response?.id);
+            setId(response.data?.id);
             setIsSuccess(true);
           }
           console.log("Project updated successfully:", response);
@@ -276,8 +310,7 @@ const CreateProjects = ({
         }
       } else {
         try {
-          const { customCategories, ...restFormData } = formData;
-          const response = await projectApi.createProject(restFormData);
+          const response = await projectApi.createProject(apiData);
           if (response.status < 200 || response.status >= 300) {
             toast({
               title: "Error",
@@ -286,8 +319,7 @@ const CreateProjects = ({
             });
             throw new Error(`HTTP error! Status: ${response.status}`);
           } else {
-            console.log("Project created successfully:", response);
-            setId(response?.id);
+            setId(response.data?.id);
             setIsSuccess(true);
           }
         } catch (error) {

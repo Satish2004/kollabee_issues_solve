@@ -22,7 +22,7 @@ export const ordersApi = {
     page?: number;
     limit?: number;
   }) => {
-    return api.get("/orders/seller", { params });
+    return api.get("/orders", { params });
   },
 
   getOrderDetails: async (id: string) => {
