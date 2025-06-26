@@ -30,8 +30,6 @@ export default function ContactSupplierButton({
 
   const handleSuccess = (conversationId: string) => {
     setOpen(false);
-    // Navigate to the chat page with the new conversation selected
-    router.push(`/chat?conversation=${conversationId}`);
   };
 
   return (

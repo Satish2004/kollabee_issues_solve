@@ -65,31 +65,45 @@ export default function BuyerProductSearchPage() {
   const handleFilterApply = () => {};
   const handleFilterClear = () => setFilters(defaultFilters);
 
+  // Helper to check if query is only special characters or spaces
+  const isInvalidQuery = (q: string) => !q.trim() || /^[^a-zA-Z0-9]+$/.test(q);
+
   return (
     <main className="min-h-screen px-0 md:px-7">
       <div className="max-w-7xl mx-auto py-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         {/* Search Results */}
         <section className="md:col-span-3">
           <h1 className="text-2xl font-bold mb-6">Search Results for "{query}"</h1>
-          {loading && (
-            <div className="flex flex-col gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="h-[220px] w-full bg-gray-200 flex flex-col gap-4 p-4" />
-              ))}
+          {/* Validation for empty or invalid search */}
+          {(!query || isInvalidQuery(query)) && (
+            <div className="text-muted-foreground text-center py-8">
+              { !query ? 'Please enter a search term.' : 'No results found.' }
             </div>
           )}
-          {error && (
-            <div className="text-red-500 text-center py-8">{error}</div>
-          )}
-          {!loading && !error && products.length === 0 && (
-            <div className="text-muted-foreground text-center py-8">No products found.</div>
-          )}
-          {!loading && !error && products.length > 0 && (
-            <div className="flex flex-col gap-6">
-              {products.map((product, idx) => (
-                <SearchProductCard key={product.id || idx} product={product} />
-              ))}
-            </div>
+          {/* Only show results if query is valid */}
+          {query && !isInvalidQuery(query) && (
+            <>
+              {loading && (
+                <div className="flex flex-col gap-6">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <Skeleton key={i} className="h-[220px] w-full bg-gray-200 flex flex-col gap-4 p-4" />
+                  ))}
+                </div>
+              )}
+              {error && (
+                <div className="text-red-500 text-center py-8">{error}</div>
+              )}
+              {!loading && !error && products.length === 0 && (
+                <div className="text-muted-foreground text-center py-8">No products found.</div>
+              )}
+              {!loading && !error && products.length > 0 && (
+                <div className="flex flex-col gap-6">
+                  {products.map((product, idx) => (
+                    <SearchProductCard key={product.id || idx} product={product} />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
         {/* Filters on the right */}

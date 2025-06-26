@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { useCheckout } from "@/contexts/checkout-context";
 import { BsCartDashFill } from "react-icons/bs";
 import ContactSupplierButton from "../chat/contact-supplier-button";
+import { toast } from 'sonner';
 
 interface ProductCardProps {
   product: any;
@@ -18,6 +19,7 @@ interface ProductCardProps {
   removeFromWishlist: (productId: string) => void;
   setWishlistProducts: (products: any[]) => void;
   wishlistProducts: any[]; // Add wishlistProducts to props
+  fromWishlistPage?: boolean;
 }
 
 export default function ProductCard({
@@ -28,6 +30,7 @@ export default function ProductCard({
   removeFromWishlist,
   setWishlistProducts,
   wishlistProducts,
+  fromWishlistPage = false,
 }: ProductCardProps) {
   const { setProducts } = useCheckout();
   const [isLoading, setIsLoading] = React.useState(false);
@@ -35,28 +38,63 @@ export default function ProductCard({
   const router = useRouter();
 
   const handleCart = async () => {
-    if (!isInCart(product.id)) {
-      setIsLoading(true);
-      const response = await cartApi.addToCart({
-        productId: product.id,
-        quantity: product.minOrderQuantity,
-      });
-      const updatedCart = response;
-      setProducts(updatedCart?.items);
-    } else {
-      removeFromCart(product.id);
+    try {
+      if (!isInCart(product.id)) {
+        setIsLoading(true);
+        const response = await cartApi.addToCart({
+          productId: product.id,
+          quantity: product.minOrderQuantity,
+        }) as unknown as { items: any[] };
+        const updatedCart = response.items;
+        setProducts(updatedCart);
+        toast('Added to cart');
+      } else {
+        removeFromCart(product.id);
+        toast('Removed from cart');
+      }
+    } catch (error) {
+      toast('Failed to update cart');
     }
     setIsLoading(false);
   };
 
   const handleWishlist = async () => {
-    if (!isInWishlist(product.id)) {
-      const response = await wishlistApi.addToWishlist(product.id);
-      const updatedWishlist = await response;
-      setWishlistProducts(updatedWishlist?.items);
-    } else {
-      removeFromWishlist(product.id);
+    try {
+      if (!isInWishlist(product.id)) {
+        const response = await wishlistApi.addToWishlist(product.id) as unknown as { items: any[] };
+        const updatedWishlist = response.items;
+        setWishlistProducts(updatedWishlist);
+        toast('Added to wishlist');
+      } else {
+        removeFromWishlist(product.id);
+        toast('Removed from wishlist');
+      }
+    } catch (error) {
+      toast('Failed to update wishlist');
     }
+  };
+
+  // Move to Cart handler
+  const handleMoveToCart = async () => {
+    try {
+      if (!isInCart(product.id)) {
+        setIsLoading(true);
+        const response = await cartApi.addToCart({
+          productId: product.id,
+          quantity: product.minOrderQuantity,
+        }) as unknown as { items: any[] };
+        const updatedCart = response.items;
+        setProducts(updatedCart);
+        toast('Item is moved to cart');
+        // Remove from wishlist after adding to cart
+        removeFromWishlist(product.id);
+      } else {
+        // No toast for already in cart
+      }
+    } catch (error) {
+      toast('Failed to move to cart');
+    }
+    setIsLoading(false);
   };
 
   return (
@@ -127,26 +165,40 @@ export default function ProductCard({
         </div>
 
         <div className="space-y-1 sm:space-y-2">
-          <Button
-            type="button"
-            onClick={handleCart}
-            className={`w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold ${
-              isInCart(product.id)
-                ? "bg-zinc-700 hover:bg-zinc-600"
-                : "button-bg"
-            }`}
-          >
-            {isLoading ? (
-              "Adding..."
-            ) : isInCart(product.id) ? (
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <span>Remove From Cart</span>
-                <BsCartDashFill className="" />
-              </div>
-            ) : (
-              "Add to Cart"
-            )}
-          </Button>
+          {/* Only show Add/Remove Cart button if not on wishlist page */}
+          {!fromWishlistPage && (
+            <Button
+              type="button"
+              onClick={handleCart}
+              className={`w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold ${
+                isInCart(product.id)
+                  ? "bg-zinc-700 hover:bg-zinc-600"
+                  : "button-bg"
+              }`}
+            >
+              {isLoading ? (
+                "Adding..."
+              ) : isInCart(product.id) ? (
+                <div className="flex items-center space-x-1 sm:space-x-2">
+                  <span>Remove From Cart</span>
+                  <BsCartDashFill className="" />
+                </div>
+              ) : (
+                "Add to Cart"
+              )}
+            </Button>
+          )}
+
+          {/* Only show Move to Cart button on wishlist page and not in cart */}
+          {fromWishlistPage && isInWishlist(product.id) && !isInCart(product.id) && (
+            <Button
+              type="button"
+              onClick={handleMoveToCart}
+              className="w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 mt-2"
+            >
+              {isLoading ? 'Moving...' : 'Move to Cart'}
+            </Button>
+          )}
 
           <ContactSupplierButton
             supplierId={product.seller.userId}

@@ -5,6 +5,11 @@ import { wishlistApi } from '@/lib/api/wishlist';
 import { cartApi } from '@/lib/api/cart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCheckout } from '@/contexts/checkout-context';
+import { toast } from 'sonner';
+
+function isString(val: unknown): val is string {
+  return typeof val === 'string';
+}
 
 function page() {
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
@@ -15,7 +20,7 @@ function page() {
     const getProducts = async () => {
       try {
         setIsLoading(true)
-        const response = await wishlistApi.getWishlist()
+        const response = await wishlistApi.getWishlist() as unknown as { items: any[] };
         console.log(response.items)
         setWishlistProducts(response.items)
         setIsLoading(false)
@@ -38,7 +43,7 @@ function page() {
     const removeFromCart = (productId: string) => {
       const item = products.find((p:any) => p.product.id === productId)
       const itemId = item?.id
-      cartApi.removeFromCart(itemId)
+      cartApi.removeFromCart(itemId as any)      
       setProducts(products.filter((p:any) => p.id !== itemId))
     }
     
@@ -46,10 +51,17 @@ function page() {
       try {
         const item = wishlistProducts.find((p:any) => p.product.id === productId)
         const itemId = item?.id
-        wishlistApi.removeFromWishlist(itemId)
-        setWishlistProducts(wishlistProducts.filter((p:any) => p.id !== itemId))
+        if (typeof itemId !== 'string') {
+          toast('Failed to remove from wishlist: Invalid item.');
+          return;
+        }
+        const validItemId: string = itemId;
+        wishlistApi.removeFromWishlist(validItemId)
+        setWishlistProducts(wishlistProducts.filter((p:any) => p.id !== validItemId))
+        toast('Removed from wishlist');
       } catch {
         console.error('Failed to remove product from wishlist')
+        toast('Failed to remove from wishlist');
       }
     }
 
@@ -93,6 +105,7 @@ function page() {
                 removeFromWishlist={removeFromWishlist} 
                 setWishlistProducts={setWishlistProducts} 
                 wishlistProducts={wishlistProducts} 
+                fromWishlistPage={true}
               />
               ))
             }

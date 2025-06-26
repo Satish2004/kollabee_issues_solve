@@ -277,9 +277,9 @@ export function SupplierProvider({
   const fetchSavedSellers = async () => {
     try {
       const response = await projectApi.getSavedSellers(projectId);
-      if (response && Array.isArray(response)) {
+      if (response && Array.isArray(response.data)) {
         // Make sure we're properly extracting the IDs
-        const savedIds = response.map((seller) => seller.id);
+        const savedIds = response.data.map((seller) => seller.id);
         setSavedSuppliers(savedIds);
         console.log("Saved sellers loaded:", savedIds);
       } else {
@@ -296,7 +296,7 @@ export function SupplierProvider({
     try {
       // This endpoint would need to be implemented in your API
       const response = await projectApi.getRequestedSellers(projectId);
-      setRequestedSuppliers(response.map((seller) => seller.id));
+      setRequestedSuppliers(response.data.map((seller) => seller.id));
     } catch (error) {
       console.error("Error fetching requested sellers:", error);
       setRequestedSuppliers([]);
@@ -307,7 +307,7 @@ export function SupplierProvider({
     try {
       // This endpoint would need to be implemented in your API
       const response = await projectApi.getHiredSellers(projectId);
-      setHiredSuppliers(response.map((seller) => seller.id));
+      setHiredSuppliers(response.data.map((seller) => seller.id));
     } catch (error) {
       console.error("Error fetching requested sellers:", error);
       setHiredSuppliers([]);
@@ -549,13 +549,37 @@ export function SupplierProvider({
   const handleSearchChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value;
+      // Validation for supplier search
+      if (!value.trim()) {
+        toast({
+          title: "Invalid Search",
+          description: "Supplier search cannot be empty.",
+          variant: "destructive",
+        });
+        setSearchQuery("");
+        return;
+      } else if (/^[^a-zA-Z0-9]+$/.test(value)) {
+        toast({
+          title: "Invalid Search",
+          description: "Supplier search cannot contain only special characters.",
+          variant: "destructive",
+        });
+        setSearchQuery(value);
+        return;
+      } else if (value.trim().length < 2) {
+        toast({
+          title: "Invalid Search",
+          description: "Supplier search must be at least 2 characters long.",
+          variant: "destructive",
+        });
+        setSearchQuery(value);
+        return;
+      }
       setSearchQuery(value);
-
       // Clear any existing timeout
       if (searchTimeoutRef.current) {
         clearTimeout(searchTimeoutRef.current);
       }
-
       // Set a new timeout
       searchTimeoutRef.current = setTimeout(() => {
         fetchSuggestedSellers({

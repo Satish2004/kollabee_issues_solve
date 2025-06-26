@@ -13,7 +13,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Paperclip, X } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from 'sonner';
 import { chatApi } from "@/lib/api/chat";
 
 interface ContactSupplierFormProps {
@@ -34,7 +34,6 @@ export default function ContactSupplierForm({
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
-  const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -57,14 +56,11 @@ export default function ContactSupplierForm({
     e.preventDefault();
 
     if (!message.trim() && attachments.length === 0) {
-      toast({
-        title: "Error",
-        description: "Please enter a message or attach a file",
-        variant: "destructive",
-      });
+      toast('Please enter a message or attach a file');
       return;
     }
 
+    if (isSubmitting) return; // Prevent double submit
     setIsSubmitting(true);
 
     try {
@@ -82,38 +78,31 @@ export default function ContactSupplierForm({
       }
 
       // Create conversation with initial message
-      const response = await chatApi.createConversation({
+      const response:any = await chatApi.createConversation({
         participantId: supplierId,
         participantType: "SELLER",
         initialMessage: message,
         attachments: uploadedFiles,
       });
 
-      setResponseMessage("Message sent successfully");
-      setMessage("");
-
-      // Automatically clear the response message after a few seconds
-      setTimeout(() => setResponseMessage(""), 3000);
-
-      toast({
-        title: "Success",
-        description: `Message sent to ${supplierName}`,
-      });
-
-      // Clean up preview URLs
-      previewUrls.forEach((url) => URL.revokeObjectURL(url));
-
-      // Call onSuccess callback with the new conversation ID
-      if (onSuccess && response.data.conversation) {
-        onSuccess(response.data.conversation.id);
+      if (response && response.conversation) {
+        toast('Message sent successfully');
+        setMessage("");
+        setResponseMessage("");
+        // Clean up preview URLs
+        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+        // Add a short delay before closing modal and navigating
+        if (onSuccess) {
+          setTimeout(() => {
+            onSuccess(response.conversation.id);
+          }, 300); // 300ms delay for toast visibility
+        }
+      } else {
+        throw new Error("No conversation returned");
       }
     } catch (error) {
       console.error("Failed to send message:", error);
-      toast({
-        title: "Error",
-        description: "Failed to send message",
-        variant: "destructive",
-      });
+      toast('Failed to send message');
     } finally {
       setIsSubmitting(false);
     }
