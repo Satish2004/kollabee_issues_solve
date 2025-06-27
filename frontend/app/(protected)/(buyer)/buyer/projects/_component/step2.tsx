@@ -163,37 +163,6 @@ export default function Step2({
                 {errors.budget}
               </p>
             )}
-
-            <div className="">
-              <Label htmlFor="budget" className="text-base font-normal">
-                Budget Type
-                <span className="text-[#EA3D4F]">*</span>
-              </Label>
-              <RadioGroup
-                value={formData.budgetType}
-                onValueChange={(value) => handleChange("budgetType", value)}
-                className="flex space-x-8"
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="total" id="budget-total" />
-                  <Label
-                    htmlFor="budget-total"
-                    className="text-base font-normal"
-                  >
-                    Total Budget
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="per-unit" id="budget-per-unit" />
-                  <Label
-                    htmlFor="budget-per-unit"
-                    className="text-base font-normal"
-                  >
-                    Per unit Budget
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
           </div>
         </div>
 

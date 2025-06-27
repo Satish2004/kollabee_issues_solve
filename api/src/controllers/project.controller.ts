@@ -106,6 +106,11 @@ export const createProject = async (req: any, res: Response) => {
       projectData.minimumOrderQuantity ||
       "100";
 
+    // Remove customCategories from newProjectData if present
+    if (newProjectData.customCategories) {
+      delete newProjectData.customCategories;
+    }
+
     // Create the project with all fields
     const project = await prisma.project.create({
       data: {

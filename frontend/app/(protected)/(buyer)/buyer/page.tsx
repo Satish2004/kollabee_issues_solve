@@ -385,13 +385,6 @@ const actionCards = [
     actionText: "browse products",
     actionLink: "/buyer/marketplace",
   },
-  {
-    icon: "📩",
-    bgColor: "bg-yellow-100",
-    title: "Chat Requests",
-    description: "Your chat requests from the suppliers and admins",
-    link: "/buyer/chat",
-  },
 ];
 
 const products = Array(3).fill({

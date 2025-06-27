@@ -244,9 +244,7 @@ export default function ConfirmationScreen({
         <Field label="Quantity" value={formData.quantity} />
         <Field
           label="Budget"
-          value={`${formData.budget} (${
-            formData.budgetType === "total" ? "Total budget" : "Per unit"
-          })`}
+          value={formData.budget}
         />
       </Section>
 
@@ -347,9 +345,7 @@ export default function ConfirmationScreen({
         <Field label="Quantity" value={formData.quantity} />
         <Field
           label="Budget"
-          value={`${formData.budget} (${
-            formData.budgetType === "total" ? "Total budget" : "Per unit"
-          })`}
+          value={formData.budget}
         />
       </Section>
 

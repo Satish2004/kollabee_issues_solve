@@ -21,6 +21,7 @@ export interface SellerFilters {
   minAge?: number;
   maxAge?: number;
   priceRange?: string; // Format: "min-max"
+  category?: string; // Project category for supplier matching
 }
 
 const projectApi = {

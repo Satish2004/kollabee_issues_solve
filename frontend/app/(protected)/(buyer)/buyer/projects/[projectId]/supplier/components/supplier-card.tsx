@@ -1,11 +1,12 @@
 "use client";
 
-import { Star, Bookmark, Send, CheckCircle } from "lucide-react";
+import { Star, Bookmark, Send, CheckCircle, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useSuppliers } from "../context/supplier-context";
 import type { Supplier } from "../context/supplier-context";
+import { toast } from "sonner";
 
 interface SupplierCardProps {
   supplier: Supplier;
@@ -19,6 +20,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
     sendRequest,
     hiredSuppliers,
     savingSuppliers,
+    activeTab,
   } = useSuppliers();
 
   // Check if this supplier is saved
@@ -26,6 +28,20 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
 
   // Check if this supplier is currently being saved/unsaved
   const isSaving = savingSuppliers[supplier.id];
+
+  // Check if this supplier was hired in the past
+  const wasHiredInPast = hiredSuppliers.includes(supplier.id);
+
+  // Handle send request with order creation message
+  const handleSendRequest = async () => {
+    try {
+      await sendRequest(supplier);
+      // Show order creation message when request is sent
+      toast.success("Order request sent successfully! Order will be created once supplier accepts.");
+    } catch (error) {
+      // Error handling is already done in sendRequest function
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border overflow-hidden transition-all hover:shadow-md">
@@ -57,6 +73,16 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
             />
           )}
         </button>
+
+        {/* Hired in past badge - show in suggested tab */}
+        {wasHiredInPast && activeTab === "suggested" && (
+          <div className="absolute top-2 left-2">
+            <Badge className="bg-green-100 text-green-700 border-green-200 text-xs flex items-center gap-1">
+              <Award className="h-3 w-3" />
+              Hired in past
+            </Badge>
+          </div>
+        )}
       </div>
 
       <div className="p-4">
@@ -123,7 +149,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
                 ? "bg-green-600 hover:bg-green-700"
                 : "bg-gradient-to-r from-[#e00261] to-[#f0b168] hover:from-[#c80057] hover:to-[#e0a058]"
             } text-white border-none`}
-            onClick={() => sendRequest(supplier)}
+            onClick={handleSendRequest}
             disabled={requestedSuppliers.includes(supplier.id)}
           >
             {hiredSuppliers.includes(supplier.id) ? (

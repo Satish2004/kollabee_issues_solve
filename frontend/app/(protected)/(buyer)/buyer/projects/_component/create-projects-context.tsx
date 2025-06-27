@@ -43,7 +43,6 @@ interface ProjectFormData {
   // Budget fields - Step 2
   quantity?: number;
   budget?: number;
-  budgetType?: string;
   budgetFlexibility?: string;
 
   // Timeline fields - Step 3
@@ -87,9 +86,8 @@ const initialFormData: ProjectFormData = {
   selectedServices: [],
   customCategories: [],
   productCategory: [],
-  budgetType:"total",
-  quantity:100,
-  budget:1000,
+  quantity: 100,
+  budget: 1000,
 
   // Legacy fields for compatibility
   milestones: [
@@ -172,13 +170,15 @@ export function FormProvider({ children }: { children: ReactNode }) {
 
     // Map category and product type
     if (formData.selectedServices.includes("custom-manufacturing")) {
-      apiData.category = formData.productCategory?.includes["Other"]
-        ? formData.customCategories
-        : formData.productCategory ?? [];
+      const productCategoryArr = Array.isArray(formData.productCategory) ? formData.productCategory : [];
+      const customCategoriesArr = Array.isArray(formData.customCategories) ? formData.customCategories : [];
+      apiData.category = productCategoryArr.includes("Other")
+        ? customCategoriesArr
+        : productCategoryArr;
     } else if (formData.selectedServices.includes("packaging-only")) {
-      apiData.category = "PACKAGING";
+      apiData.category = formData.packagingCategory || "PACKAGING";
     } else if (formData.selectedServices.includes("services-brand-support")) {
-      apiData.category = "SERVICES";
+      apiData.category = formData.selectedServices[1] || "SERVICES";
     }
 
     // Set business name from project title

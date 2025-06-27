@@ -148,7 +148,7 @@ export default function SupplierCards({ sellers }) {
 
         {/* Single Card */}
         <div className="w-full bg-gray-100 rounded-lg p-4">
-          <h3 className="font-medium mb-2 line-clamp-2">
+          <h3 className="font-medium mb-2 break-words whitespace-normal">
             {sellers[currentIndex].businessName}
           </h3>
 
@@ -165,7 +165,7 @@ export default function SupplierCards({ sellers }) {
             </div>
           </div>
 
-          <Link href={"#"}>
+          <Link href={`/supplier/${sellers[currentIndex].id}`}>
             <Button className="w-full py-2 text-sm font-semibold shadow-none rounded-md gradient-border gradient-text">
               View Supplier Profile
             </Button>
@@ -202,7 +202,7 @@ export default function SupplierCards({ sellers }) {
                 key={index}
                 className="max-w-[240px] bg-gray-100 rounded-lg p-6 flex-shrink-0"
               >
-                <h3 className="font-medium mb-3 line-clamp-2">
+                <h3 className="font-medium mb-3 break-words whitespace-normal">
                   {supplier.businessName}
                 </h3>
 
@@ -217,7 +217,7 @@ export default function SupplierCards({ sellers }) {
                   </div>
                 </div>
 
-                <Link href={"#"}>
+                <Link href={`/supplier/${supplier.id}`}>
                   <Button className="w-full py-2 text-sm font-semibold shadow-none rounded-md gradient-border gradient-text">
                     View Supplier Profile
                   </Button>

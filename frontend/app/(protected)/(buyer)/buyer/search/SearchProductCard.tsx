@@ -1,12 +1,14 @@
 import React from "react";
 import { FaRegHeart, FaStar } from "react-icons/fa";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface SearchProductCardProps {
   product: any;
 }
 
 export default function SearchProductCard({ product }: SearchProductCardProps) {
+  const router = useRouter();
   // Example: product.priceRange = "$850.00-1,100.00" or use min/max price
   const priceRange = product.priceRange || (product.minPrice && product.maxPrice ? `$${product.minPrice}-${product.maxPrice}` : `$${product.price}`);
   return (
@@ -73,8 +75,29 @@ export default function SearchProductCard({ product }: SearchProductCardProps) {
         </div>
         {/* Action buttons */}
         <div className="flex gap-4 mt-2">
-          <Button className="rounded-[8px] px-7 py-2.5 font-semibold text-white bg-gradient-to-r from-[#C02090] to-[#F9A826] hover:from-[#a01a7a] hover:to-[#e28c1c] shadow-md text-base">Contact Supplier</Button>
-          <Button variant="outline" className="rounded-[8px] px-7 py-2.5 font-semibold border-2 border-[#F9A826] text-[#C02090] bg-white hover:bg-[#FFF7E6] text-base">Send Enquiry</Button>
+          <Button
+            className="rounded-[8px] px-7 py-2.5 font-semibold text-white bg-gradient-to-r from-[#C02090] to-[#F9A826] hover:from-[#a01a7a] hover:to-[#e28c1c] shadow-md text-base"
+            onClick={() => {
+              // Redirect to chat page with supplier
+              if (product.seller?.id) {
+                router.push(`/buyer/chat?supplierId=${product.seller.id}`);
+              } else {
+                alert('Supplier information not available.');
+              }
+            }}
+          >
+            Contact Supplier
+          </Button>
+          <Button
+            variant="outline"
+            className="rounded-[8px] px-7 py-2.5 font-semibold border-2 border-[#F9A826] text-[#C02090] bg-white hover:bg-[#FFF7E6] text-base"
+            onClick={() => {
+              // Placeholder: open enquiry modal or redirect
+              alert('Enquiry modal or form should open here.');
+            }}
+          >
+            Send Enquiry
+          </Button>
         </div>
       </div>
     </div>

@@ -29,6 +29,16 @@ export interface Supplier {
   tags: string[];
 }
 
+interface Project {
+  id: string;
+  category?: string | string[];
+  selectedServices?: string[];
+  businessName?: string;
+  budget?: number;
+  projectTimelineFrom?: Date;
+  projectTimelineTo?: Date;
+}
+
 interface SupplierContextType {
   // Data
   suppliers: Supplier[];
@@ -38,6 +48,7 @@ interface SupplierContextType {
   requestedSuppliers: string[];
   countries: string[];
   hiredSuppliers: string[];
+  project: Project | null;
 
   // Tab state
   activeTab: string;
@@ -98,6 +109,7 @@ export function SupplierProvider({
   const [savedSuppliers, setSavedSuppliers] = useState<string[]>([]);
   const [requestedSuppliers, setRequestedSuppliers] = useState<string[]>([]);
   const [hiredSuppliers, setHiredSuppliers] = useState<string[]>([]);
+  const [project, setProject] = useState<Project | null>(null);
 
   const [countries, setCountries] = useState<string[]>([]);
 
@@ -128,6 +140,20 @@ export function SupplierProvider({
     Record<string, boolean>
   >({});
 
+  // Fetch project data
+  const fetchProjectData = async () => {
+    try {
+      const response = await projectApi.getProjectDetails(projectId);
+      if (response && response.data) {
+        setProject(response.data);
+        console.log("Project data loaded:", response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching project data:", error);
+      // Don't show toast for this as it's not critical for the main functionality
+    }
+  };
+
   // Memoize the buildCurrentFilters function to prevent unnecessary re-renders
   const buildCurrentFilters = useCallback((): SellerFilters => {
     // Parse sort option
@@ -140,23 +166,38 @@ export function SupplierProvider({
       };
     }
 
-    return {
+    // Include project category in filters if available
+    const filters: SellerFilters = {
       ...sortParams,
       search: searchQuery,
       supplierTypes: selectedSupplierTypes,
     };
-  }, [sortOption, searchQuery, selectedSupplierTypes]);
+
+    // Add project category to filters for better supplier matching
+    if (project?.category) {
+      if (Array.isArray(project.category)) {
+        // If category is an array, use the first category or join them
+        filters.category = project.category[0] || project.category.join(",");
+      } else {
+        filters.category = project.category;
+      }
+    }
+
+    return filters;
+  }, [sortOption, searchQuery, selectedSupplierTypes, project]);
 
   // Fetch data only once on component mount
   useEffect(() => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        // First fetch saved sellers to ensure they're available before other operations
+        // First fetch project data to get category for supplier recommendations
+        await fetchProjectData();
+        // Then fetch saved sellers to ensure they're available before other operations
         await fetchSavedSellers();
         await fetchRequestedSellers();
         await fetchHiredSellers();
-        // Then fetch suggested sellers which will use the saved sellers data
+        // Then fetch suggested sellers which will use the project data and saved sellers data
         await fetchSuggestedSellers();
       } catch (error) {
         console.error("Error fetching initial data:", error);
@@ -232,13 +273,22 @@ export function SupplierProvider({
         };
       }
 
-      // Combine all filters
+      // Combine all filters, including project category
       const combinedFilters = {
         ...filters,
         ...sortParams,
         search: filters?.search !== undefined ? filters.search : searchQuery,
         supplierTypes: filters?.supplierTypes || selectedSupplierTypes,
       };
+
+      // Add project category to filters if not already present
+      if (!combinedFilters.category && project?.category) {
+        if (Array.isArray(project.category)) {
+          combinedFilters.category = project.category[0] || project.category.join(",");
+        } else {
+          combinedFilters.category = project.category;
+        }
+      }
 
       const response = await projectApi.suggestedSellers(
         projectId,
@@ -646,6 +696,7 @@ export function SupplierProvider({
     requestedSuppliers,
     countries,
     savingSuppliers,
+    project,
 
     // Tab state
     activeTab,

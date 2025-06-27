@@ -238,7 +238,15 @@ export default function MySuppliersPage() {
                   type="text"
                   placeholder="Search suppliers..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // Block empty or only special character queries
+                    if (/^[^a-zA-Z0-9]+$/.test(value) || value.trim() === "") {
+                      setSearch("");
+                      return;
+                    }
+                    setSearch(value);
+                  }}
                   className="pl-10 rounded-lg border-gray-200 focus-visible:ring-red-500"
                 />
               </div>
@@ -273,6 +281,8 @@ export default function MySuppliersPage() {
                   <SupplierCardSkeleton key={i} />
                 ))}
               </motion.div>
+            ) : suppliers.length === 0 ? (
+              <div className="w-full text-center text-gray-500 py-12 text-lg font-medium">No suppliers found for your search.</div>
             ) : (
               <motion.div
                 key="content"
