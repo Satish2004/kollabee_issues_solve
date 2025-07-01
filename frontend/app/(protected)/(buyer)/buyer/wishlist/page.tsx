@@ -7,11 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCheckout } from '@/contexts/checkout-context';
 import { toast } from 'sonner';
 
-function isString(val: unknown): val is string {
-  return typeof val === 'string';
-}
-
-function page() {
+function Page() {
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const {products, fetchProducts, setProducts } = useCheckout()

@@ -39,14 +39,13 @@ export default function BuyerProductSearchPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Map filters to backend-supported params
   const getApiParams = () => {
     return {
       search: query,
       minPrice: filters.price.min ? Number(filters.price.min) : undefined,
       maxPrice: filters.price.max ? Number(filters.price.max) : undefined,
       minOrderQuantity: filters.minOrders ? Number(filters.minOrders) : undefined,
-      // Add more mappings as your backend supports
+      userId: undefined, // Not needed for public search
     };
   };
 
@@ -65,7 +64,6 @@ export default function BuyerProductSearchPage() {
   const handleFilterApply = () => {};
   const handleFilterClear = () => setFilters(defaultFilters);
 
-  // Helper to check if query is only special characters or spaces
   const isInvalidQuery = (q: string) => !q.trim() || /^[^a-zA-Z0-9]+$/.test(q);
 
   return (
@@ -106,7 +104,6 @@ export default function BuyerProductSearchPage() {
             </>
           )}
         </section>
-        {/* Filters on the right */}
         <aside className="md:col-span-1">
           <SearchProductFilters
             filters={filters}

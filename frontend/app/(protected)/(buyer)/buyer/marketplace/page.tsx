@@ -26,6 +26,7 @@ const categories = [
 ]
 
 const tags = [
+  { id: "all", label: "All" },
   { id: "most-popular", label: "Most Popular" },
   { id: "hot-selling", label: "Hot Selling" },
 ]

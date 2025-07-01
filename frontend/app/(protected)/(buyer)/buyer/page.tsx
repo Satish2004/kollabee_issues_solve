@@ -93,7 +93,7 @@ const Dashboard = () => {
     <main className="min-h-screen md:px-6 max-w-screen overflow-x-hidden overflow-hidden">
       <div className=" space-y-3 sm:space-y-6">
         {/* Top section with 4 feature boxes */}
-        <FeatureBoxes />
+       {/* <FeatureBoxes />*/}
 
         {/* Middle section with Quick Action and Account Activity */}
         <div className="flex flex-col md:flex-row gap-3 sm:gap-6 bg-white rounded-xl p-3 sm:p-5">

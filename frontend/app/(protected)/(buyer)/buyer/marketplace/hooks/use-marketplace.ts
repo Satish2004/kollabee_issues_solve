@@ -12,16 +12,23 @@ export function useMarketplaceProducts({ category, tag }: UseMarketplaceParams) 
     queryKey: ["marketplace-products", category, tag],
     queryFn: async () => {
       const query: any = {}
-      if (category && category !== "all") query["category"] = category
-      if (tag && tag !== "all") query["tag"] = tag
+
+      if (category && category !== "all") {
+        query["category"] = category
+      }
+
+      if (tag && tag !== "all") {
+        query["tag"] = tag
+      }
 
       const response = await productsApi.getProducts(query)
       return response.data
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   })
 }
+
 
 export function useWishlistProducts() {
   return useQuery({

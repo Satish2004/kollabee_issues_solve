@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import type React from "react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { toast } from "sonner";
+import CategorySelector from "../../../../../components/category-selector";
 
 interface ProductFormProps {
   initialData?: any;
@@ -854,7 +855,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
         </div>
 
         {/* Mobile menu toggle */}
-        <button
+        <button title="Toggle sidebar"
           className="md:hidden p-2 rounded-md hover:bg-gray-100"
           onClick={() => setSidebarOpen(!sidebarOpen)}
         >
@@ -898,7 +899,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           {/* Sidebar content */}
           <div className="absolute right-0 top-0 h-full w-3/4 max-w-xs md:max-w-none md:w-full md:static bg-white shadow-xl md:shadow-none p-4 overflow-y-auto">
             <div className="flex justify-end md:hidden mb-4">
-              <button
+              <button title="Close sidebar"
                 className="p-2 rounded-full hover:bg-gray-100"
                 onClick={() => setSidebarOpen(false)}
               >
@@ -1145,6 +1146,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
               )}
             </section>
 
+            <CategorySelector selected={categories} onChange={setCategories} />
+
             {/* Product Details Section */}
             <section id="general-info" ref={generalInfoRef} className="mb-8">
               <h2 className="text-lg font-semibold mb-4">Product Details</h2>
@@ -1195,7 +1198,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                             alt={`Thumbnail ${index + 1}`}
                             className="w-full h-24 sm:h-32 object-cover mx-auto"
                           />
-                          <button
+                          <button title="Remove thumbnail"
                             type="button"
                             className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
                             onClick={async () => {
@@ -1528,7 +1531,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                   title="Double-click to edit"
                                 >
                                   {attr.key}
-                                  <button
+                                  <button title="Remove attribute"
                                     type="button"
                                     className="absolute right-2 text-gray-500 hover:text-red-500"
                                     onClick={() => removeCustomAttribute(index)}
@@ -1566,7 +1569,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <div className="mt-4 p-4 border rounded-md">
                   <div className="flex items-center mb-3">
                     <h3 className="text-md font-medium">Add new attribute</h3>
-                    <button
+                    <button title="Close"
                       type="button"
                       className="ml-auto text-gray-500 hover:text-red-500"
                       onClick={() => setIsAddingAttribute(false)}
@@ -1606,7 +1609,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <label className="block text-sm text-gray-600 mb-1">
                       Attribute Category
                     </label>
-                    <select
+                    <select title="Select attribute category"
                       className="w-full p-2 border rounded-md"
                       value={newAttributeCategory}
                       onChange={(e) =>
@@ -1713,7 +1716,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                             </div>
                           </div>
                         )}
-                        <button
+                        <button title="Remove document"
                           type="button"
                           className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
                           onClick={() => removeDocument(index)}

@@ -9,7 +9,6 @@ interface SearchProductCardProps {
 
 export default function SearchProductCard({ product }: SearchProductCardProps) {
   const router = useRouter();
-  // Example: product.priceRange = "$850.00-1,100.00" or use min/max price
   const priceRange = product.priceRange || (product.minPrice && product.maxPrice ? `$${product.minPrice}-${product.maxPrice}` : `$${product.price}`);
   return (
     <div className="bg-white rounded-2xl border border-[#F2F2F2] p-4 md:p-7 flex flex-col md:flex-row hover:shadow-lg transition-shadow w-full max-w-full items-stretch">
@@ -20,7 +19,7 @@ export default function SearchProductCard({ product }: SearchProductCardProps) {
           alt={product.name}
           className="object-cover w-full h-full rounded-xl"
         />
-        <button className="absolute bottom-4 right-4 bg-white border-2 border-white rounded-full p-2 shadow-md hover:bg-gray-100 transition flex items-center justify-center">
+        <button title="health" className="absolute bottom-4 right-4 bg-white border-2 border-white rounded-full p-2 shadow-md hover:bg-gray-100 transition flex items-center justify-center">
           <FaRegHeart className="text-2xl text-[#8C8C8C]" />
         </button>
       </div>
@@ -35,7 +34,7 @@ export default function SearchProductCard({ product }: SearchProductCardProps) {
             <span className="ml-1 text-[#8C8C8C] font-normal">({product.reviewCount || 11} reviews)</span>
           </div>
         </div>
-        {/* Title/desc */}
+       
         <div className="flex items-center gap-1 text-sm text-[#C8894B] mb-1">
           <span className="inline-block">
             <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M8 1.333l2.06 4.177 4.607.669-3.334 3.25.787 4.584L8 11.177l-4.12 2.836.787-4.584-3.334-3.25 4.607-.669L8 1.333z" fill="#C8894B"/></svg>

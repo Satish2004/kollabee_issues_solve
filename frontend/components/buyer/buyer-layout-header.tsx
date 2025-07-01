@@ -47,10 +47,8 @@ export default function BuyerLayoutHeader() {
   const [searchTerm, setSearchTerm] = useState("");
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
-  // Comprehensive routes array with proper ordering (most specific first)
   const routes = useMemo(
     () => [
-      // Buyer routes (most specific first)
       {
         label: "Update Product",
         icon: PenTool,
@@ -213,7 +211,6 @@ export default function BuyerLayoutHeader() {
         href: "/seller/settings",
         patterns: ["/seller/settings/"],
       },
-      // Dashboard routes (least specific, should be last)
       {
         label: "Seller Dashboard",
         icon: Home,
@@ -232,9 +229,7 @@ export default function BuyerLayoutHeader() {
     []
   );
 
-  // Enhanced route detection function
   const getCurrentRoute = useMemo(() => {
-    // First, try to find exact matches
     const exactMatch = routes.find((route) => {
       if (route.exact) {
         return pathname === route.href;
@@ -244,7 +239,6 @@ export default function BuyerLayoutHeader() {
 
     if (exactMatch) return exactMatch;
 
-    // Then try pattern matching (most specific first)
     const patternMatch = routes.find((route) => {
       if (route.patterns) {
         return route.patterns.some((pattern) => {
@@ -261,15 +255,14 @@ export default function BuyerLayoutHeader() {
 
     if (patternMatch) return patternMatch;
 
-    // Fallback to basic startsWith matching
     const basicMatch = routes.find((route) => {
       if (route.exact) return false;
+      if (!route.href) return false;
       return pathname.startsWith(route.href) && pathname !== route.href;
     });
 
     if (basicMatch) return basicMatch;
 
-    // Default fallback based on path structure
     if (pathname.startsWith("/buyer")) {
       return {
         label: "Dashboard",
@@ -286,7 +279,6 @@ export default function BuyerLayoutHeader() {
       };
     }
 
-    // Ultimate fallback
     return {
       label: "Dashboard",
       icon: Home,
@@ -319,7 +311,6 @@ export default function BuyerLayoutHeader() {
 
   const numberOfCartItems = products.length;
 
-  // Instant search as you type
   useEffect(() => {
     if (!searchTerm.trim()) return;
     if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
@@ -349,7 +340,6 @@ export default function BuyerLayoutHeader() {
         <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
       </div>
 
-      {/* Search Bar */}
       <form
         onSubmit={handleSearch}
         className="flex-1 max-w-xl mx-4 flex items-center bg-[#fafafa] rounded-lg border border-gray-200 px-2 py-1 shadow-sm"
@@ -362,7 +352,7 @@ export default function BuyerLayoutHeader() {
           onChange={e => setSearchTerm(e.target.value)}
           className="border-none bg-transparent focus:ring-0 flex-1 text-base"
         />
-        <button type="submit" className="p-2 text-gray-500 hover:text-black">
+        <button title="search product" type="submit" className="p-2 text-gray-500 hover:text-black">
           <Search className="w-5 h-5" />
         </button>
       </form>
@@ -428,11 +418,10 @@ export default function BuyerLayoutHeader() {
                   <Button
                     variant="outline"
                     size="icon"
-                    className={`size-10 rounded-full ${
-                      numberOfCartItems > 3
+                    className={`size-10 rounded-full ${numberOfCartItems > 3
                         ? "border-red-500 border-2"
                         : "border-neutral-300"
-                    } relative`}
+                      } relative`}
                   >
                     <ShoppingCartIcon className="size-5 cursor-pointer" />
                     {numberOfCartItems > 0 && (
@@ -521,11 +510,10 @@ export default function BuyerLayoutHeader() {
           <Button
             variant="outline"
             size="icon"
-            className={`size-9 rounded-full ${
-              numberOfCartItems > 3
+            className={`size-9 rounded-full ${numberOfCartItems > 3
                 ? "border-red-500 border-2"
                 : "border-neutral-300"
-            } relative`}
+              } relative`}
           >
             <ShoppingCartIcon className="size-8 cursor-pointer" />
             {numberOfCartItems > 0 && (

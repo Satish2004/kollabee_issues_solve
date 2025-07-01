@@ -14,7 +14,6 @@ export const messageController = {
         return res.status(400).json({ error: "Conversation ID is required" })
       }
 
-      // Check if user is a participant in this conversation
       const conversation = await prisma.conversation.findFirst({
         where: {
           id: conversationId as string,

@@ -33,6 +33,7 @@ export const productsApi = {
     limit?: number;
     status?: "ACTIVE" | "DRAFT";
   }) => {
+    console.log("Received filters:", params);
     return api.get("/products", { params });
   },
 

@@ -35,8 +35,6 @@ export default function ProductCard({
   const { setProducts } = useCheckout();
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const router = useRouter();
-
   const handleCart = async () => {
     try {
       if (!isInCart(product.id)) {
@@ -121,7 +119,9 @@ export default function ProductCard({
           />
         </Button>
       </div>
-
+      {
+        JSON.stringify(product.name)
+      }
       <div className="p-3 sm:p-4 space-y-2 sm:space-y-4">
         <div className="flex items-center justify-end text-xs sm:text-sm">
           <span className="font-medium">{product.rating}</span>
@@ -170,11 +170,10 @@ export default function ProductCard({
             <Button
               type="button"
               onClick={handleCart}
-              className={`w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold ${
-                isInCart(product.id)
+              className={`w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold ${isInCart(product.id)
                   ? "bg-zinc-700 hover:bg-zinc-600"
                   : "button-bg"
-              }`}
+                }`}
             >
               {isLoading ? (
                 "Adding..."

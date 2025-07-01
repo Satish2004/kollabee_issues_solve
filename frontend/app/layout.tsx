@@ -30,9 +30,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: PropsWithChildren) {
   return (
-    <html lang="en" className={futura.variable} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-primary overflow-auto`}
+        className={` antialiased bg-primary overflow-auto`}
       >
         <Provider>
           {children}

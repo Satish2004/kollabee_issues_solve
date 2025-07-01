@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
 import { Resend } from "resend";
+import { ProductProvider } from "../providers/product.provider";
 
 enum ProductStatus {
   DRAFT = "DRAFT",
@@ -78,9 +79,8 @@ export const createProduct = async (req: any, res: Response) => {
     // Send the approval request email to all admins
     await Promise.all(
       admin.map(async (adminEmail) => {
-        const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${
-          product.id
-        }?email=${encodeURIComponent(adminEmail)}`;
+        const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${product.id
+          }?email=${encodeURIComponent(adminEmail)}`;
         await resend.emails.send({
           from: "hello@tejasgk.com",
           to: adminEmail,
@@ -93,23 +93,19 @@ export const createProduct = async (req: any, res: Response) => {
             <p><strong>Discount:</strong> ${product.discount}%</p>
             <p><strong>Delivery Cost:</strong> $${product.deliveryCost}</p>
             <p><strong>Wholesale Price:</strong> $${product.wholesalePrice}</p>
-            <p><strong>Minimum Order Quantity:</strong> ${
-              product.minOrderQuantity
+            <p><strong>Minimum Order Quantity:</strong> ${product.minOrderQuantity
             }</p>
-            <p><strong>Available Quantity:</strong> ${
-              product.availableQuantity
+            <p><strong>Available Quantity:</strong> ${product.availableQuantity
             }</p>
             <p><strong>Category ID:</strong> ${product.categoryId}</p>
-            <p><strong>Pickup Address ID:</strong> ${
-              product.pickupAddressId || "N/A"
+            <p><strong>Pickup Address ID:</strong> ${product.pickupAddressId || "N/A"
             }</p>
             <p><strong>Attributes:</strong> ${JSON.stringify(
               product.attributes,
               null,
               2
             )}</p>
-            <p><strong>Seller:</strong> ${product.seller.user.name} (${
-              product.seller.user.email
+            <p><strong>Seller:</strong> ${product.seller.user.name} (${product.seller.user.email
             })</p>
             <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
           `,
@@ -138,7 +134,9 @@ export const getProducts = async (req: any, res: Response) => {
       sortOrder = "desc",
       page = 1,
       limit = 10,
+      tag
     } = req.query;
+
 
     const filters: any = {
       ...(req.user?.sellerId
@@ -180,6 +178,50 @@ export const getProducts = async (req: any, res: Response) => {
       },
     };
 
+    if (tag && tag !== "all") {
+      const limitNum = Number(limit) || 10;
+      const days = req.query.days ? Number(req.query.days) : undefined;
+      console.log("Tag filter applied:", tag, "with limit:", limitNum, "and days:", days);
+      switch (tag.toLowerCase()) {
+        case 'trending':
+          const trendingProducts = await ProductProvider.getTrendingProducts(limitNum, days);
+          return res.json({
+            data: ProductProvider.enhanceProducts(trendingProducts),
+            meta: {
+              total: trendingProducts.length,
+              page: 1,
+              limit: limitNum,
+              totalPages: 1,
+            }
+          });
+        case 'most-popular':
+          const popularProducts = await ProductProvider.getPopularProducts(limitNum);
+          return res.json({
+            data: ProductProvider.enhanceProducts(popularProducts),
+            meta: {
+              total: popularProducts.length,
+              page: 1,
+              limit: limitNum,
+              totalPages: 1,
+            }
+          });
+        case 'hot-selling':
+          const hotProducts = await ProductProvider.getHotSellingProducts(limitNum, days);
+          return res.json({
+            data: ProductProvider.enhanceProducts(hotProducts),
+            meta: {
+              total: hotProducts.length,
+              page: 1,
+              limit: limitNum,
+              totalPages: 1,
+            }
+          });
+
+        default:
+          break;
+      }
+      console.log("Tag filter applied:", tag);
+    }
 
 
     console.log("filters", filters);
@@ -308,9 +350,8 @@ export const updateProduct = async (req: any, res: Response) => {
     if (isApprovalRequired) {
       await Promise.all(
         admin.map(async (adminEmail) => {
-          const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${
-            updatedProduct.id
-          }?email=${encodeURIComponent(adminEmail)}`;
+          const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${updatedProduct.id
+            }?email=${encodeURIComponent(adminEmail)}`;
           await resend.emails.send({
             from: "hello@tejasgk.com",
             to: adminEmail,
@@ -322,27 +363,22 @@ export const updateProduct = async (req: any, res: Response) => {
           <p><strong>Price:</strong> $${updatedProduct.price}</p>
           <p><strong>Discount:</strong> ${updatedProduct.discount}%</p>
           <p><strong>Delivery Cost:</strong> $${updatedProduct.deliveryCost}</p>
-          <p><strong>Wholesale Price:</strong> $${
-            updatedProduct.wholesalePrice
-          }</p>
-          <p><strong>Minimum Order Quantity:</strong> ${
-            updatedProduct.minOrderQuantity
-          }</p>
-          <p><strong>Available Quantity:</strong> ${
-            updatedProduct.availableQuantity
-          }</p>
+          <p><strong>Wholesale Price:</strong> $${updatedProduct.wholesalePrice
+              }</p>
+          <p><strong>Minimum Order Quantity:</strong> ${updatedProduct.minOrderQuantity
+              }</p>
+          <p><strong>Available Quantity:</strong> ${updatedProduct.availableQuantity
+              }</p>
           <p><strong>Category ID:</strong> ${updatedProduct.categoryId}</p>
-          <p><strong>Pickup Address ID:</strong> ${
-            updatedProduct.pickupAddressId || "N/A"
-          }</p>
+          <p><strong>Pickup Address ID:</strong> ${updatedProduct.pickupAddressId || "N/A"
+              }</p>
           <p><strong>Attributes:</strong> ${JSON.stringify(
-            updatedProduct.attributes,
-            null,
-            2
-          )}</p>
-          <p><strong>Seller:</strong> ${updatedProduct.seller.user.name} (${
-            updatedProduct.seller.user.email
-          })</p>
+                updatedProduct.attributes,
+                null,
+                2
+              )}</p>
+          <p><strong>Seller:</strong> ${updatedProduct.seller.user.name} (${updatedProduct.seller.user.email
+              })</p>
           <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
         `,
           });
