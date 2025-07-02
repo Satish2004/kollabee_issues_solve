@@ -1,6 +1,6 @@
 "use client";
 
-import React, { ElementType } from "react";
+import React from "react";
 import Image from "next/image";
 
 type icon = string;

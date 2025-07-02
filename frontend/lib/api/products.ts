@@ -53,6 +53,7 @@ export const productsApi = {
     return api.get("/products/suggestions", { params: { query } });
   },
   updateProduct: async (id: string, data: any) => {
+    console.log("Updating product with data:", data);
     return api.put(`/products/${id}`, data);
   },
   deleteProduct: async (id: string) => {

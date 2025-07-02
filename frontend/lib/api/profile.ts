@@ -145,8 +145,8 @@ export const profileApi = {
   updateBusinessOverview: async (data: any) => {
     try {
       // Handle file upload if there's a logo preview
-      let formData = null;
-      let logoFile = null;
+      let formData: FormData | null = null;
+      let logoFile: File | null = null;
 
       if (data.logoPreview && data.logoPreview.startsWith("data:")) {
         // Convert base64 to file

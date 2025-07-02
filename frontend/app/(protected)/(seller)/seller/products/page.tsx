@@ -24,10 +24,9 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Debounce the search query to prevent excessive API calls
   const debouncedSearchQuery = useDebounce(inputValue, 500);
 
-  const { products, totalPages, stats, deleteProduct, refetchProducts } =
+  const { products, totalPages, stats, deleteProduct } =
     useProducts({
       status: activeTab === "active" ? "active" : "DRAFT",
       search: debouncedSearchQuery,
@@ -92,7 +91,6 @@ export default function ProductsPage() {
       console.error("Failed to delete product:", error);
       toast.error("Failed to delete product");
       setError("Failed to delete product. Please try again.");
-      // Clear error after 5 seconds
       setTimeout(() => setError(null), 5000);
     }
   };
@@ -107,6 +105,7 @@ export default function ProductsPage() {
             <span>{error}</span>
           </div>
         )}
+        
 
         {/* Stats Section - Can be a separate component */}
         <ProductStats stats={stats} />
@@ -114,13 +113,6 @@ export default function ProductsPage() {
         {/* Main Content */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
           {/* Header with tabs */}
-          {/* <ProductsHeader
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            isProfileComplete={isProfileComplete}
-            remainingSteps={remainingSteps}
-          /> */}
-
           <ProductsHeader
             activeTab={activeTab}
             setActiveTab={setActiveTab}

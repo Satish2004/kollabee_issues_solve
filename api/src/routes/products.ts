@@ -8,9 +8,8 @@ import {
   buyProduct,
   getSearchSuggestions,
   approveOrRejectProduct,
-  // updateProductStatus
 } from "../controllers/products.controller";
-import { authMiddleware, isAuthenticated, isSeller } from "../middleware/auth";
+import { authMiddleware, isAuthenticated } from "../middleware/auth";
 
 const router = express.Router();
 

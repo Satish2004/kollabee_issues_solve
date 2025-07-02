@@ -6,7 +6,6 @@ import { productsApi } from "@/lib/api/products";
 import { toast } from "sonner";
 
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,12 +27,8 @@ export default function EditProductPage() {
   const router = useRouter();
   const [product, setProduct] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [quantity, setQuantity] = useState(10);
   const { id } = useParams();
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const [selectedPrintingMethods, setSelectedPrintingMethods] = useState<
-    string[]
-  >(["Puff Printing"]);
   const [thumbnailStartIndex, setThumbnailStartIndex] = useState(0);
   const [isMobileGalleryOpen, setIsMobileGalleryOpen] = useState(false);
 
@@ -354,6 +349,25 @@ export default function EditProductPage() {
         </div>
       </div>
 
+      {/* display categories */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">Categories</h2>
+        <div className="flex flex-wrap gap-2">
+          {product.productCategories && product.productCategories.length > 0 ? (
+            product.productCategories.map((category) => (
+              <Badge
+                key={category.id}
+                className="bg-blue-100 text-blue-800 hover:bg-blue-200"
+              >
+                {category}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-sm text-gray-500">No categories assigned</span>
+          )}
+        </div>
+      </div>
+
       {/* Product Details Tabs */}
       <div className="overflow-hidden">
         <Tabs defaultValue="details" className="space-y-0 gap-0">
@@ -441,13 +455,11 @@ export default function EditProductPage() {
         </Tabs>
       </div>
 
-  
-
       {/* Fullscreen Mobile Gallery Modal */}
       {isMobileGalleryOpen && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col sm:hidden">
           <div className="flex justify-between items-center p-4 text-white">
-            <button
+            <button title="Close gallery"
               onClick={() => setIsMobileGalleryOpen(false)}
               className="p-2"
             >

@@ -230,7 +230,7 @@ export default function ProductsHeader({
       <div className="border-b">
         {profileCompletionIsLoading ? (
           <ProfileCompletionWarningSkeleton />
-        ) : showProfileCompletionWarningBanner ? ( // Actual warning banner, only if not loading and profile incomplete
+        ) : showProfileCompletionWarningBanner ? (
           <div className="bg-amber-50 p-3 sm:p-4 border-b border-amber-100">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <div className="flex items-start sm:items-center">

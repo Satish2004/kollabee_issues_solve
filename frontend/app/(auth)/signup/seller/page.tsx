@@ -53,7 +53,6 @@ export default function SignupSellerPage() {
   const [isResendDisabled, setIsResendDisabled] = useState(false);
   const [otpError, setOtpError] = useState("");
   const [submitLoading, setSubmitLoading] = useState(false);
-  const [checkboxConfirmed, setCheckboxConfirmed] = useState(false);
 
   // useEffect(() => {
   //   const savedData = localStorage.getItem("sellerSignupData");

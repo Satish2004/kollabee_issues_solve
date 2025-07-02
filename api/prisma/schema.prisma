@@ -291,7 +291,6 @@ model Notification {
   user      User     @relation(fields: [userId], references: [id])
 }
 
-
 model Client {
   id          String  @id @default(uuid())
   name        String
@@ -548,6 +547,8 @@ model Product {
   wishlistItems          WishlistItem[]
   interestedBuyers       Buyer[]         @relation("BuyerToProduct")
   thumbnail              String[]
+
+  productCategories CategoryEnum[]
 
   @@index([sellerId])
   @@index([categoryId])

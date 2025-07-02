@@ -2,14 +2,10 @@ import type { Request, Response } from "express";
 import prisma from "../db";
 import { Resend } from "resend";
 import { ProductProvider } from "../providers/product.provider";
+import { CATEGORY_OPTIONS } from "../config/data";
 
-enum ProductStatus {
-  DRAFT = "DRAFT",
-  ACTIVE = "ACTIVE",
-  ARCHIVED = "ARCHIVED",
-}
 
-const admin = ["pandeyyysuraj@gmail.com", "saibunty1@gmail.com"];
+const admin = ["pandeyyysuraj@gmail.com", "saibunty1@gmail.com","tejasgk.collab@gmail.com"];
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Create Product
@@ -33,7 +29,7 @@ export const createProduct = async (req: any, res: Response) => {
       images,
       thumbnail,
       pickupAddress,
-      isDraft,
+      categoryIds,
       attributes = {},
     } = req.body;
 
@@ -60,6 +56,7 @@ export const createProduct = async (req: any, res: Response) => {
         images,
         sellerId: req.user.sellerId,
         pickupAddressId: addressId,
+        productCategories: categoryIds || [],
         categoryId,
         isDraft: true, //coz all products will be draft until approved by admin
         attributes: attributes, // Store attributes directly as JSON
@@ -134,7 +131,8 @@ export const getProducts = async (req: any, res: Response) => {
       sortOrder = "desc",
       page = 1,
       limit = 10,
-      tag
+      tag,
+      category
     } = req.query;
 
 
@@ -161,11 +159,17 @@ export const getProducts = async (req: any, res: Response) => {
       };
     }
 
-    if (categoryId) filters.categoryId = categoryId;
+    // if (categoryId) filters.categoryId = categoryId;
     if (minPrice || maxPrice) {
       filters.price = {
         ...(minPrice && { gte: Number(minPrice) }),
         ...(maxPrice && { lte: Number(maxPrice) }),
+      };
+    }
+
+    if (category) {
+      filters.productCategories = {
+        has: category,
       };
     }
 
@@ -272,7 +276,6 @@ export const getProducts = async (req: any, res: Response) => {
   }
 };
 
-// Update Product
 export const updateProduct = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
@@ -300,20 +303,22 @@ export const updateProduct = async (req: any, res: Response) => {
       minOrderQuantity,
       availableQuantity,
       images,
-      categoryId,
       attributes = {},
       thumbnail,
       documents,
       discount,
       deliveryCost,
+      categoryIds, // Use categoryIds instead of categoryId
     } = req.body;
 
-    // Check if images or documents are being updated
+    // Check if images, documents, or categories are being updated
     const isApprovalRequired =
       (images?.length &&
         images.some((img: string) => !product.images.includes(img))) ||
       (documents?.length &&
-        documents.some((doc: string) => !product.documents.includes(doc)));
+        documents.some((doc: string) => !product.documents.includes(doc))) ||
+      (categoryIds?.length &&
+        JSON.stringify(categoryIds) !== JSON.stringify(product.productCategories));
 
     console.log("isApprovalRequired", isApprovalRequired);
 
@@ -328,13 +333,13 @@ export const updateProduct = async (req: any, res: Response) => {
         minOrderQuantity: Number(minOrderQuantity),
         availableQuantity: Number(availableQuantity),
         images,
-        categoryId,
         attributes: attributes, // Update attributes directly as JSON
         thumbnail,
+        productCategories: categoryIds || [], // Use productCategories field
         documents,
         discount: parseFloat(discount),
         deliveryCost: parseFloat(deliveryCost),
-        ...(isApprovalRequired && { isDraft: true }), // Mark as draft if approval is required
+        // ...(isApprovalRequired && { isDraft: true }),
       },
       include: {
         seller: {
@@ -346,41 +351,39 @@ export const updateProduct = async (req: any, res: Response) => {
       },
     });
 
-    // If approval is required, send an email to admins
     if (isApprovalRequired) {
       await Promise.all(
         admin.map(async (adminEmail) => {
-          const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${updatedProduct.id
-            }?email=${encodeURIComponent(adminEmail)}`;
+          const approvalLink = `${process.env.FRONTEND_URL}/admin/approve/${updatedProduct.id}?email=${encodeURIComponent(adminEmail)}`;
+
+          // Get category names for display
+          const categoryNames = (categoryIds || product.productCategories)
+            .map((id: string) => {
+              const category = CATEGORY_OPTIONS.find(c => c.value === id);
+              return category ? category.label : id;
+            })
+            .join(", ");
+
           await resend.emails.send({
             from: "hello@tejasgk.com",
             to: adminEmail,
             subject: "Product Update Approval Request",
             html: `
-          <p>A product has been updated and requires your approval.</p>
-          <p><strong>Product Name:</strong> ${updatedProduct.name}</p>
-          <p><strong>Description:</strong> ${updatedProduct.description}</p>
-          <p><strong>Price:</strong> $${updatedProduct.price}</p>
-          <p><strong>Discount:</strong> ${updatedProduct.discount}%</p>
-          <p><strong>Delivery Cost:</strong> $${updatedProduct.deliveryCost}</p>
-          <p><strong>Wholesale Price:</strong> $${updatedProduct.wholesalePrice
-              }</p>
-          <p><strong>Minimum Order Quantity:</strong> ${updatedProduct.minOrderQuantity
-              }</p>
-          <p><strong>Available Quantity:</strong> ${updatedProduct.availableQuantity
-              }</p>
-          <p><strong>Category ID:</strong> ${updatedProduct.categoryId}</p>
-          <p><strong>Pickup Address ID:</strong> ${updatedProduct.pickupAddressId || "N/A"
-              }</p>
-          <p><strong>Attributes:</strong> ${JSON.stringify(
-                updatedProduct.attributes,
-                null,
-                2
-              )}</p>
-          <p><strong>Seller:</strong> ${updatedProduct.seller.user.name} (${updatedProduct.seller.user.email
-              })</p>
-          <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
-        `,
+              <p>A product has been updated and requires your approval.</p>
+              <p><strong>Product Name:</strong> ${updatedProduct.name}</p>
+              <p><strong>Description:</strong> ${updatedProduct.description}</p>
+              <p><strong>Price:</strong> $${updatedProduct.price}</p>
+              <p><strong>Discount:</strong> ${updatedProduct.discount}%</p>
+              <p><strong>Delivery Cost:</strong> $${updatedProduct.deliveryCost}</p>
+              <p><strong>Wholesale Price:</strong> $${updatedProduct.wholesalePrice}</p>
+              <p><strong>Minimum Order Quantity:</strong> ${updatedProduct.minOrderQuantity}</p>
+              <p><strong>Available Quantity:</strong> ${updatedProduct.availableQuantity}</p>
+              <p><strong>Categories:</strong> ${categoryNames}</p>
+              <p><strong>Pickup Address ID:</strong> ${updatedProduct.pickupAddressId || "N/A"}</p>
+              <p><strong>Attributes:</strong> ${JSON.stringify(updatedProduct.attributes, null, 2)}</p>
+              <p><strong>Seller:</strong> ${updatedProduct.seller.user.name} (${updatedProduct.seller.user.email})</p>
+              <p><a href="${approvalLink}">Click here to approve or reject the product</a></p>
+            `,
           });
         })
       );
@@ -393,7 +396,6 @@ export const updateProduct = async (req: any, res: Response) => {
   }
 };
 
-// Delete Product
 export const deleteProduct = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
@@ -413,7 +415,6 @@ export const deleteProduct = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Product not found" });
     }
 
-    // Delete the product (no need to delete attributes separately)
     await prisma.product.delete({ where: { id } });
 
     res.json({ message: "Product deleted successfully" });
@@ -423,7 +424,6 @@ export const deleteProduct = async (req: any, res: Response) => {
   }
 };
 
-// Get Product By ID
 export const getProductById = async (req: any, res: Response) => {
   try {
     const { productId } = req.params;
@@ -463,7 +463,6 @@ export const getProductById = async (req: any, res: Response) => {
   }
 };
 
-// Get Search Suggestions
 export const getSearchSuggestions = async (req: Request, res: Response) => {
   try {
     const { query } = req.query;
@@ -573,5 +572,3 @@ export const approveOrRejectProduct = async (req: any, res: Response) => {
     res.status(500).json({ error: "Failed to process the request" });
   }
 };
-
-// Add other product-related controllers

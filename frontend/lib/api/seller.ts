@@ -64,31 +64,4 @@ export const sellerApi = {
 
   updateGoalsAndMetrics: (data: GoalsAndMetrics) =>
     api.post("/seller/goals-metrics", data),
-
-  // getDashboard: async (period?: '7d' | '30d') => {
-  //   return api.get('/seller/dashboard', { params: { period } });
-  // },
-
-  // updateProfile: async (data: {
-  //   businessName: string;
-  //   businessAddress: string;
-  //   websiteLink: string;
-  //   businessTypes: BusinessType[];
-  //   businessCategories: CategoryEnum[];
-  //   roleInCompany: string;
-  //   objectives: string[];
-  //   challenges: string[];
-  //   metrics: string[];
-  // }) => {
-  //   const response = await api.patch('/seller/profile', data);
-  //   return response.data;
-  // },
-
-  // getRandomRequests: async () => {
-  //   return api.get<Request[]>('/seller/requests/random');
-  // },
-
-  // acceptRequest: async (requestId: string) => {
-  //   return api.post(`/seller/requests/${requestId}/accept`);
-  // }
 };
