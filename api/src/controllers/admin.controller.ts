@@ -1,5 +1,5 @@
 import type { Request, Response } from "express"
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient, Role } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
@@ -148,169 +148,171 @@ export const adminController = {
 
   //Dashboard related functions
   getBuyerMetrics: async (req: any, res: Response) => {
-  
-  const now = new Date();
-  const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  
-  const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-  const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-  const calculatePercentage = (current: number, past: number): string => {
-    if (past === 0) return current === 0 ? '0%' : '100%';
-    const change = ((current - past) / past) * 100;
-    return `${Math.round(change)}%`;
-  };
+    const now = new Date();
+    const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-  // 1. New joined buyers this month vs last month
-  const newBuyersCurrent = await prisma.buyer.count({
-    where: {
-      user: {
-        createdAt: {
-          gte: currentMonthStart,
-          lte: currentMonthEnd
-        }
-      }
-    }
-  });
+    const lastMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
 
-  const newBuyersPast = await prisma.buyer.count({
-    where: {
-      user: {
-        createdAt: {
-          gte: lastMonthStart,
-          lte: lastMonthEnd
-        }
-      }
-    }
-  });
+    const calculatePercentage = (current: number, past: number): string => {
+      if (past === 0) return current === 0 ? '0%' : '100%';
+      const change = ((current - past) / past) * 100;
+      return `${Math.round(change)}%`;
+    };
 
-  // 2. Buyers who placed successful orders this month vs last month
-  const buyersWithOrdersCurrent = await prisma.buyer.count({
-    where: {
-      Order: {
-        some: {
-          createdAt: {
-            gte: currentMonthStart,
-            lte: currentMonthEnd
-          },
-          status: 'DELIVERED'
-        }
-      }
-    }
-  });
-
-  const buyersWithOrdersPast = await prisma.buyer.count({
-    where: {
-      Order: {
-        some: {
-          createdAt: {
-            gte: lastMonthStart,
-            lte: lastMonthEnd
-          },
-          status: 'DELIVERED'
-        }
-      }
-    }
-  });
-
-  // 3. Total buyers count (current vs previous month end)
-  const totalBuyersCurrent = await prisma.buyer.count();
-
-  // Get total buyers at the end of last month
-  const totalBuyersPast = await prisma.buyer.count({
-    where: {
-      user: {
-        createdAt: {
-          lte: lastMonthEnd
-        }
-      }
-    }
-  });
-
-  // 4. Inactive buyers (never placed any order this month)
-  const inactiveBuyersCurrent = await prisma.buyer.count({
-    where: {
-      Order: {
-        none: {
+    // 1. New joined buyers this month vs last month
+    const newBuyersCurrent = await prisma.buyer.count({
+      where: {
+        user: {
           createdAt: {
             gte: currentMonthStart,
             lte: currentMonthEnd
           }
         }
       }
-    }
-  });
+    });
 
-  const inactiveBuyersPast = await prisma.buyer.count({
-    where: {
-      Order: {
-        none: {
+    const newBuyersPast = await prisma.buyer.count({
+      where: {
+        user: {
           createdAt: {
             gte: lastMonthStart,
             lte: lastMonthEnd
           }
         }
       }
-    }
-  });
+    });
 
-  const metricResponse = {
-    NEW_JOINED_BUYERS: {
-      current: newBuyersCurrent,
-      past: newBuyersPast,
-      percentage: calculatePercentage(newBuyersCurrent, newBuyersPast)
-    },
-    BUYERS_BOUGHT: {
-      current: buyersWithOrdersCurrent,
-      past: buyersWithOrdersPast,
-      percentage: calculatePercentage(buyersWithOrdersCurrent, buyersWithOrdersPast)
-    },
-    TOTAL_BUYERS: {
-      current: totalBuyersCurrent,
-      past: totalBuyersPast,
-      percentage: calculatePercentage(totalBuyersCurrent, totalBuyersPast)
-    },
-    INACTIVE_BUYERS: {
-      current: inactiveBuyersCurrent,
-      past: inactiveBuyersPast,
-      percentage: calculatePercentage(inactiveBuyersCurrent, inactiveBuyersPast)
-    }
-  };
+    // 2. Buyers who placed successful orders this month vs last month
+    const buyersWithOrdersCurrent = await prisma.buyer.count({
+      where: {
+        Order: {
+          some: {
+            createdAt: {
+              gte: currentMonthStart,
+              lte: currentMonthEnd
+            },
+            status: 'DELIVERED'
+          }
+        }
+      }
+    });
 
-  res.status(200).json({ metricResponse })
+    const buyersWithOrdersPast = await prisma.buyer.count({
+      where: {
+        Order: {
+          some: {
+            createdAt: {
+              gte: lastMonthStart,
+              lte: lastMonthEnd
+            },
+            status: 'DELIVERED'
+          }
+        }
+      }
+    });
+
+    // 3. Total buyers count (current vs previous month end)
+    const totalBuyersCurrent = await prisma.buyer.count();
+
+    // Get total buyers at the end of last month
+    const totalBuyersPast = await prisma.buyer.count({
+      where: {
+        user: {
+          createdAt: {
+            lte: lastMonthEnd
+          }
+        }
+      }
+    });
+
+    // 4. Inactive buyers (never placed any order this month)
+    const inactiveBuyersCurrent = await prisma.buyer.count({
+      where: {
+        Order: {
+          none: {
+            createdAt: {
+              gte: currentMonthStart,
+              lte: currentMonthEnd
+            }
+          }
+        }
+      }
+    });
+
+    const inactiveBuyersPast = await prisma.buyer.count({
+      where: {
+        Order: {
+          none: {
+            createdAt: {
+              gte: lastMonthStart,
+              lte: lastMonthEnd
+            }
+          }
+        }
+      }
+    });
+
+
+
+    const metricResponse = {
+      NEW_JOINED_BUYERS: {
+        current: newBuyersCurrent,
+        past: newBuyersPast,
+        percentage: calculatePercentage(newBuyersCurrent, newBuyersPast)
+      },
+      BUYERS_BOUGHT: {
+        current: buyersWithOrdersCurrent,
+        past: buyersWithOrdersPast,
+        percentage: calculatePercentage(buyersWithOrdersCurrent, buyersWithOrdersPast)
+      },
+      TOTAL_BUYERS: {
+        current: totalBuyersCurrent,
+        past: totalBuyersPast,
+        percentage: calculatePercentage(totalBuyersCurrent, totalBuyersPast)
+      },
+      INACTIVE_BUYERS: {
+        current: inactiveBuyersCurrent,
+        past: inactiveBuyersPast,
+        percentage: calculatePercentage(inactiveBuyersCurrent, inactiveBuyersPast)
+      }
+    };
+
+    res.status(200).json({ metricResponse })
   },
 
   getTimePeriodMetrics: async (req: Request, res: Response) => {
     try {
       const { period } = req.params; // 'today', 'week', 'month', or 'year'
-  
+
       if (!['today', 'week', 'month', 'year'].includes(period)) {
         return res.status(400).json({ error: "Invalid time period specified" });
       }
-  
+
       // Calculate date ranges
       const now = new Date();
       let currentStart: Date;
       let pastStart: Date;
       let pastEnd: Date;
-  
+
       switch (period) {
         case 'today':
           currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
           pastStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
           pastEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate());
           break;
-          case 'week':
-            currentStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            pastStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000); 
-            pastEnd = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-            break;
-          case 'month':
-            currentStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); 
-            pastStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000); 
-            pastEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); 
-            break;
+        case 'week':
+          currentStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          pastStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+          pastEnd = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        case 'month':
+          currentStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          pastStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+          pastEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          break;
         case 'year':
           currentStart = new Date(now.getFullYear(), 0, 1);
           pastStart = new Date(now.getFullYear() - 1, 0, 1);
@@ -321,14 +323,14 @@ export const adminController = {
           pastStart = new Date();
           pastEnd = new Date();
       }
-  
+
       // Helper function to calculate percentage change
       const calculatePercentage = (current: number, past: number): string => {
         if (past === 0) return current === 0 ? '0%' : '100%';
         const change = ((current - past) / past) * 100;
         return `${Math.round(change)}%`;
       };
-  
+
       // Fetch all metrics in parallel for better performance
       const [
         currentRequests,
@@ -375,7 +377,7 @@ export const adminController = {
           }
         }),
       ]);
-  
+
       const metrics: TimePeriodMetrics = {
         requests: {
           current: currentRequests,
@@ -392,7 +394,7 @@ export const adminController = {
           current: currentCertificates
         }
       };
-  
+
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching time period metrics:", error);
@@ -404,8 +406,8 @@ export const adminController = {
     try {
       const now = new Date();
       const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth(); 
-      
+      const currentMonth = now.getMonth();
+
       // Generate the last 12 months including current month
       const months = Array.from({ length: 12 }, (_, i) => {
         const date = new Date(currentYear, currentMonth - i, 1);
@@ -417,7 +419,7 @@ export const adminController = {
           end: new Date(date.getFullYear(), date.getMonth() + 1, 0)
         };
       }).reverse();
-  
+
       const onboardingData = await Promise.all(
         months.map(async ({ name, start, end }) => {
           const [buyers, suppliers] = await Promise.all([
@@ -442,11 +444,11 @@ export const adminController = {
               }
             })
           ]);
-  
+
           return { name, buyers, suppliers };
         })
       );
-  
+
       res.json(onboardingData);
     } catch (error) {
       console.error("Error fetching monthly onboarding data:", error);
@@ -458,13 +460,13 @@ export const adminController = {
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
+
       // Helper function to generate random colors
       const getRandomColor = () => {
         const colors = ['#8884d8', '#82ca9d', '#8dd1e1', '#a4de6c', '#ffc658'];
         return colors[Math.floor(Math.random() * colors.length)];
       };
-  
+
       // Fetch top 5 selling products with their order items
       const topSellingProducts = await prisma.product.findMany({
         where: {
@@ -498,7 +500,7 @@ export const adminController = {
         },
         take: 5
       });
-  
+
       // Format top selling products with proper typing
       const formattedTopSellers: TopSellingProduct[] = topSellingProducts.map(product => {
         const totalQuantity = product.orderItems.reduce(
@@ -509,7 +511,7 @@ export const adminController = {
           (sum: number, item: { quantity: number; price: number }) => sum + (item.price * item.quantity),
           0
         );
-        
+
         return {
           name: product.name,
           price: product.price,
@@ -517,7 +519,7 @@ export const adminController = {
           amount: parseFloat(totalAmount.toFixed(2))
         };
       });
-  
+
       // Fetch low selling products (sold at least twice but among the least sold)
       const lowSellingProducts = await prisma.product.findMany({
         where: {
@@ -559,7 +561,7 @@ export const adminController = {
         },
         take: 5
       });
-  
+
       // Format low selling products with proper typing
       const formattedLowSellers: LowSellingProduct[] = lowSellingProducts
         .map(product => {
@@ -571,7 +573,7 @@ export const adminController = {
             (sum: number, item: { quantity: number; price: number }) => sum + (item.price * item.quantity),
             0
           );
-          
+
           return {
             name: product.name,
             value: totalQuantity,
@@ -580,12 +582,12 @@ export const adminController = {
           };
         })
         .filter(product => product.value > 1); // Ensure at least 2 sales
-  
+
       const response: ProductMetrics = {
         topSellingProducts: formattedTopSellers,
         lowSellingProducts: formattedLowSellers
       };
-  
+
       res.json(response);
     } catch (error) {
       console.error("Error fetching product performance metrics:", error);
@@ -599,12 +601,12 @@ export const adminController = {
       const currentPeriodStart = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       const pastPeriodStart = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
       const pastPeriodEnd = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-  
+
       // Helper to calculate engagement score with weights
       const calculateScore = (orders: number, wishlists: number, carts: number) => {
         return (orders * 3) + (wishlists * 2) + (carts * 1);
       };
-  
+
       // Fetch current period data
       const [currentOrders, currentWishlists, currentCarts] = await Promise.all([
         prisma.orderItem.groupBy({
@@ -628,7 +630,7 @@ export const adminController = {
           _count: { productId: true }
         })
       ]);
-  
+
       // Fetch past period data
       const [pastOrders, pastWishlists, pastCarts] = await Promise.all([
         prisma.orderItem.groupBy({
@@ -652,20 +654,20 @@ export const adminController = {
           _count: { productId: true }
         })
       ]);
-  
+
       // Create maps for efficient lookup
       const createCountMap = (groups: any[]) => new Map(
         groups.map(g => [g.productId, g._count.productId])
       );
-  
+
       const currentOrderMap = createCountMap(currentOrders);
       const currentWishlistMap = createCountMap(currentWishlists);
       const currentCartMap = createCountMap(currentCarts);
-      
+
       const pastOrderMap = createCountMap(pastOrders);
       const pastWishlistMap = createCountMap(pastWishlists);
       const pastCartMap = createCountMap(pastCarts);
-  
+
       // Get all unique product IDs from current period
       const allProductIds = [
         ...new Set([
@@ -674,33 +676,33 @@ export const adminController = {
           ...currentCarts.map(c => c.productId)
         ])
       ];
-  
+
       // Get product details for all involved products
       const products = await prisma.product.findMany({
         where: { id: { in: allProductIds } },
         select: { id: true, name: true, price: true, thumbnail: true }
       });
-  
+
       // Calculate scores for each product
       const productsWithScores = products.map(product => {
         const currentOrders = currentOrderMap.get(product.id) || 0;
         const currentWishlists = currentWishlistMap.get(product.id) || 0;
         const currentCarts = currentCartMap.get(product.id) || 0;
-        
+
         const pastOrders = pastOrderMap.get(product.id) || 0;
         const pastWishlists = pastWishlistMap.get(product.id) || 0;
         const pastCarts = pastCartMap.get(product.id) || 0;
-  
+
         const currentScore = calculateScore(currentOrders, currentWishlists, currentCarts);
         const pastScore = calculateScore(pastOrders, pastWishlists, pastCarts);
-  
+
         let percentageChange = 0;
         if (pastScore > 0) {
           percentageChange = ((currentScore - pastScore) / pastScore) * 100;
         } else if (currentScore > 0) {
           percentageChange = 100; // New trending
         }
-  
+
         return {
           ...product,
           trendingScore: currentScore,
@@ -710,7 +712,7 @@ export const adminController = {
           carts: currentCarts
         };
       });
-  
+
       // Sort by trending score and get top 5
       const trendingProducts = productsWithScores
         .sort((a, b) => b.trendingScore - a.trendingScore)
@@ -725,7 +727,7 @@ export const adminController = {
           wishlists: p.wishlists,
           carts: p.carts
         }));
-  
+
       res.json(trendingProducts);
     } catch (error) {
       console.error("Error fetching trending products:", error);
@@ -737,7 +739,7 @@ export const adminController = {
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
+
       // Fetch all buyers with their orders and order items in the last 30 days
       const buyers = await prisma.buyer.findMany({
         where: {
@@ -780,18 +782,18 @@ export const adminController = {
           }
         }
       });
-  
+
       // Process each buyer to calculate metrics
       const processedBuyers = buyers.map(buyer => {
         const allOrderItems = buyer.Order.flatMap(order => order.items);
-        
+
         // Calculate total spent and aggregate products without duplicates
         const productMap = new Map<string, ProductInfo>();
         let totalSpent = 0;
-  
+
         allOrderItems.forEach(item => {
           totalSpent += item.price * item.quantity;
-          
+
           const existingProduct = productMap.get(item.product.name);
           if (existingProduct) {
             existingProduct.totalQuantity += item.quantity;
@@ -803,15 +805,15 @@ export const adminController = {
             });
           }
         });
-  
+
         // Convert product map to array
         const products = Array.from(productMap.values());
-  
+
         // Check if buyer has any pending orders
         const hasPendingOrders = buyer.Order.some(
           order => order.status !== 'DELIVERED' && order.status !== 'CANCELLED'
         );
-  
+
         // Get most recent address
         const address = buyer.user.addresses[0] || {
           address: 'N/A',
@@ -820,7 +822,7 @@ export const adminController = {
           country: 'N/A',
           zipCode: 'N/A'
         };
-  
+
         return {
           buyerName: buyer.user.name || 'Unknown',
           email: buyer.user.email,
@@ -838,7 +840,7 @@ export const adminController = {
           }
         };
       });
-  
+
       // Sort by total spent descending, then by order count
       const sortedBuyers = processedBuyers.sort((a, b) => {
         if (b.totalSpent !== a.totalSpent) {
@@ -846,10 +848,10 @@ export const adminController = {
         }
         return b.orderCount - a.orderCount;
       });
-  
+
       // Get top 10 buyers
       const topBuyers = sortedBuyers.slice(0, 10);
-  
+
       res.json(topBuyers);
     } catch (error) {
       console.error("Error fetching top buyers:", error);
@@ -864,14 +866,14 @@ export const adminController = {
       const currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const pastPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
       const pastPeriodEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  
+
       // Helper function to calculate percentage change
       const calculatePercentage = (current: number, past: number): string => {
         if (past === 0) return current === 0 ? '0%' : '100%';
         const change = ((current - past) / past) * 100;
         return `${Math.round(change)}%`;
       };
-  
+
       // Fetch all metrics in parallel for better performance
       const [
         newSuppliersCurrent,
@@ -960,7 +962,7 @@ export const adminController = {
           }
         }),
       ]);
-  
+
       const metrics: SupplierMetrics = {
         NEW_JOINED_SUPPLIERS: {
           current: newSuppliersCurrent,
@@ -983,7 +985,7 @@ export const adminController = {
           percentage: calculatePercentage(inactiveSuppliersCurrent, inactiveSuppliersPast)
         }
       };
-  
+
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching supplier metrics:", error);
@@ -1008,7 +1010,7 @@ export const adminController = {
         },
         take: 5
       });
-  
+
       // Fetch top 5 countries for buyers
       const buyerCountries = await prisma.user.groupBy({
         by: ['country'],
@@ -1024,7 +1026,7 @@ export const adminController = {
         },
         take: 5
       });
-  
+
       // Format seller data with header
       const formattedSellerData: (string | number)[][] = [
         ['Country', 'Popularity'],
@@ -1033,7 +1035,7 @@ export const adminController = {
           country._count.country
         ])
       ];
-  
+
       // Format buyer data with header
       const formattedBuyerData: (string | number)[][] = [
         ['Country', 'Popularity'],
@@ -1042,12 +1044,12 @@ export const adminController = {
           country._count.country
         ])
       ];
-  
+
       const response: CountryData = {
         sellerData: formattedSellerData,
         buyerData: formattedBuyerData
       };
-  
+
       res.json(response);
     } catch (error) {
       console.error("Error fetching top countries:", error);
@@ -1059,7 +1061,7 @@ export const adminController = {
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
+
       // Fetch all order items in the last 30 days with seller and product info
       const orderItems = await prisma.orderItem.findMany({
         where: {
@@ -1081,7 +1083,7 @@ export const adminController = {
           }
         }
       });
-  
+
       // Create a map to aggregate data by seller
       const sellerMap = new Map<string, {
         name: string;
@@ -1089,48 +1091,48 @@ export const adminController = {
         totalProductsSold: number;
         totalRevenueGenerated: number;
       }>();
-  
+
       // Process all order items and aggregate by seller
       orderItems.forEach(item => {
         // Skip if seller or sellerId is null
         if (!item.sellerId || !item.seller) return;
-  
+
         const sellerId = item.sellerId;
         const sellerName = item.seller.user?.name || 'Unknown';
-        
+
         const currentData = sellerMap.get(sellerId) || {
           name: sellerName,
           id: sellerId,
           totalProductsSold: 0,
           totalRevenueGenerated: 0
         };
-  
+
         sellerMap.set(sellerId, {
           ...currentData,
           totalProductsSold: currentData.totalProductsSold + item.quantity,
           totalRevenueGenerated: currentData.totalRevenueGenerated + (item.price * item.quantity)
         });
       });
-  
+
       // Convert map to array
       const allSuppliers = Array.from(sellerMap.values());
-  
+
       // Sort by total products sold (quantity)
-      const sortedByProducts = [...allSuppliers].sort((a, b) => 
+      const sortedByProducts = [...allSuppliers].sort((a, b) =>
         b.totalProductsSold - a.totalProductsSold
       );
-  
+
       // Sort by total revenue generated
-      const sortedByRevenue = [...allSuppliers].sort((a, b) => 
+      const sortedByRevenue = [...allSuppliers].sort((a, b) =>
         b.totalRevenueGenerated - a.totalRevenueGenerated
       );
-  
+
       // Get top 5 for each category
       const response: TopSuppliersResponse = {
         topSuppliersOnProducts: sortedByProducts.slice(0, 5),
         topSuppliersOnRevenue: sortedByRevenue.slice(0, 5)
       };
-  
+
       res.json(response);
     } catch (error) {
       console.error("Error fetching top suppliers:", error);
@@ -1143,7 +1145,7 @@ export const adminController = {
       const { supplierId } = req.params;
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  
+
       // Get supplier basic info
       const supplier = await prisma.seller.findUnique({
         where: { id: supplierId },
@@ -1155,11 +1157,11 @@ export const adminController = {
           }
         }
       });
-  
+
       if (!supplier) {
         return res.status(404).json({ error: "Supplier not found" });
       }
-  
+
       // Get all order items for this supplier in last 30 days
       const orderItems = await prisma.orderItem.findMany({
         where: {
@@ -1181,7 +1183,7 @@ export const adminController = {
           }
         }
       });
-  
+
       // Calculate top selling product
       const productMap = new Map<string, number>();
       orderItems.forEach(item => {
@@ -1189,15 +1191,15 @@ export const adminController = {
         const currentQuantity = productMap.get(productName) || 0;
         productMap.set(productName, currentQuantity + item.quantity);
       });
-  
+
       let topProduct = { name: 'No products sold', quantitySold: 0 };
       if (productMap.size > 0) {
-        const [name, quantitySold] = [...productMap.entries()].reduce((a, b) => 
+        const [name, quantitySold] = [...productMap.entries()].reduce((a, b) =>
           a[1] > b[1] ? a : b
         );
         topProduct = { name, quantitySold };
       }
-  
+
       // Calculate daily metrics for top product
       const dailyMetricsMap = new Map<string, number>();
       orderItems
@@ -1207,7 +1209,7 @@ export const adminController = {
           const currentQuantity = dailyMetricsMap.get(dateStr) || 0;
           dailyMetricsMap.set(dateStr, currentQuantity + item.quantity);
         });
-  
+
       // Fill in all dates for the past 30 days
       const topSellingProductDailyChart: DailyMetric[] = [];
       for (let i = 0; i < 30; i++) {
@@ -1220,7 +1222,7 @@ export const adminController = {
           quantity: dailyMetricsMap.get(dateStr) || 0
         });
       }
-  
+
       // Calculate weekly metrics (revenue and quantity)
       const weeklyMetricsMap = new Map<string, { quantity: number; revenue: number }>();
       orderItems.forEach(item => {
@@ -1228,25 +1230,25 @@ export const adminController = {
         const sunday = new Date(orderDate);
         sunday.setDate(orderDate.getDate() - orderDate.getDay()); // Get start of week (Sunday)
         const weekStr = sunday.toISOString().split('T')[0];
-        
+
         const currentWeek = weeklyMetricsMap.get(weekStr) || { quantity: 0, revenue: 0 };
         weeklyMetricsMap.set(weekStr, {
           quantity: currentWeek.quantity + item.quantity,
           revenue: currentWeek.revenue + (item.price * item.quantity)
         });
       });
-  
+
       // Format weekly data for response
       const totalRevenueAndQuantityChartData: WeeklyMetric[] = [];
       const sunday = new Date();
       sunday.setDate(sunday.getDate() - sunday.getDay()); // Current Sunday
-      
+
       for (let i = 4; i >= 0; i--) {
         const weekDate = new Date(sunday);
         weekDate.setDate(sunday.getDate() - (i * 7));
         const weekStr = weekDate.toISOString().split('T')[0];
         const formattedDate = weekStr.split('-').reverse().join('/').slice(0, 8);
-        
+
         const weekData = weeklyMetricsMap.get(weekStr) || { quantity: 0, revenue: 0 };
         totalRevenueAndQuantityChartData.push({
           date: formattedDate,
@@ -1254,13 +1256,13 @@ export const adminController = {
           revenue: parseFloat(weekData.revenue.toFixed(2))
         });
       }
-  
+
       // Calculate total quantity sold
       const totalQuantitySold = orderItems.reduce(
-        (sum, item) => sum + item.quantity, 
+        (sum, item) => sum + item.quantity,
         0
       );
-  
+
       const response: SupplierAnalytics = {
         name: supplier.user?.name || 'Unknown Supplier',
         topSellingProduct: topProduct,
@@ -1268,7 +1270,7 @@ export const adminController = {
         totalQuantitySold,
         totalRevenueAndQuantityChartData
       };
-  
+
       res.json(response);
     } catch (error) {
       console.error("Error fetching supplier analytics:", error);
@@ -1278,82 +1280,22 @@ export const adminController = {
 
   getPlatformMetrics: async (req: Request, res: Response) => {
     try {
-      const now = new Date();
-      const currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      const pastPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-      const pastPeriodEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  
-      // Helper function to calculate percentage change
-      const calculatePercentage = (current: number, past: number): string => {
-        if (past === 0) return current === 0 ? '0%' : '100%';
-        const change = ((current - past) / past) * 100;
-        return `${change.toFixed(2)}%`;
-      };
-  
-      // Fetch all metrics in parallel
-      const [
-        requestsCurrent,
-        requestsPast,
-        messagesCurrent,
-        ordersCurrent,
-        ordersPast,
-        certificatesCurrent,
-      ] = await Promise.all([
-        // Requests (current period)
-        prisma.request.count({
-          where: {
-            createdAt: { gte: currentPeriodStart, lte: now }
-          }
-        }),
-        // Requests (past period)
-        prisma.request.count({
-          where: {
-            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
-          }
-        }),
-        // Messages (current period)
-        prisma.message.count({
-          where: {
-            createdAt: { gte: currentPeriodStart, lte: now }
-          }
-        }),
-        // Orders (current period)
-        prisma.order.count({
-          where: {
-            createdAt: { gte: currentPeriodStart, lte: now }
-          }
-        }),
-        // Orders (past period)
-        prisma.order.count({
-          where: {
-            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
-          }
-        }),
-        // Certificates (current period)
-        prisma.certification.count({
-          where: {
-            createdAt: { gte: currentPeriodStart, lte: now }
-          }
-        }),
+      const totalMetrics = await Promise.all([
+        prisma.projectReq.count(),
+        prisma.message.count(),
+        prisma.order.count(),
+        prisma.certification.count(),
+        prisma.seller.count()
       ]);
-  
-      const metrics: PlatformMetrics = {
-        requests: {
-          current: requestsCurrent,
-          percentageChange: calculatePercentage(requestsCurrent, requestsPast)
-        },
-        messages: {
-          current: messagesCurrent
-        },
-        orders: {
-          current: ordersCurrent,
-          percentageChange: calculatePercentage(ordersCurrent, ordersPast)
-        },
-        certificatesUploaded: {
-          current: certificatesCurrent
-        }
+
+      const metrics = {
+        requests: totalMetrics[0],
+        messages: totalMetrics[1],
+        orders: totalMetrics[2],
+        certificatesUploaded: totalMetrics[3],
+        suppliers: totalMetrics[4]
       };
-  
+
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching platform metrics:", error);
@@ -1367,14 +1309,14 @@ export const adminController = {
       const currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       const pastPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
       const pastPeriodEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  
+
       // Helper function to calculate percentage change
       const calculatePercentage = (current: number, past: number): string => {
         if (past === 0) return current === 0 ? '0%' : '100%';
         const change = ((current - past) / past) * 100;
         return `${Math.round(change)}%`;
       };
-  
+
       // Fetch all order metrics in parallel
       const [
         totalOrdersCurrent,
@@ -1425,7 +1367,7 @@ export const adminController = {
           }
         })
       ]);
-  
+
       // Calculate average response time for current and past period
       const [currentResponses, pastResponses] = await Promise.all([
         prisma.order.findMany({
@@ -1464,7 +1406,7 @@ export const adminController = {
         past: formatDuration(avgPast),
         percentageChange: calculatePercentage(avgCurrent, avgPast)
       };
-  
+
       const metrics: OrderMetrics = {
         totalOrders: {
           current: totalOrdersCurrent,
@@ -1486,11 +1428,352 @@ export const adminController = {
         },
         averageResponse
       };
-  
+
       res.json(metrics);
     } catch (error) {
       console.error("Error fetching order metrics:", error);
       res.status(500).json({ error: "Failed to fetch order metrics" });
+    }
+  },
+  getUserMetrics: async (req: Request, res: Response) => {
+    try {
+      const { type = 'seller' } = req.query;
+      const isBuyer = type === 'buyer';
+
+      const now = new Date();
+      const currentPeriodStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const pastPeriodStart = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+      const pastPeriodEnd = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+      // Helper function to calculate percentage change
+      const calculatePercentage = (current: number, past: number): string => {
+        if (past === 0) return current === 0 ? '0%' : '100%';
+        const change = ((current - past) / past) * 100;
+        return `${Math.round(change)}%`;
+      };
+
+      // CORRECTED: Filter by role instead of relation
+      const roleFilter = isBuyer ? Role.BUYER : Role.SELLER;
+
+      // Fetch all metrics in parallel
+      const [
+        totalCurrent,
+        totalPast,
+        activeCurrent,
+        activePast,
+        topCountriesCurrent,
+        topCountriesPast,
+        newCurrent,
+        newPast
+      ] = await Promise.all([
+        // Total (current period) - Filter by role
+        prisma.user.count({
+          where: {
+            role: roleFilter,
+            createdAt: { lte: now }
+          }
+        }),
+        // Total (past period) - Filter by role
+        prisma.user.count({
+          where: {
+            role: roleFilter,
+            createdAt: { lte: pastPeriodEnd }
+          }
+        }),
+        // Active (current period) - Filter by role
+        prisma.user.count({
+          where: {
+            role: roleFilter,
+            isActive: true,
+            createdAt: { lte: now }
+          }
+        }),
+        // Active (past period) - Filter by role
+        prisma.user.count({
+          where: {
+            role: roleFilter,
+            isActive: true,
+            createdAt: { lte: pastPeriodEnd }
+          }
+        }),
+        // Top countries (current period) - Filter by role
+        prisma.user.groupBy({
+          by: ['country'],
+          _count: { _all: true },
+          where: {
+            role: roleFilter,
+            createdAt: { lte: now },
+            country: { not: null }
+          },
+          orderBy: { _count: { country: 'desc' } },
+          take: 5
+        }),
+        // Top countries (past period) - Filter by role
+        prisma.user.groupBy({
+          by: ['country'],
+          _count: { _all: true },
+          where: {
+            role: roleFilter,
+            createdAt: { lte: pastPeriodEnd },
+            country: { not: null }
+          },
+          orderBy: { _count: { country: 'desc' } },
+          take: 5
+        }),
+        // New in current period - Filter by role
+        prisma.user.count({
+          where: {
+            role: roleFilter,
+            createdAt: { gte: currentPeriodStart, lte: now }
+          }
+        }),
+        // New in past period - Filter by role
+        prisma.user.count({
+          where: {
+            role: roleFilter,
+            createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+          }
+        })
+      ]);
+
+      // Format top countries data
+      const formatTopCountries = (countries: { country: string | null, _count: { _all: number } }[]) => {
+        return countries.map(c => ({
+          country: c.country ?? 'Unknown',
+          count: c._count._all,
+          percentage: Math.round((c._count._all / totalCurrent) * 100)
+        }));
+      };
+
+      // Additional buyer-specific metrics - Added buyer filter
+      let buyerSpecificMetrics = {};
+      if (isBuyer) {
+        const [buyerRequestsCurrent, buyerRequestsPast] = await Promise.all([
+          prisma.request.count({
+            where: {
+              buyer: { user: { role: Role.BUYER } }, // Ensure buyer requests
+              createdAt: { gte: currentPeriodStart, lte: now }
+            }
+          }),
+          prisma.request.count({
+            where: {
+              buyer: { user: { role: Role.BUYER } }, // Ensure buyer requests
+              createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+            }
+          })
+        ]);
+
+        buyerSpecificMetrics = {
+          requests: {
+            current: buyerRequestsCurrent,
+            past: buyerRequestsPast,
+            percentageChange: calculatePercentage(buyerRequestsCurrent, buyerRequestsPast)
+          }
+        };
+      }
+
+      // Additional seller-specific metrics - Added seller filter
+      let sellerSpecificMetrics = {};
+      if (!isBuyer) {
+        const [sellerProductsCurrent, sellerProductsPast] = await Promise.all([
+          prisma.product.count({
+            where: {
+              seller: { user: { role: Role.SELLER } }, // Ensure seller products
+              createdAt: { gte: currentPeriodStart, lte: now }
+            }
+          }),
+          prisma.product.count({
+            where: {
+              seller: { user: { role: Role.SELLER } }, // Ensure seller products
+              createdAt: { gte: pastPeriodStart, lte: pastPeriodEnd }
+            }
+          })
+        ]);
+
+        sellerSpecificMetrics = {
+          products: {
+            current: sellerProductsCurrent,
+            past: sellerProductsPast,
+            percentageChange: calculatePercentage(sellerProductsCurrent, sellerProductsPast)
+          }
+        };
+      }
+
+      const metrics = {
+        type: isBuyer ? 'buyer' : 'seller',
+        total: {
+          current: totalCurrent,
+          past: totalPast,
+          percentageChange: calculatePercentage(totalCurrent, totalPast)
+        },
+        active: {
+          current: activeCurrent,
+          past: activePast,
+          percentageChange: calculatePercentage(activeCurrent, activePast)
+        },
+        new: {
+          current: newCurrent,
+          past: newPast,
+          percentageChange: calculatePercentage(newCurrent, newPast)
+        },
+        topCountries: {
+          current: formatTopCountries(topCountriesCurrent),
+          past: formatTopCountries(topCountriesPast)
+        },
+        ...buyerSpecificMetrics,
+        ...sellerSpecificMetrics
+      };
+
+      res.json(metrics);
+    } catch (error) {
+      console.error(`Error fetching ${req.query.type || 'seller'} metrics:`, error);
+      res.status(500).json({ error: `Failed to fetch ${req.query.type || 'seller'} metrics` });
+    }
+  },
+
+  getAllProducts: async (req: Request, res: Response) => {
+    try {
+      const products = await prisma.product.findMany({
+        include: {
+          seller: {
+            select: {
+              user: {
+                select: {
+                  name: true
+                }
+              }
+            }
+          },
+          orderItems: {
+            select: {
+              quantity: true,
+              price: true
+            }
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      });
+
+      // Format products with proper typing
+      const formattedProducts = products.map(product => ({
+        id: product.id,
+        name: product.name,
+        price: product.price,
+        thumbnail: product.thumbnail[0] || '',
+        sellerName: product.seller?.user?.name || 'Unknown',
+        totalQuantitySold: product.orderItems.reduce((sum, item) => sum + item.quantity, 0),
+        totalRevenueGenerated: product.orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+      }));
+
+      res.json(products);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      res.status(500).json({ error: "Failed to fetch products" });
+    }
+  },
+
+  getOnboardedUsers: async (req: Request, res: Response) => {
+    try {
+      // Get pagination parameters from query
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const skip = (page - 1) * limit;
+
+      // Fetch suppliers and buyers in parallel
+      const [suppliers, buyers, totalSuppliers, totalBuyers] = await Promise.all([
+        // Onboarded suppliers (paginated)
+        prisma.seller.findMany({
+          skip,
+          take: limit,
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                createdAt: true,
+                lastLogin: true
+              }
+            }
+          },
+          orderBy: {
+            user: {
+              createdAt: 'desc'
+            }
+          }
+        }),
+        // Onboarded buyers (paginated)
+        prisma.buyer.findMany({
+          skip,
+          take: limit,
+          include: {
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+                createdAt: true,
+                lastLogin: true
+              }
+            }
+          },
+          orderBy: {
+            user: {
+              createdAt: 'desc'
+            }
+          }
+        }),
+        // Total supplier count
+        prisma.seller.count(),
+        // Total buyer count
+        prisma.buyer.count()
+      ]);
+
+      // Format the response data
+      const formattedSuppliers = suppliers.map(supplier => ({
+        id: supplier.id,
+        userId: supplier.user.id,
+        email: supplier.user.email,
+        name: supplier.user.name,
+        businessName: supplier.businessName,
+        createdAt: supplier.user.createdAt,
+        lastActive: supplier.user.lastLogin,
+        type: 'supplier'
+      }));
+
+      const formattedBuyers = buyers.map(buyer => ({
+        id: buyer.id,
+        userId: buyer.user.id,
+        email: buyer.user.email,
+        name: buyer.user.name,
+        businessName: buyer.businessName,
+        createdAt: buyer.user.createdAt,
+        lastActive: buyer.user.lastLogin,
+        type: 'buyer'
+      }));
+
+      res.json({
+        success: true,
+        data: {
+          suppliers: formattedSuppliers,
+          buyers: formattedBuyers,
+          pagination: {
+            currentPage: page,
+            totalPages: Math.ceil(Math.max(totalSuppliers, totalBuyers) / limit),
+            totalSuppliers,
+            totalBuyers
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('Error fetching onboarded users:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch onboarded users'
+      });
     }
   }
 }

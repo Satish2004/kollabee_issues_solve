@@ -73,7 +73,6 @@ const columns: ColumnDef<any>[] = [
 ];
 
 export default function AllSuppliersTable() {
-
 const [buyers, setBuyers] = useState<any[]>([]);
 
 useEffect(() => {
@@ -148,12 +147,12 @@ useEffect(() => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
+                  <td
                     colSpan={columns.length}
                     className="h-24 text-center"
                   >
                     No results.
-                  </TableCell>
+                  </td>
                 </TableRow>
               )}
             </TableBody>

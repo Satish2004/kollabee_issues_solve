@@ -463,7 +463,7 @@ export function EnhancedDataTable<T>({
                   sortDirection === "asc" ? "desc" : "asc"
                 )
               }
-              className="flex items-center gap-1"
+              className="flex items-center gap-1 border-gray-200"
             >
               {sortDirection === "asc" ? (
                 <ArrowUp className="h-4 w-4 mr-1" />
@@ -475,7 +475,7 @@ export function EnhancedDataTable<T>({
           )}
 
           {enableRefresh && (
-            <Button variant="outline" size="sm" onClick={onRefresh}>
+            <Button variant="outline" size="sm" onClick={onRefresh} className="border-gray-200">
               <RefreshCw className="h-4 w-4 mr-2" />
               Refresh
             </Button>
@@ -499,7 +499,7 @@ export function EnhancedDataTable<T>({
                   <Badge
                     key={key}
                     variant="outline"
-                    className="rounded-full px-3 py-1 flex items-center gap-1"
+                    className="rounded-full px-3 py-1 flex items-center gap-1 border-gray-200"
                   >
                     <span className="text-xs font-medium">
                       {filterField?.label || key}:
@@ -515,7 +515,7 @@ export function EnhancedDataTable<T>({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 px-2 text-xs"
+                className="h-7 px-2 text-xs border-gray-200"
                 onClick={resetAllFilters}
               >
                 Clear all
@@ -531,7 +531,7 @@ export function EnhancedDataTable<T>({
               placeholder={searchPlaceholder}
               value={searchQuery}
               onChange={handleSearchChange}
-              className="pl-8"
+              className="pl-8 border-gray-200"
             />
             <Search className="h-4 w-4 absolute left-2.5 top-2.5 text-muted-foreground" />
           </div>

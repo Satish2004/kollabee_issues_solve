@@ -43,11 +43,11 @@ export default function Overview() {
       <h2 className="text-lg font-medium">Orders Overview</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <MetricCard title="Total Orders" value={orderMetrics?.totalOrders?.current} percentage={orderMetrics?.totalOrders?.percentageChange} icon={<Package className="h-4 w-4" />} iconBg="bg-emerald-100" />
-      <MetricCard title="Orders Worth" value={orderMetrics?.ordersWorth?.current} percentage={orderMetrics?.ordersWorth?.percentageChange}  icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
-      <MetricCard title="Returned Products" value={"0"} percentage={orderMetrics?.ordersWorth?.percentageChange}  icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
-      <MetricCard title="Packed Orders" value={orderMetrics?.ordersPacked?.current} percentage={orderMetrics?.ordersPacked?.percentageChange} icon={<ArrowUp className="h-4 w-4" />} iconBg="bg-emerald-100" />
-      <MetricCard title="Average Response" value={orderMetrics?.averageResponse?.current} percentage={orderMetrics?.averageResponse?.percentageChange} icon={<Clock className="h-4 w-4" />} iconBg="bg-blue-100" />
+        <MetricCard title="Total Orders" value={orderMetrics?.totalOrders?.current} percentage={orderMetrics?.totalOrders?.percentageChange} icon={<Package className="h-4 w-4" />} iconBg="bg-emerald-100" />
+        <MetricCard title="Orders Worth" value={orderMetrics?.ordersWorth?.current} percentage={orderMetrics?.ordersWorth?.percentageChange} icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
+        <MetricCard title="Returned Products" value={"0"} percentage={orderMetrics?.ordersWorth?.percentageChange} icon={<TrendingDown className="h-4 w-4" />} iconBg="bg-rose-100" />
+        <MetricCard title="Packed Orders" value={orderMetrics?.ordersPacked?.current} percentage={orderMetrics?.ordersPacked?.percentageChange} icon={<ArrowUp className="h-4 w-4" />} iconBg="bg-emerald-100" />
+        <MetricCard title="Average Response" value={orderMetrics?.averageResponse?.current} percentage={orderMetrics?.averageResponse?.percentageChange} icon={<Clock className="h-4 w-4" />} iconBg="bg-blue-100" />
       </div>
 
       <div className="pt-4">
@@ -62,7 +62,7 @@ function OrderOverview() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <div className="lg:col-span-2">
-        <BulkOrder/>
+        <BulkOrder />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -90,7 +90,7 @@ function OrderOverview() {
   );
 }
 
-export function   BulkOrder(){
+export function BulkOrder() {
   return (
     <Card>
       <CardContent className="p-6">

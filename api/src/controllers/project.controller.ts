@@ -1,6 +1,6 @@
 import { PrismaClient, type CategoryEnum, type Seller } from "@prisma/client";
 import type { Response, Request } from "express";
-const { Resend } = require("resend");
+import { Resend } from 'resend';
 
 const prisma = new PrismaClient();
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -400,7 +400,7 @@ export const suggestedSellers = async (req: Request, res: Response) => {
 
     // Fetch the project details by ID
     const project = await prisma.project.findUnique({
-      where: { id },
+      where: { id: id },
       include: { owner: true },
     });
 
@@ -409,7 +409,7 @@ export const suggestedSellers = async (req: Request, res: Response) => {
     }
     const where: any = {
       businessCategories: {
-        has: getCategoryFromProjectCategory(project.category),
+        has: getCategoryFromProjectCategory(project.category || ""),
       },
     };
 
@@ -556,7 +556,7 @@ export const suggestedSellers = async (req: Request, res: Response) => {
       project,
       where
     });
-    
+
   } catch (error) {
     console.error("Error fetching suggested sellers:", error);
     res.status(500).json({ error: "Failed to fetch suggested sellers" });
@@ -834,8 +834,6 @@ export const removeSavedSeller = async (req: any, res: Response) => {
   }
 };
 
-// send request to seller
-
 export const sendRequest = async (req: any, res: Response) => {
   try {
     const { sellerId, projectId } = req.body;
@@ -846,7 +844,6 @@ export const sendRequest = async (req: any, res: Response) => {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Check if the project exists
     const existingProject = await prisma.project.findUnique({
       where: { id: projectId },
     });
@@ -855,14 +852,10 @@ export const sendRequest = async (req: any, res: Response) => {
       return res.status(404).json({ error: "Project not found" });
     }
 
-    // Check if the user is the owner of the project
     if (existingProject.ownerId !== user.buyerId) {
       return res.status(403).json({ error: "Access denied" });
     }
 
-    // create a request in db
-
-    // do everything in a transaction
 
     const [request, seller] = await prisma.$transaction(async (tx) => {
       const request = await tx.projectReq.create({
@@ -895,19 +888,7 @@ export const sendRequest = async (req: any, res: Response) => {
       return [request, seller];
     });
 
-    setImmediate(async () => {
-      try {
-        await resend.email.send({
-          from: "hello@tejasgk.com",
-          to: seller.user.email,
-          subject: "New Project Request",
-          html: `<p>You have a new project request from ${user.name}. Please check your dashboard for more details.</p>`,
-        });
-      } catch (emailError) {
-        console.error("Failed to send email:", emailError);
-        // Optional: log to monitoring service
-      }
-    });
+ 
 
     return res.status(200).json({ success: true, request });
   } catch (error) {

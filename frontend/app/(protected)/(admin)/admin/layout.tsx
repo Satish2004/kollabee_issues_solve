@@ -30,7 +30,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       {/*This is Scrollable Content Area, currently it's keeping the header */}
       <div className="flex-1 flex flex-col overflow-y-auto">
         <div className="sticky top-0 z-10 bg-gray-100">
-          <AdminLayoutHeader />
+          {/* <AdminLayoutHeader /> */}
         </div>
 
         <main className="flex-1 px-6 py-3 bg-gray-100">{children}</main>

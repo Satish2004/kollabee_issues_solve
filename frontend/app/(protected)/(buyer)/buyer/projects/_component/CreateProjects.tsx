@@ -46,7 +46,6 @@ const CreateProjects = ({
     console.log("Form data updated:", formData);
   }, [formData]);
 
-  // Get step labels based on selected service type
   const getStepLabels = () => {
     const serviceType = formData.selectedServices[0] || "";
 
@@ -93,15 +92,10 @@ const CreateProjects = ({
     const serviceType = formData.selectedServices[0] || "";
 
     if (step === 0) {
-      if (
-        !formData.selectedServices ||
-        formData.selectedServices.length === 0
-      ) {
+      if (!formData.selectedServices || formData.selectedServices.length === 0) {
         newErrors.selectedServices = "Please select a service type.";
       }
     } else if (step === 1) {
-      // Validation for Step 1 based on service type
-      // --- Project Title Validation ---
       const title = formData.projectTitle || "";
       if (!title.trim()) {
         newErrors.projectTitle = "Project Title cannot be empty";
@@ -112,7 +106,7 @@ const CreateProjects = ({
       } else if (title.length > 100) {
         newErrors.projectTitle = "Project Title cannot exceed 100 characters";
       }
-      // --- End Project Title Validation ---
+
       if (serviceType === "custom-manufacturing") {
         if (!formData.productCategory || formData.productCategory.length === 0)
           newErrors.productCategory = "Select Atleast One Category.";
@@ -142,10 +136,7 @@ const CreateProjects = ({
       } else if (serviceType === "services-brand-support") {
         if (!formData.projectDescription)
           newErrors.projectDescription = "Project description is required.";
-        if (
-          !formData.selectedServices ||
-          formData.selectedServices.length <= 1
-        ) {
+        if (!formData.selectedServices || formData.selectedServices.length <= 1) {
           newErrors.selectedServices = "Please select at least one service.";
         }
         if (!formData.brandVision)
@@ -154,18 +145,13 @@ const CreateProjects = ({
           newErrors.brandStatus = "This field is required.";
       }
     } else if (step === 2) {
-      // Budget validation
       if (!formData.quantity || formData.quantity <= 0) {
         newErrors.quantity = "Quantity is required and must be greater than 0.";
       }
       if (!formData.budget || formData.budget <= 0) {
         newErrors.budget = "Budget is required and must be greater than 0.";
       }
-      if (!formData.budgetType) {
-        newErrors.budgetType = "Please select budget type.";
-      }
 
-      // Additional validation for services
       if (
         serviceType === "services-brand-support" &&
         !formData.budgetFlexibility
@@ -174,7 +160,6 @@ const CreateProjects = ({
           "Please select if your budget is fixed or flexible.";
       }
     } else if (step === 3) {
-      // Timeline validation based on service type
       if (serviceType === "services-brand-support") {
         if (!formData.serviceStartDate)
           newErrors.serviceStartDate = "Start date is required.";
@@ -183,8 +168,7 @@ const CreateProjects = ({
         if (
           formData.serviceStartDate &&
           formData.serviceEndDate &&
-          new Date(formData.serviceEndDate) <
-            new Date(formData.serviceStartDate)
+          new Date(formData.serviceEndDate) < new Date(formData.serviceStartDate)
         ) {
           newErrors.serviceEndDate = "End date cannot be before start date.";
         }
@@ -202,7 +186,6 @@ const CreateProjects = ({
   };
 
   const validateAllSteps = (): boolean => {
-    // Validate all steps before submission
     let valid = true;
     let firstErrorStep: number | null = null;
     for (let step = 0; step <= 3; step++) {
@@ -213,7 +196,6 @@ const CreateProjects = ({
     }
     if (firstErrorStep !== null) {
       setCurrentStage(firstErrorStep);
-      // Optionally scroll to top or error field
       setTimeout(() => {
         const errorEl = document.querySelector('.text-red-500');
         if (errorEl) errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -254,18 +236,9 @@ const CreateProjects = ({
     if (validateStep(currentStage)) {
       setErrors({});
       if (currentStage === 3) {
-        setCurrentStage(4);
         setShowConfirmation(true);
         return;
       }
-
-      if (showConfirmation) {
-        setShowConfirmation(false);
-        setIsLoading(true);
-        handleSubmit();
-        return;
-      }
-
       setCurrentStage((curr) => curr + 1);
     }
   };
@@ -274,67 +247,40 @@ const CreateProjects = ({
     router.push(`/buyer/projects/${id}/supplier`);
   };
 
-  const handleSubmit = async () => {
-    // Validate all steps before actual submission
+  const handleSubmit = async (): Promise<boolean> => {
     if (!validateAllSteps()) {
       toast({
         title: "Invalid Project Details",
         description: "Please correct the highlighted errors before submitting.",
         variant: "destructive",
       });
-      return;
+      return false;
     }
-    setIsLoading(true);
+
     setIsSubmitting(true);
     try {
-      // Use the same mapping as the context
       const mapFormDataToApiFormat = (window as any).mapFormDataToApiFormat || ((formData: any) => formData);
       const apiData = mapFormDataToApiFormat(formData);
-      if (initialData) {
-        try {
-          const response = await projectApi.updateProject(initialData?.id, apiData);
-          if (response.status < 200 || response.status >= 300) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          } else {
-            setId(response.data?.id);
-            setIsSuccess(true);
-          }
-          console.log("Project updated successfully:", response);
-        } catch (error) {
-          console.error("Failed to update project:", error);
-          toast({
-            title: "Error",
-            description: "Failed to update project.",
-            variant: "destructive",
-          });
-        }
-      } else {
-        try {
-          const response = await projectApi.createProject(apiData);
-          if (response.status < 200 || response.status >= 300) {
-            toast({
-              title: "Error",
-              description: "Failed to create project.",
-              variant: "destructive",
-            });
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          } else {
-            setId(response.data?.id);
-            setIsSuccess(true);
-          }
-        } catch (error) {
-          console.error("Failed to create project:", error);
-          toast({
-            title: "Error",
-            description: "Failed to create project.",
-            variant: "destructive",
-          });
-        }
+
+      const response = initialData
+        ? await projectApi.updateProject(initialData.id, apiData)
+        : await projectApi.createProject(apiData);
+
+      if (response.status >= 200 && response.status < 300) {
+        setId(response.data?.id);
+        setIsSuccess(true);
+        return true;
       }
+      throw new Error(`HTTP error! Status: ${response.status}`);
     } catch (error) {
-      console.error("Failed to create project:", error);
+      console.error("Failed to submit project:", error);
+      toast({
+        title: "Error",
+        description: "Failed to submit project. Please try again.",
+        variant: "destructive",
+      });
+      return false;
     } finally {
-      setIsLoading(false);
       setIsSubmitting(false);
     }
   };
@@ -373,51 +319,53 @@ const CreateProjects = ({
           </div>
 
           <div className="bg-white w-full h-auto rounded-xl border flex flex-col p-8 gap-4">
-            {!isLoading &&
-              !isSuccess &&
-              !showSuppliers &&
-              !showConfirmation && (
-                <div className="flex justify-center">
-                  <ProgressStepper steps={allSteps} />
-                </div>
-              )}
+            {!isLoading && !isSuccess && !showSuppliers && !showConfirmation && (
+              <div className="flex justify-center">
+                <ProgressStepper steps={allSteps} />
+              </div>
+            )}
 
             {showConfirmation && (
               <ConfirmationScreen
-                onBack={handlePrev}
-                onSubmit={handleSubmit}
+                onBack={() => {
+                  setShowConfirmation(false);
+                  setCurrentStage(3);
+                }}
+                onSubmit={async () => {
+                  const success = await handleSubmit();
+                  if (success) {
+                    setIsSuccess(true);
+                  }
+                }}
                 loading={isSubmitting}
               />
             )}
 
-            {!isLoading &&
-              !isSuccess &&
-              !showSuppliers &&
-              !showConfirmation && (
-                <>
-                  {currentStage === 1 && (
-                    <Step1
-                      handleNext={handleNext}
-                      errors={errors}
-                      setErrors={setErrors}
-                    />
-                  )}
-                  {currentStage === 2 && (
-                    <Step2
-                      handleNext={handleNext}
-                      errors={errors}
-                      setErrors={setErrors}
-                    />
-                  )}
-                  {currentStage === 3 && (
-                    <Step3
-                      handleNext={handleNext}
-                      errors={errors}
-                      setErrors={setErrors}
-                    />
-                  )}
-                </>
-              )}
+            {!isLoading && !isSuccess && !showSuppliers && !showConfirmation && (
+              <>
+                {currentStage === 1 && (
+                  <Step1
+                    handleNext={handleNext}
+                    errors={errors}
+                    setErrors={setErrors}
+                  />
+                )}
+                {currentStage === 2 && (
+                  <Step2
+                    handleNext={handleNext}
+                    errors={errors}
+                    setErrors={setErrors}
+                  />
+                )}
+                {currentStage === 3 && (
+                  <Step3
+                    handleNext={handleNext}
+                    errors={errors}
+                    setErrors={setErrors}
+                  />
+                )}
+              </>
+            )}
           </div>
         </div>
       )}

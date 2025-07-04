@@ -334,7 +334,7 @@ function OrderAnalyticsChart({ data, isLoading }) {
     <ChartContainer
       config={{
         bulk: {
-          label: "Bulk Quantity",
+          label: "Bulk Quantityy",
           color: "hsl(346, 84%, 61%)",
         },
         single: {

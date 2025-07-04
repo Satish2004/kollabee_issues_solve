@@ -42,8 +42,6 @@ import ContactsList from "@/components/seller/contacts-list";
 import ProfileStrengthCard from "@/components/seller/profile-strength-card";
 import React from "react";
 import { getUserCurrency, convertCurrency, formatCurrency } from "@/lib/utils/currency";
-import { DashboardMetrics, OrderAnalytics as OrderAnalyticsType } from "@/types/api";
-import { a } from "framer-motion/dist/types.d-CQt5spQA";
 
 interface DashboardData {
   totalOrders: {
@@ -348,9 +346,6 @@ const Dashboard = () => {
     },
   });
 
-  const [contact, setContact] = useState<contact[]>();
-  const [monthlyData, setMonthlyData] = useState();
-
   const [isLoading, setIsLoading] = useState(true);
   const [chartData, setChartData] = useState<{ name: string; orders: number; requests: number }[]>([]);
   const [selectedPeriod, setSelectedPeriod] = useState<"today" | "week" | "month" | "year">("month");
@@ -389,8 +384,6 @@ const Dashboard = () => {
   useEffect(() => {
     loadPeriodMetrics(selectedPeriod);
   }, [selectedPeriod]);
-
-
 
   const loadDashboardData = async () => {
     try {
@@ -550,21 +543,6 @@ const Dashboard = () => {
     }
   };
 
-  // Helper function to generate random colors for the pie chart
-  const getRandomColor = () => {
-    const colors = ['#e91e63', '#8884d8', '#82ca9d', '#8dd1e1', '#ffc107'];
-    return colors[Math.floor(Math.random() * colors.length)];
-  };
-
-  const calculatePercentageChange = (
-    current: number,
-    previous: number
-  ): number => {
-    if (previous === 0) {
-      return current > 0 ? 100 : 0;
-    }
-    return parseFloat((((current - previous) / previous) * 100).toFixed(2));
-  };
 
   return (
     <div className="min-h-screen">
@@ -660,22 +638,6 @@ const Dashboard = () => {
               lowSellerData={lowSellerData}
               userCurrency={userCurrency}
             />
-
-            {/* <div className="w-full h-[400px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <FunnelChart>
-                  <Tooltip />
-                  <Funnel dataKey="count" data={funnelData} isAnimationActive>
-                    <LabelList
-                      position="right"
-                      fill="#fff"
-                      stroke="none"
-                      dataKey="label"
-                    />
-                  </Funnel>
-                </FunnelChart>
-              </ResponsiveContainer>
-            </div> */}
           </div>
 
           {/* Right Sidebar */}

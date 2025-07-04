@@ -736,6 +736,8 @@ export interface StatCard {
 }
 
 export interface Project {
+  requestedSeller: any;
+  projectTitle: ReactNode;
   id: string;
   // Step 0
   selectedServices: string[];

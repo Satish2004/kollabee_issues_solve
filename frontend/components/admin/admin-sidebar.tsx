@@ -55,7 +55,7 @@ export function AdminSidebar({ className }: SidebarProps) {
 
   const handleLogout = async () => {
     try {
-      await authApi.logout(); // Add logout endpoint to authApi if not exists
+      await authApi.logout();
       router.push("/login");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -82,11 +82,6 @@ export function AdminSidebar({ className }: SidebarProps) {
           icon: User,
           href: "/admin/buyers",
         },
-        // {
-        //   label: "Add Product",
-        //   icon: Plus,
-        //   href: "/seller/products/add",
-        // },
         {
           label: "Messages",
           icon: HiChatBubbleLeftRight,
@@ -96,22 +91,15 @@ export function AdminSidebar({ className }: SidebarProps) {
         {
           label: "Orders",
           icon: "Custom",
-          image:
-            "https://s3-alpha-sig.figma.com/img/4b80/7b26/0844b5e35e4d0a4cb4ae86b9ac1d8a74?Expires=1745798400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=D6-4oqaxt72KKqcrq-dH0koOghoe2xNdbm5lxH6wkKC~xEE7efg3xPGmta7Ka1kz5om8OcyyroMvil-y-G~mstgqwV4NkLnhLyc3Lu0i5EpsG94T4AP0peydx4ndzAW6jvKJ0nl3JFw9wZVAyxzY7beh3LA2nAFpjSMigzckwEMRFXwJYJ9Xl3q4NheXa73JVUB9GOi0qL2qXEhWsJYP~1qX8150qr4RAg31KzHAnA8SzUPE75ZTsey0bEWNeQVUys8kD-e0kwEcJB3Qq3TTZPLnvn84OsbNmIZI0NvwdNiCgW7TdIdZLkf5ObRoTDSMi2y16L6-A1tRyUNNomHVbQ__",
+          image: ShoppingCart,
           href: "/admin/order",
         },
         {
           label: "Users",
           icon: "Custom",
-          image:
-            "https://s3-alpha-sig.figma.com/img/55f5/ff7a/fc3ffb170dfb78379cc43abe1c9b594a?Expires=1745798400&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=LGr7VY5oL6y0Tvijn53Dx1h15ZbBpSprws-Mp~ubIPMop4Rh8A~8SeccS829tMp-vGZU7sXjyllQAIed2w40D3dj8pAnTWn96MNHms8QEUXTwP08wa6AKdNmdGd~IbsLPcBGPTA3qZIHoayzEVgH7-w1CNlB581KwDVOgKpcz3beHrUn4JU0K4V2iyOUHWA22GnqrbZ0tipjg7Eb0StwVInSJvbzrM8Ul9Vk39~2wqK5wUKzYToT9EEUuHW6e4tVcYTP3pBdCJGInfeIl3M1f1SXUqBnS6hZO7Uj8vq3AYCYFhYpb0nIzMhQG~n-grtk2HQXYpy-i2GG38XgE-BYjQ__",
+          image: User,
           href: "/admin/user",
         },
-        // {
-        //   label: "Settings",
-        //   icon: Settings,
-        //   href: "/seller/settings",
-        // },
       ],
     },
     {
@@ -123,11 +111,6 @@ export function AdminSidebar({ className }: SidebarProps) {
           href: "/admin/events",
           target: "advertise",
         },
-        // {
-        //   label: "Profile Manage",
-        //   icon: UserCog,
-        //   href: "/profile/seller/profile-management",
-        // },
       ],
     },
   ];
@@ -153,9 +136,8 @@ export function AdminSidebar({ className }: SidebarProps) {
               alt="KollaBee"
               width={isCollapsed ? 40 : 150}
               height={40}
-              className={`rounded-full cursor-pointer ${
-                isCollapsed ? "hidden" : ""
-              }`}
+              className={`rounded-full cursor-pointer ${isCollapsed ? "hidden" : ""
+                }`}
               onClick={() => router.push("/seller")}
             />
           </div>

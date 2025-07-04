@@ -8,6 +8,8 @@ import AllBuyersTable from "@/components/admin-dashboard/all-buyers-table"
 import { useEffect, useState } from "react"
 import { AdminApi } from "@/lib/api"
 import BuyerGeoChart from "@/components/admin-dashboard/buyer-geo-chart"
+import SupplierAnalytics from "@/components/admin-dashboard/supplier-analytics"
+import UserGeoChart from "@/components/admin-dashboard/supplier-geo-chart"
 
 
 export default function Dashboard() {
@@ -16,32 +18,32 @@ export default function Dashboard() {
     { month: "Mar", buyers: 2 },
   ]
 
-      const [buyerMetrics, setBuyerMetrics] = useState<any>(null)
+  const [buyerMetrics, setBuyerMetrics] = useState<any>(null)
 
-  
-      useEffect(() => {
-          const fetchBuyerMetrics = async () => {
-              const metricsRes = await AdminApi.getBuyerMetrics()
-              setBuyerMetrics(metricsRes?.metricResponse)
-          }
-  
-          fetchBuyerMetrics()
 
-      }, [])
+  useEffect(() => {
+    const fetchBuyerMetrics = async () => {
+      const metricsRes = await AdminApi.getBuyerMetrics()
+      setBuyerMetrics(metricsRes?.metricResponse)
+    }
+
+    fetchBuyerMetrics()
+
+  }, [])
 
 
   return (
     <div className="space-y-6 mx-auto">
       {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 ">
         {/* New Joined Buyers */}
-        <MetricCard title="NEW JOINED BUYERS" value={buyerMetrics?.NEW_JOINED_BUYERS?.current} percentage={buyerMetrics?.NEW_JOINED_BUYERS?.percentage} change={buyerMetrics?.NEW_JOINED_BUYERS?.percentageChange}/>
+        <MetricCard title="NEW JOINED BUYERS" value={buyerMetrics?.NEW_JOINED_BUYERS?.current} percentage={buyerMetrics?.NEW_JOINED_BUYERS?.percentage} change={buyerMetrics?.NEW_JOINED_BUYERS?.percentageChange} />
         {/* Buyers Bought Worth */}
-        <MetricCard title="BUYERS BOUGHT WORTH" value={buyerMetrics?.BUYERS_BOUGHT?.current} percentage={buyerMetrics?.BUYERS_BOUGHT?.percentage} change={buyerMetrics?.BUYERS_BOUGHT?.percentageChange}/>
+        <MetricCard title="BUYERS BOUGHT WORTH" value={buyerMetrics?.BUYERS_BOUGHT?.current} percentage={buyerMetrics?.BUYERS_BOUGHT?.percentage} change={buyerMetrics?.BUYERS_BOUGHT?.percentageChange} />
         {/* Total Buyers */}
-        <MetricCard title="TOTAL BUYERS" value={buyerMetrics?.TOTAL_BUYERS?.current} percentage={buyerMetrics?.TOTAL_BUYERS?.percentage} change={buyerMetrics?.TOTAL_BUYERS?.percentageChange}/>
+        <MetricCard title="TOTAL BUYERS" value={buyerMetrics?.TOTAL_BUYERS?.current} percentage={buyerMetrics?.TOTAL_BUYERS?.percentage} change={buyerMetrics?.TOTAL_BUYERS?.percentageChange} />
         {/* In-Active Buyers */}
-        <MetricCard title="INACTIVE BUYERS" value={buyerMetrics?.INACTIVE_BUYERS?.current} percentage={buyerMetrics?.INACTIVE_BUYERS?.percentage} change={buyerMetrics?.INACTIVE_BUYERS?.percentageChange}/>
+        <MetricCard title="INACTIVE BUYERS" value={buyerMetrics?.INACTIVE_BUYERS?.current} percentage={buyerMetrics?.INACTIVE_BUYERS?.percentage} change={buyerMetrics?.INACTIVE_BUYERS?.percentageChange} />
       </div>
 
       {/* Chart */}
@@ -90,8 +92,8 @@ export default function Dashboard() {
       </Card>
 
       <TopBuyersTable />
-    
-      <BuyerGeoChart />
+      <UserGeoChart defaultType="buyer" />
+      {/* <BuyerGeoChart /> */}
       <AllBuyersTable />
     </div>
   )

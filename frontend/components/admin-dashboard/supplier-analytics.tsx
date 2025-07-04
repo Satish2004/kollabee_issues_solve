@@ -1,12 +1,19 @@
+"use client"
 import React, { useEffect, useState } from 'react'
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
-import { ArrowUpRight, ArrowDownRight } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis
+} from "recharts"
+import { Card, CardContent } from "@/components/ui/card"
 import { AdminApi } from '@/lib/api'
 
 function SupplierAnalytics() {
   const [metricsData, setMetricsData] = useState<any>(null)
-  // const [monthlyOnboarding, setMonthlyOnboarding] = useState<any>(null)
 
   useEffect(() => {
     const fetchMetricsData = async () => {
@@ -17,90 +24,79 @@ function SupplierAnalytics() {
     fetchMetricsData()
   }, [])
 
-  console.log(metricsData)
-      
-      const monthlyOnboarding = [
-        { name: "Jan", buyers: 8, suppliers: 5 },
-        { name: "Feb", buyers: 6, suppliers: 12 },
-        { name: "Mar", buyers: 7, suppliers: 10, tooltip: 400 },
-        { name: "Apr", buyers: 12, suppliers: 9 },
-        { name: "May", buyers: 16, suppliers: 10 },
-        { name: "Jun", buyers: 18, suppliers: 15 },
-        { name: "Jul", buyers: 19, suppliers: 20 },
-      ]
+  const monthlyOnboarding = [
+    { name: "Jan", buyers: 8, suppliers: 15 },
+    { name: "Feb", buyers: 6, suppliers: 12 },
+    { name: "Mar", buyers: 7, suppliers: 10 },
+    { name: "Apr", buyers: 12, suppliers: 9 },
+    { name: "May", buyers: 16, suppliers: 10 },
+    { name: "Jun", buyers: 18, suppliers: 15 },
+    { name: "Jul", buyers: 19, suppliers: 20 },
+  ]
+
   return (
     <div>
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {/* Metrics Cards */}
         <div className="col-span-2 grid grid-cols-2 gap-2 w-full">
-        <Card className={`bg-indigo-50 border border-gray-200`}>
+          {/* Requests */}
+          <Card className="bg-indigo-50 border border-gray-200">
             <CardContent className="p-6">
               <div className="text-gray-700 font-medium mb-2">Requests</div>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{metricsData?.requests?.current}</div>
-                <div className={`flex items-center text-sm ${metricsData?.requests?.percentageChange > 0 ? "text-green-600" : "text-red-600"}`}>
-                  {metricsData?.requests?.percentageChange ? (
-                    <ArrowUpRight className="w-4 h-4 mr-1" />
-                  ) : (
-                    <ArrowDownRight className="w-4 h-4 mr-1" />
-                  )}
-                  {metricsData?.requests?.percentageChange}
-                </div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metricsData?.requests ?? '—'}
               </div>
             </CardContent>
           </Card>
 
-          <Card className={`bg-sky-50 border border-gray-200`}>
+          {/* Messages */}
+          <Card className="bg-sky-50 border border-gray-200">
             <CardContent className="p-6">
               <div className="text-gray-700 font-medium mb-2">Messages</div>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{metricsData?.messages?.current}</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metricsData?.messages ?? '—'}
               </div>
             </CardContent>
           </Card>
 
-          <Card className={`bg-indigo-50 border border-gray-200`}>
+          {/* Orders */}
+          <Card className="bg-indigo-50 border border-gray-200">
             <CardContent className="p-6">
               <div className="text-gray-700 font-medium mb-2">Orders</div>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{metricsData?.orders?.current}</div>
-                <div className={`flex items-center text-sm ${metricsData?.orders?.percentageChange > 0 ? "text-green-600" : "text-red-600"}`}>
-                  {metricsData?.orders?.percentageChange ? (
-                    <ArrowUpRight className="w-4 h-4 mr-1" />
-                  ) : (
-                    <ArrowDownRight className="w-4 h-4 mr-1" />
-                  )}
-                  {metricsData?.orders?.percentageChange}
-                </div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metricsData?.orders ?? '—'}
               </div>
             </CardContent>
           </Card>
 
-          <Card className={`bg-sky-50 border border-gray-200`}>
+          {/* Certificates */}
+          <Card className="bg-sky-50 border border-gray-200">
             <CardContent className="p-6">
               <div className="text-gray-700 font-medium mb-2">Certificates Uploaded</div>
-              <div className="flex items-center justify-between">
-                <div className="text-3xl font-bold text-gray-900">{metricsData?.certificatesUploaded?.current}</div>
+              <div className="text-3xl font-bold text-gray-900">
+                {metricsData?.certificatesUploaded ?? '—'}
               </div>
             </CardContent>
           </Card>
-
-          
         </div>
-        
+
+        {/* Supplier Chart */}
         <div className="col-span-3 bg-gray-50 p-6 rounded-lg">
           <h3 className="text-base font-medium mb-4">Suppliers Onboarded</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={monthlyOnboarding}>
                 <CartesianGrid vertical={false} stroke="#f0f0f0" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
+                <XAxis
+                  dataKey="name"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 12 }}
+                />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
                   tick={{ fontSize: 12 }}
-                  tickFormatter={(value) => (value === 0 ? "0" : `${value}M`)}
                 />
                 <Tooltip />
                 <Line

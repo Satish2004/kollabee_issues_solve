@@ -6,7 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Overview from "./overview";
 import Orders from "./orders";
 import Analytics from "./analytics";
-import IconRenderer2 from "@/components/buyer/icons-render-from-figma";
 
 export default function Dashboard() {
   const searchParams = useSearchParams();
@@ -15,7 +14,6 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState(initialTab);
 
   useEffect(() => {
-    // Update the query parameter when the active tab changes
     router.replace(`?tab=${activeTab}`);
   }, [activeTab, router]);
 
@@ -28,11 +26,11 @@ export default function Dashboard() {
           onValueChange={setActiveTab}
           className="w-full gap-4"
         >
-        <TabsList className="mb-4 w-full bg-white flex justify-start py-8 px-4 space-x-8">
-          <TabsTrigger value="overview" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Overview</TabsTrigger>
-          <TabsTrigger value="orders" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Orders</TabsTrigger>
-          <TabsTrigger value="analytics" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Analytics</TabsTrigger>       
-        </TabsList>
+          <TabsList className="mb-4 w-full bg-white flex justify-start py-8 px-4 space-x-8">
+            <TabsTrigger value="overview" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Overview</TabsTrigger>
+            <TabsTrigger value="orders" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Orders</TabsTrigger>
+            <TabsTrigger value="analytics" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Analytics</TabsTrigger>
+          </TabsList>
 
           <div className="bg-white rounded-lg shadow-sm p-6 mt-8">
             <TabsContent value="overview">

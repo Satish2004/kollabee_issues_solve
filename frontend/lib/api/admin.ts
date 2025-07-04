@@ -1,7 +1,6 @@
 import { api } from '../axios';
 
 export const AdminApi = {
-
     getBuyerMetrics: async () => {
         return api.get('/admin/buyer-metrics');
     },
@@ -49,6 +48,22 @@ export const AdminApi = {
     getOrderMetrics: async () => {
         return api.get('/admin/order-metrics');
     },
+
+    getAllProducts: async () => {
+        return api.get('/admin/all-products');
+    },
+
+    getSupplierRegionMetrics: async () => {
+        return api.get('/admin/supplier-region-metrics');
+    },
+
+    approveOrRejectSeller: async (sellerId,status) => {
+        return api.post('/admin/seller/approve', {
+            sellerId,
+            status
+        });
+    },
+
 
 }; 
 

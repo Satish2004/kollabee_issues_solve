@@ -1,11 +1,13 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import {
-  type ColumnDef,
+  ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -15,34 +17,53 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+
 import Link from "next/link";
 import { AdminApi } from "@/lib/api/admin";
 import { BsDash } from "react-icons/bs";
 
+// Types
+interface Product {
+  name: string;
+  price: number;
+  totalQuantity: number;
+}
 
+interface Address {
+  street: string;
+  city: string;
+  state: string;
+  country: string;
+  zipCode: string;
+}
 
-const columns: ColumnDef<any>[] = [
+interface Buyer {
+  buyerName: string;
+  email: string;
+  totalSpent: number;
+  orderCount: number;
+  products: Product[];
+  latestOrderDate: string;
+  status: string;
+  address: Address;
+}
+
+const columns: ColumnDef<Buyer>[] = [
   {
     accessorKey: "buyerName",
     header: "Name",
     cell: ({ row }) => {
       const name = row.getValue("buyerName") as string;
-      return (
-        <div className="flex items-center gap-2">
-          <span>{name}</span>
-        </div>
-      );
+      return <span>{name}</span>;
     },
   },
   {
     accessorKey: "products",
     header: "Products",
     cell: ({ row }) => {
-      const products = row.getValue("products") as string;
+      const products = row.getValue("products") as Product[];
       return (
-        <div className="flex items-center gap-2">
-          <span>{products.map((product: any) => product.name).join(", ")}</span>
-        </div>
+        <span>{products?.length ? products.map((p) => p.name).join(", ") : <BsDash />}</span>
       );
     },
   },
@@ -50,57 +71,50 @@ const columns: ColumnDef<any>[] = [
     accessorKey: "address",
     header: "Address",
     cell: ({ row }) => {
-        const address = row.getValue("address") as string;
-        return (
-          <div className="flex items-center ml-4 gap-2 text-center">
-            <span>{address.street === "N/A" ? <BsDash /> : `${address.street}, ${address.city}, ${address.state}, ${address.country}`}</span>
-          </div>
-        );
-      },
+      const address = row.getValue("address") as Address;
+      const isNA = address?.street === "N/A";
+      return (
+        <span>
+          {isNA ? <BsDash /> : `${address.street}, ${address.city}, ${address.state}, ${address.country}`}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "latestOrderDate",
     header: "Order Date",
     cell: ({ row }) => {
-        const orderDate = row.getValue("latestOrderDate") as string;
-        return (
-          <div className="flex items-center gap-2">
-            <span>{formatDate(orderDate)}</span>
-          </div>
-        );
-      },
+      const orderDate = row.getValue("latestOrderDate") as string;
+      return <span>{formatDate(orderDate)}</span>;
+    },
   },
-//   {
-//     id: "actions",
-//     cell: ({ row }) => {
-//       const order = row.original;
-//       return (
-//         <div className="flex items-center gap-2 justify-end">
-//           <Link href={`/buyer/orders/${row.original.id}`}>
-//               <Button className="border border-red-500 text-red-500 hover:border-red-600 hover:bg-red-100 font-semibold">
-//               View Details
-//               </Button>
-//             </Link>
-//         </div>
-//       );
-//     },
-//   },
+  // {
+  //   id: "actions",
+  //   cell: ({ row }) => {
+  //     const email = row.original.email; // using email as unique identifier
+  //     return (
+  //       <div className="text-right">
+  //         <Link href={`/buyer/orders/by-email/${email}`}>
+  //           <Button className="border border-red-500 text-red-500 hover:border-red-600 hover:bg-red-100 font-semibold">
+  //             View Details
+  //           </Button>
+  //         </Link>
+  //       </div>
+  //     );
+  //   },
+  // },
 ];
 
 export default function TopBuyersTable() {
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
 
-const [buyers, setBuyers] = useState<any[]>([]);
-
-useEffect(() => {
+  useEffect(() => {
     const fetchBuyers = async () => {
-        const response = await AdminApi.getTopBuyers();
-        setBuyers(response);
+      const response = await AdminApi.getTopBuyers();
+      setBuyers(response); // Ensure API returns an array of Buyer
     };
     fetchBuyers();
-}, []);
-    
-
-console.log(buyers)
+  }, []);
 
   const table = useReactTable({
     data: buyers,
@@ -130,9 +144,9 @@ console.log(buyers)
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>

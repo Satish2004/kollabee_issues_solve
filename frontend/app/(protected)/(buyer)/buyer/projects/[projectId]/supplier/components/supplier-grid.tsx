@@ -13,31 +13,42 @@ export function SupplierGrid() {
     setActiveTab,
     resetFilters,
     savedSuppliers,
+    hiredSuppliers,
+    requestedSuppliers,
     project,
   } = useSuppliers();
 
-  // Add a useEffect to log the state for debugging
-  useEffect(() => {
-    if (activeTab === "saved") {
-      console.log("Saved tab active, saved suppliers:", savedSuppliers);
+  const getSuppliersForActiveTab = () => {
+    switch (activeTab) {
+      case "saved":
+        return savedSuppliers;
+      case "requested":
+        return requestedSuppliers;
+      case "hired":
+        return hiredSuppliers;
+      case "suggested":
+      default:
+        return filteredSuppliers;
     }
-  }, [activeTab, savedSuppliers]);
+  };
+
+  const suppliersToDisplay = getSuppliersForActiveTab();
 
   return (
     <>
       {/* Results count */}
       <div className="mb-4">
         <p className="text-sm text-gray-500">
-          Showing {filteredSuppliers.length} suppliers
+          Showing {suppliersToDisplay.length} suppliers
           {activeTab === "suggested"
-            ? project?.category 
+            ? project?.category
               ? ` matched to your ${Array.isArray(project.category) ? project.category[0] : project.category} project`
               : " matched to your project"
             : activeTab === "saved"
-            ? " you've saved"
-            : activeTab === "requested"
-            ? " you've sent requests to"
-            : " you have hired"}
+              ? " you've saved"
+              : activeTab === "requested"
+                ? " you've sent requests to"
+                : " you have hired"}
         </p>
       </div>
 
@@ -58,16 +69,16 @@ export function SupplierGrid() {
       )}
 
       {/* Suppliers grid */}
-      {!loading && filteredSuppliers.length > 0 && (
+      {!loading && suppliersToDisplay.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredSuppliers.map((supplier) => (
+          {suppliersToDisplay.map((supplier) => (
             <SupplierCard key={supplier.id} supplier={supplier} />
           ))}
         </div>
       )}
 
       {/* Empty state */}
-      {!loading && filteredSuppliers.length === 0 && (
+      {!loading && suppliersToDisplay.length === 0 && (
         <EmptyState
           activeTab={activeTab}
           onAction={() => {

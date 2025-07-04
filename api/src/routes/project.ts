@@ -34,7 +34,6 @@ router.get("/saved-sellers/:id", isAuthenticated, getSavedSellers);
 router.post("/remove-saved-seller", isAuthenticated, removeSavedSeller);
 router.post("/send-request", isAuthenticated, sendRequest);
 
-// Add a new route to get requested sellers
 router.get(
   "/requested-sellers/:id",
   isAuthenticated,

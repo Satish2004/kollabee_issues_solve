@@ -85,8 +85,6 @@ useEffect(() => {
 }, []);
     
 
-// console.log(buyers)
-
   const table = useReactTable({
     data: buyers,
     columns,

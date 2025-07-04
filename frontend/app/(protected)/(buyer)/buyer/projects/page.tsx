@@ -52,7 +52,6 @@ const ProjectsPage = () => {
 
   // Filter projects based on search query and active filters
   const filteredProjects = projects.filter((project) => {
-    // Search filter
     const matchesSearch =
       project.businessName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       project.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||

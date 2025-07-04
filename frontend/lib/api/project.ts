@@ -120,7 +120,6 @@ const projectApi = {
     }
   },
 
-  // Send a request to a seller
   sendRequest: async ({
     sellerId,
     projectId,
@@ -140,7 +139,6 @@ const projectApi = {
     }
   },
 
-  // Get requested sellers for a project
   getRequestedSellers: async (projectId: string) => {
     try {
       const response = await api.get(

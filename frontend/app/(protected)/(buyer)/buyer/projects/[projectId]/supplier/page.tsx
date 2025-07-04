@@ -1,5 +1,3 @@
-"use client";
-
 import { ActiveFilters } from "./components/active-filters";
 import { SupplierFilters } from "./components/supplier-filters";
 import { SupplierGrid } from "./components/supplier-grid";
@@ -14,11 +12,8 @@ export default function ProjectSellersPage({
 }: {
   params: { projectId: string };
 }) {
-  // Unwrap params with React.use() to fix the excessive requests issue
-  const { projectId } = React.use(params);
-
   return (
-    <SupplierProvider projectId={projectId}>
+    <SupplierProvider projectId={params.projectId}>
       <div className="md:px-6">
         <div className="w-full bg-gray-50 min-h-screen ">
           {/* Header */}

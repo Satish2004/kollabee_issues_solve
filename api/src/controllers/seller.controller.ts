@@ -1475,16 +1475,16 @@ export const approveOrRejectSeller = async (req: any, res: Response) => {
       where: { id: sellerId },
       data: {
         approved: status,
-        Approved: status
-          ? {
-              create: {
-                approvedById: req.user.userId,
-                status: true,
-                approvedAt: new Date(Date.now()),
-                updatedAt: new Date(Date.now()),
-              },
-            }
-          : undefined,
+        // Approved: status
+        //   ? {
+        //       create: {
+        //       approvedById: "3b8107f0-2198-4df0-910e-a044775633ac",
+        //         status: true,
+        //         approvedAt: new Date(Date.now()),
+        //         updatedAt: new Date(Date.now()),
+        //       },
+        //     }
+        //   : undefined,
         updatedAt: new Date(Date.now()),
         lock: false,
       },

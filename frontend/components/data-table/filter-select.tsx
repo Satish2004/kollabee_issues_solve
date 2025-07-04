@@ -39,7 +39,7 @@ export function FilterSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-full justify-between bg-white"
+          className="w-full justify-between bg-white border-gray-200"
         >
           {value === "all"
             ? "All"

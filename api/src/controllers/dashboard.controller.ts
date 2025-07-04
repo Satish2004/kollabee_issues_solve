@@ -626,7 +626,6 @@ export const getOrderAnalytics = async (req: any, res: Response) => {
     });
     if (!seller) return res.status(404).json({ error: "Seller not found" });
 
-    console.log("Seller ID:", seller.id);
 
     // Calculate date ranges based on period
     const { currentPeriodStart, previousPeriodStart, previousPeriodEnd } =

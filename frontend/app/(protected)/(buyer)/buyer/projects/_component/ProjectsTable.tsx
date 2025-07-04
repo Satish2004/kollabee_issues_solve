@@ -43,13 +43,15 @@ const ProjectsTable = ({
           </div>
         </div>
       </div>
-
       {/* Projects table */}
-      <div className="  ">
-        <div className="">
+      <div>
+        <div>
           <table className="w-full border-collapse">
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b">
+                <th className="py-2 px-4 font-medium">
+                  <div className="flex items-center">Project Name</div>
+                </th>
                 <th className="py-2 px-4 font-medium">
                   <div className="flex items-center">Project Type</div>
                 </th>
@@ -63,7 +65,7 @@ const ProjectsTable = ({
                   <div className="flex items-center">Timeline</div>
                 </th>
                 <th className="py-2 px-4 font-medium">Health</th>
-                <th className="py-2 px-4 font-medium">Payment Milestones</th>
+                {/* <th className="py-2 px-4 font-medium">Payment Milestones</th> */}
                 <th className="py-2 px-4 font-medium">Shipping</th>
                 <th className="py-2 px-4 font-medium">Budget</th>
                 <th className="py-2 px-4 font-medium">

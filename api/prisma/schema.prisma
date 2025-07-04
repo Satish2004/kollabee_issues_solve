@@ -732,7 +732,7 @@ model Project {
   selectedServices String[]
   category         String
   businessName     String
-  productType      String
+  productType      String?
 
   // Legacy fields for backward compatibility
   formulationType        String?

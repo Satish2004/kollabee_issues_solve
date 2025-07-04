@@ -16,6 +16,11 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
   return (
     <tr key={project.id} className="border-b hover:bg-gray-50">
       <td className="py-3 px-4 text-sm">
+        {
+          project.projectTitle
+        }
+      </td>
+      <td className="py-3 px-4 text-sm">
         {project.selectedServices?.join(", ")}
       </td>
 
@@ -44,7 +49,7 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
         <div className="flex items-center flex-col">-</div>
       </td>
 
-      <td className="py-3 px-4 text-sm">
+      {/* <td className="py-3 px-4 text-sm">
         {project.milestones?.length > 0 ? (
           <div className="flex flex-col items-center">
             <div className="flex w-fit bg-[#F4F4F4] px-2 items-center rounded-md">
@@ -55,7 +60,7 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
         ) : (
           <div className="flex flex-col items-center">-</div>
         )}
-      </td>
+      </td> */}
 
       <td className="py-3 px-4 text-sm">
         {project.milestones?.length > 0 ? (

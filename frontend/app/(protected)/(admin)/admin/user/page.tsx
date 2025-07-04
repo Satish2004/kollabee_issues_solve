@@ -12,7 +12,6 @@ import { useDebounce } from "@/app/(protected)/(seller)/seller/products/hooks/us
 import { EnhancedDataTable } from "../../../../../components/data-table/enhanced-data-table";
 import { useRouter } from "next/navigation";
 
-// Define the user type based on the API response
 interface User {
   id: string;
   email: string;
@@ -34,11 +33,9 @@ interface User {
     approved: boolean | null;
     approvalRequested: boolean;
     approvalReqestAt: string | null;
-    // Other seller fields
   } | null;
   buyer: {
     id: string;
-    // Buyer fields
   } | null;
 }
 
@@ -50,7 +47,6 @@ interface ApiResponse {
   totalPages: number;
 }
 
-// Status indicator component
 const StatusIndicator = ({
   status,
   textColor,
@@ -363,28 +359,6 @@ const UserDashboardPage = () => {
       },
     },
   ];
-
-  const filterOptions = {
-    role: {
-      label: "Role",
-      options: [
-        { label: "All", value: "all" },
-        { label: "Supplier", value: "SELLER" },
-        { label: "Buyer", value: "BUYER" },
-        { label: "Admin", value: "ADMIN" },
-      ],
-    },
-    country: {
-      label: "Country",
-      options: [
-        { label: "All", value: "all" },
-        { label: "United States", value: "US" },
-        { label: "India", value: "IN" },
-        { label: "United Kingdom", value: "UK" },
-        // Add more countries as needed
-      ],
-    },
-  };
 
   return (
     <div className="container  min-w-[99%] mx-3 bg-white p-6 rounded-md shadow-lg  ">
