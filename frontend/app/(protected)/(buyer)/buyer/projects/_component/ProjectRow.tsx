@@ -49,18 +49,6 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
         <div className="flex items-center flex-col">-</div>
       </td>
 
-      {/* <td className="py-3 px-4 text-sm">
-        {project.milestones?.length > 0 ? (
-          <div className="flex flex-col items-center">
-            <div className="flex w-fit bg-[#F4F4F4] px-2 items-center rounded-md">
-              <TbCash className="mr-1 text-[#78787a]" />
-              View
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">-</div>
-        )}
-      </td> */}
 
       <td className="py-3 px-4 text-sm">
         {project.milestones?.length > 0 ? (
@@ -82,20 +70,33 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
 
       <td className="py-3 px-4 text-sm">
         {project.budget
-          ? `$${project.budget} ${
-              project.pricingCurrency?.toUpperCase() || "USD"
-            }`
+          ? `$${project.budget} ${project.pricingCurrency?.toUpperCase() || "USD"
+          }`
           : "N/A"}
       </td>
 
       <td className="py-3 px-4 text-sm">
         <span className="flex items-center gap-2">
           <span className="relative w-4 h-4">
-            {/* Outer circle */}
-            <span className="absolute top-1/2 left-1/2 w-2 h-2 rounded-full bg-yellow-500 -translate-x-1/2 -translate-y-1/2"></span>
-            {/* Inner dot */}
+            <span className={`
+                absolute top-1/2 left-1/2 w-2 h-2 rounded-full  -translate-x-1/2 -translate-y-1/2
+                 ${
+              project.requestedSeller?.[0]?.status === "APPROVED"
+                ? "bg-green-500"
+                : project.requestedSeller?.[0]?.status === "REJECTED"
+                  ? "bg-red-500"
+                  : "bg-yellow-500" // default for pending/empty/undefined
+              }
+        `}></span>
           </span>
-          Pending
+          {project.requestedSeller?.length > 0 ? (
+            <span className="text-xs text-gray-500">
+              ({project.requestedSeller[0].status || "Pending"})
+            </span>
+          ) : (
+            <span className="text-xs text-gray-500">Pending</span>
+          )}
+
         </span>
       </td>
 
@@ -111,9 +112,9 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
           >
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          {/* <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
             <MessageSquare className="h-4 w-4" />
-          </Button>
+          </Button> */}
         </div>
       </td>
     </tr>

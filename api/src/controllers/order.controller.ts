@@ -558,8 +558,6 @@ export async function approveOrRejectProject(req: any, res: Response) {
       { timeout: 10000 }
     );
 
-    // after it send the email
-
     return res.status(200).json({ success: true });
   } catch (error) {
     console.log("error :", error);

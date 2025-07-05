@@ -734,6 +734,8 @@ model Project {
   businessName     String
   productType      String?
 
+  projectCategoies String[] // New field for project categories
+
   // Legacy fields for backward compatibility
   formulationType        String?
   targetBenefit          String?

@@ -1,73 +1,94 @@
-"use client";
+"use client"
 
-import React, { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Play, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { useState } from "react"
+import Image from "next/image"
+import Link from "next/link"
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Play } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
-export type ProductDetailData = {
-    id: string;
-    name: string;
-    images: string[];
-    sellerName?: string;
-    sellerCountry?: string;
-    sellerYearsActive?: number;
-    pricingTiers: { min: number; max?: number; price: number }[];
-    colors: { name: string; value: string; bg: string }[];
-    sizes: string[];
-    printingMethods: string[];
-};
-
-interface ProductDetailProps {
-    product: ProductDetailData;
+export type ProductData = {
+    id: string
+    name: string
+    description: string
+    price: number
+    wholesalePrice: number
+    minOrderQuantity: number
+    availableQuantity: number
+    images: string[]
+    thumbnail: string[]
+    deliveryCost: number
+    discount?: number
+    seller: {
+        id: string
+        businessName: string
+        businessDescription: string
+        businessAddress: string
+        teamSize: string
+        annualRevenue: string
+        productionCountries: string[]
+        user: {
+            name: string
+            country: string
+            state: string
+        }
+    }
+    attributes: Record<string, string>
 }
 
-export default function ProductDetail({
-    product,
-}: ProductDetailProps) {
-    const [activeImageIndex, setActiveImageIndex] = useState(0);
-    const [thumbStart, setThumbStart] = useState(0);
-    const [selectedColor, setSelectedColor] = useState(product.colors[0]?.value ?? "");
-    const [selectedSize, setSelectedSize] = useState(product.sizes[0] ?? "");
-    const [selectedPrinting, setSelectedPrinting] = useState<string[]>([product.printingMethods[0]]);
+interface ProductDetailProps {
+    product: ProductData
+    onSendEnquiry?: (productId: string, selections: any) => void
+    onChatNow?: (productId: string) => void
+}
 
-    const onSendEnquiry = (productId, selections) => {
-        // Handle send enquiry logic here
-        console.log("Enquiry sent for product:", productId, "with selections:", selections);
-    }
+export default function ProductDetail({ product, onSendEnquiry, onChatNow }: ProductDetailProps) {
+    const [activeImageIndex, setActiveImageIndex] = useState(0)
+    const [thumbStart, setThumbStart] = useState(0)
+    const [selectedQuantity, setSelectedQuantity] = useState(product.minOrderQuantity)
 
-    const onChatNow = (productId: string) => {
-        // Handle chat now logic here
-        console.log("Chat initiated for product:", productId);
-    };
+    // Combine images and thumbnails, prioritizing main images
+    const allImages = [...product.images, ...product.thumbnail].filter(Boolean)
 
-    const thumbsPerView = 6;
-    const endThumb = thumbStart + thumbsPerView;
+    // Generate pricing tiers based on available data
+    const pricingTiers = [
+        { min: product.minOrderQuantity, max: 50, price: product.price },
+        { min: 51, max: 100, price: product.price * 0.95 },
+        { min: 101, price: product.price * 0.9 },
+    ]
 
-    const prevImage = () =>
-        setActiveImageIndex((idx) => (idx - 1 + product.images.length) % product.images.length);
-    const nextImage = () =>
-        setActiveImageIndex((idx) => (idx + 1) % product.images.length);
+    // Extract available attributes as variations
+    const availableAttributes = Object.entries(product.attributes).filter(([_, value]) => value)
+
+    const thumbsPerView = 6
+    const endThumb = thumbStart + thumbsPerView
+
+    const prevImage = () => setActiveImageIndex((idx) => (idx - 1 + allImages.length) % allImages.length)
+
+    const nextImage = () => setActiveImageIndex((idx) => (idx + 1) % allImages.length)
 
     const scrollThumbs = () => {
-        const nextStart = endThumb >= product.images.length ? 0 : thumbStart + 1;
-        setThumbStart(nextStart);
-    };
-
-    const togglePrinting = (m: string) =>
-        setSelectedPrinting((prev) =>
-            prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]
-        );
+        const nextStart = endThumb >= allImages.length ? 0 : thumbStart + 1
+        setThumbStart(nextStart)
+    }
 
     const handleEnquiry = () => {
-        onSendEnquiry?.(product.id, { color: selectedColor, size: selectedSize, printingMethods: selectedPrinting });
-    };
+        onSendEnquiry?.(product.id, {
+            quantity: selectedQuantity,
+            attributes: availableAttributes,
+        })
+    }
 
     const handleChat = () => {
-        onChatNow?.(product.id);
-    };
+        onChatNow?.(product.id)
+    }
+
+    const calculateDiscountedPrice = (price: number) => {
+        if (product.discount) {
+            return price * (1 - product.discount / 100)
+        }
+        return price
+    }
 
     return (
         <div className="container mx-auto px-4 py-6">
@@ -77,129 +98,209 @@ export default function ProductDetail({
             </Link>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Image Gallery */}
                 <div className="flex h-fit">
-                    <div className="hidden sm:flex flex-col mr-4 space-y-2 relative">
-                        {product.images.slice(thumbStart, endThumb).map((img, i) => {
-                            const realIndex = i + thumbStart;
-                            return (
-                                <div
-                                    key={realIndex}
-                                    className={cn(
-                                        "w-16 h-16 border rounded overflow-hidden cursor-pointer",
-                                        activeImageIndex === realIndex ? "border-primary border-2" : "border-gray-200"
-                                    )}
-                                    onClick={() => setActiveImageIndex(realIndex)}
+                    {allImages.length > 1 && (
+                        <div className="hidden sm:flex flex-col mr-4 space-y-2 relative">
+                            {allImages.slice(thumbStart, endThumb).map((img, i) => {
+                                const realIndex = i + thumbStart
+                                return (
+                                    <div
+                                        key={realIndex}
+                                        className={cn(
+                                            "w-16 h-16 border rounded overflow-hidden cursor-pointer",
+                                            activeImageIndex === realIndex ? "border-primary border-2" : "border-gray-200",
+                                        )}
+                                        onClick={() => setActiveImageIndex(realIndex)}
+                                    >
+                                        <Image src={img || "/placeholder.svg"} alt="" width={64} height={64} className="object-cover" />
+                                    </div>
+                                )
+                            })}
+                            {allImages.length > thumbsPerView && (
+                                <button
+                                    className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-gray-500 hover:text-gray-700"
+                                    onClick={scrollThumbs}
                                 >
-                                    <Image src={img} alt="" width={64} height={64} className="object-cover" />
-                                </div>
-                            );
-                        })}
-                        {product.images.length > thumbsPerView && (
-                            <button className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-gray-500 hover:text-gray-700" onClick={scrollThumbs}>
-                                <ChevronDown className="h-5 w-5" />
-                            </button>
-                        )}
-                    </div>
+                                    <ChevronDown className="h-5 w-5" />
+                                </button>
+                            )}
+                        </div>
+                    )}
 
                     <div className="flex-1 relative border border-gray-200 rounded-md overflow-hidden">
                         <div className="relative aspect-square">
-                            <Image src={product.images[activeImageIndex]} alt="" fill className="object-cover" />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <button className="bg-white/80 rounded-full p-3 hover:bg-white">
-                                    <Play className="h-8 w-8 text-gray-800" />
-                                </button>
-                            </div>
-                            <button className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white" onClick={prevImage}>
-                                <ChevronLeft className="h-5 w-5 text-gray-800" />
-                            </button>
-                            <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white" onClick={nextImage}>
-                                <ChevronRight className="h-5 w-5 text-gray-800" />
-                            </button>
+                            {allImages.length > 0 ? (
+                                <>
+                                    <Image
+                                        src={allImages[activeImageIndex] || "/placeholder.svg"}
+                                        alt={product.name}
+                                        fill
+                                        className="object-cover"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <button className="bg-white/80 rounded-full p-3 hover:bg-white">
+                                            <Play className="h-8 w-8 text-gray-800" />
+                                        </button>
+                                    </div>
+                                    {allImages.length > 1 && (
+                                        <>
+                                            <button
+                                                className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                                                onClick={prevImage}
+                                            >
+                                                <ChevronLeft className="h-5 w-5 text-gray-800" />
+                                            </button>
+                                            <button
+                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-2 hover:bg-white"
+                                                onClick={nextImage}
+                                            >
+                                                <ChevronRight className="h-5 w-5 text-gray-800" />
+                                            </button>
+                                        </>
+                                    )}
+                                </>
+                            ) : (
+                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                                    <span className="text-gray-400">No image available</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
 
+                {/* Product Details */}
                 <div>
                     <h1 className="text-2xl font-medium text-gray-900 mb-1">{product.name}</h1>
+
                     <div className="flex items-center text-sm text-gray-500 mb-6">
-                        <span className="mr-2">{product.sellerName}</span>
-                        {product.sellerYearsActive && (
-                            <span className="mr-2">{product.sellerYearsActive} yr.</span>
-                        )}
-                        {product.sellerCountry && (
-                            <span className="flex items-center">
-                                <span className="ml-1">{product.sellerCountry}</span>
-                            </span>
-                        )}
+                        <span className="mr-2">{product.seller.businessName}</span>
+                        <span className="mr-2">{product.seller.teamSize}</span>
+                        <span className="flex items-center">
+                            <span className="ml-1">{product.seller.user.country}</span>
+                        </span>
                     </div>
 
+                    {/* Pricing Tiers */}
                     <div className="grid grid-cols-3 gap-4 mb-6">
-                        {product.pricingTiers.map((t, i) => (
+                        {pricingTiers.map((tier, i) => (
                             <div key={i} className="text-center">
                                 <div className="text-sm text-gray-500 mb-1">
-                                    {t.min} {t.max ? `- ${t.max}` : "+"} pcs
+                                    {tier.min} {tier.max ? `- ${tier.max}` : "+"} pcs
                                 </div>
-                                <div className="text-xl font-bold">${t.price.toFixed(2)}</div>
+                                <div className="text-xl font-bold">
+                                    ${calculateDiscountedPrice(tier.price).toFixed(2)}
+                                    {product.discount && (
+                                        <span className="text-sm text-gray-400 line-through ml-2">${tier.price.toFixed(2)}</span>
+                                    )}
+                                </div>
                             </div>
                         ))}
                     </div>
 
+                    {/* Product Information */}
                     <div className="mb-6">
-                        <h2 className="text-lg font-medium mb-2">Variations</h2>
-                        <div className="text-sm text-gray-600 mb-4">
-                            Total options: {product.colors.length} Color, {product.sizes.length} Size, {product.printingMethods.length} Printing Meth
-                        </div>
+                        <h2 className="text-lg font-medium mb-2">Product Details</h2>
 
-                        <div className="mb-4">
-                            <h3 className="text-base font-medium mb-2">Color: {selectedColor}</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {product.colors.map((c) => (
-                                    <button key={c.value} className={cn("w-10 h-10 rounded-md flex items-center justify-center", c.bg, selectedColor === c.value && "ring-2 ring-primary")} onClick={() => setSelectedColor(c.value)} />
-                                ))}
-                                <button className="w-10 h-10 rounded-md border border-gray-200 flex items-center justify-center">
-                                    <Plus className="h-4 w-4 text-gray-400" />
-                                </button>
+                        <div className="space-y-3 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Min Order Quantity:</span>
+                                <span className="font-medium">{product.minOrderQuantity} pcs</span>
                             </div>
-                        </div>
-
-                        <div className="mb-4">
-                            <h3 className="text-base font-medium mb-2">Size: {selectedSize}</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {product.sizes.map((s) => (
-                                    <button key={s} className={cn("px-4 py-2 rounded-md border", selectedSize === s ? "bg-primary/10 border-primary" : "border-gray-200")} onClick={() => setSelectedSize(s)}>
-                                        {s}
-                                    </button>
-                                ))}
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Available Stock:</span>
+                                <span className="font-medium">{product.availableQuantity} pcs</span>
                             </div>
-                        </div>
-
-                        <div className="mb-4">
-                            <h3 className="text-base font-medium mb-2">Printing Methods</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {product.printingMethods.map((m) => (
-                                    <button key={m} className={cn("px-4 py-2 rounded-md border text-sm", selectedPrinting.includes(m) ? "bg-primary/10 border-primary" : "border-gray-200")} onClick={() => togglePrinting(m)}>
-                                        {m}
-                                    </button>
-                                ))}
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Delivery Cost:</span>
+                                <span className="font-medium">${product.deliveryCost}</span>
                             </div>
+                            {product.discount && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">Discount:</span>
+                                    <span className="font-medium text-green-600">{product.discount}% OFF</span>
+                                </div>
+                            )}
                         </div>
                     </div>
 
+                    {/* Attributes/Variations */}
+                    {availableAttributes.length > 0 && (
+                        <div className="mb-6">
+                            <h2 className="text-lg font-medium mb-2">Specifications</h2>
+                            <div className="space-y-3">
+                                {availableAttributes.map(([key, value]) => (
+                                    <div key={key} className="flex justify-between text-sm">
+                                        <span className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, " $1").trim()}:</span>
+                                        <span className="font-medium">{value}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Quantity Selection */}
+                    <div className="mb-6">
+                        <h3 className="text-base font-medium mb-2">Quantity</h3>
+                        <div className="flex items-center space-x-3">
+                            <button
+                                onClick={() => setSelectedQuantity(Math.max(product.minOrderQuantity, selectedQuantity - 1))}
+                                className="w-10 h-10 rounded-md border border-gray-200 flex items-center justify-center hover:bg-gray-50"
+                            >
+                                -
+                            </button>
+                            <span className="px-4 py-2 border border-gray-200 rounded-md min-w-[80px] text-center">
+                                {selectedQuantity}
+                            </span>
+                            <button
+                                onClick={() => setSelectedQuantity(Math.min(product.availableQuantity, selectedQuantity + 1))}
+                                className="w-10 h-10 rounded-md border border-gray-200 flex items-center justify-center hover:bg-gray-50"
+                            >
+                                +
+                            </button>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                            Min: {product.minOrderQuantity}, Max: {product.availableQuantity}
+                        </p>
+                    </div>
+
+                    {/* Action Buttons */}
                     <div className="flex gap-4 mb-6">
-                        <Button onClick={handleEnquiry} className="flex-1 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white font-semibold py-6">
+                        <Button
+                            onClick={handleEnquiry}
+                            className="flex-1 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white font-semibold py-6"
+                        >
                             Send Enquiry
                         </Button>
-                        <Button variant="outline" onClick={handleChat} className="flex-1 font-semibold py-6 gradient-text gradient-border">
+                        <Button variant="outline" onClick={handleChat} className="flex-1 font-semibold py-6 bg-transparent">
                             Chat Now
                         </Button>
                     </div>
 
-                    <div className="flex items-center justify-between border-t pt-4">
-                        <h2 className="text-base font-medium">Protections for this product</h2>
-                        <ChevronRight className="h-5 w-5 text-gray-400" />
+                    {/* Seller Information */}
+                    <div className="border-t pt-4">
+                        <h2 className="text-base font-medium mb-3">Seller Information</h2>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Business:</span>
+                                <span className="font-medium">{product.seller.businessName}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Team Size:</span>
+                                <span className="font-medium">{product.seller.teamSize}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Revenue:</span>
+                                <span className="font-medium">{product.seller.annualRevenue}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Production:</span>
+                                <span className="font-medium">{product.seller.productionCountries.join(", ")}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    );
+    )
 }

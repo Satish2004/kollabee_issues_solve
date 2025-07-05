@@ -69,7 +69,6 @@ const Step3 = ({
     "Other",
   ];
 
-  // Get the appropriate date field label based on project type
   const getDateFieldLabel = () => {
     if (formData.selectedServices.includes("services-brand-support")) {
       return "When would you like to start the service?";
@@ -81,7 +80,6 @@ const Step3 = ({
     return "Timeline";
   };
 
-  // Handle date change based on project type
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
 
@@ -94,7 +92,6 @@ const Step3 = ({
     }
   };
 
-  // Get the current date value based on project type
   const getCurrentDateValue = () => {
     if (formData.selectedServices.includes("services-brand-support")) {
       return serviceStartDate;

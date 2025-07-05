@@ -25,119 +25,69 @@ export const createProject = async (req: any, res: Response) => {
     if (projectData.selectedServices?.includes("services-brand-support")) {
       if (serviceStartDate) projectTimeline.push(new Date(serviceStartDate));
       if (serviceEndDate) projectTimeline.push(new Date(serviceEndDate));
-
-      // Set legacy fields for compatibility
       projectTimelineFrom = serviceStartDate;
       projectTimelineTo = serviceEndDate;
     } else {
       if (receiveDate) projectTimeline.push(new Date(receiveDate));
       if (launchDate) projectTimeline.push(new Date(launchDate));
-
-      // Set legacy fields for compatibility
       projectTimelineFrom = receiveDate;
       projectTimelineTo = launchDate || receiveDate;
     }
 
-    // // Process milestones
-    // const newMileStones =
-    //   milestones?.map((milestone: any) => ({
-    //     name: milestone.name || "Milestone",
-    //     description: milestone.description || "Description",
-    //     paymentPercentage: Number.parseFloat(
-    //       milestone.paymentPercentage || "100"
-    //     ),
-    //     dueDate: milestone.dueDate ? new Date(milestone.dueDate) : new Date(),
-    //   })) || [];
-
-    // // If no milestones provided, create a default one
-    // if (newMileStones.length === 0 && projectTimeline.length > 0) {
-    //   newMileStones.push({
-    //     name: "Project Completion",
-    //     description: "Full payment upon completion",
-    //     paymentPercentage: 100,
-    //     dueDate: projectTimeline[projectTimeline.length - 1] || new Date(),
-    //   });
-    // }
-
-    // Set business name from project title if available
     if (projectData.projectTitle && !projectData.businessName) {
       newProjectData.businessName = projectData.projectTitle;
     }
 
-    // Set category and product type based on project type
+    // Handle project categories based on project type
     if (projectData.selectedServices?.includes("custom-manufacturing")) {
-      newProjectData.category =
-        projectData.productCategory.join(",") || "OTHER";
-      newProjectData.productType =
-        projectData.productCategory.join(",") || "OTHER";
+      const categories = projectData.productCategory || ["OTHER"];
+      newProjectData.category = categories.join(",");
+      newProjectData.productType = categories.join(",");
+      newProjectData.projectCategoies = categories; // Store as array
     } else if (projectData.selectedServices?.includes("packaging-only")) {
+      const categories = projectData.packagingCategory || ["PACKAGING"];
       newProjectData.category = "PACKAGING";
-      newProjectData.productType =
-        projectData.packagingCategory.join(",") || "PACKAGING";
-    } else if (
-      projectData.selectedServices?.includes("services-brand-support")
-    ) {
+      newProjectData.productType = categories.join(",");
+      newProjectData.projectCategoies = ["PACKAGING"]; // Store as array
+    } else if (projectData.selectedServices?.includes("services-brand-support")) {
       newProjectData.category = "SERVICES";
       newProjectData.productType = "SERVICES";
+      newProjectData.projectCategoies = ["SERVICES"]; // Store as array
     }
 
-    // Set certifications string for backward compatibility
-    if (
-      projectData.certifications &&
-      Array.isArray(projectData.certifications)
-    ) {
-      newProjectData.certificationsRequired =
-        projectData.certifications.join(", ");
+    // Handle certifications
+    if (projectData.certifications && Array.isArray(projectData.certifications)) {
+      newProjectData.certificationsRequired = projectData.certifications.join(", ");
     }
 
-    // Set other required fields with defaults if needed
-    newProjectData.formulationType =
-      projectData.hasDesignOrFormula || projectData.formulationType || "N/A";
-    newProjectData.targetBenefit =
-      projectData.customizationLevel || projectData.targetBenefit || "N/A";
-    newProjectData.packagingType =
-      projectData.needsPackaging || projectData.packagingType || "N/A";
-    newProjectData.materialPreferences =
-      projectData.ecoFriendly || projectData.materialPreferences || "N/A";
-    newProjectData.sampleRequirements =
-      projectData.needsSample || projectData.sampleRequirements || "no";
-    newProjectData.minimumOrderQuantity =
-      projectData.quantity?.toString() ||
-      projectData.minimumOrderQuantity ||
-      "100";
+    // Set other required fields with defaults
+    newProjectData.formulationType = projectData.hasDesignOrFormula || projectData.formulationType || "N/A";
+    newProjectData.targetBenefit = projectData.customizationLevel || projectData.targetBenefit || "N/A";
+    newProjectData.packagingType = projectData.needsPackaging || projectData.packagingType || "N/A";
+    newProjectData.materialPreferences = projectData.ecoFriendly || projectData.materialPreferences || "N/A";
+    newProjectData.sampleRequirements = projectData.needsSample || projectData.sampleRequirements || "no";
+    newProjectData.minimumOrderQuantity = projectData.quantity?.toString() || projectData.minimumOrderQuantity || "100";
 
-    // Remove customCategories from newProjectData if present
+    // Remove customCategories if present
     if (newProjectData.customCategories) {
       delete newProjectData.customCategories;
     }
 
-    // Create the project with all fields
+    // Create the project
     const project = await prisma.project.create({
       data: {
         ...newProjectData,
         projectTimeline,
-
-        // Store dates properly
         receiveDate: receiveDate ? new Date(receiveDate) : null,
         launchDate: launchDate ? new Date(launchDate) : null,
         serviceStartDate: serviceStartDate ? new Date(serviceStartDate) : null,
         serviceEndDate: serviceEndDate ? new Date(serviceEndDate) : null,
-
-        // Store reference files as JSON
-        referenceFiles: projectData.referenceFiles
-          ? JSON.stringify(projectData.referenceFiles)
-          : null,
-
-        // Store certifications as array
+        referenceFiles: projectData.referenceFiles ? JSON.stringify(projectData.referenceFiles) : null,
         certifications: projectData.certifications || [],
-
-        // Set owner
         ownerId: req.user.buyerId,
       },
       include: { milestones: true },
     });
-
-    // console.log("Project created:", project);
 
     res.status(201).json(project);
   } catch (error) {
@@ -310,6 +260,9 @@ export const getProjects = async (req: any, res: Response) => {
           id: buyerId,
         },
       },
+      orderBy: {
+        createdAt: "desc",
+      },
       include: {
         requestedSeller: {
           where: {
@@ -398,7 +351,6 @@ export const suggestedSellers = async (req: Request, res: Response) => {
 
     console.log("Query params:", req.query);
 
-    // Fetch the project details by ID
     const project = await prisma.project.findUnique({
       where: { id: id },
       include: { owner: true },
@@ -409,7 +361,7 @@ export const suggestedSellers = async (req: Request, res: Response) => {
     }
     const where: any = {
       businessCategories: {
-        has: getCategoryFromProjectCategory(project.category || ""),
+        hasSome: project.projectCategoies || ["OTHER"],
       },
     };
 

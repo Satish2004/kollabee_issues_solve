@@ -40,12 +40,12 @@ const Section: React.FC<SectionProps> = ({
 interface FieldProps {
   label: string;
   value:
-    | string
-    | number
-    | string[]
-    | { url: string; publicId: string }[]
-    | undefined
-    | null;
+  | string
+  | number
+  | string[]
+  | { url: string; publicId: string }[]
+  | undefined
+  | null;
   type?: "text" | "images" | "categories";
 }
 
@@ -91,13 +91,12 @@ const Field: React.FC<FieldProps> = ({ label, value, type = "text" }) => {
             {value.map((category: string, index) => (
               <span
                 key={index}
-                className={`text-xs px-2 py-1 rounded-full ${
-                  category === "Other"
+                className={`text-xs px-2 py-1 rounded-full ${category === "Other"
                     ? "bg-gray-100"
                     : category.startsWith("Custom:")
-                    ? "bg-pink-50"
-                    : "bg-gray-100"
-                }`}
+                      ? "bg-pink-50"
+                      : "bg-gray-100"
+                  }`}
               >
                 {category}
               </span>
@@ -166,10 +165,10 @@ export default function ConfirmationScreen({
             formData.hasDesignOrFormula === "yes"
               ? "Yes, I have a design or formula"
               : formData.hasDesignOrFormula === "no"
-              ? "No, I need help developing"
-              : formData.hasDesignOrFormula === "rebrand"
-              ? "I want to rebrand an existing product"
-              : "Not specified"
+                ? "No, I need help developing"
+                : formData.hasDesignOrFormula === "rebrand"
+                  ? "I want to rebrand an existing product"
+                  : "Not specified"
           }
         />
         <Field
@@ -178,10 +177,10 @@ export default function ConfirmationScreen({
             formData.customizationLevel === "slight"
               ? "Slight modifications"
               : formData.customizationLevel === "full"
-              ? "Fully custom product"
-              : formData.customizationLevel === "ready"
-              ? "Ready-made with rebranding"
-              : "Not specified"
+                ? "Fully custom product"
+                : formData.customizationLevel === "ready"
+                  ? "Ready-made with rebranding"
+                  : "Not specified"
           }
         />
         <Field
@@ -216,10 +215,10 @@ export default function ConfirmationScreen({
             formData.needsPackaging === "yes"
               ? "Yes, custom packaging needed"
               : formData.needsPackaging === "no"
-              ? "No packaging needed"
-              : formData.needsPackaging === "have"
-              ? "Already have packaging designed"
-              : "Not specified"
+                ? "No packaging needed"
+                : formData.needsPackaging === "have"
+                  ? "Already have packaging designed"
+                  : "Not specified"
           }
         />
         <Field
@@ -285,10 +284,10 @@ export default function ConfirmationScreen({
             formData.ecoFriendly === "yes"
               ? "Yes, sustainable materials"
               : formData.ecoFriendly === "no"
-              ? "Standard materials"
-              : formData.ecoFriendly === "open"
-              ? "Open to both options"
-              : "Not specified"
+                ? "Standard materials"
+                : formData.ecoFriendly === "open"
+                  ? "Open to both options"
+                  : "Not specified"
           }
         />
         <Field
@@ -317,10 +316,10 @@ export default function ConfirmationScreen({
             formData.hasPackagingDesign === "yes"
               ? "Yes, I have a design ready"
               : formData.hasPackagingDesign === "no"
-              ? "No, I need design services"
-              : formData.hasPackagingDesign === "not-needed"
-              ? "Not needed at this point"
-              : "Not specified"
+                ? "No, I need design services"
+                : formData.hasPackagingDesign === "not-needed"
+                  ? "Not needed at this point"
+                  : "Not specified"
           }
         />
         <Field
@@ -443,10 +442,10 @@ export default function ConfirmationScreen({
                 serviceType === "custom-manufacturing"
                   ? "Custom Product Manufacturing"
                   : serviceType === "packaging-only"
-                  ? "Packaging Only"
-                  : serviceType === "services-brand-support"
-                  ? "Services & Brand Support"
-                  : "Not specified"
+                    ? "Packaging Only"
+                    : serviceType === "services-brand-support"
+                      ? "Services & Brand Support"
+                      : "Not specified"
               }
             />
           </div>

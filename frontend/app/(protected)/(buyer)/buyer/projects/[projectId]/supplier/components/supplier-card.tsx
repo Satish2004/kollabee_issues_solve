@@ -114,7 +114,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
           {formattedSupplier.description}
         </p>
 
-        <h3 className="font-medium text-sm mb-2">{formattedSupplier.productType}</h3>
+        <h3 className="font-medium text-sm mb-2 truncate">{formattedSupplier.productType}</h3>
         <div className="font-bold mb-1">{formattedSupplier.priceRange}</div>
         <div className="text-sm text-gray-600 mb-3">{formattedSupplier.minOrder}</div>
 

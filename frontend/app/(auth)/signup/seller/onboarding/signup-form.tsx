@@ -303,11 +303,6 @@ export function SignupForm({
     };
   }, [isSelecting]);
 
-  const isPasswordValid = {
-    hasMinLength: formData.password.length >= 8,
-    hasNumber: /\d/.test(formData.password),
-    hasCapital: /[A-Z]/.test(formData.password),
-  };
 
   const checkPasswordMatch = (confirmPassword: string) => {
     if (confirmPassword && formData.password !== confirmPassword) {
