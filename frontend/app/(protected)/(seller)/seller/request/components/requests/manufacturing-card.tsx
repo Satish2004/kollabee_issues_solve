@@ -4,43 +4,13 @@ import { countries } from "@/app/(auth)/signup/seller/onboarding/signup-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import type { ManufacturingRequest } from "@/types/api";
-import { Check, XCircle } from "lucide-react";
+import { OrderStatus, ProjectStatus, type ManufacturingRequest } from "@/types/api";
+import { Check, ChevronDown, XCircle } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
 import ReactCountryFlag from "react-country-flag";
+import { toast } from "sonner";
 
-// Utility functions for country codes
-const getCountryCode = (dialCode: string): string => {
-  // Convert dial code to ISO country code for ReactCountryFlag
-  // This handles special cases and defaults
-  const codeMap: Record<string, string> = {
-    "+1": "US", // United States/Canada
-    "+44": "GB", // United Kingdom
-    "+91": "IN", // India
-    "+86": "CN", // China
-    "+7": "RU", // Russia
-    "+81": "JP", // Japan
-    "+49": "DE", // Germany
-    "+33": "FR", // France
-    "+39": "IT", // Italy
-    "+34": "ES", // Spain
-  };
-
-  // Extract just the country code without the plus sign
-  const code = dialCode.replace("+", "");
-
-  // Return the mapped code or try to derive it
-  return (
-    codeMap[dialCode] ||
-    // Try to find a matching country
-    countries
-      .find((c) => c.code === dialCode)
-      ?.name.substring(0, 2)
-      .toUpperCase() ||
-    "US"
-  ); // Default to US if no match
-};
 
 const getSpecialCaseCountryCode = (
   dialCode: string,
@@ -82,7 +52,60 @@ export const ManufacturingCard = ({
   onApprove,
   onReject,
 }: ManufacturingCardProps) => {
-  const router = useRouter();
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [orderData, setOrderData] = useState({
+    status: request.status,
+    id: request.id,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  // const [countries, setCountries] = useState(countries);
+
+  const handleStatusUpdate = async (newStatus: string) => {
+    if (isUpdatingStatus) return;
+
+    setIsUpdatingStatus(true);
+    setShowStatusDropdown(false);
+
+    try {
+      // Simulate API call to update status
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setOrderData((prev) => ({ ...prev, status: newStatus }));
+      toast.success(`Request status updated to ${newStatus}`);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update request status");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "bg-amber-100 text-amber-800 hover:bg-amber-200";
+      case "APPROVED":
+        return "bg-green-100 text-green-800 hover:bg-green-200";
+      case "REJECTED":
+        return "bg-red-100 text-red-800 hover:bg-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+    }
+  };
+
+  const getStatusDescription = (status: string) => {
+    switch (status) {
+      case "PENDING":
+        return "Awaiting approval from the supplier";
+      case "APPROVED":
+        return "Request has been approved by the supplier";
+      case "REJECTED":
+        return "Request has been rejected by the supplier";
+      default:
+        return "Unknown status";
+    }
+  };
+
 
   // Format date
   const formattedDate = new Date(request.createdAt).toLocaleDateString(
@@ -146,16 +169,46 @@ export const ManufacturingCard = ({
             </span>
           </div>
           <Badge
-            className={`text-xs sm:text-sm px-1.5 sm:px-2.5 py-0.5 ${
-              request.status === "PENDING"
+            className={`text-xs sm:text-sm px-1.5 sm:px-2.5 py-0.5 ${request.status === "PENDING"
                 ? "bg-amber-100 text-amber-800 hover:bg-amber-100"
                 : request.status === "APPROVED"
-                ? "bg-green-100 text-green-800 hover:bg-green-100"
-                : "bg-red-100 text-red-800 hover:bg-red-100"
-            }`}
+                  ? "bg-green-100 text-green-800 hover:bg-green-100"
+                  : "bg-red-100 text-red-800 hover:bg-red-100"
+              }`}
           >
             {request.status}
           </Badge>
+        </div>
+
+        <div>
+          <p className="text-xs text-gray-500 mb-1">Status</p>
+          <div className="relative status-dropdown">
+            <button
+              onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+              disabled={isUpdatingStatus}
+              className={`flex items-center justify-between w-full px-3 py-1 rounded-md text-sm font-medium ${getStatusColor(orderData.status)} hover:opacity-80 transition-opacity`}
+            >
+              <span>{orderData.status.replace('_', ' ')}</span>
+              <ChevronDown className="w-4 h-4 ml-1" />
+            </button>
+
+            {showStatusDropdown && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
+                {Object.values(ProjectStatus).map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleStatusUpdate(status)}
+                    disabled={isUpdatingStatus}
+                    className={`w-full text-left px-3 py-3 text-sm hover:bg-gray-50 first:rounded-t-md last:rounded-b-md border-b border-gray-100 last:border-b-0 ${orderData.status === status ? "bg-blue-50 text-blue-700" : ""
+                      }`}
+                  >
+                    <div className="font-medium">{status.replace('_', ' ')}</div>
+                    <div className="text-xs text-gray-500 mt-1">{getStatusDescription(status)}</div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col">
@@ -172,7 +225,7 @@ export const ManufacturingCard = ({
           <ProjectMilestones milestones={request.project?.milestones} />
 
           {/* Buyer Contact Info */}
-          <BuyerContactInfo buyer={request.buyer} />
+          {/* <BuyerContactInfo buyer={request.buyer} /> */}
 
           {/* Action buttons */}
           <div className="p-3 sm:p-4">

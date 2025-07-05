@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCheckout } from '@/contexts/checkout-context';
 import { toast } from 'sonner';
 
-function Page() {
+export default function Page() {
   const [wishlistProducts, setWishlistProducts] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const {products, fetchProducts, setProducts } = useCheckout()
@@ -111,5 +111,3 @@ function Page() {
     </div>
   );
 }
-
-export default page

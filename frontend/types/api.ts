@@ -1,3 +1,5 @@
+import { ReactNode } from "react";
+
 // Enums from schema
 export enum StockStatus {
   IN_STOCK = "IN_STOCK",
@@ -65,6 +67,15 @@ export enum OrderStatus {
   DELIVERED = "DELIVERED",
   CANCELLED = "CANCELLED",
   RETURNED = "RETURNED",
+}
+
+
+export enum ProjectStatus {
+  Order_Placed = "Order Placed",
+  Scheduled = "Scheduled",
+  Picked_Up = "Picked Up",
+  In_Transit = "In Transit",
+  Out_For_Delivery = "Out For Delivery",
 }
 
 export enum AddressTypeEnum {
