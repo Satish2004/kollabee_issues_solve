@@ -726,6 +726,7 @@ model AdvertisementMetrics {
   @@index([advertisementId])
 }
 
+
 model Project {
   id               String   @id @default(uuid())
   // Core fields
@@ -751,9 +752,11 @@ model Project {
   sampleRequirements     String?
 
   // Timeline and budget
-  projectTimeline DateTime[]
-  budget          Float
-  pricingCurrency String     @default("USD")
+  projectTimeline    DateTime[]
+  timelineStatus     String?    // Added field for timeline status
+  timelineUpdatedAt  DateTime?  // Added field for timeline update timestamp
+  budget             Float
+  pricingCurrency    String     @default("USD")
 
   // New fields 
   projectTitle         String?

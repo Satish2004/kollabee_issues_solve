@@ -48,7 +48,7 @@ const KollaBeeRequests = () => {
       const manufacturingResponse = await ordersApi.getManufactoringRequest();
 
       setRequests(response?.orders || []);
-      setManufacturingRequests(manufacturingResponse || []);
+      setManufacturingRequests(manufacturingResponse);
     } catch (error) {
       console.error("Error fetching requests:", error);
       toast.error("Failed to load requests");
@@ -159,7 +159,7 @@ const KollaBeeRequests = () => {
                   Manufacturing Requests
                 </h3>
               </div>
-
+             
               {isLoading ? (
                 <LoadingSkeletons type="manufacturing" count={1} />
               ) : manufacturingRequests.length > 0 ? (

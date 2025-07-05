@@ -528,7 +528,7 @@ const StripePaymentForm = ({ onSubmit, isLoading, setCardholderName, setCountry,
 
       <Button
         type="submit"
-        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3 rounded-md flex items-center justify-center font-semibold"
+        className="w-full bg-gradient-to-r from-[#910973] to-[#f2bc6c] text-white py-3 rounded-md flex items-center justify-center font-semibold"
         disabled={!stripe || isLoading}
       >
         {isLoading ? "Processing..." : "Pay"}
@@ -549,7 +549,6 @@ const StripePaymentForm = ({ onSubmit, isLoading, setCardholderName, setCountry,
 
 export function Payment({ onNext }: PaymentProps) {
   const { products, setProducts, orderSummary, submitOrder, isLoading, orderId, setOrderId } = useCheckout()
-  const [orderComplete, setOrderComplete] = useState(false)
   const [user, setUser] = useState([])
   const [cardholderName, setCardholderName] = useState("")
   const [country, setCountry] = useState("IN")

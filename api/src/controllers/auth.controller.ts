@@ -14,45 +14,6 @@ declare module "jsonwebtoken";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-//  firstName: "",
-//   lastName: "",
-//   email: "",
-//   phone: "",
-//   country: "India",
-//   countryCode: "+91",
-//   password: "",
-//   confirmPassword: "",
-//   role: "",
-//   businessName: "",
-//   businessType: "",
-//   businessDescription: "",
-//   businessAddress: "",
-//   websiteLink: "",
-//   businessTypes: [] as BusinessType[],
-//   businessCategories: [] as CategoryEnum[],
-//   selectedObjectives: [] as string[],
-//   selectedChallenges: [] as string[],
-//   selectedMetrics: [] as string[],
-//   agreement: false,
-
-// const [formData, setFormData] = useState({
-//   firstName: "",
-//   lastName: "",
-//   email: "",
-//   phone: "",
-//   countryCode: "+91",
-//   country: "India",
-//   password: "",
-//   confirmPassword: "",
-//   role: "",
-//   businessName: "",
-//   businessDescription: "",
-//   businessType: "", // Brand Owner, Retailer, Startup, Individual Entrepreneur, Other
-//   otherBusinessType: "",
-//   lookingFor: [] as string[], // What the buyer is looking for
-// });
-
-// Common fields for both seller and buyer
 const commonSignupFields = {
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
@@ -184,17 +145,11 @@ export const signup = async (req: Request, res: Response) => {
       "Ladakh",
     ];
 
-    const matchedState = states.find((state) =>
-      address.toLowerCase().includes(state.toLowerCase())
-    );
-
     const matchedCountry = countries.find((country) =>
       address.toLowerCase().includes(country.name.toLowerCase())
     );
 
-    // Create user with transaction to ensure both user and role-specific profile are created
     const result = await prisma.$transaction(async (tx: any) => {
-      // Create user
       const user = await tx.user.create({
         data: {
           email: validatedData.email,

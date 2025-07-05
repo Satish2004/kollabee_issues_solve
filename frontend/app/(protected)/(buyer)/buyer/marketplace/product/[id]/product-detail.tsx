@@ -1,93 +1,144 @@
 "use client"
-
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Play } from "lucide-react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-
-export type ProductData = {
-    id: string
-    name: string
-    description: string
-    price: number
-    wholesalePrice: number
-    minOrderQuantity: number
-    availableQuantity: number
-    images: string[]
-    thumbnail: string[]
-    deliveryCost: number
-    discount?: number
-    seller: {
-        id: string
-        businessName: string
-        businessDescription: string
-        businessAddress: string
-        teamSize: string
-        annualRevenue: string
-        productionCountries: string[]
-        user: {
-            name: string
-            country: string
-            state: string
-        }
-    }
-    attributes: Record<string, string>
-}
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { productsApi } from '@/lib/api';
 
 interface ProductDetailProps {
-    product: ProductData
-    onSendEnquiry?: (productId: string, selections: any) => void
-    onChatNow?: (productId: string) => void
+    id: string;
 }
 
-export default function ProductDetail({ product, onSendEnquiry, onChatNow }: ProductDetailProps) {
-    const [activeImageIndex, setActiveImageIndex] = useState(0)
-    const [thumbStart, setThumbStart] = useState(0)
-    const [selectedQuantity, setSelectedQuantity] = useState(product.minOrderQuantity)
+interface Product {
+    id: string;
+    name: string;
+    price: number;
+    discount?: number;
+    minOrderQuantity: number;
+    availableQuantity: number;
+    deliveryCost: number;
+    images: string[];
+    thumbnail?: string;
+    attributes: Record<string, string>;
+    seller: {
+        businessName: string;
+        teamSize: string;
+        annualRevenue: string;
+        productionCountries: string[];
+        user: {
+            country: string;
+        };
+    };
+}
 
-    // Combine images and thumbnails, prioritizing main images
-    const allImages = [...product.images, ...product.thumbnail].filter(Boolean)
+export default function ProductDetail({ id }: ProductDetailProps) {
+    const [product, setProduct] = useState<Product | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchProduct = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const response = await productsApi.getProductDetails(id);
+                const data = response.product as Product;
+                setProduct(data);
+            } catch (err: any) {
+                console.error("Failed to fetch product:", err);
+                setError(err.message || "Something went wrong");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) fetchProduct();
+    }, [id]);
+
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const [thumbStart, setThumbStart] = useState(0);
+    const [selectedQuantity, setSelectedQuantity] = useState(1);
+
+    // Safely combine images and thumbnails
+    const allImages = [
+        ...(product?.images || []),
+        ...(product?.thumbnail ? [product.thumbnail] : [])
+    ].filter(Boolean);
 
     // Generate pricing tiers based on available data
-    const pricingTiers = [
+    const pricingTiers = product ? [
         { min: product.minOrderQuantity, max: 50, price: product.price },
         { min: 51, max: 100, price: product.price * 0.95 },
         { min: 101, price: product.price * 0.9 },
-    ]
+    ] : [];
 
     // Extract available attributes as variations
-    const availableAttributes = Object.entries(product.attributes).filter(([_, value]) => value)
+    const availableAttributes = product
+        ? Object.entries(product.attributes || {}).filter(([_, value]) => value)
+        : [];
 
-    const thumbsPerView = 6
-    const endThumb = thumbStart + thumbsPerView
+    const thumbsPerView = 6;
+    const endThumb = Math.min(thumbStart + thumbsPerView, allImages.length);
 
-    const prevImage = () => setActiveImageIndex((idx) => (idx - 1 + allImages.length) % allImages.length)
-
-    const nextImage = () => setActiveImageIndex((idx) => (idx + 1) % allImages.length)
+    const prevImage = () => setActiveImageIndex((idx) => (idx - 1 + allImages.length) % allImages.length);
+    const nextImage = () => setActiveImageIndex((idx) => (idx + 1) % allImages.length);
 
     const scrollThumbs = () => {
-        const nextStart = endThumb >= allImages.length ? 0 : thumbStart + 1
-        setThumbStart(nextStart)
-    }
+        const nextStart = endThumb >= allImages.length ? 0 : thumbStart + 1;
+        setThumbStart(nextStart);
+    };
 
     const handleEnquiry = () => {
-        onSendEnquiry?.(product.id, {
-            quantity: selectedQuantity,
-            attributes: availableAttributes,
-        })
-    }
+        if (!product) return;
+        // onSendEnquiry?.(product.id, {
+        //   quantity: selectedQuantity,
+        //   attributes: availableAttributes,
+        // })
+    };
 
     const handleChat = () => {
-        onChatNow?.(product.id)
-    }
+        if (!product) return;
+        // onChatNow?.(product.id)
+    };
 
     const calculateDiscountedPrice = (price: number) => {
-        if (product.discount) {
-            return price * (1 - product.discount / 100)
+        if (product?.discount) {
+            return price * (1 - product.discount / 100);
         }
-        return price
+        return price;
+    };
+
+    // Update selectedQuantity when product loads
+    useEffect(() => {
+        if (product) {
+            setSelectedQuantity(product.minOrderQuantity);
+        }
+    }, [product]);
+
+    if (loading) {
+        return (
+            <div className="container mx-auto px-4 py-6">
+                <p className="text-gray-500">Loading product details...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="container mx-auto px-4 py-6">
+                <p className="text-red-500">{error}</p>
+            </div>
+        );
+    }
+
+    if (!product) {
+        return (
+            <div className="container mx-auto px-4 py-6">
+                <p className="text-red-500">Product not found</p>
+            </div>
+        );
     }
 
     return (
@@ -103,7 +154,7 @@ export default function ProductDetail({ product, onSendEnquiry, onChatNow }: Pro
                     {allImages.length > 1 && (
                         <div className="hidden sm:flex flex-col mr-4 space-y-2 relative">
                             {allImages.slice(thumbStart, endThumb).map((img, i) => {
-                                const realIndex = i + thumbStart
+                                const realIndex = i + thumbStart;
                                 return (
                                     <div
                                         key={realIndex}
@@ -113,9 +164,15 @@ export default function ProductDetail({ product, onSendEnquiry, onChatNow }: Pro
                                         )}
                                         onClick={() => setActiveImageIndex(realIndex)}
                                     >
-                                        <Image src={img || "/placeholder.svg"} alt="" width={64} height={64} className="object-cover" />
+                                        <Image
+                                            src={img || "/placeholder.svg"}
+                                            alt=""
+                                            width={64}
+                                            height={64}
+                                            className="object-cover"
+                                        />
                                     </div>
-                                )
+                                );
                             })}
                             {allImages.length > thumbsPerView && (
                                 <button
@@ -174,10 +231,10 @@ export default function ProductDetail({ product, onSendEnquiry, onChatNow }: Pro
                     <h1 className="text-2xl font-medium text-gray-900 mb-1">{product.name}</h1>
 
                     <div className="flex items-center text-sm text-gray-500 mb-6">
-                        <span className="mr-2">{product.seller.businessName}</span>
-                        <span className="mr-2">{product.seller.teamSize}</span>
+                        <span className="mr-2">{product.seller?.businessName}</span>
+                        <span className="mr-2">{product.seller?.teamSize}</span>
                         <span className="flex items-center">
-                            <span className="ml-1">{product.seller.user.country}</span>
+                            <span className="ml-1">{product.seller?.user?.country}</span>
                         </span>
                     </div>
 
@@ -283,24 +340,24 @@ export default function ProductDetail({ product, onSendEnquiry, onChatNow }: Pro
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Business:</span>
-                                <span className="font-medium">{product.seller.businessName}</span>
+                                <span className="font-medium">{product.seller?.businessName}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Team Size:</span>
-                                <span className="font-medium">{product.seller.teamSize}</span>
+                                <span className="font-medium">{product.seller?.teamSize}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Revenue:</span>
-                                <span className="font-medium">{product.seller.annualRevenue}</span>
+                                <span className="font-medium">{product.seller?.annualRevenue}</span>
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Production:</span>
-                                <span className="font-medium">{product.seller.productionCountries.join(", ")}</span>
+                                <span className="font-medium">{product.seller?.productionCountries?.join(", ") || "N/A"}</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    )
+    );
 }

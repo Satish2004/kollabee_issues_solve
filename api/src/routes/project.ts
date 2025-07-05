@@ -11,6 +11,7 @@ import {
   removeSavedSeller,
   sendRequest,
   getHiredSellers,
+  updateTimelineStatus,
 } from "../controllers/project.controller";
 import { authMiddleware, isAuthenticated, isBuyer } from "../middleware/auth";
 import { PrismaClient } from "@prisma/client";
@@ -25,6 +26,7 @@ router.post("/", isAuthenticated, createProject);
 router.get("/", isAuthenticated, getProjects);
 router.get("/:id", isBuyer, getProjectById);
 router.put("/:id", isAuthenticated, updateProject);
+router.put("/update-timeline/:id", isAuthenticated, updateTimelineStatus);
 router.delete("/:id", isAuthenticated, deleteProject);
 
 // Seller management routes
@@ -60,7 +62,6 @@ router.get(
 
       console.log("Requested sellers:", requests);
 
-      // Map to the same format as other seller endpoints
       const requestedSellers = requests.map((request) => request.seller);
 
       res.status(200).json(requestedSellers);

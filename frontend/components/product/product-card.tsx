@@ -94,8 +94,8 @@ export default function ProductCard({
   return (
     <div className="bg-white w-full rounded-2xl border border-gray-200 overflow-hidden"
       onClick={(e) => {
-        // window.location.href = `/buyer/marketplace/product/${product.id}`;
-        // e.stopPropagation();
+        window.location.href = `/buyer/marketplace/product/${product.id}`;
+        e.stopPropagation();
       }}
     >
       {/* Product Image + Wishlist */}

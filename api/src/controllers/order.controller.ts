@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import prisma from "../db";
 import { RequestStatus } from "@prisma/client";
+import { raw } from "@prisma/client/runtime/library";
 
 interface TrackingUpdate {
   status: any;
@@ -571,16 +572,16 @@ export const GetSellerRequest = async (req: any, res: Response) => {
 
     const [regularRequests, projectRequests] = await Promise.all([
       prisma.request.findMany({
-      where: {
+        where: {
           sellerId,
           status: { not: RequestStatus.REJECTED },
-      },
-      include: {
-          buyer: {
-          include: {
-              user: true,
-          },
         },
+        include: {
+          buyer: {
+            include: {
+              user: true,
+            },
+          },
         },
         orderBy: {
           createdAt: "desc",
@@ -593,15 +594,15 @@ export const GetSellerRequest = async (req: any, res: Response) => {
         },
         include: {
           project: true,
-        buyer: {
-          include: {
+          buyer: {
+            include: {
               user: true,
-              },
             },
           },
+        },
         orderBy: {
           createdAt: "desc",
-      },
+        },
       }),
     ]);
 
@@ -613,7 +614,8 @@ export const GetSellerRequest = async (req: any, res: Response) => {
 
     const formattedRequests = [
       ...regularRequests.map((request) => ({
-      id: request.id,
+        id: request.id,
+        requestId: request.id,
         type: "REGULAR",
         buyerName: request.buyer.user.name,
         buyerImage: request.buyer.user.imageUrl,
@@ -621,10 +623,12 @@ export const GetSellerRequest = async (req: any, res: Response) => {
         category: request.category,
         quantity: request.quantity,
         status: request.status,
-      createdAt: request.createdAt,
+        createdAt: request.createdAt,
+        rawData: request, // Include raw data for debugging
       })),
       ...projectRequests.map((request) => ({
-        id: request.id,
+        id: request.projectId,
+        requestId: request.id,
         type: "PROJECT",
         buyerName: request.buyer.user.name,
         buyerImage: request.buyer.user.imageUrl,
@@ -633,6 +637,7 @@ export const GetSellerRequest = async (req: any, res: Response) => {
         quantity: request.project.quantity || 0,
         status: request.status,
         createdAt: request.createdAt,
+        rawData: request, // Include raw data for debugging
       })),
     ].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 

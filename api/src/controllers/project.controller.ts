@@ -246,6 +246,131 @@ export const updateProject = async (req: any, res: Response) => {
   }
 };
 
+export const updateTimelineStatus = async (req: any, res: Response) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  // Validate input
+  if (!id || !status) {
+    return res.status(400).json({
+      success: false,
+      error: "Timeline ID and status are required"
+    });
+  }
+
+  try {
+    // 1. Find the project with timeline and owner data
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: {
+        owner: {
+          include: {
+            user: true
+          }
+        }
+      },
+    });
+    console.log("Project found:", project, "Status:", status);
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        error: "Project not found"
+      });
+    }
+
+    // // 2. Authorization check
+    // if (project.ownerId !== req.user.buyerId) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     error: "Access denied"
+    //   });
+    // }
+
+    // 3. Validate status
+    const validStatuses = [
+      "SCHEDULED",
+      "ORDER_PLACED",
+      "PICKED_UP",
+      "IN_TRANSIT",
+      "DELIVERED"
+    ];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid status"
+      });
+    }
+
+    // 4. Update the timeline status
+    const updatedProject = await prisma.project.update({
+      where: { id },
+      data: {
+        timelineStatus: status,
+        timelineUpdatedAt: new Date(),
+        updatedAt: new Date(), // Update the general updatedAt field
+      },
+      select: {
+        id: true,
+        timelineStatus: true,
+        timelineUpdatedAt: true,
+        projectTimeline: true,
+        businessName: true,
+        owner: {
+          select: {
+            businessName: true,
+            user: {
+              select: {
+                email: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // 5. Prepare email notification (don't await to speed up response)
+    if (project.owner?.user?.email) {
+      const emailContent = `
+        <p>Dear ${project.owner.businessName || 'Customer'},</p>
+        <p>The status of your project timeline has been updated to: <strong>${status}</strong>.</p>
+        <p>Project: ${project.businessName || project.id}</p>
+        <p>Updated at: ${new Date().toLocaleString()}</p>
+        <p>Thank you for using our service!</p>
+      `;
+
+      resend.emails.send({
+        from: "Kollabee <hello@tejasgk.com>",
+        to: project.owner.user.email,
+        subject: `Project Timeline Status Updated to ${status}`,
+        html: emailContent,
+      }).catch((error) => {
+        console.error("Email sending error:", error);
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Timeline status updated successfully",
+      data: {
+        id: updatedProject.id,
+        timelineStatus: updatedProject.timelineStatus,
+        timelineUpdatedAt: updatedProject.timelineUpdatedAt,
+        projectTimeline: updatedProject.projectTimeline
+      }
+    });
+
+  } catch (error) {
+    console.error("Timeline update error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  } finally {
+    await prisma.$disconnect();
+  }
+};
+
 export const getProjects = async (req: any, res: Response) => {
   try {
     const { userId, buyerId } = req.user;
@@ -514,43 +639,6 @@ export const suggestedSellers = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch suggested sellers" });
   }
 };
-
-function getCategoryFromProjectCategory(projectCategory: string): string {
-  const categoryMap: Record<string, string> = {
-    professional: "PROFESSIONAL_SERVICES",
-    services: "PROFESSIONAL_SERVICES",
-    service: "PROFESSIONAL_SERVICES",
-    consulting: "PROFESSIONAL_SERVICES",
-    agency: "PROFESSIONAL_SERVICES",
-    strategy: "PROFESSIONAL_SERVICES",
-    marketing: "PROFESSIONAL_SERVICES",
-    development: "PROFESSIONAL_SERVICES",
-    beauty: "BEAUTY_COSMETICS",
-    cosmetics: "BEAUTY_COSMETICS",
-    fashion: "FASHION_APPAREL_ACCESSORIES",
-    apparel: "FASHION_APPAREL_ACCESSORIES",
-    food: "FOOD_BEVERAGES",
-    beverage: "FOOD_BEVERAGES",
-    health: "HEALTH_WELLNESS",
-    wellness: "HEALTH_WELLNESS",
-    home: "HOME_CLEANING_ESSENTIALS",
-    cleaning: "HOME_CLEANING_ESSENTIALS",
-    herbal: "HERBAL_NATURAL_PRODUCTS",
-    natural: "HERBAL_NATURAL_PRODUCTS",
-  };
-
-  // Get keys sorted by length descending for more specific matches first
-  const patterns = Object.keys(categoryMap).sort((a, b) => b.length - a.length);
-  const lowerProjectCategory = projectCategory.toLowerCase();
-
-  for (const pattern of patterns) {
-    if (lowerProjectCategory.includes(pattern)) {
-      return categoryMap[pattern];
-    }
-  }
-
-  return "OTHER";
-}
 
 
 function getSellerDescription(seller: Seller, project: any): string {

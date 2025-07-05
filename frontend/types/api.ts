@@ -69,6 +69,24 @@ export enum OrderStatus {
   RETURNED = "RETURNED",
 }
 
+export enum TimelineStatus {
+  ORDER_PLACED = "ORDER_PLACED",
+  SCHEDULED = "SCHEDULED",
+  PICKED_UP = "PICKED_UP",
+  IN_TRANSIT = "IN_TRANSIT",
+  DELIVERED = "DELIVERED",
+}
+
+
+export const TimelineStatusDescriptions: Record<TimelineStatus, string> = {
+  ORDER_PLACED: "Shipping order created",
+  SCHEDULED: "Pickup scheduled",
+  PICKED_UP: "Item picked up by courier",
+  IN_TRANSIT: "Package in transit",
+  DELIVERED: "Delivered to customer",
+};
+
+
 
 export enum ProjectStatus {
   Order_Placed = "Order Placed",

@@ -103,7 +103,6 @@ const UserDetailsPage = () => {
         setLoading(true);
         const response = await userApi.getUserDetailsForAdmin(userId);
 
-        // Format the data
         const formattedUser = {
           id: response.id,
           email: response.email,

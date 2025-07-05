@@ -30,7 +30,7 @@ export default function Page() {
   const searchParams = useSearchParams()
   const [category, setCategory] = useState("all")
   const [tag, setTag] = useState("all")
-  const { products, fetchProducts, setProducts } = useCheckout()
+  const { products, setProducts } = useCheckout()
 
   const { 
     data: marketplaceProducts = [], 
@@ -39,8 +39,7 @@ export default function Page() {
   } = useMarketplaceProducts({ category, tag })
 
   const { 
-    data: wishlistProducts = [], 
-    isLoading: wishlistLoading 
+    data: wishlistProducts = [],  
   } = useWishlistProducts()
 
   useEffect(() => {
@@ -172,7 +171,7 @@ export default function Page() {
                 isInWishlist={isInWishlist}
                 removeFromCart={removeFromCart}
                 removeFromWishlist={removeFromWishlist}
-                setWishlistProducts={() => {}} // This will be handled by React Query
+                setWishlistProducts={() => {}}
                 wishlistProducts={wishlistProducts}
               />
             ))}

@@ -45,6 +45,20 @@ const projectApi = {
     return api.delete(`/projects/${id}`);
   },
 
+  // Update project timeline status
+  updateTimelineStatus: async (id: string, status: string) => {
+    try {
+      const response = await api.put(`/projects/update-timeline/${id}`, {
+        id,
+        status,
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error updating timeline status:", error);
+      throw error;
+    }
+  },
+
   suggestedSellers: async (id: string, filters?: SellerFilters) => {
     try {
       // Convert supplierTypes array to comma-separated string if it exists

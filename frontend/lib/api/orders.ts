@@ -1,5 +1,4 @@
 import { api } from "../axios";
-import { getTopBuyers } from "../../../api/src/controllers/dashboard.controller";
 
 export const ordersApi = {
   createOrder: async (data: {
