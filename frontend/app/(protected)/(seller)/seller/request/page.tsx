@@ -9,7 +9,7 @@ import { ordersApi } from "@/lib/api/orders";
 import type { Order, ManufacturingRequest } from "@/types/api";
 import { CheckCheck, Factory } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 const KollaBeeRequests = () => {

@@ -3,7 +3,7 @@ import { PrismaClient, Role } from "@prisma/client"
 
 const prisma = new PrismaClient()
 
-export const adminController = {
+export const adminController = {  
   // Block communication between two users
   blockCommunication: async (req: any, res: Response) => {
     try {
@@ -404,6 +404,7 @@ export const adminController = {
 
   getMonthlyOnboarding: async (req: Request, res: Response) => {
     try {
+      const { type = 'seller' } = req.query; // Default to 'seller' if not specified
       const now = new Date();
       const currentYear = now.getFullYear();
       const currentMonth = now.getMonth();
@@ -422,8 +423,8 @@ export const adminController = {
 
       const onboardingData = await Promise.all(
         months.map(async ({ name, start, end }) => {
-          const [buyers, suppliers] = await Promise.all([
-            prisma.buyer.count({
+          if (type === 'buyer') {
+            const count = await prisma.buyer.count({
               where: {
                 user: {
                   createdAt: {
@@ -432,8 +433,10 @@ export const adminController = {
                   }
                 }
               }
-            }),
-            prisma.seller.count({
+            });
+            return { name, count };
+          } else { // default to seller
+            const count = await prisma.seller.count({
               where: {
                 user: {
                   createdAt: {
@@ -442,14 +445,16 @@ export const adminController = {
                   }
                 }
               }
-            })
-          ]);
-
-          return { name, buyers, suppliers };
+            });
+            return { name, count };
+          }
         })
       );
 
-      res.json(onboardingData);
+      res.json({
+        type,
+        data: onboardingData
+      });
     } catch (error) {
       console.error("Error fetching monthly onboarding data:", error);
       res.status(500).json({ error: "Failed to fetch onboarding data" });
@@ -467,13 +472,13 @@ export const adminController = {
         return colors[Math.floor(Math.random() * colors.length)];
       };
 
-      // Fetch top 5 selling products with their order items
+      const status="PENDING"
       const topSellingProducts = await prisma.product.findMany({
         where: {
           orderItems: {
             some: {
               order: {
-                status: 'DELIVERED',
+                status,
                 createdAt: { gte: thirtyDaysAgo }
               }
             }
@@ -483,7 +488,7 @@ export const adminController = {
           orderItems: {
             where: {
               order: {
-                status: 'DELIVERED',
+                status,
                 createdAt: { gte: thirtyDaysAgo }
               }
             },
@@ -526,7 +531,7 @@ export const adminController = {
           orderItems: {
             some: {
               order: {
-                status: 'DELIVERED',
+                status,
                 createdAt: { gte: thirtyDaysAgo }
               }
             }
@@ -544,7 +549,7 @@ export const adminController = {
           orderItems: {
             where: {
               order: {
-                status: 'DELIVERED',
+                status,
                 createdAt: { gte: thirtyDaysAgo }
               }
             },
@@ -581,7 +586,7 @@ export const adminController = {
             amount: parseFloat(totalAmount.toFixed(2))
           };
         })
-        .filter(product => product.value > 1); // Ensure at least 2 sales
+        .filter(product => product.value > 1);
 
       const response: ProductMetrics = {
         topSellingProducts: formattedTopSellers,

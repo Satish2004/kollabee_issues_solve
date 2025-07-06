@@ -9,8 +9,9 @@ export const AdminApi = {
         return api.get(`/admin/time-period-metrics/${period}`);
     },
 
-    getMonthlyOnboarding: async () => {
-        return api.get('/admin/monthly-onboarding');
+    getMonthlyOnboarding: async (type?: 'buyer' | 'seller') => {
+        const params = type ? { type } : {};
+        return api.get('/admin/monthly-onboarding', { params });
     },
 
     getProductPerformance: async () => {

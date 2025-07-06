@@ -102,7 +102,7 @@ export const ManufacturingCard = ({
             timelineId={request.id}
             currentStatus={timelineStatus}
             onStatusChange={(newStatus) => setTimelineStatus(newStatus)}
-            disabled={request.status !== "PENDING" && request.status !== "REJECTED"}
+            disabled={request.status !== "APPROVED"}
           />
 
           <Badge

@@ -139,6 +139,8 @@ router.get("/supplier-analytics/:supplierId", authMiddleware, adminController.ge
 router.get("/platform-metrics", authMiddleware, adminController.getPlatformMetrics)
 router.get("/order-metrics", authMiddleware, adminController.getOrderMetrics)
 router.get("/supplier-region-metrics", authMiddleware, adminController.getUserMetrics)
+
+
 router.get("/onboarded", authMiddleware, adminController.getOnboardedUsers);
 
 

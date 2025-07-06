@@ -56,7 +56,9 @@ export default function TimelineStatusDropdown({
         <div className="relative timeline-dropdown">
             <button
                 disabled={disabled}
-                className="flex items-center px-3 py-1 rounded-md border text-sm font-medium bg-white hover:bg-gray-50 transition"
+                className={`flex items-center px-3 py-1 rounded-md border text-sm font-medium bg-white hover:bg-gray-50 transition
+                    ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"}
+                    `}
                 onClick={() => setShowDropdown((prev) => !prev)}
             >
                 {currentStatus.replace("_", " ")}

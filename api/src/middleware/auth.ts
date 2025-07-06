@@ -67,7 +67,7 @@ export const isAuthenticated = async (
 export const authMiddleware = (req: any, res: Response, next: NextFunction) => {
   try {
     const token = getTokenFromRequest(req);
-
+    console.log("Token from request:", token);
     if (!token) {
       return res.status(401).json({ error: "Authentication required" });
     }
