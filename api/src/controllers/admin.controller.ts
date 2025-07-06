@@ -1287,13 +1287,25 @@ export const adminController = {
         prisma.certification.count(),
         prisma.seller.count()
       ]);
+      const suppliers = await prisma.user.findMany({
+        where: {
+          role: 'SELLER', // or check related table `seller`
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), 0, 1), // Jan 1st of current year
+          },
+        },
+        select: {
+          createdAt: true,
+        },
+      });
 
       const metrics = {
         requests: totalMetrics[0],
         messages: totalMetrics[1],
         orders: totalMetrics[2],
         certificatesUploaded: totalMetrics[3],
-        suppliers: totalMetrics[4]
+        suppliers: totalMetrics[4],
+        suppliersOnboardedLastYear: suppliers
       };
 
       res.json(metrics);

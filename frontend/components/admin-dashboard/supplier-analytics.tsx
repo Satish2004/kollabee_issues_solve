@@ -36,6 +36,17 @@ function SupplierAnalytics() {
 
   return (
     <div>
+      <div className="bg-gray-100 p-4 rounded-lg text-xs">
+        <details>
+          <summary className="cursor-pointer font-medium">Debug Info (Click to expand)</summary>
+          <pre className="mt-2 overflow-auto max-h-40">
+            {JSON.stringify({
+              metricsData,
+              monthlyOnboarding
+            }, null, 2)}
+          </pre>
+        </details>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {/* Metrics Cards */}
         <div className="col-span-2 grid grid-cols-2 gap-2 w-full">

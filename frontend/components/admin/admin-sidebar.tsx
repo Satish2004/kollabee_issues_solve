@@ -90,13 +90,13 @@ export function AdminSidebar({ className }: SidebarProps) {
         },
         {
           label: "Orders",
-          icon: "Custom",
+          icon: ShoppingCart,
           image: ShoppingCart,
           href: "/admin/order",
         },
         {
           label: "Users",
-          icon: "Custom",
+          icon: User,
           image: User,
           href: "/admin/user",
         },
@@ -113,11 +113,6 @@ export function AdminSidebar({ className }: SidebarProps) {
         },
       ],
     },
-  ];
-
-  const menuItems: string = [
-    { title: "Dashboard", icon: Home },
-    { title: "Products", icon: Package },
   ];
 
   return (
