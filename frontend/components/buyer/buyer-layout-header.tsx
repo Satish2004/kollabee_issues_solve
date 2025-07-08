@@ -321,6 +321,8 @@ export default function BuyerLayoutHeader() {
       if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
     };
   }, [searchTerm]);
+  
+  
 
   const handleSearch = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -328,6 +330,7 @@ export default function BuyerLayoutHeader() {
       router.push(`/buyer/search?query=${encodeURIComponent(searchTerm.trim())}`);
     }
   };
+  
 
   console.log("Current route:", currentRoute, "Pathname:", pathname);
 

@@ -113,9 +113,6 @@ const ProjectsPage = () => {
       <div className="w-full h-full bg-white rounded-xl border flex flex-col p-4 gap-3">
         {/* Projects section */}
         <h2 className="text-base font-medium mr-4">Projects Overview</h2>
-        {/* {
-          JSON.stringify(projects[0].requestedSeller)
-    } */}
         <ProjectsTable
           loading={loading}
           filteredProjects={filteredProjects}

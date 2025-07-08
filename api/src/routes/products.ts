@@ -8,6 +8,8 @@ import {
   buyProduct,
   getSearchSuggestions,
   approveOrRejectProduct,
+  getRecommendedProducts,
+  getRecommendedSuppliers,
 } from "../controllers/products.controller";
 import { authMiddleware, isAuthenticated } from "../middleware/auth";
 
@@ -29,6 +31,10 @@ router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
 router.post("/:id/buy", buyProduct);
 router.get("/searchsuggestions", getSearchSuggestions);
+
+
+router.get('/recommendations/products', isAuthenticated, getRecommendedProducts);
+router.get('/recommendations/suppliers', isAuthenticated, getRecommendedSuppliers);
 
 
 export default router;

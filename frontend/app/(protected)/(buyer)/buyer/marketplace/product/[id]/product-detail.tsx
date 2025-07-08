@@ -1,128 +1,152 @@
 "use client"
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Play } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { productsApi } from '@/lib/api';
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, Play, Heart } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { productsApi, wishlistApi } from '@/lib/api'
+import { toast } from 'sonner'
+import { useRouter } from 'next/navigation'
 
 interface ProductDetailProps {
-    id: string;
+    id: string
 }
 
 interface Product {
-    id: string;
-    name: string;
-    price: number;
-    discount?: number;
-    minOrderQuantity: number;
-    availableQuantity: number;
-    deliveryCost: number;
-    images: string[];
-    thumbnail?: string;
-    attributes: Record<string, string>;
+    id: string
+    name: string
+    description: string
+    price: number
+    wholesalePrice?: number
+    discount?: number
+    minOrderQuantity: number
+    availableQuantity: number
+    deliveryCost: number
+    images: string[]
+    thumbnail?: string
+    attributes: Record<string, string>
+    material?: string
+    color?: string
+    dimensions?: string
+    label?: string
+    rarity?: string
     seller: {
-        businessName: string;
-        teamSize: string;
-        annualRevenue: string;
-        productionCountries: string[];
+        id: string
+        businessName: string
+        teamSize: string
+        annualRevenue: string
+        productionCountries: string[]
         user: {
-            country: string;
-        };
-    };
+            id: string
+            country: string
+        }
+    }
+    rating?: number
+    reviewCount?: number
 }
 
 export default function ProductDetail({ id }: ProductDetailProps) {
-    const [product, setProduct] = useState<Product | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+    const [product, setProduct] = useState<Product | null>(null)
+    const [loading, setLoading] = useState<boolean>(true)
+    const [error, setError] = useState<string | null>(null)
+    const [activeImageIndex, setActiveImageIndex] = useState(0)
+    const [thumbStart, setThumbStart] = useState(0)
+    const [selectedQuantity, setSelectedQuantity] = useState(1)
+    const [isWishlistLoading, setIsWishlistLoading] = useState(false)
+    const [isInWishlist, setIsInWishlist] = useState(false)
+    const router = useRouter()
 
     useEffect(() => {
         const fetchProduct = async () => {
-            setLoading(true);
-            setError(null);
+            setLoading(true)
+            setError(null)
             try {
-                const response = await productsApi.getProductDetails(id);
-                const data = response.product as Product;
-                setProduct(data);
+                const response = await productsApi.getProductDetails(id)
+                const data = response.product as Product
+                setProduct(data)
+                setSelectedQuantity(data.minOrderQuantity)
+
+                // Check if product is in wishlist
+                const wishlistResponse = await wishlistApi.getWishlist()
+                const isInWishlist = wishlistResponse.items.some((item: any) => item.productId === data.id)
+                setIsInWishlist(isInWishlist)
             } catch (err: any) {
-                console.error("Failed to fetch product:", err);
-                setError(err.message || "Something went wrong");
+                console.error("Failed to fetch product:", err)
+                setError(err.message || "Something went wrong")
             } finally {
-                setLoading(false);
+                setLoading(false)
             }
-        };
+        }
 
-        if (id) fetchProduct();
-    }, [id]);
+        if (id) fetchProduct()
+    }, [id])
 
-    const [activeImageIndex, setActiveImageIndex] = useState(0);
-    const [thumbStart, setThumbStart] = useState(0);
-    const [selectedQuantity, setSelectedQuantity] = useState(1);
-
-    // Safely combine images and thumbnails
     const allImages = [
         ...(product?.images || []),
         ...(product?.thumbnail ? [product.thumbnail] : [])
-    ].filter(Boolean);
+    ].filter(Boolean)
 
-    // Generate pricing tiers based on available data
     const pricingTiers = product ? [
         { min: product.minOrderQuantity, max: 50, price: product.price },
         { min: 51, max: 100, price: product.price * 0.95 },
         { min: 101, price: product.price * 0.9 },
-    ] : [];
+    ] : []
 
-    // Extract available attributes as variations
     const availableAttributes = product
         ? Object.entries(product.attributes || {}).filter(([_, value]) => value)
-        : [];
+        : []
 
-    const thumbsPerView = 6;
-    const endThumb = Math.min(thumbStart + thumbsPerView, allImages.length);
+    const thumbsPerView = 6
+    const endThumb = Math.min(thumbStart + thumbsPerView, allImages.length)
 
-    const prevImage = () => setActiveImageIndex((idx) => (idx - 1 + allImages.length) % allImages.length);
-    const nextImage = () => setActiveImageIndex((idx) => (idx + 1) % allImages.length);
+    const prevImage = () => setActiveImageIndex((idx) => (idx - 1 + allImages.length) % allImages.length)
+    const nextImage = () => setActiveImageIndex((idx) => (idx + 1) % allImages.length)
 
     const scrollThumbs = () => {
-        const nextStart = endThumb >= allImages.length ? 0 : thumbStart + 1;
-        setThumbStart(nextStart);
-    };
-
-    const handleEnquiry = () => {
-        if (!product) return;
-        // onSendEnquiry?.(product.id, {
-        //   quantity: selectedQuantity,
-        //   attributes: availableAttributes,
-        // })
-    };
-
-    const handleChat = () => {
-        if (!product) return;
-        // onChatNow?.(product.id)
-    };
+        const nextStart = endThumb >= allImages.length ? 0 : thumbStart + 1
+        setThumbStart(nextStart)
+    }
 
     const calculateDiscountedPrice = (price: number) => {
         if (product?.discount) {
-            return price * (1 - product.discount / 100);
+            return price * (1 - product.discount / 100)
         }
-        return price;
-    };
+        return price
+    }
 
-    // Update selectedQuantity when product loads
-    useEffect(() => {
-        if (product) {
-            setSelectedQuantity(product.minOrderQuantity);
+    const handleAddToWishlist = async () => {
+        if (!product) return
+
+        try {
+            setIsWishlistLoading(true)
+            if (isInWishlist) {
+                await wishlistApi.removeFromWishlist(product.id)
+                setIsInWishlist(false)
+                toast.success("Removed from wishlist")
+            } else {
+                await wishlistApi.addToWishlist(product.id)
+                setIsInWishlist(true)
+                toast.success("Added to wishlist")
+            }
+        } catch (error) {
+            toast.error("Failed to update wishlist")
+        } finally {
+            setIsWishlistLoading(false)
         }
-    }, [product]);
+    }
+
+    const handleChat = () => {
+        if (!product) return
+        router.push(`/chat/${product.seller.user.id}`)
+    }
 
     if (loading) {
         return (
             <div className="container mx-auto px-4 py-6">
                 <p className="text-gray-500">Loading product details...</p>
             </div>
-        );
+        )
     }
 
     if (error) {
@@ -130,7 +154,7 @@ export default function ProductDetail({ id }: ProductDetailProps) {
             <div className="container mx-auto px-4 py-6">
                 <p className="text-red-500">{error}</p>
             </div>
-        );
+        )
     }
 
     if (!product) {
@@ -138,7 +162,7 @@ export default function ProductDetail({ id }: ProductDetailProps) {
             <div className="container mx-auto px-4 py-6">
                 <p className="text-red-500">Product not found</p>
             </div>
-        );
+        )
     }
 
     return (
@@ -154,7 +178,7 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                     {allImages.length > 1 && (
                         <div className="hidden sm:flex flex-col mr-4 space-y-2 relative">
                             {allImages.slice(thumbStart, endThumb).map((img, i) => {
-                                const realIndex = i + thumbStart;
+                                const realIndex = i + thumbStart
                                 return (
                                     <div
                                         key={realIndex}
@@ -172,7 +196,7 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                                             className="object-cover"
                                         />
                                     </div>
-                                );
+                                )
                             })}
                             {allImages.length > thumbsPerView && (
                                 <button
@@ -195,11 +219,6 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                                         fill
                                         className="object-cover"
                                     />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                        <button className="bg-white/80 rounded-full p-3 hover:bg-white">
-                                            <Play className="h-8 w-8 text-gray-800" />
-                                        </button>
-                                    </div>
                                     {allImages.length > 1 && (
                                         <>
                                             <button
@@ -228,68 +247,123 @@ export default function ProductDetail({ id }: ProductDetailProps) {
 
                 {/* Product Details */}
                 <div>
-                    <h1 className="text-2xl font-medium text-gray-900 mb-1">{product.name}</h1>
+                    <div className="flex justify-between items-start mb-4">
+                        <h1 className="text-2xl font-medium text-gray-900">{product.name}</h1>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={handleAddToWishlist}
+                            disabled={isWishlistLoading}
+                            className="text-gray-500 hover:text-red-500"
+                        >
+                            <Heart
+                                className="w-5 h-5"
+                                fill={isInWishlist ? "red" : "none"}
+                                stroke={isInWishlist ? "red" : "currentColor"}
+                            />
+                        </Button>
+                    </div>
 
                     <div className="flex items-center text-sm text-gray-500 mb-6">
                         <span className="mr-2">{product.seller?.businessName}</span>
-                        <span className="mr-2">{product.seller?.teamSize}</span>
                         <span className="flex items-center">
                             <span className="ml-1">{product.seller?.user?.country}</span>
                         </span>
+                        {product.rating && (
+                            <span className="ml-2">
+                                {product.rating.toFixed(1)} ({product.reviewCount || 0} reviews)
+                            </span>
+                        )}
                     </div>
 
-                    {/* Pricing Tiers */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
-                        {pricingTiers.map((tier, i) => (
-                            <div key={i} className="text-center">
-                                <div className="text-sm text-gray-500 mb-1">
-                                    {tier.min} {tier.max ? `- ${tier.max}` : "+"} pcs
-                                </div>
-                                <div className="text-xl font-bold">
-                                    ${calculateDiscountedPrice(tier.price).toFixed(2)}
-                                    {product.discount && (
-                                        <span className="text-sm text-gray-400 line-through ml-2">${tier.price.toFixed(2)}</span>
-                                    )}
-                                </div>
+                    {/* Pricing */}
+                    <div className="mb-6">
+                        <div className="flex items-center gap-2 mb-2">
+                            <span className="text-2xl font-bold">
+                                ₹{calculateDiscountedPrice(product.price).toFixed(2)}
+                            </span>
+                            {product.discount && (
+                                <>
+                                    <span className="text-sm text-gray-400 line-through">
+                                        ₹{product.price.toFixed(2)}
+                                    </span>
+                                    <span className="text-sm bg-red-100 text-red-600 px-2 py-0.5 rounded">
+                                        {product.discount}% OFF
+                                    </span>
+                                </>
+                            )}
+                        </div>
+                        {product.wholesalePrice && (
+                            <div className="text-sm text-gray-600">
+                                Wholesale price: ₹{product.wholesalePrice.toFixed(2)}
                             </div>
-                        ))}
+                        )}
                     </div>
 
                     {/* Product Information */}
                     <div className="mb-6">
-                        <h2 className="text-lg font-medium mb-2">Product Details</h2>
+                        <h2 className="text-lg font-medium mb-2">Description</h2>
+                        <p className="text-gray-600 text-sm">{product.description}</p>
+                    </div>
 
-                        <div className="space-y-3 text-sm">
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Min Order Quantity:</span>
-                                <span className="font-medium">{product.minOrderQuantity} pcs</span>
+                    {/* Specifications */}
+                    <div className="mb-6">
+                        <h2 className="text-lg font-medium mb-2">Specifications</h2>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="text-sm">
+                                <span className="text-gray-600">Min Order:</span>
+                                <span className="font-medium ml-2">{product.minOrderQuantity} pcs</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Available Stock:</span>
-                                <span className="font-medium">{product.availableQuantity} pcs</span>
+                            <div className="text-sm">
+                                <span className="text-gray-600">Available:</span>
+                                <span className="font-medium ml-2">{product.availableQuantity} pcs</span>
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-600">Delivery Cost:</span>
-                                <span className="font-medium">${product.deliveryCost}</span>
-                            </div>
-                            {product.discount && (
-                                <div className="flex justify-between">
-                                    <span className="text-gray-600">Discount:</span>
-                                    <span className="font-medium text-green-600">{product.discount}% OFF</span>
+                            {product.material && (
+                                <div className="text-sm">
+                                    <span className="text-gray-600">Material:</span>
+                                    <span className="font-medium ml-2">{product.material}</span>
                                 </div>
                             )}
+                            {product.color && (
+                                <div className="text-sm">
+                                    <span className="text-gray-600">Color:</span>
+                                    <span className="font-medium ml-2">{product.color}</span>
+                                </div>
+                            )}
+                            {product.dimensions && (
+                                <div className="text-sm">
+                                    <span className="text-gray-600">Size:</span>
+                                    <span className="font-medium ml-2">{product.dimensions}</span>
+                                </div>
+                            )}
+                            {product.label && (
+                                <div className="text-sm">
+                                    <span className="text-gray-600">Label:</span>
+                                    <span className="font-medium ml-2">{product.label}</span>
+                                </div>
+                            )}
+                            {product.rarity && (
+                                <div className="text-sm">
+                                    <span className="text-gray-600">Rarity:</span>
+                                    <span className="font-medium ml-2">{product.rarity}</span>
+                                </div>
+                            )}
+                            <div className="text-sm">
+                                <span className="text-gray-600">Delivery:</span>
+                                <span className="font-medium ml-2">₹{product.deliveryCost.toFixed(2)}</span>
+                            </div>
                         </div>
                     </div>
 
-                    {/* Attributes/Variations */}
+                    {/* Additional Attributes */}
                     {availableAttributes.length > 0 && (
                         <div className="mb-6">
-                            <h2 className="text-lg font-medium mb-2">Specifications</h2>
-                            <div className="space-y-3">
+                            <h2 className="text-lg font-medium mb-2">Additional Details</h2>
+                            <div className="grid grid-cols-2 gap-4">
                                 {availableAttributes.map(([key, value]) => (
-                                    <div key={key} className="flex justify-between text-sm">
+                                    <div key={key} className="text-sm">
                                         <span className="text-gray-600 capitalize">{key.replace(/([A-Z])/g, " $1").trim()}:</span>
-                                        <span className="font-medium">{value}</span>
+                                        <span className="font-medium ml-2">{value}</span>
                                     </div>
                                 ))}
                             </div>
@@ -324,13 +398,24 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                     {/* Action Buttons */}
                     <div className="flex gap-4 mb-6">
                         <Button
-                            onClick={handleEnquiry}
+                            onClick={handleAddToWishlist}
+                            disabled={isWishlistLoading}
                             className="flex-1 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white font-semibold py-6"
                         >
-                            Send Enquiry
+                            {isWishlistLoading ? (
+                                "Processing..."
+                            ) : isInWishlist ? (
+                                "Remove from Wishlist"
+                            ) : (
+                                "Add to Wishlist"
+                            )}
                         </Button>
-                        <Button variant="outline" onClick={handleChat} className="flex-1 font-semibold py-6 bg-transparent">
-                            Chat Now
+                        <Button
+                            variant="outline"
+                            onClick={handleChat}
+                            className="flex-1 font-semibold py-6 bg-transparent"
+                        >
+                            Chat with Seller
                         </Button>
                     </div>
 
@@ -359,5 +444,5 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                 </div>
             </div>
         </div>
-    );
+    )
 }

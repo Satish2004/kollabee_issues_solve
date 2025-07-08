@@ -3,6 +3,7 @@ import prisma from "../db";
 import { Resend } from "resend";
 import { ProductProvider } from "../providers/product.provider";
 import { CATEGORY_OPTIONS } from "../config/data";
+import { CategoryEnum } from "@prisma/client";
 
 
 const admin = ["pandeyyysuraj@gmail.com", "saibunty1@gmail.com","tejasgk.collab@gmail.com"];
@@ -570,5 +571,291 @@ export const approveOrRejectProduct = async (req: any, res: Response) => {
   } catch (error) {
     console.error("Error approving/rejecting product:", error);
     res.status(500).json({ error: "Failed to process the request" });
+  }
+};
+
+
+export const getRecommendedProducts = async (req: Request, res: Response) => {
+  try {
+    const userId = "13f8a2d5-8360-4cff-80be-cf641688bda1"
+    const limit = Math.min(parseInt(req.query.limit as string) || 10, 50); // Add max limit
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Step 1: Get user's purchase history
+    const userOrders = await prisma.order.findMany({
+      where: {
+        buyerId: userId,
+        status: 'DELIVERED',
+      },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                seller: {
+                  include: {
+                    user: {
+                      select: {
+                        isActive: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // If no purchase history, fall back to popular products
+    if (userOrders.length === 0) {
+      const popularProducts = await getPopularProducts(limit);
+      return res.json({
+        data: popularProducts,
+        message: 'Popular products recommended'
+      });
+    }
+
+    // Step 2: Extract purchased product categories and IDs
+    const purchasedCategories: CategoryEnum[] = [];
+    const purchasedProductIds: string[] = [];
+
+    userOrders.forEach(order => {
+      order.items.forEach(item => {
+        purchasedProductIds.push(item.productId);
+        if (item.product.productCategories) {
+          purchasedCategories.push(...item.product.productCategories);
+        }
+      });
+    });
+
+    // Get unique categories
+    const uniqueCategories = [...new Set(purchasedCategories)];
+
+    // Step 3: Get similar products
+    const similarProducts = await prisma.product.findMany({
+      where: {
+        productCategories: {
+          hasSome: uniqueCategories,
+        },
+        id: {
+          notIn: purchasedProductIds,
+        },
+        isDraft: false,
+        seller: {
+          user: {
+            isActive: true,
+          },
+        },
+      },
+      include: {
+        seller: {
+          include: {
+            user: {
+              select: {
+                name: true,
+                email: true,
+              },
+            },
+          },
+        },
+        reviews: {
+          select: {
+            rating: true
+          }
+        }
+      },
+      orderBy: [
+        {
+          rating: 'desc'
+        }
+      ],
+      take: limit,
+    });
+
+    // If not enough similar products, supplement with popular products
+    if (similarProducts.length < limit) {
+      const remaining = limit - similarProducts.length;
+      const popularProducts = await getPopularProducts(remaining);
+      similarProducts.push(...popularProducts);
+    }
+
+    res.json({
+      data: similarProducts.map(product => ({
+        ...product,
+        averageRating: product.reviews.length > 0 ?
+          product.reviews.reduce((sum, review) => sum + review.rating, 0) / product.reviews.length : 0
+      })),
+      message: 'Recommended products based on your purchases'
+    });
+
+  } catch (error) {
+    console.error('Error fetching recommended products:', error);
+    res.status(500).json({
+      message: 'Failed to fetch recommendations',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+};
+
+async function getPopularProducts(limit: number) {
+  return await prisma.product.findMany({
+    where: {
+      isDraft: false,
+      seller: {
+        user: {
+          isActive: true,
+        },
+      },
+    },
+    include: {
+      seller: {
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+        },
+      },
+      reviews: {
+        select: {
+          rating: true
+        }
+      }
+    },
+    orderBy: [
+      {
+        createdAt: 'desc'
+      },
+      {
+        rating: 'desc'
+      }
+    ],
+    take: limit,
+  });
+}
+
+export const getRecommendedSuppliers = async (req: Request, res: Response) => {
+  // console.log("Fetching recommended suppliers...", req.user);
+  try {
+    const userId = "13f8a2d5-8360-4cff-80be-cf641688bda1"
+
+    const limit = Math.min(parseInt(req.query.limit as string) || 5, 20); // Add max limit
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    const purchasedSuppliers = await prisma.order.findMany({
+      where: {
+        buyerId: userId,
+        status: { in: ['DELIVERED'] },
+      },
+      distinct: ['sellerId'],
+      select: {
+        seller: {
+          select: {
+            id: true,
+            rating: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      take: limit,
+    });
+
+    const supplierIds = purchasedSuppliers
+      .filter(order => order.seller !== null)
+      .map(order => order.seller ? order.seller.id : null)
+      .filter((id): id is string => id !== null);
+
+    // If no purchase history, get top-rated suppliers
+    if (supplierIds.length === 0) {
+      const topSuppliers = await prisma.seller.findMany({
+        where: {
+          user: {
+            isActive: true,
+          },
+        },
+        orderBy: {
+          rating: 'desc',
+        },
+        take: limit,
+        include: {
+          user: {
+            select: {
+              name: true,
+              email: true,
+            },
+          },
+          products: {
+            take: 3,
+            where: {
+              isDraft: false,
+            },
+            orderBy: {
+              createdAt: 'desc'
+            }
+          },
+        },
+      });
+
+      return res.json({
+        data: topSuppliers,
+        message: 'Top-rated suppliers recommended'
+      });
+    }
+
+    // Get supplier details
+    const recommendedSuppliers = await prisma.seller.findMany({
+      where: {
+        id: {
+          in: supplierIds,
+        },
+        user: {
+          isActive: true,
+        },
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+        products: {
+          take: 3,
+          where: {
+            isDraft: false,
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        },
+      },
+    });
+
+    // Sort by rating (descending)
+    recommendedSuppliers.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+
+    res.json({
+      data: recommendedSuppliers,
+      message: 'Suppliers you purchased from before'
+    });
+
+  } catch (error) {
+    console.error('Error fetching recommended suppliers:', error);
+    res.status(500).json({
+      message: 'Failed to fetch supplier recommendations',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 };

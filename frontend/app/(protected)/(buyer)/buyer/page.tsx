@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Info, ArrowRight, ArrowUpRightFromCircle } from "lucide-react";
+import { Info, ArrowRight, ArrowUpRightFromCircle, Bell } from "lucide-react";
 import SupplierCards from "../../../../components/buyer/supplier-cards";
 import Link from "next/link";
 import ProductCard from "../../../../components/product/product-card";
@@ -11,6 +11,9 @@ import { productsApi } from "@/lib/api/products";
 import { Skeleton } from "@/components/ui/skeleton";
 import { sellerApi } from "@/lib/api/seller";
 import { useCheckout } from "@/contexts/checkout-context";
+import NotificationItem from "@/components/notifications/notification-item";
+import { dashboardApi } from "@/lib/api";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -18,6 +21,27 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [sellers, setSellers] = useState<any[]>([]);
   const { products, fetchProducts, setProducts } = useCheckout();
+  const [recommendedProducts, setRecommendedProducts] = useState<any[]>([]);
+  const [recommendedSellers, setRecommendedSellers] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        setNotificationsLoading(true);
+        const response = await dashboardApi.getBuyerNotifications(1, 3);
+        setNotifications(response.data || response.notifications || []);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+        toast.error("Failed to load notifications");
+      } finally {
+        setNotificationsLoading(false);
+      }
+    };
+
+    fetchNotifications();
+  }, []);
 
   useEffect(() => {
     const getProducts = async () => {
@@ -29,6 +53,7 @@ const Dashboard = () => {
         console.error("Failed to fetch products:", error);
       }
     };
+
     const getWishlistProducts = async () => {
       try {
         setIsLoading(true);
@@ -48,6 +73,29 @@ const Dashboard = () => {
         console.error("Failed to fetch sellers:", error);
       }
     };
+
+    const fetchRecommendedProducts = async () => {
+      try {
+        const response = await productsApi.getRecommendedProducts(10);
+        setRecommendedProducts(response.data);
+      } catch (error) {
+        console.error("Failed to fetch recommended products:", error);
+      }
+    }
+
+    const fetchRecommendedSuppliers = async () => {
+      try {
+        const response = await productsApi.getRecommendedSuppliers(10);
+        setRecommendedSellers(response.data);
+      } catch (error) {
+        console.error("Failed to fetch recommended suppliers:", error);
+      }
+    }
+
+    fetchRecommendedSuppliers();
+
+
+    fetchRecommendedProducts();
 
     getProducts();
     getWishlistProducts();
@@ -91,9 +139,9 @@ const Dashboard = () => {
 
   return (
     <main className="min-h-screen md:px-6 max-w-screen overflow-x-hidden overflow-hidden">
-      <div className=" space-y-3 sm:space-y-6">
+      <div className="space-y-3 sm:space-y-6">
         {/* Top section with 4 feature boxes */}
-       {/* <FeatureBoxes />*/}
+        {/* <FeatureBoxes /> */}
 
         {/* Middle section with Quick Action and Account Activity */}
         <div className="flex flex-col md:flex-row gap-3 sm:gap-6 bg-white rounded-xl p-3 sm:p-5">
@@ -112,29 +160,54 @@ const Dashboard = () => {
             <h2 className="text-base sm:text-lg font-medium mb-2 sm:mb-4">
               Account Activity
             </h2>
-            <div className="border border-gray-200 rounded-lg p-3 sm:p-6">
-              <div className="flex flex-col items-start">
-                <div className="w-8 h-8 sm:w-12 sm:h-12 rounded-full bg-gray-200 flex items-center justify-center mb-2 sm:mb-4">
-                  <Info className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500" />
+            <div className="border border-gray-200 rounded-lg p-3 sm:p-4">
+              {notificationsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <Skeleton className="h-6 w-6 rounded-full" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-3 w-3/4" />
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="font-medium mb-1 text-sm sm:text-base">
-                  No Activities Yet
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500">
-                  Once you start engaging with the KollaBee, your activities
-                  will be shown here..
-                </p>
-              </div>
+              ) : notifications.length > 0 ? (
+                <div className="space-y-2">
+                  {notifications.slice(0, 3).map((notification) => (
+                    <NotificationItem
+                      key={notification.id}
+                      notification={notification}
+                    />
+                  ))}
+                  <Link
+                    href="/buyer/notifications"
+                    className="text-xs text-blue-600 hover:underline mt-2 block text-center"
+                  >
+                    View all activity
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-4">
+                  <Bell className="w-8 h-8 text-gray-400 mb-2" />
+                  <h3 className="font-medium text-sm text-gray-900 mb-1">
+                    No activities yet
+                  </h3>
+                  <p className="text-xs text-gray-500 text-center">
+                    Once you start engaging with KollaBee, your activities will appear here.
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Bottom section with Recommended Supplier */}
         <div className="bg-white rounded-xl sm:p-6">
           <h2 className="text-base sm:text-lg max-md:p-2 font-medium mb-2 sm:mb-4">
             Recommended Supplier
           </h2>
-          <SupplierCards sellers={sellers} />
+          <SupplierCards sellers={recommendedSellers} />
         </div>
 
         {/* Promotional Banner */}
@@ -150,7 +223,7 @@ const Dashboard = () => {
               Reduce Trade Barriers. Find reliable partners, negotiate deals,
               and grow your exports/imports effortlessly on Kollabee.
             </p>
-            <button className="border border-white text-white hover:text-orange-500 px-2   py-1 sm:py-2 rounded-md font-medium hover:bg-white/90 transition-colors text-xs sm:text-base">
+            <button className="border border-white text-white hover:text-orange-500 px-2 py-1 sm:py-2 rounded-md font-medium hover:bg-white/90 transition-colors text-xs sm:text-base">
               Upgrade my KollaBee
             </button>
           </div>
@@ -163,10 +236,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Recently Viewed Products */}
-        <div className="space-y-2 sm:space-y-4 bg-white rounded-xl p-3 sm:p-5">
+
+
+        {/* Recommended Products */}
+        <div className="space-y-2 sm:space-y-4 bg-white rounded-xl p-3 sm:p-5 mt-3 sm:mt-6">
           <h2 className="font-semibold text-base sm:text-lg">
-            Recently Viewed Products
+            Recommended Products
           </h2>
           <div className="w-full">
             {isLoading ? (
@@ -192,8 +267,8 @@ const Dashboard = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
-                {allProducts &&
-                  allProducts.map((product, index) => {
+                {recommendedProducts &&
+                  recommendedProducts.map((product, index) => {
                     return (
                       <ProductCard
                         key={index + 1}
@@ -210,55 +285,6 @@ const Dashboard = () => {
               </div>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Recommended Products */}
-      <div className="space-y-2 sm:space-y-4 bg-white rounded-xl p-3 sm:p-5 mt-3 sm:mt-6">
-        <h2 className="font-semibold text-base sm:text-lg">
-          Recommended Products
-        </h2>
-        <div className="w-full">
-          {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
-              {Array(4)
-                .fill(0)
-                .map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="h-[300px] sm:h-[450px] w-full bg-gray-200 flex flex-col gap-2 sm:gap-4 p-2 sm:p-4"
-                  >
-                    <Skeleton className="h-24 sm:h-40 w-full bg-gray-400" />
-                    <Skeleton className="h-2 sm:h-4 w-6 sm:w-10 bg-gray-400" />
-                    <Skeleton className="h-2 sm:h-4 w-10 sm:w-16 bg-gray-400" />
-                    <Skeleton className="h-4 sm:h-6 w-20 sm:w-32 bg-gray-400" />
-                    <Skeleton className="h-5 sm:h-8 w-20 sm:w-32 bg-gray-400" />
-                    <div className="space-y-2 sm:space-y-4">
-                      <Skeleton className="h-6 sm:h-10 w-full bg-gray-400" />
-                      <Skeleton className="h-6 sm:h-10 w-full bg-gray-400" />
-                    </div>
-                  </Skeleton>
-                ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-6">
-              {allProducts &&
-                allProducts.map((product, index) => {
-                  return (
-                    <ProductCard
-                      key={index + 1}
-                      product={product}
-                      isInCart={isInCart}
-                      isInWishlist={isInWishlist}
-                      removeFromCart={removeFromCart}
-                      removeFromWishlist={removeFromWishlist}
-                      setWishlistProducts={setWishlistProducts}
-                      wishlistProducts={wishlistProducts}
-                    />
-                  );
-                })}
-            </div>
-          )}
         </div>
       </div>
     </main>
@@ -338,28 +364,7 @@ export function FeatureBoxes() {
 
 export default Dashboard;
 
-const featureBoxes = [
-  {
-    title: "AI Personalized Suppliers For You",
-    action: "Find Supplier",
-    count: 321,
-  },
-  {
-    title: "Top Deals of Today",
-    action: "Top Deals",
-    count: 431,
-  },
-  {
-    title: "Top Ranking Products",
-    action: "Best For You",
-    count: 431,
-  },
-  {
-    title: "Trending Products",
-    action: "Find Supplier",
-    count: 431,
-  },
-];
+
 
 const actionCards = [
   {
@@ -367,7 +372,7 @@ const actionCards = [
     bgColor: "bg-red-100",
     title: "Saved Suppliers",
     description: "You don't have any suppliers here, saved",
-    link: "#",
+    link: "/buyer/my-suppliers",
   },
   {
     icon: "💬",
@@ -386,17 +391,3 @@ const actionCards = [
     actionLink: "/buyer/marketplace",
   },
 ];
-
-const products = Array(3).fill({
-  image: "/placeholder.svg?height=300&width=400",
-  rating: 5.0,
-  reviews: 11,
-  priceRange: "$850.00-1,100.00",
-  minOrder: "200 Pieces",
-  supplier: {
-    name: "Marcos Cottons Co.,Ltd",
-    years: 2,
-    country: "CN",
-    verified: true,
-  },
-});

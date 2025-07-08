@@ -12,3 +12,10 @@ export function formatDate(date: string | Date) {
     day: "numeric",
   });
 } 
+
+
+export function findYearDifference(startYear: string | null | undefined): number {
+  const currentYear = new Date().getFullYear();
+  const year = parseInt(startYear || "0");
+  return year > 0 ? currentYear - year : 0;
+}

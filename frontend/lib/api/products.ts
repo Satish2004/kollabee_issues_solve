@@ -49,6 +49,14 @@ export const productsApi = {
   //   return api.get('/products/categories');
   // },
 
+  getRecommendedSuppliers: async (limit: number = 5) => {
+    return api.get("/products/recommendations/suppliers", { params: { limit } });
+  },
+
+  getRecommendedProducts: async (limit: number = 5) => {
+    return api.get("/products/recommendations/products", { params: { limit } });
+  },
+
   getSearchSuggestions: async (query: string) => {
     return api.get("/products/suggestions", { params: { query } });
   },

@@ -15,6 +15,14 @@ type Order = {
   createdAt: string
   status: "PENDING" | "in_progress" | "delivered" | "cancelled"
   totalAmount: number
+  items: {
+    id: string
+    product: {
+      id: string
+      name: string
+    }
+    quantity: number
+  }[]
 }
 
 const columns: ColumnDef<Order>[] = [
@@ -24,6 +32,26 @@ const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       const id = row.getValue("id") as string
       return <span className="font-medium">{id}</span>
+    },
+  },
+  {
+    accessorKey: "items",
+    header: "Products",
+    cell: ({ row }) => {
+      const items = row.original.items || []
+      if (items.length === 0) return "N/A"
+
+      const firstItem = items[0]
+      const additionalCount = items.length - 1
+
+      return (
+        <div>
+          {firstItem.product.name} {firstItem.quantity > 1 && `(Qty: ${firstItem.quantity})`}
+          {additionalCount > 0 && (
+            <span className="text-gray-500 ml-1">+{additionalCount} more</span>
+          )}
+        </div>
+      )
     },
   },
   {

@@ -34,7 +34,7 @@ const ProjectsTable = ({
         <div className="flex items-center bg-white rounded-md gap-2">
           <div className="relative">
             <Input
-              placeholder="Search"
+              placeholder="Search Project Names"
               className="h-8 w-48 rounded-md border border-gray-300 pl-8 text-sm"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -50,9 +50,6 @@ const ProjectsTable = ({
             <thead>
               <tr className="text-left text-xs text-gray-500 border-b">
                 <th className="py-2 px-4 font-medium">
-                  <div className="flex items-center">Project Name</div>
-                </th>
-                <th className="py-2 px-4 font-medium">
                   <div className="flex items-center">Project Type</div>
                 </th>
                 <th className="py-2 px-4 font-medium">
@@ -64,8 +61,6 @@ const ProjectsTable = ({
                 <th className="py-2 px-4 font-medium">
                   <div className="flex items-center">Timeline</div>
                 </th>
-                <th className="py-2 px-4 font-medium">Health</th>
-                {/* <th className="py-2 px-4 font-medium">Payment Milestones</th> */}
                 <th className="py-2 px-4 font-medium">Shipping</th>
                 <th className="py-2 px-4 font-medium">Budget</th>
                 <th className="py-2 px-4 font-medium">

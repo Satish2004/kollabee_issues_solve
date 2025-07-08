@@ -12,6 +12,7 @@ import { cartApi } from "@/lib/api/cart";
 import { wishlistApi } from "@/lib/api/wishlist";
 import { useCheckout } from "@/contexts/checkout-context";
 import ContactSupplierButton from "../chat/contact-supplier-button";
+import { findYearDifference } from "@/lib/utils";
 
 interface ProductCardProps {
   product: any;
@@ -35,8 +36,16 @@ export default function ProductCard({
 }: ProductCardProps) {
   const { setProducts } = useCheckout();
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = React.useState(false);
+  const [wishlistFeedback, setWishlistFeedback] = React.useState<null | 'added' | 'removed'>(null);
+  const router = useRouter();
 
-  const handleCart = async () => {
+  const handleProductClick = () => {
+    router.push(`/buyer/marketplace/product/${product.id}`);
+  };
+
+  const handleCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       if (!isInCart(product.id)) {
         setIsLoading(true);
@@ -57,22 +66,31 @@ export default function ProductCard({
     }
   };
 
-  const handleWishlist = async () => {
+  const handleWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
+      setIsWishlistLoading(true);
+
       if (!isInWishlist(product.id)) {
         const response = await wishlistApi.addToWishlist(product.id) as unknown as { items: any[] };
         setWishlistProducts(response.items);
+        setWishlistFeedback('added');
         toast.success("Added to wishlist");
       } else {
-        removeFromWishlist(product.id);
+        await removeFromWishlist(product.id);
+        setWishlistFeedback('removed');
         toast.success("Removed from wishlist");
       }
     } catch (error) {
       toast.error("Failed to update wishlist");
+    } finally {
+      setIsWishlistLoading(false);
+      setTimeout(() => setWishlistFeedback(null), 2000);
     }
   };
 
-  const handleMoveToCart = async () => {
+  const handleMoveToCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     try {
       if (!isInCart(product.id)) {
         setIsLoading(true);
@@ -92,11 +110,9 @@ export default function ProductCard({
   };
 
   return (
-    <div className="bg-white w-full rounded-2xl border border-gray-200 overflow-hidden"
-      onClick={(e) => {
-        window.location.href = `/buyer/marketplace/product/${product.id}`;
-        e.stopPropagation();
-      }}
+    <div
+      className="bg-white w-full rounded-2xl border border-gray-200 overflow-hidden cursor-pointer"
+      onClick={handleProductClick}
     >
       {/* Product Image + Wishlist */}
       <div className="relative">
@@ -109,13 +125,22 @@ export default function ProductCard({
         />
         <Button
           onClick={handleWishlist}
+          disabled={isWishlistLoading}
           className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 w-6 h-6 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center shadow-lg hover:bg-white p-0"
         >
-          <Heart
-            className="w-3 h-3 sm:w-4 sm:h-4"
-            fill={isInWishlist(product.id) ? "red" : "white"}
-            stroke={isInWishlist(product.id) ? "red" : "black"}
-          />
+          {isWishlistLoading ? (
+            <div className="w-3 h-3 sm:w-4 sm:h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+          ) : wishlistFeedback === 'added' ? (
+            <div className="text-green-500 text-xs">✓</div>
+          ) : wishlistFeedback === 'removed' ? (
+            <div className="text-red-500 text-xs">✕</div>
+          ) : (
+            <Heart
+              className="w-3 h-3 sm:w-4 sm:h-4"
+              fill={isInWishlist(product.id) ? "red" : "white"}
+              stroke={isInWishlist(product.id) ? "red" : "black"}
+            />
+          )}
         </Button>
       </div>
 
@@ -186,15 +211,15 @@ export default function ProductCard({
         </div>
 
         {/* Buttons */}
-        <div className="space-y-2 sm:space-y-3">
+        <div className="space-y-2 sm:space-y-3" onClick={e => e.stopPropagation()}>
           {!fromWishlistPage && (
             <Button
               type="button"
               onClick={handleCart}
               disabled={isLoading}
               className={`w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold ${isInCart(product.id)
-                ? "bg-zinc-700 hover:bg-zinc-600"
-                : "button-bg"
+                  ? "bg-zinc-700 hover:bg-zinc-600"
+                  : "button-bg"
                 }`}
             >
               {isLoading ? (
@@ -231,8 +256,3 @@ export default function ProductCard({
   );
 }
 
-function findYearDifference(startYear: string | null | undefined): number {
-  const currentYear = new Date().getFullYear();
-  const year = parseInt(startYear || "0");
-  return year > 0 ? currentYear - year : 0;
-}

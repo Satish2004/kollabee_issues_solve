@@ -85,7 +85,7 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
                 ? "bg-green-500"
                 : project.requestedSeller?.[0]?.status === "REJECTED"
                   ? "bg-red-500"
-                  : "bg-yellow-500" // default for pending/empty/undefined
+                  : "bg-yellow-500"
               }
         `}></span>
           </span>
@@ -112,9 +112,7 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
           >
             <Eye className="h-4 w-4" />
           </Button>
-          {/* <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-            <MessageSquare className="h-4 w-4" />
-          </Button> */}
+
         </div>
       </td>
     </tr>
