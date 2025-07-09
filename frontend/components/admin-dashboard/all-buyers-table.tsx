@@ -15,75 +15,171 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import Link from "next/link";
-import { AdminApi } from "@/lib/api/admin";
 import { BsDash } from "react-icons/bs";
 
+interface Buyer {
+  id: string;
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    createdAt: string;
+    lastLogin: string | null;
+  };
+  businessType: string | null;
+  otherBusinessType: string | null;
+  lookingFor: string[];
+  Order: Array<{
+    id: string;
+    createdAt: string;
+    status: string;
+    items: Array<{
+      product: {
+        name: string;
+        price: number;
+      };
+      quantity: number;
+    }>;
+  }>;
+}
 
-
-const columns: ColumnDef<any>[] = [
+const columns: ColumnDef<Buyer>[] = [
   {
-    accessorKey: "buyerName",
+    accessorKey: "user.name",
     header: "Name",
     cell: ({ row }) => {
-      const name = row.getValue("buyerName") as string;
+      const name = row.original.user.name;
       return (
         <div className="flex items-center gap-2">
-          <span>{name}</span>
+          <span>{name || <BsDash />}</span>
         </div>
       );
     },
   },
   {
-    accessorKey: "products",
-    header: "Products",
+    accessorKey: "user.email",
+    header: "Email",
     cell: ({ row }) => {
-      const products = row.getValue("products") as string;
+      const email = row.original.user.email;
       return (
         <div className="flex items-center gap-2">
-          <span>{products.map((product: any) => product.name).join(", ")}</span>
+          <span>{email || <BsDash />}</span>
         </div>
       );
     },
   },
   {
-    accessorKey: "address",
-    header: "Address",
+    id: "businessType",
+    header: "Business Type",
     cell: ({ row }) => {
-        const address = row.getValue("address") as string;
-        return (
-          <div className="flex items-center ml-4 gap-2 text-center">
-            <span>{address.street === "N/A" ? <BsDash /> : `${address.street}, ${address.city}, ${address.state}, ${address.country}`}</span>
-          </div>
-        );
-      },
+      const businessType = row.original.businessType;
+      const otherType = row.original.otherBusinessType;
+      return (
+        <div className="flex items-center gap-2">
+          <span>
+            {businessType
+              ? (businessType === "Other" && otherType
+                ? otherType
+                : businessType)
+              : <BsDash />}
+          </span>
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "latestOrderDate",
-    header: "Order Date",
+    id: "lookingFor",
+    header: "Looking For",
     cell: ({ row }) => {
-        const orderDate = row.getValue("latestOrderDate") as string;
-        return (
-          <div className="flex items-center gap-2">
-            <span>{formatDate(orderDate)}</span>
-          </div>
-        );
-      },
+      const lookingFor = row.original.lookingFor;
+      return (
+        <div className="flex items-center gap-2">
+          <span>
+            {lookingFor && lookingFor.length > 0
+              ? lookingFor.join(", ")
+              : <BsDash />}
+          </span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "totalOrders",
+    header: "Total Orders",
+    cell: ({ row }) => {
+      const orders = row.original.Order;
+      return (
+        <div className="flex items-center gap-2">
+          <span>{orders?.length || 0}</span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "products",
+    header: "Products Ordered",
+    cell: ({ row }) => {
+      const orders = row.original.Order;
+      // Get all unique product names from all orders
+      const productNames = Array.from(
+        new Set(
+          orders.flatMap(order =>
+            order.items.map(item => item.product.name)
+          )
+        ))
+      return (
+        <div className="flex items-center gap-2">
+          <span>{productNames.join(", ") || <BsDash />}</span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "latestOrderDate",
+    header: "Last Order Date",
+    cell: ({ row }) => {
+      const orders = row.original.Order;
+      const latestOrder = orders.length > 0
+        ? orders.reduce((latest, current) =>
+          new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
+        )
+        : null;
+
+      return (
+        <div className="flex items-center gap-2">
+          <span>{latestOrder ? formatDate(latestOrder.createdAt) : <BsDash />}</span>
+        </div>
+      );
+    },
+  },
+  {
+    id: "lastLogin",
+    header: "Last Login",
+    cell: ({ row }) => {
+      const lastLogin = row.original.user.lastLogin;
+      return (
+        <div className="flex items-center gap-2">
+          <span>{lastLogin ? formatDate(lastLogin) : <BsDash />}</span>
+        </div>
+      );
+    },
   },
 ];
 
 export default function AllBuyersTable() {
+  const [buyers, setBuyers] = useState<Buyer[]>([]);
 
-const [buyers, setBuyers] = useState<any[]>([]);
-
-useEffect(() => {
+  useEffect(() => {
     const fetchBuyers = async () => {
-        const response = await AdminApi.getTopBuyers();
-        setBuyers(response);
+      try {
+        const response = await AdminApi.getAllBuyers();
+        setBuyers(response.data);
+      } catch (error) {
+        console.error("Error fetching buyers:", error);
+      }
     };
     fetchBuyers();
-}, []);
-    
+  }, []);
 
   const table = useReactTable({
     data: buyers,
@@ -95,15 +191,19 @@ useEffect(() => {
     <div className="space-y-4 bg-white p-5 rounded-xl">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">All Buyers</h2>
+        <div className="flex gap-2">
+          <Button variant="outline">Export</Button>
+          <Button>Add Buyer</Button>
+        </div>
       </div>
-      <div className="w-full">
-        <div className="w-full rounded-md">
+      <div className="w-full overflow-x-auto">
+        <div className="w-full rounded-md min-w-[1200px]">
           <Table className="w-full">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow
                   key={headerGroup.id}
-                  className="grid grid-cols-5 w-full border-t border-b border-gray-200 pt-4 text-gray-500"
+                  className="grid grid-cols-8 w-full border-t border-b border-gray-200 pt-4 text-gray-500"
                 >
                   {headerGroup.headers.map((header) => (
                     <TableHead
@@ -113,9 +213,9 @@ useEffect(() => {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
                     </TableHead>
                   ))}
                 </TableRow>
@@ -127,7 +227,7 @@ useEffect(() => {
                   <TableRow
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="grid grid-cols-5 w-full pt-4"
+                    className="grid grid-cols-8 w-full pt-4 hover:bg-gray-50"
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
@@ -166,7 +266,7 @@ const formatDate = (date: string) => {
   const dateObj = new Date(date);
   return dateObj.toLocaleDateString("en-US", {
     year: "numeric",
-    month: "long",
+    month: "short",
     day: "numeric",
   });
 };

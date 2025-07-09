@@ -32,13 +32,11 @@ export default function MySuppliersPage() {
     hasPrevPage: false
   });
 
-  // Fetch all suppliers for stats
   const { data: allSuppliers, isLoading: statsLoading } = useQuery({
     queryKey: ["allMySuppliers"],
     queryFn: () => mySuppliersApi.getMySuppliers({ type: "ALL" }),
   });
 
-  // Calculate total counts for tabs (unaffected by search)
   const tabCounts = {
     ALL: new Set(allSuppliers?.suppliers?.map(s => s.id)).size || 0,
     CART: new Set(allSuppliers?.suppliers?.filter(s => s.types.includes("CART")).map(s => s.id)).size || 0,

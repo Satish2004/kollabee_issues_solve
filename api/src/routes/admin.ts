@@ -99,6 +99,7 @@ router.get("/getAllDetails", getAllDetails);
 // this is for approving or rejecting the seller (make sure to call this api, only if the seller is completed the onboarding process)
 router.post("/seller/approve", approveOrRejectSeller);
 router.get("/all-products", adminController.getAllProducts);
+router.get("/all-suppliers", adminController.getAllSuppliers);
 
 router.get("/", async (req: any, res: Response) => {
   console.log("req.user : ", req.user);
@@ -140,8 +141,10 @@ router.get("/platform-metrics", authMiddleware, adminController.getPlatformMetri
 router.get("/order-metrics", authMiddleware, adminController.getOrderMetrics)
 router.get("/supplier-region-metrics", authMiddleware, adminController.getUserMetrics)
 
-
 router.get("/onboarded", authMiddleware, adminController.getOnboardedUsers);
+router.get("/all-products", authMiddleware, adminController.getAllProducts);
+router.get("/all-suppliers", authMiddleware, adminController.getAllSuppliers);  
+router.get("/all-buyers", authMiddleware, adminController.getAllBuyers);
 
 
 

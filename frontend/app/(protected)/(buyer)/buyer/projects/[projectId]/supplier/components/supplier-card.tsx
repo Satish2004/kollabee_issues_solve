@@ -69,7 +69,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-
+    
         {/* Save button */}
         <button
           onClick={() => toggleSaveSupplier(supplier.id)}
@@ -137,7 +137,7 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
             </Badge>
           ))}
         </div>
-
+      
         <div className="flex justify-end">
           {formattedSupplier.verified && (
             <Badge variant="outline" className="bg-blue-50 text-blue-500 border-blue-200">
@@ -147,10 +147,12 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
           <Button
             className={`w-full ml-2 ${requestedSuppliers.includes(supplier.id)
                 ? "bg-green-600 hover:bg-green-700"
-                : "bg-gradient-to-r from-[#e00261] to-[#f0b168] hover:from-[#c80057] hover:to-[#e0a058]"
+                : supplier.approved
+                  ? "bg-gray-300 hover:bg-gray-300 cursor-not-allowed"
+                  : "bg-gradient-to-r from-[#e00261] to-[#f0b168] hover:from-[#c80057] hover:to-[#e0a058]"
               } text-white border-none`}
             onClick={handleSendRequest}
-            disabled={requestedSuppliers.includes(supplier.id)}
+            disabled={requestedSuppliers.includes(supplier.id) || supplier.approved}
           >
             {hiredSuppliers.includes(supplier.id) ? (
               <div className="flex items-center justify-center">
@@ -161,6 +163,11 @@ export function SupplierCard({ supplier }: SupplierCardProps) {
               <div className="flex items-center justify-center">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Request Sent
+              </div>
+            ) : supplier.approved ? (
+              <div className="flex items-center justify-center">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Approved
               </div>
             ) : (
               <div className="flex items-center justify-center">

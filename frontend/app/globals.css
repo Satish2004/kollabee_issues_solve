@@ -2,16 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  /* font-family: Arial, Helvetica, sans-serif; */
-}
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
@@ -104,7 +94,7 @@ body {
   --ozonetel-iframe-width: 400px;
   --ozonetel-iframe-height: 744px;
 }
-/* 
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -164,4 +154,4 @@ body {
     @apply bg-background text-foreground;
     font-family: "Helvetica Neue", Arial, sans-serif;
   }
-} */
+}

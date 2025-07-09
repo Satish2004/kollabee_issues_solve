@@ -175,7 +175,7 @@ export default function ContactList({
             {conversations.length}
           </Badge>
           {totalUnreadMessages > 0 && (
-            <Badge className="rounded-full bg-red-500 text-white">
+            <Badge className="rounded-full bg-red-500 text-white hover:bg-red-400">
               {totalUnreadMessages} unread
             </Badge>
           )}

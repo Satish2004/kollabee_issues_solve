@@ -14,6 +14,11 @@ export const AdminApi = {
         return api.get('/admin/monthly-onboarding', { params });
     },
 
+    getUsersOnboarding: async (type?: 'buyer' | 'seller') => {
+        const params = type ? { type } : {};
+        return api.get('/admin/users-onboarding', { params });
+    },
+
     getProductPerformance: async () => {
         return api.get('/admin/product-performance');
     },
@@ -24,6 +29,14 @@ export const AdminApi = {
 
     getTopBuyers: async () => {
         return api.get('/admin/top-buyers');
+    },
+
+    getAllSuppliers: async () => {
+        return api.get('/admin/all-suppliers');
+    },
+
+    getAllBuyers: async () => {
+        return api.get('/admin/all-buyers');
     },
 
     getSupplierMetrics: async () => {
@@ -54,8 +67,8 @@ export const AdminApi = {
         return api.get('/admin/all-products');
     },
 
-    getSupplierRegionMetrics: async () => {
-        return api.get('/admin/supplier-region-metrics');
+    getSupplierRegionMetrics: async (type) => {
+        return api.get('/admin/supplier-region-metrics?type=' + type);
     },
 
     approveOrRejectSeller: async (sellerId,status) => {

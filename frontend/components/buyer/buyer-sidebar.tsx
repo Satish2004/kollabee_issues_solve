@@ -110,26 +110,6 @@ export function BuyerSidebar({ className }: SidebarProps) {
         },
       ],
     },
-    // {
-    //   label: "GUIDES",
-    //   routes: [
-    //     {
-    //       label: "Support",
-    //       icon: Headphones,
-    //       href: "/buyer/support",
-    //     },
-    //   ],
-    // },
-    // {
-    //   label: "OTHERS",
-    //   routes: [
-    //     {
-    //       label: "Calendar",
-    //       icon: Calendar,
-    //       href: "/buyer/appointment",
-    //     },
-    //   ],
-    // },
   ];
 
   const menuItems = [
@@ -138,7 +118,7 @@ export function BuyerSidebar({ className }: SidebarProps) {
   ];
 
   return (
-    <div className={cn("relative min-h-screen ", className)}>
+    <div className={cn("relative min-h-screen bg-white", className)}>
       <div
         className={cn(
           "flex h-screen flex-col gap-4 border-r p-4 transition-all duration-300",

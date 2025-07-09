@@ -219,7 +219,7 @@ export default function ShippingDetailsPage() {
               }`}
           />
         </div>
-
+       
         {/* Content that can be toggled */}
         {isDetailsVisible && (
           <div className="grid md:grid-cols-2 gap-8 mb-8">

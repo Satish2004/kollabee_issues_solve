@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react"
 import { Avatar } from "@/components/ui/avatar"
 import { Card } from "@/components/ui/card"
 import { Area, AreaChart, Bar, BarChart, ResponsiveContainer, Tooltip } from "recharts"
-import { Button } from "@/components/ui/button"
 import { AdminApi } from "@/lib/api"
 
 interface Supplier {

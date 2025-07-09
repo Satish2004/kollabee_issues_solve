@@ -460,6 +460,7 @@ export const adminController = {
       res.status(500).json({ error: "Failed to fetch onboarding data" });
     }
   },
+  
 
   getProductPerformance: async (req: Request, res: Response) => {
     try {
@@ -1645,6 +1646,104 @@ export const adminController = {
     } catch (error) {
       console.error(`Error fetching ${req.query.type || 'seller'} metrics:`, error);
       res.status(500).json({ error: `Failed to fetch ${req.query.type || 'seller'} metrics` });
+    }
+  },
+
+  getAllSuppliers: async (req: Request, res: Response) => {
+    try {
+      const suppliers = await prisma.seller.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              lastLogin: true
+            }
+          },
+          products: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              thumbnail: true
+            }
+          }
+        },
+        orderBy: {
+          user: {
+            createdAt: 'desc'
+          }
+        }
+      });
+      res.json({
+        success: true,
+        data: suppliers
+      });
+    }
+    catch (error) {
+      console.error('Error fetching suppliers:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch suppliers'
+      });
+    }
+  },
+
+  getAllBuyers: async (req: Request, res: Response) => {
+    try {
+      const buyers = await prisma.buyer.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+              createdAt: true,
+              lastLogin: true
+            }
+          },
+          Order: {
+            select: {
+              id: true,
+              createdAt: true,
+              status: true,
+              items: {
+                select: {
+                  product: {
+                    select: {
+                      name: true,
+                      price: true
+                    }
+                  },
+                  quantity: true
+                }
+              }
+            },
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        },
+        orderBy: {
+          user: {
+            createdAt: 'desc'
+          }
+        }
+      });
+
+      res.json({
+        success: true,
+        data: buyers
+      });
+    }
+    catch (error) {
+      console.error('Error fetching buyers:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch buyers'
+      });
     }
   },
 

@@ -392,7 +392,6 @@ export const getMySuppliers = async (req: any, res: Response) => {
       );
     }
 
-    // Sort suppliers
     suppliers.sort((a, b) => {
       switch(sortBy) {
         case 'businessName':

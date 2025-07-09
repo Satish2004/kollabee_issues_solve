@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Eye } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DataTable, StatusBadge, type Column } from "@/components/data-table";
 import { OrderDetail } from "./order-detail";
 import { FilterDialog } from "./filter-dialog";
-import { mockOrders } from "@/lib/mock-data";
 import { ordersApi } from "@/lib/api/orders";
 import { useRouter } from "next/navigation";
+import Papa from "papaparse";
 
 type Order = {
   id: string;
@@ -21,6 +21,7 @@ type Order = {
   orderDate: string;
   status: string;
   supplier?: string;
+  createdAt: string;
 };
 
 export default function Orders() {
@@ -35,36 +36,55 @@ export default function Orders() {
     dateRange: "all",
     productChannel: "all",
   });
-  const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const router = useRouter();
 
   const ordersPerPage = 10;
 
-  useEffect(() => {
-    // Filter orders based on search query and filters
-    const filtered = filteredOrders.filter((order) => {
+  // Memoized filtered orders
+  const filteredOrders = useMemo(() => {
+    return orders.filter((order) => {
       // Search filter
       const matchesSearch =
+        searchQuery === "" ||
         order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.buyer.name.toLowerCase().includes(searchQuery.toLowerCase());
+        order.buyer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.productChannel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        order.supplier?.toLowerCase().includes(searchQuery.toLowerCase());
 
       // Status filter
       const matchesStatus =
         filters.status === "all" ||
-        order.status.toLowerCase().replace(" ", "-") ===
-          filters.status.toLowerCase();
+        order.status.toLowerCase() === filters.status.toLowerCase();
 
       // Product channel filter
       const matchesChannel =
         filters.productChannel === "all" ||
         order.productChannel.toLowerCase() ===
-          filters.productChannel.toLowerCase();
+        filters.productChannel.toLowerCase();
 
-      return matchesSearch && matchesStatus && matchesChannel;
+      // Date range filter (example implementation)
+      let matchesDate = true;
+      if (filters.dateRange !== "all") {
+        const orderDate = new Date(order.createdAt);
+        const now = new Date();
+
+        if (filters.dateRange === "today") {
+          matchesDate = orderDate.toDateString() === now.toDateString();
+        } else if (filters.dateRange === "week") {
+          const oneWeekAgo = new Date();
+          oneWeekAgo.setDate(now.getDate() - 7);
+          matchesDate = orderDate >= oneWeekAgo;
+        } else if (filters.dateRange === "month") {
+          const oneMonthAgo = new Date();
+          oneMonthAgo.setMonth(now.getMonth() - 1);
+          matchesDate = orderDate >= oneMonthAgo;
+        }
+      }
+
+      return matchesSearch && matchesStatus && matchesChannel && matchesDate;
     });
-
-    setFilteredOrders(filtered);
-  }, [searchQuery, filters]);
+  }, [orders, searchQuery, filters]);
 
   const [pagination, setPagination] = useState({
     total: 0,
@@ -80,7 +100,8 @@ export default function Orders() {
 
   const handleApplyFilters = (newFilters: typeof filters) => {
     setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
+    setIsFilterOpen(false);
+    setCurrentPage(1);
   };
 
   const handleRefresh = () => {
@@ -95,8 +116,29 @@ export default function Orders() {
   };
 
   const handleExport = () => {
-    // Implement export logic
-    console.log("Exporting data...");
+    if (!filteredOrders.length) return;
+
+    const exportData = filteredOrders.map(order => ({
+      "Order ID": order.id,
+      "Buyer Name": order.buyer.name,
+      "Product Channel": order.productChannel,
+      "Address": order.address,
+      "Order Date": order.orderDate,
+      "Status": order.status,
+      "Supplier": order.supplier,
+    }));
+
+    const csv = Papa.unparse(exportData);
+
+    // Create and trigger file download
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `orders-export-${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const fetchData = async () => {
@@ -122,9 +164,10 @@ export default function Orders() {
         orderDate: new Date(order.createdAt).toLocaleDateString(),
         status: order.status === "PENDING" ? "In Progress" : order.status,
         supplier: order.items[0]?.seller?.businessName || "Unknown Supplier",
+        createdAt: order.createdAt,
       }));
 
-      setFilteredOrders(formattedData);
+      setOrders(formattedData);
       setPagination({
         total: response.pagination.total,
         pages: response.pagination.pages,
@@ -140,9 +183,17 @@ export default function Orders() {
 
   useEffect(() => {
     fetchData();
-  }, [currentPage, searchQuery, filters]);
+  }, [currentPage]);
 
-  // Define columns for the DataTable
+  useEffect(() => {
+    // Debounce search and filter changes
+    const timer = setTimeout(() => {
+      fetchData();
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, filters]);
+
   const columns: Column<Order>[] = [
     {
       header: "Order ID",
@@ -178,7 +229,6 @@ export default function Orders() {
     {
       header: "Order Date",
       filterable: true,
-
       cell: (order) => (
         <div className="flex items-center gap-1">
           <svg
@@ -206,7 +256,6 @@ export default function Orders() {
       header: "Status",
       filterable: true,
       accessorKey: "status",
-
       cell: (order) => <StatusBadge status={order.status} />,
     },
     {
@@ -228,16 +277,6 @@ export default function Orders() {
     },
   ];
 
-  // Calculate pagination
-  // const indexOfLastOrder = currentPage * ordersPerPage;
-  // const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  // const currentOrders = filteredOrders.slice(
-  //   indexOfFirstOrder,
-  //   indexOfLastOrder
-  // );
-
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-
   return (
     <>
       <DataTable
@@ -247,28 +286,23 @@ export default function Orders() {
         isLoading={isLoading}
         pageSize={pagination.size}
         searchPlaceholder="Search orders..."
-        // onSearch={setSearchQuery}
+        onSearch={(value) => setSearchQuery(value)}
         onRefresh={handleRefresh}
         onExport={handleExport}
-        // onFilter={() => setIsFilterOpen(true)}
+        onFilter={() => setIsFilterOpen(true)}
         enableSearch={true}
         enablePagination={true}
         enableFiltering={true}
         enableRefresh={true}
         enableExport={true}
-        currentPage={pagination.page}
-        totalItems={pagination.total}
+        currentPage={currentPage}
+        totalItems={filteredOrders.length}
         onPageChange={(page) => setCurrentPage(page)}
-        // searchValue={searchQuery}
+        searchValue={searchQuery}
         renderEmptyState={() => (
-          <TableRow>
-            <TableCell
-              colSpan={columns.length}
-              className="text-center py-6 text-muted-foreground"
-            >
-              No orders found matching your criteria
-            </TableCell>
-          </TableRow>
+          <div className="text-center py-6 text-muted-foreground">
+            No orders found matching your criteria
+          </div>
         )}
       />
 
@@ -282,15 +316,8 @@ export default function Orders() {
         open={isFilterOpen}
         onOpenChange={setIsFilterOpen}
         onApplyFilters={handleApplyFilters}
+        currentFilters={filters}
       />
     </>
   );
 }
-
-// This is just to make the example work without errors
-const TableRow = ({ children }) => <tr>{children}</tr>;
-const TableCell = ({ colSpan, className, children }) => (
-  <td colSpan={colSpan} className={className}>
-    {children}
-  </td>
-);

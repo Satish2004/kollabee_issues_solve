@@ -185,24 +185,6 @@
       return Object.keys(newErrors).length === 0;
     };
 
-    const validateAllSteps = (): boolean => {
-      let valid = true;
-      let firstErrorStep: number | null = null;
-      for (let step = 0; step <= 3; step++) {
-        if (!validateStep(step)) {
-          valid = false;
-          if (firstErrorStep === null) firstErrorStep = step;
-        }
-      }
-      if (firstErrorStep !== null) {
-        setCurrentStage(firstErrorStep);
-        setTimeout(() => {
-          const errorEl = document.querySelector('.text-red-500');
-          if (errorEl) errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
-      }
-      return valid;
-    };
 
     const handlePrev = () => {
       setErrors({});

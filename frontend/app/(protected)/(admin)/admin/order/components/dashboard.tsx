@@ -18,7 +18,7 @@ export default function Dashboard() {
   }, [activeTab, router]);
 
   return (
-    <div className="  w-full  space-y-6">
+    <div className=" w-full  space-y-6">
       <div className="rounded-lg shadow-sm p-4">
         <Tabs
           defaultValue="overview"
@@ -29,7 +29,7 @@ export default function Dashboard() {
           <TabsList className="mb-4 w-full bg-white flex justify-start py-8 px-4 space-x-8">
             <TabsTrigger value="overview" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Overview</TabsTrigger>
             <TabsTrigger value="orders" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Orders</TabsTrigger>
-            <TabsTrigger value="analytics" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Analytics</TabsTrigger>
+            {/* <TabsTrigger value="analytics" className="text-base rounded-none data-[state=active]:shadow-none  data-[state=active]:border-b-2 border-black px-0">Analytics</TabsTrigger> */}
           </TabsList>
 
           <div className="bg-white rounded-lg shadow-sm p-6 mt-8">

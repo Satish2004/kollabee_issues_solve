@@ -463,228 +463,109 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
       {/* Section 01. Project Information */}
       <div>
         <h2 className="text-lg font-medium mb-4">01. Project Information</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="projectTitle" className="text-sm font-normal">
-              Project title<span className="text-[#EA3D4F]">*</span>
-            </Label>
-            <Input
-              id="projectTitle"
-              placeholder="What should we call this project? (e.g., Organic Hair Oil Line)"
-              value={formData.projectTitle || ""}
-              onChange={(e) => handleChange("projectTitle", e.target.value)}
-              className="w-full font-normal"
-            />
-            {errors.projectTitle && <p className="text-red-500 text-sm font-normal">{errors.projectTitle}</p>}
+
+        {/* Two completely independent columns */}
+        <div className="flex flex-col md:flex-row md:items-start gap-6">
+          {/* Left Column - Self-contained */}
+          <div className="md:w-1/2 min-w-0 space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="projectTitle" className="text-sm font-normal">
+                Project title<span className="text-[#EA3D4F]">*</span>
+              </Label>
+              <Input
+                id="projectTitle"
+                placeholder="What should we call this project?"
+                value={formData.projectTitle || ""}
+                onChange={(e) => handleChange("projectTitle", e.target.value)}
+                className="w-full font-normal"
+              />
+              {errors.projectTitle && <p className="text-red-500 text-sm font-normal">{errors.projectTitle}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="productDescription" className="text-sm font-normal">
+                Tell us about your product<span className="text-[#EA3D4F]">*</span>
+              </Label>
+              <Textarea
+                id="productDescription"
+                placeholder="Provide a description..."
+                value={formData.productDescription || ""}
+                onChange={(e) => handleChange("productDescription", e.target.value)}
+                className="min-h-[120px] w-full font-normal"
+              />
+              {errors.productDescription && <p className="text-red-500 text-sm font-normal">{errors.productDescription}</p>}
+            </div>
           </div>
-          <ProductCategorySelector label="Product category" />
+
+          {/* Right Column - Self-contained */}
+          <div className="md:w-1/2 min-w-0 space-y-6">
+            <div className="space-y-2">
+              <ProductCategorySelector label="Product category" />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-normal">
+                Do You Have a Product Design or Formula?<span className="text-[#EA3D4F]">*</span>
+              </Label>
+              <RadioGroup
+                value={formData.hasDesignOrFormula || ""}
+                onValueChange={(value) => handleChange("hasDesignOrFormula", value)}
+                className="space-y-2"
+              >
+                {/* Radio options... */}
+              </RadioGroup>
+            </div>
+          </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label htmlFor="productDescription" className="text-sm font-normal">
-            Tell us about your product<span className="text-[#EA3D4F]">*</span>
-          </Label>
-          <Textarea
-            id="productDescription"
-            placeholder="Provide a description of your product, what it should look like, feel like, and any key ingredients or materials that need to be included."
-            value={formData.productDescription || ""}
-            onChange={(e) => handleChange("productDescription", e.target.value)}
-            className="min-h-[120px] font-normal"
-          />
-          {errors.productDescription && <p className="text-red-500 text-sm font-normal">{errors.productDescription}</p>}
-        </div>
-        <div className="space-y-2">
-          <Label className="text-sm font-normal">
-            Do You Have a Product Design or Formula?
-            <span className="text-[#EA3D4F]">*</span>
-          </Label>
-          <RadioGroup
-            value={formData.hasDesignOrFormula || ""}
-            onValueChange={(value) => handleChange("hasDesignOrFormula", value)}
-            className="flex flex-col space-y-2"
-          >
-            <div className="flex items-center space-x-2 font-normal">
-              <RadioGroupItem value="yes" id="has-design-yes" />
-              <Label htmlFor="has-design-yes" className="text-sm font-normal">
-                Yes, I have a design or formula for this product.
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 font-normal">
-              <RadioGroupItem value="no" id="has-design-no" />
-              <Label htmlFor="has-design-no" className="text-sm font-normal">
-                No, I need help developing a formula/design.
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="rebrand" id="has-design-rebrand" />
-              <Label htmlFor="has-design-rebrand" className="text-sm font-normal">
-                I want to rebrand an existing product (Private/White Label).
-              </Label>
-            </div>
-          </RadioGroup>
-          {errors.hasDesignOrFormula && <p className="text-red-500 text-sm font-normal">{errors.hasDesignOrFormula}</p>}
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <Label className="text-sm font-normal">
-            Product Customization Preferences
-            <span className="text-[#EA3D4F]">*</span>
-          </Label>
-          <RadioGroup
-            value={formData.customizationLevel || ""}
-            onValueChange={(value) => handleChange("customizationLevel", value)}
-            className="flex flex-col space-y-2"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="slight" id="customization-slight" />
-              <Label htmlFor="customization-slight" className="text-sm font-normal">
-                Slight modifications to an existing product
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="full" id="customization-full" />
-              <Label htmlFor="customization-full" className="text-sm font-normal">
-                Fully custom product/design (from scratch)
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="ready" id="customization-ready" />
-              <Label htmlFor="customization-ready" className="text-sm font-normal">
-                Ready-made product with private/white label rebranding
-              </Label>
-            </div>
-          </RadioGroup>
-          {errors.customizationLevel && <p className="text-red-500 text-sm font-normal">{errors.customizationLevel}</p>}
-        </div>
-        <FileUploadSection
-          label="Upload references"
-          placeholder="Upload design files, product sketches, inspiration images, etc."
-        />
-        <CertificationsSelector />
-      </div>
+
       {/* Section 02. Product Requirements */}
       <div>
         <h2 className="text-lg font-medium mb-4">02. Product Requirements</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <Label className="text-sm font-normal">Do You Have a Target Retail Price for Your Product?</Label>
-            <RadioGroup
-              value={formData.hasTargetPrice || ""}
-              onValueChange={(value) => handleChange("hasTargetPrice", value)}
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="target-price-yes" />
-                <Label htmlFor="target-price-yes" className="text-sm font-normal">
-                  Yes, I have a target price.
-                </Label>
-              </div>
-              {formData.hasTargetPrice === "yes" && (
-                <Input
-                  placeholder="Enter target price (e.g., $50)"
-                  value={formData.targetPrice || ""}
-                  onChange={(e) => handleChange("targetPrice", e.target.value)}
-                  className="w-full max-w-xs ml-6"
-                />
-              )}
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="target-price-no" />
-                <Label htmlFor="target-price-no" className="text-sm font-normal">
-                  No, I do not have a target price yet.
-                </Label>
-              </div>
-            </RadioGroup>
+
+        {/* Another set of independent columns */}
+        <div className="flex flex-col md:flex-row md:items-start gap-6">
+          {/* Left Column */}
+          <div className="md:w-1/2 min-w-0 space-y-6">
+            <div className="space-y-2">
+              <Label className="text-sm font-normal">
+                Product Customization Preferences<span className="text-[#EA3D4F]">*</span>
+              </Label>
+              <RadioGroup
+                value={formData.customizationLevel || ""}
+                onValueChange={(value) => handleChange("customizationLevel", value)}
+                className="space-y-2"
+              >
+                {/* Radio options... */}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <CertificationsSelector />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-normal">
-              Do You Need a Custom Sample Before Production?
-              <span className="text-[#EA3D4F]">*</span>
-            </Label>
-            <RadioGroup
-              value={formData.needsSample || ""}
-              onValueChange={(value) => handleChange("needsSample", value)}
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="sample-yes" />
-                <Label htmlFor="sample-yes" className="text-sm font-normal">
-                  Yes, I would like to receive a custom sample before proceeding.
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="sample-no" />
-                <Label htmlFor="sample-no" className="text-sm font-normal">
-                  No, I do not need a custom sample before production.
-                </Label>
-              </div>
-            </RadioGroup>
-            {errors.needsSample && <p className="text-red-500 text-sm font-normal">{errors.needsSample}</p>}
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-          <div className="space-y-2">
-            <Label className="text-sm font-normal">
-              Do You Require Packaging with Your Product?
-              <span className="text-[#EA3D4F]">*</span>
-            </Label>
-            <RadioGroup
-              value={formData.needsPackaging || ""}
-              onValueChange={(value) => handleChange("needsPackaging", value)}
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="packaging-yes" />
-                <Label htmlFor="packaging-yes" className="text-sm font-normal">
-                  Yes — I need custom packaging for this product.
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="packaging-no" />
-                <Label htmlFor="packaging-no" className="text-sm font-normal">
-                  No — I only need the product itself (no packaging).
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="have" id="packaging-have" />
-                <Label htmlFor="packaging-have" className="text-sm font-normal">
-                  I already have packaging designed.
-                </Label>
-              </div>
-            </RadioGroup>
-            <p className="text-xs text-gray-500 italic mt-1">
-              🛈 You can add a packaging project after this one if needed.
-            </p>
-            {errors.needsPackaging && <p className="text-red-500 text-sm font-normal">{errors.needsPackaging}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label className="text-sm font-normal">
-              Do You Need Design for Your Product or Packaging?
-              <span className="text-[#EA3D4F]">*</span>
-            </Label>
-            <RadioGroup
-              value={formData.needsDesign || ""}
-              onValueChange={(value) => handleChange("needsDesign", value)}
-              className="flex flex-col space-y-2"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="yes" id="design-yes" />
-                <Label htmlFor="design-yes" className="text-sm font-normal">
-                  Yes, I need design services for my product or packaging.
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="no" id="design-no" />
-                <Label htmlFor="design-no" className="text-sm font-normal">
-                  No, I do not need design services.
-                </Label>
-              </div>
-            </RadioGroup>
-            <p className="text-xs text-gray-500 italic mt-1">
-              🛈 You can add a Services & Brand Support project after the completed one if needed.
-            </p>
-            {errors.needsDesign && <p className="text-red-500 text-sm font-normal">{errors.needsDesign}</p>}
+
+          {/* Right Column */}
+          <div className="md:w-1/2 min-w-0 space-y-6">
+            <div className="space-y-2">
+              <FileUploadSection
+                label="Upload references"
+                placeholder="Upload design files..."
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-normal">
+                Do You Need a Custom Sample?<span className="text-[#EA3D4F]">*</span>
+              </Label>
+              <RadioGroup
+                value={formData.needsSample || ""}
+                onValueChange={(value) => handleChange("needsSample", value)}
+                className="space-y-2"
+              >
+                {/* Radio options... */}
+              </RadioGroup>
+            </div>
           </div>
         </div>
       </div>
@@ -697,7 +578,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
       <div>
         <h2 className="text-lg font-medium mb-4">01. Project Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
+          <div className="space-y-2 md:self-start">
             <Label htmlFor="projectTitle" className="text-sm font-normal">
               Project Title<span className="text-[#EA3D4F]">*</span>
             </Label>
@@ -710,11 +591,13 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             />
             {errors.projectTitle && <p className="text-red-500 text-sm font-normal">{errors.projectTitle}</p>}
           </div>
-          <ProductCategorySelector label="What kind of packaging are you looking for?" />
+          <div className="space-y-2 md:self-start relative">
+            <ProductCategorySelector label="What kind of packaging are you looking for?" />
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
+        <div className="space-y-2 md:self-start">
           <Label htmlFor="packagingDescription" className="text-sm font-normal">
             Describe the packaging types you're looking for?
             <span className="text-[#EA3D4F]">*</span>
@@ -730,7 +613,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             <p className="text-red-500 text-sm font-normal">{errors.packagingDescription}</p>
           )}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 md:self-start">
           <Label htmlFor="productForPackaging" className="text-sm font-normal">
             What product is this packaging for?
           </Label>
@@ -744,7 +627,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
+        <div className="space-y-2 md:self-start">
           <Label className="text-sm font-normal">
             Do you need eco-friendly or sustainable packaging materials?
             <span className="text-[#EA3D4F]">*</span>
@@ -775,13 +658,15 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
           </RadioGroup>
           {errors.ecoFriendly && <p className="text-red-500 text-sm font-normal">{errors.ecoFriendly}</p>}
         </div>
-        <FileUploadSection
-          label="Upload any references for your packaging"
-          placeholder="Upload images or examples of packaging"
-        />
+        <div className="space-y-2 md:self-start">
+          <FileUploadSection
+            label="Upload any references for your packaging"
+            placeholder="Upload images or examples of packaging"
+          />
+        </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
+        <div className="space-y-2 md:self-start">
           <Label htmlFor="packagingDimensions" className="text-sm font-normal">
             Specific dimensions or functional requirements?
             <span className="text-[#EA3D4F]">*</span>
@@ -797,7 +682,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             <p className="text-red-500 text-sm font-normal">{errors.packagingDimensions}</p>
           )}
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 md:self-start">
           <div className="space-y-2">
             <Label className="text-sm font-normal">Do you need labeling or printing services?</Label>
             <RadioGroup
@@ -852,8 +737,10 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
       <div>
         <h2 className="text-lg font-medium mb-4">02. Product Requirements</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <CertificationsSelector />
-          <div className="space-y-2">
+          <div className="space-y-2 md:self-start">
+            <CertificationsSelector />
+          </div>
+          <div className="space-y-2 md:self-start">
             <Label className="text-sm font-normal">
               Do You Need a Custom Sample Before Production?
               <span className="text-[#EA3D4F]">*</span>
@@ -889,7 +776,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
       <div>
         <h2 className="text-lg font-medium mb-4">01. Project Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
+          <div className="space-y-2 md:self-start">
             <Label htmlFor="projectTitle" className="text-sm font-normal">
               Project Title<span className="text-[#EA3D4F]">*</span>
             </Label>
@@ -902,11 +789,13 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
             />
             {errors.projectTitle && <p className="text-red-500 text-sm font-normal">{errors.projectTitle}</p>}
           </div>
-          <ProductCategorySelector label="Service category" />
+          <div className="space-y-2 md:self-start relative">
+            <ProductCategorySelector label="Service category" />
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
+        <div className="space-y-2 md:self-start">
           <Label className="text-sm font-normal">
             Do you have an existing brand, or is this a new launch?
             <span className="text-[#EA3D4F]">*</span>
@@ -931,13 +820,15 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
           </RadioGroup>
           {errors.brandStatus && <p className="text-red-500 text-sm font-normal">{errors.brandStatus}</p>}
         </div>
-        <FileUploadSection
-          label="Please upload any reference materials"
-          placeholder="Include logos, moodboards, inspiration images, etc."
-        />
+        <div className="space-y-2 md:self-start">
+          <FileUploadSection
+            label="Please upload any reference materials"
+            placeholder="Include logos, moodboards, inspiration images, etc."
+          />
+        </div>
       </div>
       <div className="grid grid-cols-1 gap-6">
-        <div className="space-y-2">
+        <div className="space-y-2 md:self-start">
           <Label htmlFor="brandVision" className="text-sm font-normal">
             Tell us about your brand or vision
             <span className="text-[#EA3D4F]">*</span>
@@ -951,7 +842,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
           />
           {errors.brandVision && <p className="text-red-500 text-sm font-normal">{errors.brandVision}</p>}
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 md:self-start">
           <Label htmlFor="projectDescription" className="text-sm font-normal">
             Project Description<span className="text-[#EA3D4F]">*</span>
           </Label>
@@ -969,7 +860,7 @@ const Step1: React.FC<Step1Props> = ({ handleNext, errors, setErrors }) => {
       <div>
         <h2 className="text-lg font-medium mb-4">02. Service Requirements</h2>
         <div className="grid grid-cols-1 gap-6">
-          <div className="space-y-2">
+          <div className="space-y-2 md:self-start">
             <Label className="text-sm font-normal">
               What type of services are you looking for?
               <span className="text-[#EA3D4F]">*</span>
