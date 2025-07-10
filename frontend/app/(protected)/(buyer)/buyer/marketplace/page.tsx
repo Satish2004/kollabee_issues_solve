@@ -3,7 +3,7 @@
 import React, { use, useCallback, useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
-import { Heart } from "lucide-react"
+import { Heart, Sparkles } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -32,14 +32,14 @@ export default function Page() {
   const [tag, setTag] = useState("all")
   const { products, setProducts } = useCheckout()
 
-  const { 
-    data: marketplaceProducts = [], 
-    isLoading: productsLoading, 
-    error: productsError 
+  const {
+    data: marketplaceProducts = [],
+    isLoading: productsLoading,
+    error: productsError
   } = useMarketplaceProducts({ category, tag })
 
-  const { 
-    data: wishlistProducts = [],  
+  const {
+    data: wishlistProducts = [],
   } = useWishlistProducts()
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export default function Page() {
 
   const handleCategoryChange = (newCategory: string) => {
     if (productsLoading) return
-    
+
     const params = new URLSearchParams(searchParams)
     params.set("category", newCategory)
     router.push(`?${params.toString()}`)
@@ -59,7 +59,7 @@ export default function Page() {
 
   const handleTagChange = (newTag: string) => {
     if (productsLoading) return
-    
+
     const params = new URLSearchParams(searchParams)
     params.set("tag", newTag)
     router.push(`?${params.toString()}`)
@@ -81,7 +81,7 @@ export default function Page() {
       setProducts(products.filter((p: any) => p.id !== itemId))
     }
   }
-  
+
   const removeFromWishlist = (productId: string) => {
     try {
       const item = wishlistProducts.find((p: any) => p.product.id === productId)
@@ -101,20 +101,27 @@ export default function Page() {
       <div className=" bg-white mt-8 p-6 mx-auto rounded-xl">
         <Tabs value={category} className="w-full mb-6 border-b-2 border-gray-200 pb-6">
           <TabsList className="w-full justify-start h-auto flex-wrap gap-2 bg-transparent">
-            {[{ value: "all", label: "All" }, ...CATEGORY_OPTIONS].map((cat) => (
-              <TabsTrigger
-                key={cat.value}
-                value={cat.value}
-                onClick={() => handleCategoryChange(cat.value)}
-                disabled={productsLoading}
-                className={cn(
-                  "data-[state=active]:border-b-4 border-orange-600 shadow-none transition-all duration-200",
-                  productsLoading ? "opacity-75 cursor-not-allowed" : "hover:bg-gray-50"
-                )}
-              >
-                {cat.label}
-              </TabsTrigger>
-            ))}
+            {/* <div className="w-full overflow-x-auto mb-6"> */}
+              {/* <div className="flex gap-2 w-max px-1"> */}
+                {[{ value: "all", label: "All", icon: <Sparkles className="w-4 h-4" /> }, ...CATEGORY_OPTIONS].map((cat) => (
+                  <button
+                    key={cat.value}
+                    onClick={() => handleCategoryChange(cat.value)}
+                    disabled={productsLoading}
+                    className={cn(
+                      "flex flex-col items-center justify-center px-4 py-2 rounded-lg transition-all duration-200 min-w-[72px] text-center",
+                      category === cat.value
+                        ? "bg-orange-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                      productsLoading && "opacity-75 cursor-not-allowed"
+                    )}
+                  >
+                    {cat.icon && <div className="mb-1">{cat.icon}</div>}
+                    <span className="text-[10px] sm:text-xs line-clamp-2">{cat.label}</span>
+                  </button>
+                ))}
+              {/* </div> */}
+            {/* </div> */}
           </TabsList>
         </Tabs>
 
@@ -124,11 +131,10 @@ export default function Page() {
               key={t.id}
               onClick={() => handleTagChange(t.id)}
               disabled={productsLoading}
-              className={`rounded-full shadow-none transition-all duration-200 ${
-                tag === t.id 
-                  ? "bg-zinc-800 text-white hover:bg-zinc-700" 
-                  : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-              } ${productsLoading ? "opacity-75 cursor-not-allowed" : ""}`}
+              className={`rounded-full shadow-none transition-all duration-200 ${tag === t.id
+                ? "bg-zinc-800 text-white hover:bg-zinc-700"
+                : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                } ${productsLoading ? "opacity-75 cursor-not-allowed" : ""}`}
             >
               {productsLoading && tag === t.id ? (
                 <div className="flex items-center gap-2">
@@ -171,7 +177,7 @@ export default function Page() {
                 isInWishlist={isInWishlist}
                 removeFromCart={removeFromCart}
                 removeFromWishlist={removeFromWishlist}
-                setWishlistProducts={() => {}}
+                setWishlistProducts={() => { }}
                 wishlistProducts={wishlistProducts}
               />
             ))}

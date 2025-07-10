@@ -86,7 +86,7 @@ export default function ProductsTab() {
 
         setIsProcessing(true)
         try {
-            await AdminApi.approveOrRejectSeller(actionProduct.sellerId, actionType)
+            await AdminApi.approveOrRejectProduct(actionProduct.id, actionType)
 
             setProducts(prev =>
                 prev.map(p =>
@@ -94,7 +94,7 @@ export default function ProductsTab() {
                         ? {
                             ...p,
                             status: actionType ? "ACTIVE" : "REJECTED",
-                            isDraft: actionType ? false : p.isDraft,
+                            isDraft: false
                         }
                         : p
                 )
@@ -103,6 +103,7 @@ export default function ProductsTab() {
             console.error(`Failed to ${actionType ? "approve" : "reject"} product:`, error)
         } finally {
             setIsProcessing(false)
+            // Reset action states after operation completes
             setActionProduct(null)
             setActionType(null)
         }

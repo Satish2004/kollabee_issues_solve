@@ -310,6 +310,7 @@ export default function BuyerLayoutHeader() {
   }, []);
 
   const numberOfCartItems = products.length;
+  
 
   useEffect(() => {
     if (!searchTerm.trim()) return;

@@ -47,7 +47,7 @@ export default function SearchProductCard({
         const response = await cartApi.addToCart({
           productId: product.id,
           quantity: product.minOrderQuantity,
-        }) as { items: any[] };
+        }) as unknown as { items: any[] };
         setProducts(response.items);
         toast.success("Added to cart");
       } else {
@@ -66,7 +66,7 @@ export default function SearchProductCard({
     try {
       setIsWishlistLoading(true);
       if (!isInWishlist(product.id)) {
-        const response = await wishlistApi.addToWishlist(product.id) as { items: any[] };
+        const response = await wishlistApi.addToWishlist(product.id) as unknown as { items: any[] };
         setWishlistProducts(response.items);
         setWishlistFeedback("added");
         toast.success("Added to wishlist");
