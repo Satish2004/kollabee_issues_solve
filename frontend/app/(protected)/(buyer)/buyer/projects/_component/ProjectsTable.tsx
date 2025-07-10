@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Search } from "lucide-react"
 import { IoFilterOutline } from "react-icons/io5"
-import { HiArrowsUpDown } from "react-icons/hi2"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -34,18 +33,63 @@ const ProjectsTable = ({
 }: ProjectsTableProps) => {
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectedStatus, setSelectedStatus] = useState<string[]>([])
+  const [selectedTimeline, setSelectedTimeline] = useState<string[]>([])
+  const [selectedBudget, setSelectedBudget] = useState<string[]>([])
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
 
-  const toggleStatus = (status: string) => {
-    setSelectedStatus((prev) =>
-      prev.includes(status)
-        ? prev.filter((s) => s !== status)
-        : [...prev, status]
+  const toggle = (selectedArray: string[], setArray: (value: string[]) => void, value: string) => {
+    setArray(prev =>
+      prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
     )
   }
 
-  const filteredByStatus = filteredProjects.filter((project) =>
-    selectedStatus.length > 0 ? selectedStatus.includes(project.status) : true
-  )
+  const applyFilters = (project: Project) => {
+    const matchStatus =
+      selectedStatus.length === 0 || selectedStatus.includes(project.status)
+
+    const matchType =
+      selectedTypes.length === 0 || selectedTypes.includes(project.projectType)
+
+    const matchTimeline =
+      selectedTimeline.length === 0 ||
+      selectedTimeline.some((range) => {
+        const days = parseInt(project.timeline) || 0
+        switch (range) {
+          case "< 1 week":
+            return days <= 7
+          case "1–2 weeks":
+            return days > 7 && days <= 14
+          case "2–4 weeks":
+            return days > 14 && days <= 30
+          case "1+ month":
+            return days > 30
+          default:
+            return true
+        }
+      })
+
+    const matchBudget =
+      selectedBudget.length === 0 ||
+      selectedBudget.some((range) => {
+        const budget = parseInt(project.budget || "0")
+        switch (range) {
+          case "< ₹10K":
+            return budget < 10000
+          case "₹10K–₹50K":
+            return budget >= 10000 && budget <= 50000
+          case "₹50K–₹1L":
+            return budget > 50000 && budget <= 100000
+          case "> ₹1L":
+            return budget > 100000
+          default:
+            return true
+        }
+      })
+
+    return matchStatus && matchType && matchTimeline && matchBudget
+  }
+
+  const finalFilteredProjects = filteredProjects.filter(applyFilters)
 
   return (
     <div className="p-0">
@@ -58,29 +102,62 @@ const ProjectsTable = ({
               <span className="text-sm">Filters</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-64 p-4 space-y-4" align="start">
+          <PopoverContent className="w-72 p-4 space-y-6" align="start">
             <div>
               <p className="font-medium text-sm mb-2">Filter by Status</p>
-              <div className="space-y-2">
-                {["Pending", "In Progress", "Completed"].map((status) => (
-                  <label
-                    key={status}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <Checkbox
-                      checked={selectedStatus.includes(status)}
-                      onCheckedChange={() => toggleStatus(status)}
-                    />
-                    {status}
-                  </label>
-                ))}
-              </div>
+              {["Pending", "In Progress", "Completed"].map(status => (
+                <label key={status} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={selectedStatus.includes(status)}
+                    onCheckedChange={() => toggle(selectedStatus, setSelectedStatus, status)}
+                  />
+                  {status}
+                </label>
+              ))}
             </div>
-            {/* Future filters like Timeline, Project Type can go here */}
+
+            <div>
+              <p className="font-medium text-sm mb-2">Filter by Timeline</p>
+              {["< 1 week", "1–2 weeks", "2–4 weeks", "1+ month"].map(range => (
+                <label key={range} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={selectedTimeline.includes(range)}
+                    onCheckedChange={() => toggle(selectedTimeline, setSelectedTimeline, range)}
+                  />
+                  {range}
+                </label>
+              ))}
+            </div>
+
+            <div>
+              <p className="font-medium text-sm mb-2">Filter by Budget</p>
+              {["< ₹10K", "₹10K–₹50K", "₹50K–₹1L", "> ₹1L"].map(range => (
+                <label key={range} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={selectedBudget.includes(range)}
+                    onCheckedChange={() => toggle(selectedBudget, setSelectedBudget, range)}
+                  />
+                  {range}
+                </label>
+              ))}
+            </div>
+
+            <div>
+              <p className="font-medium text-sm mb-2">Filter by Project Type</p>
+              {["Standard", "Custom", "Packaging"].map(type => (
+                <label key={type} className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={selectedTypes.includes(type)}
+                    onCheckedChange={() => toggle(selectedTypes, setSelectedTypes, type)}
+                  />
+                  {type}
+                </label>
+              ))}
+            </div>
           </PopoverContent>
         </Popover>
 
-        {/* Search */}
+        {/* Search Input */}
         <div className="flex items-center bg-white rounded-md gap-2">
           <div className="relative">
             <Input
@@ -113,12 +190,8 @@ const ProjectsTable = ({
             {loading ? (
               <TableSkeleton rowCount={5} />
             ) : (
-              filteredByStatus.map((project) => (
-                <ProjectRow
-                  key={project.id}
-                  project={project}
-                  router={router}
-                />
+              finalFilteredProjects.map(project => (
+                <ProjectRow key={project.id} project={project} router={router} />
               ))
             )}
           </tbody>

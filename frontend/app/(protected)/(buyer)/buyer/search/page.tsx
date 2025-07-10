@@ -169,7 +169,7 @@ export default function BuyerProductSearchPage() {
               {!loading && !error && products.length > 0 && (
                 <div className="flex flex-col gap-6">
                   {products.map((product, idx) => (
-                    <ProductCard
+                    <SearchProductCard
                       key={product?.id || idx}
                       product={product}
                       isInCart={isInCart}
@@ -177,8 +177,8 @@ export default function BuyerProductSearchPage() {
                       removeFromCart={removeFromCart}
                       removeFromWishlist={removeFromWishlist}
                       wishlistProducts={wishlistProducts}
-                      setWishlistProducts={() => { }} // stub
-                    />
+                      setWishlistProducts={() => { }} // Stub; replace with real function if needed
+               />
                   ))}
                 </div>
               )}

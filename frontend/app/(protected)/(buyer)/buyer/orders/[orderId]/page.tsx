@@ -189,7 +189,7 @@ export default function OrderTrackingPage({
           <div className="flex justify-between items-start">
             <div>
               <h2 className="text-lg font-bold text-gray-800">
-                Order #{order.id?.substring(0, 8).toUpperCase()}
+                Order #{order.id}
               </h2>
               <p className="text-xs text-gray-600 mt-1">
                 {order.items?.length ?? 0} {order.items?.length === 1 ? "Product" : "Products"} •

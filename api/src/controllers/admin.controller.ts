@@ -1732,7 +1732,7 @@ export const adminController = {
           }
         }
       });
-
+      
       res.json({
         success: true,
         data: buyers

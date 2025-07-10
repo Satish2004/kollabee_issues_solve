@@ -17,6 +17,7 @@ interface ContactSupplierButtonProps {
     | "ghost"
     | "link";
   size?: "default" | "sm" | "lg" | "icon";
+  className?: string;
 }
 
 export default function ContactSupplierButton({
@@ -24,9 +25,9 @@ export default function ContactSupplierButton({
   supplierName,
   variant = "default",
   size = "default",
+  className = "",
 }: ContactSupplierButtonProps) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
 
   const handleSuccess = (conversationId: string) => {
     setOpen(false);
@@ -37,7 +38,7 @@ export default function ContactSupplierButton({
       <DialogTrigger asChild>
         <Button
           variant={variant}
-          className="w-full gradient-border gradient-text font-bold py-2 sm:py-6 px-3 sm:px-4 text-xs sm:text-sm"
+          className={"w-full gradient-border gradient-text font-bold py-2 sm:py-6 px-3 sm:px-4 text-xs sm:text-sm" + className}
           // size={size}
         >
           Contact Supplier

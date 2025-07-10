@@ -1,104 +1,178 @@
+"use client";
+
 import React from "react";
-import { FaRegHeart, FaStar } from "react-icons/fa";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Heart } from "lucide-react";
+import { BsCartDashFill } from "react-icons/bs";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { cartApi } from "@/lib/api/cart";
+import { wishlistApi } from "@/lib/api/wishlist";
+import { useCheckout } from "@/contexts/checkout-context";
+import ContactSupplierButton from "@/components/chat/contact-supplier-button";
 
 interface SearchProductCardProps {
   product: any;
+  isInCart: (productId: string) => boolean;
+  isInWishlist: (productId: string) => boolean;
+  removeFromCart: (productId: string) => void;
+  removeFromWishlist: (productId: string) => void;
+  setWishlistProducts: (products: any[]) => void;
+  wishlistProducts: any[];
+  fromWishlistPage?: boolean;
 }
 
-export default function SearchProductCard({ product }: SearchProductCardProps) {
+export default function SearchProductCard({
+  product,
+  isInCart,
+  isInWishlist,
+  removeFromCart,
+  removeFromWishlist,
+  setWishlistProducts,
+  fromWishlistPage = false,
+}: SearchProductCardProps) {
   const router = useRouter();
-  const priceRange = product.priceRange || (product.minPrice && product.maxPrice ? `$${product.minPrice}-${product.maxPrice}` : `$${product.price}`);
+  const { setProducts } = useCheckout();
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [isWishlistLoading, setIsWishlistLoading] = React.useState(false);
+  const [wishlistFeedback, setWishlistFeedback] = React.useState<null | "added" | "removed">(null);
+
+  const handleCart = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (!isInCart(product.id)) {
+        setIsLoading(true);
+        const response = await cartApi.addToCart({
+          productId: product.id,
+          quantity: product.minOrderQuantity,
+        }) as { items: any[] };
+        setProducts(response.items);
+        toast.success("Added to cart");
+      } else {
+        removeFromCart(product.id);
+        toast.success("Removed from cart");
+      }
+    } catch {
+      toast.error("Cart update failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleWishlist = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      setIsWishlistLoading(true);
+      if (!isInWishlist(product.id)) {
+        const response = await wishlistApi.addToWishlist(product.id) as { items: any[] };
+        setWishlistProducts(response.items);
+        setWishlistFeedback("added");
+        toast.success("Added to wishlist");
+      } else {
+        await removeFromWishlist(product.id);
+        setWishlistFeedback("removed");
+        toast.success("Removed from wishlist");
+      }
+    } catch {
+      toast.error("Wishlist update failed");
+    } finally {
+      setIsWishlistLoading(false);
+      setTimeout(() => setWishlistFeedback(null), 2000);
+    }
+  };
+
+  const handleClick = () => {
+    router.push(`/buyer/marketplace/product/${product.id}`);
+  };
+
   return (
-    <div className="bg-white rounded-2xl border border-[#F2F2F2] p-4 md:p-7 flex flex-col md:flex-row hover:shadow-lg transition-shadow w-full max-w-full items-stretch">
-      {/* Image with wishlist icon */}
-      <div className="relative w-full md:w-[260px] md:h-[195px] aspect-[4/3] rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 mb-4 md:mb-0">
-        <img
+    <div
+      onClick={handleClick}
+      className="w-full rounded-2xl border border-gray-200 bg-white shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer overflow-hidden flex flex-col sm:flex-row gap-4 p-4"
+    >
+      {/* Product Image */}
+      <div className="relative w-full sm:w-48 aspect-[4/3] rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+        <Image
           src={product.images?.[0] || "/placeholder.svg"}
           alt={product.name}
-          className="object-cover w-full h-full rounded-xl"
+          fill
+          className="object-cover"
         />
-        <button title="health" className="absolute bottom-4 right-4 bg-white border-2 border-white rounded-full p-2 shadow-md hover:bg-gray-100 transition flex items-center justify-center">
-          <FaRegHeart className="text-2xl text-[#8C8C8C]" />
-        </button>
+        <Button
+          onClick={handleWishlist}
+          disabled={isWishlistLoading}
+          className="absolute bottom-2 right-2 w-8 h-8 rounded-full bg-white p-1 shadow hover:bg-gray-100"
+        >
+          {isWishlistLoading ? (
+            <div className="animate-spin w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full" />
+          ) : (
+            <Heart
+              className="w-4 h-4"
+              fill={isInWishlist(product.id) ? "red" : "white"}
+              stroke={isInWishlist(product.id) ? "red" : "black"}
+            />
+          )}
+        </Button>
       </div>
-      {/* Details */}
-      <div className="flex flex-col flex-1 min-w-0 md:pl-6">
-        {/* Top row: rating */}
-        <div className="flex justify-end items-start mb-1">
-          <div className="flex items-center gap-1 text-xs text-[#222] font-medium">
-            <FaStar className="text-[#F9A826] text-base" />
-            <span>{product.rating || "5.0"}</span>
-            <span className="text-[#8C8C8C]">/5.0</span>
-            <span className="ml-1 text-[#8C8C8C] font-normal">({product.reviewCount || 11} reviews)</span>
+
+      {/* Product Details */}
+      <div className="flex flex-col justify-between w-full gap-3">
+        <div className="space-y-1">
+          <h2 className="text-base sm:text-lg font-semibold line-clamp-1 text-gray-800">
+            {product.name}
+          </h2>
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {product.description}
+          </p>
+        </div>
+
+        <div className="space-y-1 text-sm">
+          <div className="text-xl font-bold text-gray-900">
+            ₹{Number(product.price).toLocaleString()}
+          </div>
+          <div className="text-xs text-gray-500">
+            Min. Order:{" "}
+            <span className="font-medium">
+              {product.minOrderQuantity || 1}
+            </span>
+          </div>
+          <div className="text-xs text-gray-500">
+            {product.seller?.businessName || "Unknown Supplier"} |{" "}
+            {product.seller?.country || "CN"}
           </div>
         </div>
-       
-        <div className="flex items-center gap-1 text-sm text-[#C8894B] mb-1">
-          <span className="inline-block">
-            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M8 1.333l2.06 4.177 4.607.669-3.334 3.25.787 4.584L8 11.177l-4.12 2.836.787-4.584-3.334-3.25 4.607-.669L8 1.333z" fill="#C8894B"/></svg>
-          </span>
-          <span className="font-semibold text-base md:text-lg line-clamp-1">{product.name}</span>
-        </div>
-        <div className="text-sm text-[#8C8C8C] mb-2 line-clamp-2">
-          {product.description || "Stamped ss 316 304 stainless steel 3d wall panel design embossed stainless steel plate"}
-        </div>
-        {/* Price */}
-        <div className="text-[2rem] leading-none font-extrabold text-[#111] mb-2">{priceRange}</div>
-        {/* Min order */}
-        <div className="text-sm text-[#222] mb-3">
-          Min. order: <span className="font-medium">{product.minOrderQuantity || "1 ton"}</span>
-        </div>
-        {/* Supplier info */}
-        <div className="flex items-center gap-2 text-sm mb-2 flex-wrap">
-          <span className="font-semibold text-[#111]">{product.seller?.businessName || "Shandong Great Steel Co.,Ltd"}</span>
-          <span className="text-[#8C8C8C]">{product.seller?.years || 2} yrs</span>
-          {/* Country flag and code */}
-          {product.seller?.countryCode && (
-            <span className="flex items-center gap-1">
-              <img src={`https://flagcdn.com/16x12/${product.seller.countryCode.toLowerCase()}.png`} alt={product.seller.countryCode} className="inline-block w-4 h-3 rounded-sm border" />
-              <span className="text-[#8C8C8C] text-xs">{product.seller.countryCode} Supplier</span>
-            </span>
-          )}
-          {/* Fallback */}
-          {!product.seller?.countryCode && (
-            <span className="flex items-center gap-1">
-              <span className="text-[#8C8C8C] text-xs">CN Supplier</span>
-            </span>
-          )}
-          {/* Verified badge */}
-          {product.seller?.verified && (
-            <span className="text-[#1A73E8] font-bold ml-2">Verified</span>
-          )}
-        </div>
-        {/* Action buttons */}
-        <div className="flex gap-4 mt-2">
+
+        {/* Actions */}
+        <div className="flex flex-col sm:flex-row gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
           <Button
-            className="rounded-[8px] px-7 py-2.5 font-semibold text-white bg-gradient-to-r from-[#C02090] to-[#F9A826] hover:from-[#a01a7a] hover:to-[#e28c1c] shadow-md text-base"
-            onClick={() => {
-              // Redirect to chat page with supplier
-              if (product.seller?.id) {
-                router.push(`/buyer/chat?supplierId=${product.seller.id}`);
-              } else {
-                alert('Supplier information not available.');
-              }
-            }}
+            onClick={handleCart}
+            disabled={isLoading}
+            className={`flex-1 font-semibold text-xs sm:text-sm py-2 sm:py-6 px-3 sm:px-4 ${isInCart(product.id)
+              ? "bg-gray-700 hover:bg-gray-600 text-white"
+              : "bg-[#C02090] hover:bg-[#a81c78] text-white"
+              }`}
           >
-            Contact Supplier
+            {isLoading ? (
+              "Loading..."
+            ) : isInCart(product.id) ? (
+              <span className="flex items-center gap-1">
+                Remove <BsCartDashFill className="text-sm" />
+              </span>
+            ) : (
+              "Add to Cart"
+            )}
           </Button>
-          <Button
+
+          <ContactSupplierButton
+            supplierId={product.seller?.userId}
+            supplierName={product.seller?.businessName}
             variant="outline"
-            className="rounded-[8px] px-7 py-2.5 font-semibold border-2 border-[#F9A826] text-[#C02090] bg-white hover:bg-[#FFF7E6] text-base"
-            onClick={() => {
-              // Placeholder: open enquiry modal or redirect
-              alert('Enquiry modal or form should open here.');
-            }}
-          >
-            Send Enquiry
-          </Button>
+            className="flex-1 font-semibold text-xs sm:text-sm border border-[#C02090] text-[#C02090] hover:bg-[#fff0f6] transition"
+          />
         </div>
       </div>
     </div>
   );
-} 
+}
