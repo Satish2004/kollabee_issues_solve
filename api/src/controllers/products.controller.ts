@@ -563,7 +563,10 @@ export const approveOrRejectProduct = async (req: any, res: Response) => {
       });
       return res.json({ message: "Product approved successfully" });
     } else if (action === "reject") {
-      await prisma.product.delete({ where: { id: productId } });
+      await prisma.product.update({
+        where: { id: productId },
+        data: { isDraft: true },
+      });
       return res.json({ message: "Product rejected and deleted successfully" });
     } else {
       return res.status(400).json({ error: "Invalid action" });

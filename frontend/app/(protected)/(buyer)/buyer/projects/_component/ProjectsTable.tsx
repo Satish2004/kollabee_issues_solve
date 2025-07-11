@@ -37,56 +37,52 @@ const ProjectsTable = ({
   const [selectedBudget, setSelectedBudget] = useState<string[]>([])
   const [selectedTypes, setSelectedTypes] = useState<string[]>([])
 
-  const toggle = (selectedArray: string[], setArray: (value: string[]) => void, value: string) => {
+  const toggleFilter = (
+    selectedArray: string[],
+    setArray: (value: string[]) => void,
+    value: string
+  ) => {
     setArray(prev =>
       prev.includes(value) ? prev.filter(v => v !== value) : [...prev, value]
     )
   }
 
   const applyFilters = (project: Project) => {
-    const matchStatus =
-      selectedStatus.length === 0 || selectedStatus.includes(project.status)
+    // Status filter
+    const statusMatch = selectedStatus.length === 0 ||
+      selectedStatus.includes(project.status)
 
-    const matchType =
-      selectedTypes.length === 0 || selectedTypes.includes(project.projectType)
+    // Type filter
+    const typeMatch = selectedTypes.length === 0 ||
+      selectedTypes.includes(project.projectType)
 
-    const matchTimeline =
-      selectedTimeline.length === 0 ||
-      selectedTimeline.some((range) => {
+    // Timeline filter
+    const timelineMatch = selectedTimeline.length === 0 ||
+      selectedTimeline.some(range => {
         const days = parseInt(project.timeline) || 0
         switch (range) {
-          case "< 1 week":
-            return days <= 7
-          case "1–2 weeks":
-            return days > 7 && days <= 14
-          case "2–4 weeks":
-            return days > 14 && days <= 30
-          case "1+ month":
-            return days > 30
-          default:
-            return true
+          case "< 1 week": return days <= 7
+          case "1–2 weeks": return days > 7 && days <= 14
+          case "2–4 weeks": return days > 14 && days <= 30
+          case "1+ month": return days > 30
+          default: return true
         }
       })
 
-    const matchBudget =
-      selectedBudget.length === 0 ||
-      selectedBudget.some((range) => {
+    // Budget filter
+    const budgetMatch = selectedBudget.length === 0 ||
+      selectedBudget.some(range => {
         const budget = parseInt(project.budget || "0")
         switch (range) {
-          case "< ₹10K":
-            return budget < 10000
-          case "₹10K–₹50K":
-            return budget >= 10000 && budget <= 50000
-          case "₹50K–₹1L":
-            return budget > 50000 && budget <= 100000
-          case "> ₹1L":
-            return budget > 100000
-          default:
-            return true
+          case "< ₹10K": return budget < 10000
+          case "₹10K–₹50K": return budget >= 10000 && budget <= 50000
+          case "₹50K–₹1L": return budget > 50000 && budget <= 100000
+          case "> ₹1L": return budget > 100000
+          default: return true
         }
       })
 
-    return matchStatus && matchType && matchTimeline && matchBudget
+    return statusMatch && typeMatch && timelineMatch && budgetMatch
   }
 
   const finalFilteredProjects = filteredProjects.filter(applyFilters)
@@ -100,6 +96,12 @@ const ProjectsTable = ({
             <Button variant="ghost" size="sm" className="gap-2">
               <IoFilterOutline className="h-4 w-4" />
               <span className="text-sm">Filters</span>
+              {(selectedStatus.length > 0 ||
+                selectedTimeline.length > 0 ||
+                selectedBudget.length > 0 ||
+                selectedTypes.length > 0) && (
+                  <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                )}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-72 p-4 space-y-6" align="start">
@@ -109,7 +111,9 @@ const ProjectsTable = ({
                 <label key={status} className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={selectedStatus.includes(status)}
-                    onCheckedChange={() => toggle(selectedStatus, setSelectedStatus, status)}
+                    onCheckedChange={() =>
+                      toggleFilter(selectedStatus, setSelectedStatus, status)
+                    }
                   />
                   {status}
                 </label>
@@ -122,7 +126,9 @@ const ProjectsTable = ({
                 <label key={range} className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={selectedTimeline.includes(range)}
-                    onCheckedChange={() => toggle(selectedTimeline, setSelectedTimeline, range)}
+                    onCheckedChange={() =>
+                      toggleFilter(selectedTimeline, setSelectedTimeline, range)
+                    }
                   />
                   {range}
                 </label>
@@ -135,7 +141,9 @@ const ProjectsTable = ({
                 <label key={range} className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={selectedBudget.includes(range)}
-                    onCheckedChange={() => toggle(selectedBudget, setSelectedBudget, range)}
+                    onCheckedChange={() =>
+                      toggleFilter(selectedBudget, setSelectedBudget, range)
+                    }
                   />
                   {range}
                 </label>
@@ -148,7 +156,9 @@ const ProjectsTable = ({
                 <label key={type} className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={selectedTypes.includes(type)}
-                    onCheckedChange={() => toggle(selectedTypes, setSelectedTypes, type)}
+                    onCheckedChange={() =>
+                      toggleFilter(selectedTypes, setSelectedTypes, type)
+                    }
                   />
                   {type}
                 </label>
@@ -189,6 +199,12 @@ const ProjectsTable = ({
           <tbody>
             {loading ? (
               <TableSkeleton rowCount={5} />
+            ) : finalFilteredProjects.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="py-4 text-center text-gray-500">
+                  No projects match your filters
+                </td>
+              </tr>
             ) : (
               finalFilteredProjects.map(project => (
                 <ProjectRow key={project.id} project={project} router={router} />

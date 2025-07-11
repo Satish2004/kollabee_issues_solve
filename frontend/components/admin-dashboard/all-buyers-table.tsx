@@ -191,10 +191,6 @@ export default function AllBuyersTable() {
     <div className="space-y-4 bg-white p-5 rounded-xl">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-semibold">All Buyers</h2>
-        <div className="flex gap-2">
-          <Button variant="outline">Export</Button>
-          <Button>Add Buyer</Button>
-        </div>
       </div>
       <div className="w-full overflow-x-auto">
         <div className="w-full rounded-md min-w-[1200px]">

@@ -49,6 +49,10 @@ export const productsApi = {
   //   return api.get('/products/categories');
   // },
 
+  acceptOrRejectProduct: async (productId: string, action: "approve" | "reject") => {
+    return api.post(`/products/approve-or-reject/${productId}`, { action });
+  },
+
   getRecommendedSuppliers: async (limit: number = 5) => {
     return api.get("/products/recommendations/suppliers", { params: { limit } });
   },

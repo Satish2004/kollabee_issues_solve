@@ -102,8 +102,6 @@ const ProjectsPage = () => {
       <EmptyState onCreateProject={() => router.push("/buyer/projects/new")} />
     );
   }
-
-  // Projects dashboard
   return (
     <div className=" px-0 md:px-6 w-full">
       <ProjectsHeader

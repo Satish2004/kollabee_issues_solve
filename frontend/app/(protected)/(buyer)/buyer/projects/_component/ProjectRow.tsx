@@ -91,11 +91,15 @@ const ProjectRow = ({ project, router }: ProjectRowProps) => {
           </span>
           {project.requestedSeller?.length > 0 ? (
             <span className="text-xs text-gray-500">
-              ({project.requestedSeller[0].status || "Pending"})
+              ({project.requestedSeller[0].status || "Pending"}
+              {project.requestedSeller.slice(1).filter(s => s.status === "Pending").length > 0 &&
+                ` +${project.requestedSeller.slice(1).filter(s => s.status === "Pending").length} Pending`}
+              )
             </span>
           ) : (
-            <span className="text-xs text-gray-500">Pending</span>
+            <span className="text-xs text-gray-500">(Pending)</span>
           )}
+
 
         </span>
       </td>
