@@ -151,7 +151,7 @@ export default function SearchProductCard({
             disabled={isLoading}
             className={`flex-1 font-semibold text-xs sm:text-sm py-2 sm:py-6 px-3 sm:px-4 ${isInCart(product.id)
               ? "bg-gray-700 hover:bg-gray-600 text-white"
-              : "bg-[#C02090] hover:bg-[#a81c78] text-white"
+              : "flex-1 bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white font-semibold py-6"
               }`}
           >
             {isLoading ? (

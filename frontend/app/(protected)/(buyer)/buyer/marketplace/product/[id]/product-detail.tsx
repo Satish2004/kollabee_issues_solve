@@ -34,16 +34,23 @@ interface Product {
     seller: {
         id: string
         businessName: string
+        businessDescription: string
         teamSize: string
         annualRevenue: string
         productionCountries: string[]
+        businessLogo: string
         user: {
             id: string
             country: string
+            state: string
         }
     }
     rating?: number
     reviewCount?: number
+    stockStatus?: string
+    status?: string
+    createdAt?: string
+    updatedAt?: string
 }
 
 export default function ProductDetail({ id }: ProductDetailProps) {
@@ -267,7 +274,7 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                     <div className="flex items-center text-sm text-gray-500 mb-6">
                         <span className="mr-2">{product.seller?.businessName}</span>
                         <span className="flex items-center">
-                            <span className="ml-1">{product.seller?.user?.country}</span>
+                            <span className="ml-1">{product.seller?.user?.country}, {product.seller?.user?.state}</span>
                         </span>
                         {product.rating && (
                             <span className="ml-2">
@@ -352,6 +359,14 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                                 <span className="text-gray-600">Delivery:</span>
                                 <span className="font-medium ml-2">₹{product.deliveryCost.toFixed(2)}</span>
                             </div>
+                            <div className="text-sm">
+                                <span className="text-gray-600">Status:</span>
+                                <span className="font-medium ml-2 capitalize">{product.status?.toLowerCase()}</span>
+                            </div>
+                            <div className="text-sm">
+                                <span className="text-gray-600">Stock Status:</span>
+                                <span className="font-medium ml-2">{product.stockStatus}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -428,6 +443,10 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                                 <span className="font-medium">{product.seller?.businessName}</span>
                             </div>
                             <div className="flex justify-between">
+                                <span className="text-gray-600">Description:</span>
+                                <span className="font-medium">{product.seller?.businessDescription}</span>
+                            </div>
+                            <div className="flex justify-between">
                                 <span className="text-gray-600">Team Size:</span>
                                 <span className="font-medium">{product.seller?.teamSize}</span>
                             </div>
@@ -438,6 +457,10 @@ export default function ProductDetail({ id }: ProductDetailProps) {
                             <div className="flex justify-between">
                                 <span className="text-gray-600">Production:</span>
                                 <span className="font-medium">{product.seller?.productionCountries?.join(", ") || "N/A"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">Location:</span>
+                                <span className="font-medium">{product.seller?.user?.country}, {product.seller?.user?.state}</span>
                             </div>
                         </div>
                     </div>

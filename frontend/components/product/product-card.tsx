@@ -240,7 +240,7 @@ export default function ProductCard({
               type="button"
               onClick={handleMoveToCart}
               disabled={isLoading}
-              className="w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold bg-blue-600 hover:bg-blue-700 mt-2"
+              className="w-full py-2 sm:py-6 px-3 sm:px-4 rounded-md text-white text-xs sm:text-sm font-semibold bg-gradient-to-r from-[#9e1171] to-[#f0b168]"
             >
               {isLoading ? "Moving..." : "Move to Cart"}
             </Button>

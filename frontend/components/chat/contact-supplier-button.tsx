@@ -38,7 +38,7 @@ export default function ContactSupplierButton({
       <DialogTrigger asChild>
         <Button
           variant={variant}
-          className={"gradient-border gradient-text flex-1 font-semibold text-xs sm:text-sm py-2 sm:py-6 px-3 sm:px-4" + className}
+          className={"gradient-border gradient-text flex-1 font-semibold text-xs sm:text-sm py-2 sm:py-6 px-3 sm:px-4 w-full" + className}
         >
           Contact Supplier
         </Button>
