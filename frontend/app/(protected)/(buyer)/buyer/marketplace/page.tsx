@@ -17,6 +17,7 @@ import { cartApi } from "@/lib/api/cart"
 import { useCheckout } from "@/contexts/checkout-context"
 import { useMarketplaceProducts, useWishlistProducts } from "./hooks/use-marketplace"
 import { CATEGORY_OPTIONS } from "@/app/(protected)/(seller)/seller/products/add-product"
+import CategoryCarouselSimple from "./category-carousel"
 
 
 const tags = [
@@ -99,31 +100,12 @@ export default function Page() {
   return (
     <main className="min-h-screen px-0 md:px-7">
       <div className=" bg-white mt-8 p-6 mx-auto rounded-xl">
-        <Tabs value={category} className="w-full mb-6 border-b-2 border-gray-200 pb-6">
-          <TabsList className="w-full justify-start h-auto flex-wrap gap-2 bg-transparent">
-            {/* <div className="w-full overflow-x-auto mb-6"> */}
-              {/* <div className="flex gap-2 w-max px-1"> */}
-                {[{ value: "all", label: "All", icon: <Sparkles className="w-4 h-4" /> }, ...CATEGORY_OPTIONS].map((cat) => (
-                  <button
-                    key={cat.value}
-                    onClick={() => handleCategoryChange(cat.value)}
-                    disabled={productsLoading}
-                    className={cn(
-                      "flex flex-col items-center justify-center px-4 py-2 rounded-lg transition-all duration-200 min-w-[72px] text-center",
-                      category === cat.value
-                        ? "bg-orange-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200",
-                      productsLoading && "opacity-75 cursor-not-allowed"
-                    )}
-                  >
-                    {cat.icon && <div className="mb-1">{cat.icon}</div>}
-                    <span className="text-[10px] sm:text-xs line-clamp-2">{cat.label}</span>
-                  </button>
-                ))}
-              {/* </div> */}
-            {/* </div> */}
-          </TabsList>
-        </Tabs>
+        <CategoryCarouselSimple
+          category={category}
+          handleCategoryChange={handleCategoryChange}
+          productsLoading={productsLoading}
+          CATEGORY_OPTIONS={CATEGORY_OPTIONS}
+        />
 
         <div className="flex gap-4 mb-8">
           {tags.map((t) => (

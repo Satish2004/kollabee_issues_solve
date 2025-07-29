@@ -13,35 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import NotificationSkeleton from "@/components/notifications/notification-skeleton";
+import { formatDateTime, groupByDate } from "@/lib/utils";
 
-function formatDateTime(dateString: string) {
-  const date = new Date(dateString);
-  const options: Intl.DateTimeFormatOptions = {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  };
-  return date.toLocaleString("en-US", options);
-}
-
-function groupByDate(notifications: Notification[]) {
-  const grouped: { [key: string]: Notification[] } = {};
-  
-  notifications.forEach(notification => {
-    const date = new Date(notification.createdAt);
-    const dateKey = date.toDateString();
-    
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = [];
-    }
-    grouped[dateKey].push(notification);
-  });
-  
-  return grouped;
-}
 
 export default function BuyerNotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -171,12 +144,10 @@ export default function BuyerNotificationsPage() {
     }
   };
 
-  // Only filter, no search
   const filteredNotifications = notifications.filter(notification => {
     return filter === "all" || notification.type === filter;
   });
 
-  // Group notifications by date
   const grouped = groupByDate(filteredNotifications);
   const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
 

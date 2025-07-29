@@ -19,3 +19,35 @@ export function findYearDifference(startYear: string | null | undefined): number
   const year = parseInt(startYear || "0");
   return year > 0 ? currentYear - year : 0;
 }
+
+export function formatDateTime(dateString: string) {
+  const date = new Date(dateString);
+  const options: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  };
+  return date.toLocaleString("en-US", options);
+}
+
+
+
+
+export function groupByDate(notifications: Notification[]) {
+  const grouped: { [key: string]: Notification[] } = {};
+  
+  notifications.forEach(notification => {
+    const date = new Date(notification.createdAt);
+    const dateKey = date.toDateString();
+    
+    if (!grouped[dateKey]) {
+      grouped[dateKey] = [];
+    }
+    grouped[dateKey].push(notification);
+  });
+  
+  return grouped;
+}
