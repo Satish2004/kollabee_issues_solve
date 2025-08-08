@@ -1,7 +1,7 @@
 import React, { Suspense } from "react";
 import KollaBeeProfile from "./clientPage";
 
-const page = () => {
+const Page = () => {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <KollaBeeProfile />
@@ -9,4 +9,4 @@ const page = () => {
   );
 };
 
-export default page;
+export default Page;

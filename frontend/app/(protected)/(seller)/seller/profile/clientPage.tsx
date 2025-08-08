@@ -12,7 +12,6 @@ import { useProfileData } from "./hooks/use-profile-data";
 import { useStepNavigation } from "./hooks/use-step-navigation";
 import useProfileFormState from "@/hooks/use-profile-form-state";
 import { useProfileSections } from "@/hooks/use-profile-sections";
-import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const KollaBeeProfile = () => {
@@ -119,7 +118,7 @@ const KollaBeeProfile = () => {
         <ProfileHeader
           profileData={profileData}
           setActiveStep={setActiveStep}
-          steps={steps}
+          steps={steps.map((step) => step.label)}
           isLoading={isLoading}
           stepsToBeCompleted={stepsToBeCompleted}
           approvalStatus={approvalStatus}
@@ -144,7 +143,7 @@ const KollaBeeProfile = () => {
       </div>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col md:flex-row h-full overflow-auto">
+      <div className="flex-1 flex flex-col md:flex-row h-full overflow-aut">
         {/* Overlay when locked */}
        
         <div className="flex-1">

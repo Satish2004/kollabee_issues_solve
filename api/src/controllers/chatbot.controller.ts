@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import { faqData } from "../utils/faq.data";
 import prisma from "../db";
 
-// Get all available questions with pagination
 export const getQuestions = async (req: Request, res: Response) => {
   try {
     const chatbotUser = await prisma.user.findFirst({

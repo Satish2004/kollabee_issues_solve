@@ -1,113 +1,90 @@
-import express, { Application, Request, Response, NextFunction } from "express";
+import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import path from "path";
-import prisma from "./db/index";
-import { setupRoutes } from "./routes";
+import dotenv from "dotenv";
+import http from "http";
 import { Server } from "socket.io";
+import prisma from "./db"; // adjust if needed
+import { setupRoutes } from "./routes";
 import { handleSocketConnection } from "./sockets";
 
-const app: Application = express();
+// Load env variables
+dotenv.config();
 
+const app = express();
+const server = http.createServer(app);
 
+// CORS setup
 app.use(
   cors({
-    origin: (origin, callback) => {
-      console.log("Incoming request from:", origin);
-      const allowedOrigins = [
-        "https://kollabee-theta.vercel.app",
-        "https://kollabee-frontend.onrender.com",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        // For local testing
-      ];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "https://kollabee-theta.vercel.app",
+      "https://kollabee-frontend.onrender.com",
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ],
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 
-// Static file serving
-app.use("/images", express.static(path.join(__dirname, "../public/images")));
-
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 3 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-});
-app.use(limiter);
-
-// Error handling middleware
+// Rate limiter
 app.use(
-  (
-    err: Error,
-    req: express.Request,
-    res: express.Response,
-    next: express.NextFunction
-  ) => {
-    console.error(err.stack);
-    res.status(500).json({ error: "Something broke!" });
-  }
+  rateLimit({
+    windowMs: 3 * 60 * 1000, // 3 minutes
+    max: 100,
+  })
 );
 
-// Setup all routes
+// API routes
 setupRoutes(app);
 
-// Start server
-const port = process.env.PORT || 2000;
+// Serve static Next.js export build
+const staticPath = path.join(__dirname, "frontend");
+app.use(express.static(staticPath));
 
-// Create an HTTP server using app.listen()
-const server = app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+// Catch-all to serve index.html for any unmatched route (for client-side routing)
+app.get("*", (req, res) => {
+  res.sendFile(path.join(staticPath, "index.html"));
 });
 
-// Initialize Socket.IO and attach it to the server
+// WebSockets
 const io = new Server(server, {
   cors: {
-    origin: (origin, callback) => {
-      console.log("Incoming request from:", origin);
-      const allowedOrigins = [
-        "https://kollabee-theta.vercel.app",
-        "https://kollabee-frontend.onrender.com",
-        "http://localhost:3000",
-        "http://localhost:3001",
-        // For local testing
-      ];
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    methods: ["GET", "POST"],
+    origin: [
+      "https://kollabee-theta.vercel.app",
+      "https://kollabee-frontend.onrender.com",
+      "http://localhost:3000",
+      "http://localhost:3001",
+    ],
     credentials: true,
   },
 });
 
-// Set up Socket.io connection handler
 io.on("connection", (socket) => {
   console.log("A client connected:", socket.id);
   handleSocketConnection(socket, io, prisma);
 });
 
+// Server start
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => {
+  console.log(`Server listening on port ${PORT}`);
+});
+
 // Graceful shutdown
 process.on("SIGTERM", () => {
-  console.log("SIGTERM signal received: closing HTTP server");
+  console.log("SIGTERM received, closing server.");
   prisma.$disconnect();
   process.exit(0);
 });

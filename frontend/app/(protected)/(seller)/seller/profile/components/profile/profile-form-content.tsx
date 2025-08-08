@@ -17,14 +17,10 @@ import {
   GoalsMetricsFormSkeleton,
 } from "./skeletons/form-skeletons";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import {
   ChevronLeft,
   ChevronRight,
   Loader2,
-  CheckCircle2,
-  Circle,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -41,7 +37,7 @@ type ProfileFormContentProps = {
   hasFormChanges: (sectionId: string) => boolean;
   handlePrevious: () => void;
   handleNext: () => void;
-  onFileUpload: (file: File, field: string) => Promise<string | null>;
+  onFileUpload: (file: File | null, field: string, url?: string) => Promise<string | boolean | null>;
   onDeleteFile: (fileUrl: string, field: string) => void;
   onSubmitForApproval: () => Promise<void>;
   pendingStepNames: string[];
@@ -52,9 +48,9 @@ type ProfileFormContentProps = {
     approvalRequested: boolean;
     approvalRequestedAt: Date | null;
     isApproved: boolean;
-    message?: string; // To hold messages like "Approval request is rejected..."
+    message?: string;
   };
-  disabled?: boolean; // Add disabled prop
+  disabled?: boolean;
 };
 
 export const ProfileFormContent = ({
@@ -83,7 +79,6 @@ export const ProfileFormContent = ({
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
 
-  // Determine which steps are completed (not in pendingStepNames)
   useEffect(() => {
     const completed = steps
       .map((step, index) =>
@@ -93,7 +88,6 @@ export const ProfileFormContent = ({
     setCompletedSteps(completed);
   }, [pendingStepNames, steps]);
 
-  // Show animation when a step is completed
   useEffect(() => {
     if (completedSteps.includes(activeStep) && !showCompletionAnimation) {
       setShowCompletionAnimation(true);
@@ -123,9 +117,8 @@ export const ProfileFormContent = ({
         case "brand-presence":
           return <BrandPresenceFormSkeleton />;
         case "final-review":
-          return <FinalReviewFormSkeleton />; // Assuming data for final review is also part of formStates
+          return <FinalReviewFormSkeleton />;
         default:
-          // Fallback generic skeleton or null
           return (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />

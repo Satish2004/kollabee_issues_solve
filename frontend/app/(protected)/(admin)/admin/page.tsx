@@ -428,7 +428,6 @@ export default function Dashboard() {
         </ChartCard>
       </div>
 
-      {/* Top Buyers Table */}
       <div>
         <TopBuyersTable />
       </div>
@@ -436,7 +435,6 @@ export default function Dashboard() {
   )
 }
 
-// Helper Components
 function StatCard({ title, value, change, bgColor }: any) {
   const numericChange = typeof change === "string" ? Number.parseFloat(change) : change || 0
   const trend = numericChange > 0 ? "up" : "down"

@@ -282,7 +282,7 @@ const AdminProductApproval = () => {
                             <div key={key} className="flex justify-between">
                               <span className="font-medium">{key}:</span>
                               <span className="text-muted-foreground">
-                                {value || "N/A"}
+                                {typeof value === "string" || typeof value === "number" ? value : value ? String(value) : "N/A"}
                               </span>
                             </div>
                           )

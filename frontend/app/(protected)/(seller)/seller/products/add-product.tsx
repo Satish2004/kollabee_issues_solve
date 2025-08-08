@@ -10,11 +10,12 @@ import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { toast } from "sonner"
 
-// Import shadcn components for multi-select
 import { Badge } from "@/components/ui/badge"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+
+import { CATEGORY_OPTIONS } from "@/lib/data/category"
 
 interface ProductFormProps {
   initialData?: any
@@ -30,66 +31,15 @@ const INDUSTRY_SPECIFIC_ATTRIBUTES = [
   { key: "Technics", value: "" },
 ]
 
-import {
-  Shirt, Sparkles, Home, Leaf, Coffee, HeartPulse,
-  Briefcase, Paintbrush, Globe, Laptop, Camera, LineChart,
-  Megaphone, ShoppingCart, Users, Package, Layers,
-  Box, Puzzle, Archive, Apple, Flame, Droplets,
-  Baby, PawPrint, CupSoda, ToyBrick
-} from "lucide-react";
-
-export const CATEGORY_OPTIONS = [
-  { value: "FASHION_APPAREL_ACCESSORIES", label: "Fashion", icon: <Shirt className="w-4 h-4" /> },
-  { value: "BEAUTY_COSMETICS", label: "Beauty", icon: <Sparkles className="w-4 h-4" /> },
-  { value: "HOME_CLEANING_ESSENTIALS", label: "Home", icon: <Home className="w-4 h-4" /> },
-  { value: "HERBAL_NATURAL_PRODUCTS", label: "Herbal", icon: <Leaf className="w-4 h-4" /> },
-  { value: "FOOD_BEVERAGES", label: "Food", icon: <Coffee className="w-4 h-4" /> },
-  { value: "HEALTH_WELLNESS", label: "Wellness", icon: <HeartPulse className="w-4 h-4" /> },
-
-  { value: "BRAND_STRATEGY_DEVELOPMENT", label: "Brand", icon: <Briefcase className="w-4 h-4" /> },
-  { value: "DESIGN_CREATIVE_SERVICES", label: "Design", icon: <Paintbrush className="w-4 h-4" /> },
-  { value: "DIGITAL_MARKETING", label: "Marketing", icon: <Globe className="w-4 h-4" /> },
-  { value: "WEB_ECOMMERCE_DEVELOPMENT", label: "Web Dev", icon: <Laptop className="w-4 h-4" /> },
-  { value: "PHOTOGRAPHY_VIDEOGRAPHY", label: "Photo", icon: <Camera className="w-4 h-4" /> },
-  { value: "MARKET_RESEARCH_ANALYTICS", label: "Analytics", icon: <LineChart className="w-4 h-4" /> },
-  { value: "PUBLIC_RELATIONS_OUTREACH", label: "PR", icon: <Megaphone className="w-4 h-4" /> },
-  { value: "RETAIL_ECOMMERCE_STRATEGY", label: "Retail", icon: <ShoppingCart className="w-4 h-4" /> },
-  { value: "CONTENT_CREATION_COPYWRITING", label: "Content", icon: <FileText className="w-4 h-4" /> },
-  { value: "CONSULTING_SERVICES", label: "Consulting", icon: <Users className="w-4 h-4" /> },
-
-  { value: "PRIMARY_PACKAGING", label: "Primary Pack", icon: <Package className="w-4 h-4" /> },
-  { value: "FLEXIBLE_PACKAGING", label: "Flexible Pack", icon: <Layers className="w-4 h-4" /> },
-  { value: "RIGID_PACKAGING", label: "Rigid Pack", icon: <Box className="w-4 h-4" /> },
-  { value: "COMPONENTS_ACCESSORIES", label: "Accessories", icon: <Puzzle className="w-4 h-4" /> },
-  { value: "SUSTAINABLE_PACKAGING", label: "Sustainable", icon: <Leaf className="w-4 h-4" /> },
-  { value: "SECONDARY_PACKAGING", label: "Secondary", icon: <Archive className="w-4 h-4" /> },
-
-  { value: "AYURVEDA_HERBAL", label: "Ayurveda", icon: <Leaf className="w-4 h-4" /> },
-  { value: "BEVERAGES", label: "Beverages", icon: <CupSoda className="w-4 h-4" /> },
-  { value: "COSMETICS", label: "Cosmetics", icon: <Sparkles className="w-4 h-4" /> },
-  { value: "CLEANING_HOME_CARE_KITCHEN", label: "Cleaning", icon: <Home className="w-4 h-4" /> },
-  { value: "CONSUMER_ELECTRONICS", label: "Electronics", icon: <Flame className="w-4 h-4" /> },
-  { value: "FURNITURE_HOME_DECOR", label: "Furniture", icon: <Home className="w-4 h-4" /> },
-  { value: "FASHION_ACCESSORIES", label: "Accessories", icon: <Shirt className="w-4 h-4" /> },
-  { value: "HEALTH_WELLNESS_DUPLICATE", label: "Wellness", icon: <HeartPulse className="w-4 h-4" /> },
-  { value: "MOTHER_BABY_CARE", label: "Baby", icon: <Baby className="w-4 h-4" /> },
-  { value: "NATURAL_ORGANIC_PRODUCTS", label: "Organic", icon: <Apple className="w-4 h-4" /> },
-  { value: "PERSONAL_CARE_HYGIENE", label: "Hygiene", icon: <Droplets className="w-4 h-4" /> },
-  { value: "PET_CARE_PRODUCTS", label: "Pet Care", icon: <PawPrint className="w-4 h-4" /> },
-  { value: "TEA_COFFEE", label: "Tea & Coffee", icon: <CupSoda className="w-4 h-4" /> },
-  { value: "TEXTILES_APPAREL", label: "Textiles", icon: <Shirt className="w-4 h-4" /> },
-  { value: "TOYS", label: "Toys", icon: <ToyBrick className="w-4 h-4" /> },
-]
 
 
-// Default other attributes
+
 const OTHER_ATTRIBUTES = [
   { key: "Collar", value: "" },
   { key: "Fabric Type", value: "" },
   { key: "Fit Type", value: "" },
 ]
 
-// Debounce function to limit API calls
 const debounce = (func: Function, wait: number) => {
   let timeout: NodeJS.Timeout
   return (...args: any[]) => {
@@ -99,7 +49,6 @@ const debounce = (func: Function, wait: number) => {
 }
 
 const isValidDecimal = (value: string) => {
-  // Allow only numbers and up to one decimal point
   return /^\d*(\.\d{0,2})?$/.test(value)
 }
 
@@ -162,11 +111,9 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const [newAttributeValue, setNewAttributeValue] = useState("")
   const [newAttributeCategory, setNewAttributeCategory] = useState<"industry" | "other" | "custom">("other")
 
-  // Save status states
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved")
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
 
-  // Form validation states
   const [errors, setErrors] = useState<{
     name?: string
     price?: string
@@ -178,10 +125,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
   }>({})
   const [formSubmitted, setFormSubmitted] = useState(false)
 
-  // Control states
   const [isInitialized, setIsInitialized] = useState(false)
 
-  // Refs
   const thumbnailRef = useRef<HTMLInputElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadRef = useRef<HTMLDivElement>(null)
@@ -189,7 +134,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
   const productDetailsRef = useRef<HTMLDivElement>(null)
   const documentsRef = useRef<HTMLDivElement>(null)
 
-  // Load categories only once
   useEffect(() => {
     let isMounted = true
 
@@ -213,7 +157,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }, [])
 
-  // Initialize form data only once
   useEffect(() => {
     if (mode === "edit" || mode === "view") {
       if (!initialData) return
@@ -247,7 +190,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
         setDocuments(initialData.documents)
       }
 
-      // Convert attributes object to array and categorize them
       if (initialData.attributes) {
         const attributesObj = initialData.attributes || {}
         const allAttributes = Object.entries(attributesObj).map(([key, value]) => ({
@@ -255,7 +197,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
           value: value as string,
         }))
 
-        // Categorize existing attributes
         const industryKeys = INDUSTRY_SPECIFIC_ATTRIBUTES.map((attr) => attr.key)
         const otherKeys = OTHER_ATTRIBUTES.map((attr) => attr.key)
 
@@ -265,7 +206,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
           (attr) => !industryKeys.includes(attr.key) && !otherKeys.includes(attr.key),
         )
 
-        // Add any missing default attributes
         const existingIndustryKeys = existingIndustryAttrs.map((attr) => attr.key)
         const missingIndustryAttrs = INDUSTRY_SPECIFIC_ATTRIBUTES.filter(
           (attr) => !existingIndustryKeys.includes(attr.key),
@@ -317,7 +257,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     loadDraft()
   }, [mode, isInitialized])
 
-  // Optimized save function
   const saveChanges = useCallback(
     debounce(async () => {
       if (!isInitialized) return
@@ -341,7 +280,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
           attributes: attributesObject,
           thumbnail: thumbnail,
           documents: documents,
-          categoryIds: formData.categoryIds || [], // Ensure categoryIds is always an array
+          categoryIds: formData.categoryIds || [],
         }
 
         if (mode === "edit" && initialData?.id) {
@@ -593,9 +532,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }
 
-  // Input change handler with validation
   const handleInputChange = (field: string, value: any) => {
-    // For price and deliveryCost, restrict input to only numbers and decimals
     if ((field === "price" || field === "deliveryCost") && typeof value === "string") {
       if (!isValidDecimal(value)) {
         return
@@ -607,7 +544,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
       [field]: value,
     }))
 
-    // Clear validation errors in real-time
     if (formSubmitted) {
       if (field === "name" && value.trim()) {
         setErrors((prev) => ({ ...prev, name: undefined }))
@@ -640,7 +576,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }
 
-  // Category selection handler
   const handleCategorySelect = (categoryId: string) => {
     setFormData((prev: any) => {
       const currentCategories = prev.categoryIds || []
@@ -659,7 +594,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     })
   }
 
-  // Scroll to section handler
   const scrollToSection = (sectionId: string) => {
     const refs: any = {
       upload: uploadRef,
@@ -683,7 +617,6 @@ const ProductForm: React.FC<ProductFormProps> = ({
     }
   }
 
-  // Scroll handler for active section detection
   const handleScroll = () => {
     const sections = [
       { id: "upload", ref: uploadRef },
@@ -1071,7 +1004,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         title="Select categories"
                         type="button"
                         role="combobox"
-                        aria-expanded={categoryPopoverOpen}
+                        aria-controls="category-popover-content"
+                        aria-expanded={!!categoryPopoverOpen}
                         className={`w-full flex items-center justify-between rounded-md border border-input bg-[#fcfcfc] px-3 py-2 text-sm ${errors.categoryIds ? "border-red-500" : ""
                           }`}
                       >
@@ -1092,7 +1026,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                         <ChevronDown className="h-4 w-4 opacity-50" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0" align="start">
+                    <PopoverContent id="category-popover-content" className="w-full p-0" align="start">
                       <Command>
                         <CommandInput placeholder="Search categories..." />
                         <CommandList>

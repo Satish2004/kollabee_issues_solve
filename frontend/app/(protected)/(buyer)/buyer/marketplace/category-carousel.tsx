@@ -37,7 +37,9 @@ export default function CategoryCarousel({
     const categories = [{ value: "all", label: "All", icon: <Sparkles className="w-4 h-4" /> }, ...CATEGORY_OPTIONS]
 
     return (
-        <div className="w-1/1 mb-6 border-b-2 border-gray-200 pb-6">
+        <div
+            style={{width: "92rem"}}
+            className="mb-6 border-b-2 border-gray-200 pb-6 overflow-hidden">
             <div className="relative">
                 {/* Left scroll button */}
                 <Button
@@ -49,11 +51,11 @@ export default function CategoryCarousel({
                     <ChevronLeft className="w-4 h-4" />
                 </Button>
 
-                {/* Scrollable container */}
                 <div
                     ref={scrollContainerRef}
-                    className="flex overflow-x-auto scrollbar-hide gap-2 px-10 scroll-smooth"
-                    style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+                    className="gap-2 px-10
+                    flex overflow-x-auto scrollbar-hide
+                    "
                 >
                     {categories.map((cat) => (
                         <button
@@ -61,7 +63,7 @@ export default function CategoryCarousel({
                             onClick={() => handleCategoryChange(cat.value)}
                             disabled={productsLoading}
                             className={cn(
-                                "flex flex-col items-center justify-center px-4 py-2 rounded-lg transition-all duration-200 min-w-[72px] text-center flex-shrink-0",
+                                "flex flex-col items-center justify-center px-4 py-2 rounded-lg transition-all duration-200 text-center",
                                 category === cat.value ? "bg-orange-600 text-white" : "bg-gray-100 text-gray-700 hover:bg-gray-200",
                                 productsLoading && "opacity-75 cursor-not-allowed",
                             )}

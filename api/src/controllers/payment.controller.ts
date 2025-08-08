@@ -4,11 +4,6 @@ import Razorpay from 'razorpay';
 import crypto from 'crypto';
 import Stripe from "stripe";
 
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_SECRET!
-});
-
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
 
 export const createCheckoutSession = async (req: any, res: Response) => {
@@ -16,8 +11,6 @@ export const createCheckoutSession = async (req: any, res: Response) => {
     if (!req.user?.buyerId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-
-
 
     const { amount, products, currency, customerAddress, customerName } = req.body;
 

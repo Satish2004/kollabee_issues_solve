@@ -80,14 +80,16 @@ const UserDashboardPage = () => {
   const [sortOrder, setSortOrder] = useState("desc");
   const [filters, setFilters] = useState({
     role: "all",
-    country: "all",
-    state: "all",
+    status: "all",
+    country: "",
+    state: "",
   });
   const [debouncedFilters, setDebouncedFilters] = useState(filters);
-  // Track which users are being approved/rejected
   const [processingUsers, setProcessingUsers] = useState<{
     [key: string]: { isApproving: boolean; isRejecting: boolean };
   }>({});
+  const [availableCountries, setAvailableCountries] = useState<string[]>([]);
+  const [availableStates, setAvailableStates] = useState<string[]>([]);
 
   const router = useRouter();
 
@@ -103,39 +105,37 @@ const UserDashboardPage = () => {
           status: "Active",
           textColor: "text-green-500",
           dotColor: "bg-green-500",
+          value: "active",
         };
-      } else if (user.seller?.approvalRequested && !user.seller?.approved) {
+      } else if (user.seller?.approvalRequested && user.seller?.approved !== true) {
         return {
           status: "Pending Approval",
-          textColor: "text-pink-500",
-          dotColor: "bg-pink-500",
+          textColor: "text-yellow-500",
+          dotColor: "bg-yellow-500",
+          value: "pending",
         };
       } else if (user.seller?.approved === false) {
         return {
           status: "Rejected",
           textColor: "text-red-500",
           dotColor: "bg-red-500",
+          value: "rejected",
         };
       } else {
         return {
           status: "Inactive",
-          textColor: "text-pink-500",
-          dotColor: "bg-pink-500",
+          textColor: "text-gray-500",
+          dotColor: "bg-gray-500",
+          value: "inactive",
         };
       }
-    } else if (user.role === "BUYER") {
-      // For buyers, we'll just show active for now
-      return {
-        status: "Active",
-        textColor: "text-green-500",
-        dotColor: "bg-green-500",
-      };
     } else {
       return {
         status: "Active",
         textColor: "text-green-500",
         dotColor: "bg-green-500",
-      }; // Default for admins
+        value: "active",
+      };
     }
   };
 
@@ -143,21 +143,19 @@ const UserDashboardPage = () => {
     return users.map((user) => {
       const status = getUserStatus(user);
       return {
-        id: user.id,
-        name: user.name || "Unknown",
-        email: user.email,
-        role:
+        ...user,
+        formattedRole:
           user.role === "SELLER"
             ? "Supplier"
             : user.role === "BUYER"
-            ? "Buyer"
-            : "Admin",
+              ? "Buyer"
+              : "Admin",
         status: {
           text: status.status,
           textColor: status.textColor,
           dotColor: status.dotColor,
+          value: status.value,
         },
-        imageUrl: user.imageUrl || null,
         sellerId: user.seller?.id || null,
         approvalRequested: user.seller?.approvalRequested || false,
         approved: user.seller?.approved || false,
@@ -174,8 +172,12 @@ const UserDashboardPage = () => {
         sortBy: sortBy,
         sortOrder: sortOrder,
         search: debouncedSearch,
-        ...debouncedFilters,
+        ...(debouncedFilters.role !== "all" && { role: debouncedFilters.role }),
+        ...(debouncedFilters.status !== "all" && { status: debouncedFilters.status }),
+        ...(debouncedFilters.country && debouncedFilters.country !== "" && { country: debouncedFilters.country }),
+        ...(debouncedFilters.state && debouncedFilters.state !== "" && { state: debouncedFilters.state }),
       };
+
       const response = await userApi.getUsers(params);
       const responseData = response as ApiResponse;
 
@@ -199,14 +201,29 @@ const UserDashboardPage = () => {
     }
   };
 
+  // Fetch available countries and states for filter dropdowns
+  const fetchFilterOptions = async () => {
+    try {
+      const countries = await userApi.getCountries();
+      setAvailableCountries(countries || []);
+
+      const states = await userApi.getStates();
+      setAvailableStates(states || []);
+    } catch (error) {
+      console.error("Error fetching filter options:", error);
+      // Set empty arrays as fallback
+      setAvailableCountries([]);
+      setAvailableStates([]);
+    }
+  };
+
   const handleApproveOrReject = async (
     userId: string,
     sellerId: string,
     approve: boolean
   ) => {
     try {
-      // Set the processing state for this user
-      setProcessingUsers((prev) => ({
+      setProcessingUsers(prev => ({
         ...prev,
         [userId]: {
           isApproving: approve,
@@ -214,30 +231,26 @@ const UserDashboardPage = () => {
         },
       }));
 
-      await userApi.approveOrReject(approve, sellerId);
+      // Replace with your actual API call
+      // await userApi.approveOrRejectSeller(sellerId, approve);
 
       toast({
-        title: approve ? "Seller Approved" : "Seller Rejected",
-        description: `The seller has been ${
-          approve ? "approved" : "rejected"
-        } successfully.`,
-        variant: approve ? "default" : "destructive",
+        title: "Success",
+        description: `Seller ${approve ? 'approved' : 'rejected'} successfully.`,
+        variant: "default",
       });
 
-      // Refresh data after approval/rejection
-      fetchData();
+      // Refresh the data
+      await fetchData();
     } catch (error) {
-      console.error("Error approving/rejecting seller:", error);
+      console.error("Error processing seller:", error);
       toast({
         title: "Error",
-        description: `Failed to ${
-          approve ? "approve" : "reject"
-        } seller. Please try again.`,
+        description: `Failed to ${approve ? 'approve' : 'reject'} seller. Please try again.`,
         variant: "destructive",
       });
     } finally {
-      // Clear the processing state for this user
-      setProcessingUsers((prev) => {
+      setProcessingUsers(prev => {
         const newState = { ...prev };
         delete newState[userId];
         return newState;
@@ -256,18 +269,43 @@ const UserDashboardPage = () => {
     debouncedFilters,
   ]);
 
+  useEffect(() => {
+    fetchFilterOptions();
+  }, []);
+
   const handleSearch = (query: string) => {
     setSearch(query);
-    setPagination({ ...pagination, page: 1 }); // Reset to first page on search
+    setPagination(prev => ({ ...prev, page: 1 }));
   };
 
   const handleFilterChange = (newFilters: { [key: string]: string }) => {
-    setFilters({ ...filters, ...newFilters });
-    setPagination({ ...pagination, page: 1 }); // Reset to first page on filter change
+    console.log("Filter change received:", newFilters); // Debug log
+
+    // Map the filter keys to match our state structure
+    const mappedFilters = {
+      role: newFilters.formattedRole || newFilters.role || filters.role,
+      status: newFilters["status.value"] || newFilters.status || filters.status,
+      country: newFilters.country !== undefined ? newFilters.country : filters.country,
+      state: newFilters.state !== undefined ? newFilters.state : filters.state,
+    };
+
+    console.log("Mapped filters:", mappedFilters); // Debug log
+    setFilters(mappedFilters);
+    setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const handlePageChange = async (page: number) => {
-    setPagination({ ...pagination, page: page });
+  const handleSortChange = (newSortBy: string, newSortOrder: string) => {
+    setSortBy(newSortBy);
+    setSortOrder(newSortOrder);
+    setPagination(prev => ({ ...prev, page: 1 }));
+  };
+
+  const handlePageChange = (page: number) => {
+    setPagination(prev => ({ ...prev, page }));
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPagination(prev => ({ ...prev, size, page: 1 }));
   };
 
   const columns = [
@@ -276,27 +314,33 @@ const UserDashboardPage = () => {
       cell: (user: any) => (
         <div className="flex items-center gap-3">
           <Avatar>
-            <AvatarImage src={user.imageUrl || null} alt={user.name} />
+            <AvatarImage src={user.imageUrl || undefined} alt={user.name} />
             <AvatarFallback>
-              {user.name.substring(0, 2).toUpperCase()}
+              {user.name?.substring(0, 2).toUpperCase() || "??"}
             </AvatarFallback>
           </Avatar>
           <span className="font-medium">{user.name}</span>
         </div>
       ),
       accessorKey: "name",
-      filterable: true,
+      sortable: true,
     },
     {
       header: "Email",
       accessorKey: "email",
-      filtarable: true,
-      searchable: true,
+      sortable: true,
     },
     {
       header: "Role",
-      accessorKey: "role",
+      accessorKey: "formattedRole",
       filterable: true,
+      filterOptions: [
+        { value: "all", label: "All Roles" },
+        { value: "BUYER", label: "Buyer" },
+        { value: "SELLER", label: "Supplier" },
+        { value: "ADMIN", label: "Admin" },
+      ],
+      sortable: true,
     },
     {
       header: "Status",
@@ -307,6 +351,50 @@ const UserDashboardPage = () => {
           dotColor={user.status.dotColor}
         />
       ),
+      accessorKey: "status.value",
+      filterable: true,
+      filterOptions: [
+        { value: "all", label: "All Statuses" },
+        { value: "active", label: "Active" },
+        { value: "pending", label: "Pending Approval" },
+        { value: "rejected", label: "Rejected" },
+        { value: "inactive", label: "Inactive" },
+      ],
+      sortable: true,
+    },
+    {
+      header: "Country",
+      accessorKey: "country",
+      cell: (user: any) => user.country || "N/A",
+      filterable: true,
+      filterOptions: [
+        { value: "", label: "All Countries" },
+        ...availableCountries.map(country => ({
+          value: country,
+          label: country || "Unknown"
+        }))
+      ],
+      sortable: true,
+    },
+    {
+      header: "State",
+      accessorKey: "state",
+      cell: (user: any) => user.state || "N/A",
+      filterable: true,
+      filterOptions: [
+        { value: "", label: "All States" },
+        ...availableStates.map(state => ({
+          value: state,
+          label: state || "Unknown"
+        }))
+      ],
+      sortable: true,
+    },
+    {
+      header: "Created At",
+      accessorKey: "createdAt",
+      cell: (user: any) => new Date(user.createdAt).toLocaleDateString(),
+      sortable: true,
     },
     {
       header: "Action",
@@ -326,31 +414,31 @@ const UserDashboardPage = () => {
               <Eye className="h-4 w-4" />
             </Button>
 
-            {user.role === "Supplier" &&
+            {user.role === "SELLER" &&
               user.approvalRequested &&
-              !user.approved && (
+              user.seller?.approved !== true && (
                 <>
                   <Button
                     variant="default"
                     size="sm"
-                    className="bg-red-500 text-white hover:bg-red-600 min-w-[90px]"
+                    className="bg-green-600 text-white hover:bg-green-700 min-w-[90px]"
                     onClick={() =>
                       handleApproveOrReject(user.id, user.sellerId, true)
                     }
-                    disabled={isProcessing}
+                    disabled={!!isProcessing}
                   >
                     {isApproving ? "Approving..." : "Approve"}
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-red-500 text-red-500 hover:bg-red-100 min-w-[90px]"
+                    className="border-red-500 text-red-500 hover:bg-red-50 min-w-[90px]"
                     onClick={() =>
                       handleApproveOrReject(user.id, user.sellerId, false)
                     }
-                    disabled={isProcessing}
+                    disabled={!!isProcessing}
                   >
-                    {isRejecting ? "Rejecting..." : "Disapprove"}
+                    {isRejecting ? "Rejecting..." : "Reject"}
                   </Button>
                 </>
               )}
@@ -361,7 +449,7 @@ const UserDashboardPage = () => {
   ];
 
   return (
-    <div className="container  min-w-[99%] mx-3 bg-white p-6 rounded-md shadow-lg  ">
+    <div className="container min-w-[99%] mx-3 bg-white p-6 rounded-md shadow-lg">
       <EnhancedDataTable
         data={data}
         columns={columns}
@@ -370,16 +458,22 @@ const UserDashboardPage = () => {
         pageSize={pagination.size}
         currentPage={pagination.page}
         totalItems={pagination.total}
+        totalPages={pagination.pages}
         onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
         onSearch={handleSearch}
+        onFilterChange={handleFilterChange}
+        onSortChange={handleSortChange}
         searchValue={search}
+        filters={filters}
         onRefresh={fetchData}
-        searchPlaceholder="Search users by name or email..."
+        searchPlaceholder="Search users by name, email, or company..."
         enableExport={false}
         enablePagination={true}
         enableSearch={true}
         enableFiltering={true}
         enableRefresh={true}
+        initialSort={{ id: "createdAt", desc: true }}
         renderEmptyState={() => (
           <TableRow>
             <TableCell colSpan={columns.length} className="text-center py-10">

@@ -9,6 +9,7 @@ import { userApi } from "@/lib/api/user";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { countries } from "@/app/(auth)/signup/seller/onboarding/signup-form";
+import { formatDate } from "@/lib/utils";
 
 // Define types based on the provided schema
 interface User {
@@ -103,27 +104,8 @@ const UserDetailsPage = () => {
         setLoading(true);
         const response = await userApi.getUserDetailsForAdmin(userId);
 
-        const formattedUser = {
-          id: response.id,
-          email: response.email,
-          name: response.name,
-          role: response.role,
-          image: response.imageUrl,
-          phoneNumber: response.phoneNumber,
-          country: response.country || "N/A",
-          state: response.state || "N/A",
-          zipCode: response.zipCode || "N/A",
-          lastLogin: response.lastLogin,
-          createdAt: response.createdAt,
-          updatedAt: response.updatedAt,
-          accountStatus: userStatus(response),
-
-          seller: response.seller,
-        };
-
-        console.log("fromatted user", formattedUser);
-
-        setUser(formattedUser);
+      
+        setUser(response);
       } catch (error) {
         console.error("Error fetching user data:", error);
         toast({
@@ -171,13 +153,6 @@ const UserDetailsPage = () => {
     }
   };
 
-  // Format date function
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "N/A";
-    return format(new Date(dateString), "yyyy-MM-dd");
-  };
-
-  // Loading skeleton
   if (loading) {
     return (
       <div className="container mx-auto py-6 px-4">
@@ -406,25 +381,4 @@ const UserDetailsPage = () => {
   );
 };
 
-const userStatus = (user: User) => {
-  if (user.buyer) {
-    return "Active";
-  }
-
-  if (user.seller) {
-    // pending case
-    if (user.seller.profileCompletion.length != 11) {
-      return "User is still onboarding";
-    }
-
-    if (user.seller.approvalReqestAt) return "Pending for approval";
-
-    if (user.seller.approvalRequested) return "Pending";
-    if (!user.seller.approvalRequested) return "Pending at seller side";
-
-    if (user.seller.approved) return "Approved";
-
-    if (user.seller.approved === false) return "Rejected";
-  }
-};
 export default UserDetailsPage;

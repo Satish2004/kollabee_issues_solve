@@ -1,14 +1,14 @@
-"use client";
-
-import { Button } from "../ui/button";
-import { UserDropdown } from "./user-dropdown";
-import { authApi } from "@/lib/api/auth";
+import React, { FC, useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { UserDropdown } from './user-dropdown';
+import { authApi } from '@/lib/api/auth';
 import {
   Home,
   Store,
   Users,
   MessageSquare,
-  ShoppingCart,
   Bell,
   Mail,
   StoreIcon,
@@ -16,328 +16,145 @@ import {
   Headphones,
   UserCog,
   Settings,
-  Plus,
-  Menu,
-  X,
   Share,
   NotebookPen,
-} from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+  Menu as MenuIcon,
+  X as CloseIcon,
+} from 'lucide-react';
 
-export default function SellerLayoutHeader() {
+// Custom hook using React state and effect to lock body scroll
+function useLockBodyScroll(locked: boolean) {
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    if (locked) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = originalStyle;
+    }
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, [locked]);
+}
+
+interface RouteItem {
+  label: string;
+  icon: FC<React.SVGProps<SVGSVGElement>>;
+  href: string;
+}
+
+const routes: RouteItem[] = [
+  { label: 'Dashboard', icon: Home, href: '/seller' },
+  { label: 'Your Products', icon: Store, href: '/seller/products' },
+  { label: 'Customers', icon: Users, href: '/seller/customers' },
+  { label: 'Messages', icon: MessageSquare, href: '/seller/messages' },
+  { label: 'Requests', icon: StoreIcon, href: '/seller/request' },
+  { label: 'Advertise', icon: Headphones, href: '/seller/advertise' },
+  { label: 'Profile Manage', icon: UserCog, href: '/seller/profile/seller' },
+  { label: 'Post New Product', icon: StoreIcon, href: '/seller/add-product' },
+  { label: 'Settings', icon: Settings, href: '/seller/settings' },
+  { label: 'Chat', icon: MessageSquare, href: '/seller/chat' },
+  { label: 'Notifications', icon: Bell, href: '/seller/notifications' },
+  { label: 'Invite', icon: Share, href: '/seller/invite' },
+  { label: 'Help', icon: NotebookPen, href: '/seller/help' },
+];
+
+const SellerLayoutHeader: FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMenuOpen, setMenuOpen] = useState(false);
 
-  // Effect to prevent scrolling when mobile menu is open
+  // Use React-style hook to lock body scroll
+  useLockBodyScroll(isMenuOpen);
+
+  // Fetch current user
   useEffect(() => {
-    if (mobileMenuOpen) {
-      // Prevent scrolling on the body
-      document.body.style.overflow = "hidden";
-      // Get current scroll position
-      const scrollY = window.scrollY;
-      // Apply fixed position to body to prevent iOS bounce effect
-      document.body.style.position = "fixed";
-      document.body.style.top = `-${scrollY}px`;
-      document.body.style.width = "100%";
-    } else {
-      // Re-enable scrolling when menu is closed
-      const scrollY = document.body.style.top;
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-      // Restore scroll position
-      if (scrollY) {
-        window.scrollTo(0, Number.parseInt(scrollY || "0", 10) * -1);
-      }
-    }
-
-    // Cleanup function to ensure scrolling is re-enabled if component unmounts
-    return () => {
-      document.body.style.overflow = "";
-      document.body.style.position = "";
-      document.body.style.top = "";
-      document.body.style.width = "";
-    };
-  }, [mobileMenuOpen]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const user = await authApi.getCurrentUser();
-        setUser(user);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-
-    fetchUser();
+    let mounted = true;
+    authApi.getCurrentUser()
+      .then((u) => mounted && setUser(u))
+      .catch(console.error);
+    return () => { mounted = false; };
   }, []);
 
-  const routes = [
-    {
-      label: "Dashboard",
-      icon: Home,
-      href: "/seller",
-      color: "text-gray-800",
-      fontWeight: "font-bold",
-    },
-    {
-      label: "Your Products",
-      icon: Store,
-      href: "/seller/products",
-    },
-    {
-      label: "Customers",
-      icon: Users,
-      href: "/seller/customers",
-    },
-    {
-      label: "Messages",
-      icon: MessageSquare,
-      href: "/seller/messages",
-    },
-    {
-      label: "Requests",
-      icon: Store,
-      href: "/seller/request",
-    },
-    {
-      label: "Advertise",
-      icon: Headphones,
-      href: "/seller/advertise",
-    },
-    {
-      label: "Profile Manage",
-      icon: UserCog,
-      href: "/seller/profile/seller",
-    },
-    {
-      label: "Post New Product",
-      icon: StoreIcon,
-      href: "/seller/add-product",
-    },
-    {
-      label: "Settings",
-      icon: Settings,
-      href: "/seller/settings",
-    },
-    {
-      label: "Chat",
-      icon: MessageSquare,
-      href: "/seller/chat",
-    },
-    {
-      label: "Notifications",
-      icon: Bell,
-      href: "/seller/notifications",
-    },
-    {
-      label: "Invite",
-      icon: Share,
-      href: "/seller/invite",
-    },
-    {
-      label: "Help",
-      icon: NotebookPen,
-      href: "/seller/help",
-    },
-  ];
+  // Determine current route
+  const currentRoute = useMemo(() => {
+    if (pathname.startsWith('/seller/update-product/')) {
+      return { label: 'Update Product', icon: PenTool, href: pathname };
+    }
+    if (pathname.startsWith('/seller/products/')) {
+      return { label: 'Product', icon: Store, href: pathname };
+    }
+    return routes.find(r => r.href === pathname) || routes[0];
+  }, [pathname]);
 
-  let currentRoute = routes.find((route) => pathname === route.href);
-  if (!currentRoute && pathname.startsWith("/seller/update-product/")) {
-    currentRoute = {
-      label: "Update Product",
-      icon: PenTool,
-      href: "/seller/update-product",
-    };
-  }
-  if (!currentRoute && pathname.startsWith("/seller/products/")) {
-    currentRoute = {
-      label: "Product",
-      icon: Store,
-      href: "/seller/products",
-    };
-  }
-
+  const toggleMenu = () => setMenuOpen(prev => !prev);
   const handleLogout = async () => {
     try {
       await authApi.logout();
-      router.push("/login");
+      router.push('/login');
       router.refresh();
-    } catch (error) {
-      console.error("Logout failed:", error);
+    } catch (err) {
+      console.error('Logout failed', err);
     }
   };
 
+  const NavActions: FC = () => (
+    <>
+      <Button variant="outline" className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white p-5 font-semibold">
+        Upgrade
+      </Button>
+      {['/seller/notifications', '/seller/chat'].map((href) => {
+        const Icon = href.includes('notifications') ? Bell : Mail;
+        return (
+          <Link key={href} href={href}>
+            <Button variant="outline" size="icon" className="border-neutral-300">
+              <Icon className="h-5 w-5" />
+            </Button>
+          </Link>
+        );
+      })}
+      <UserDropdown currentUser={user} onLogout={handleLogout} />
+    </>
+  );
+
   return (
-    <div className="w-[95%] sticky top-0 text-lg font-semibold capitalize p-5 bg-white rounded-xl mb-4 flex justify-between items-center z-50 mx-auto my-6">
-      <div className="flex items-center justify-between gap-2">
-        {currentRoute && <currentRoute.icon className="w-5 h-5" />}
-        <span>{currentRoute ? currentRoute.label : "Dashboard"}</span>
+    <header className="sticky top-0 z-50 flex w-[95%] items-center justify-between rounded-xl bg-white p-5 text-lg font-semibold capitalize mx-auto my-6">
+      <div className="flex items-center gap-2">
+        <currentRoute.icon className="h-5 w-5" />
+        <span>{currentRoute.label}</span>
       </div>
 
-      {/* Mobile menu button */}
+      {/* Desktop nav */}
+      <nav className="hidden items-center gap-4 md:flex">
+        <NavActions />
+      </nav>
+
+      {/* Mobile burger */}
       <div className="md:hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="relative z-50"
-        >
-          {mobileMenuOpen ? "" : <Menu className="h-6 w-6" />}
+        <Button variant="ghost" size="icon" onClick={toggleMenu}>
+          {isMenuOpen ? <CloseIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
         </Button>
       </div>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 z-[1000] md:hidden">
-          <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          <div className="absolute right-0 top-0 h-screen w-3/4 max-w-xs bg-white shadow-xl transform transition-transform duration-300 ease-in-out flex flex-col">
-            <div className="flex flex-col p-6 flex-shrink-0">
-              <div className="flex justify-end mb-6">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-full hover:bg-gray-100"
-                >
-                  <X className="h-6 w-6" />
-                </Button>
-              </div>
-
-              <Button
-                variant="outline"
-                className="w-full bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold mb-6"
-              >
-                Upgrade
+      {/* Mobile drawer */}
+      {isMenuOpen && (
+        <div className="fixed inset-0 z-[1000] flex">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={toggleMenu} />
+          <aside className="relative flex w-3/4 max-w-xs flex-col bg-white shadow-xl">
+            <div className="flex justify-end p-4">
+              <Button variant="ghost" size="icon" onClick={toggleMenu}>
+                <CloseIcon className="h-6 w-6" />
               </Button>
             </div>
-
-            <div className="flex-1 overflow-y-auto px-6">
-              <div className="grid grid-cols-2 gap-4 mb-8">
-                {/* <Link
-                  href="/seller/add-product"
-                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-10 rounded-full border-neutral-300"
-                  >
-                    <Plus className="size-5 cursor-pointer" />
-                  </Button>
-                  <span className="text-xs font-medium">Add Product</span>
-                </Link> */}
-
-                <Link
-                  href="/seller/notifications"
-                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-10 rounded-full border-neutral-300"
-                  >
-                    <Bell
-                      className="size-5 cursor-pointer"
-                      fill={"currentColor"}
-                    />
-                  </Button>
-                  <span className="text-xs font-medium">Notifications</span>
-                </Link>
-
-                <Link
-                  href="/seller/chat"
-                  className="flex flex-col items-center gap-2 p-3 rounded-lg hover:bg-gray-50"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="size-10 rounded-full border-neutral-300"
-                  >
-                    <Mail
-                      className="size-5 cursor-pointer"
-                      fill={"currentColor"}
-                      stroke="white"
-                    />
-                  </Button>
-                  <span className="text-xs font-medium">Messages</span>
-                </Link>
-              </div>
+            <div className="flex flex-col gap-6 p-6">
+              <NavActions />
             </div>
-
-            <div className="border-t pt-6 px-6 pb-6 flex-shrink-0">
-              <div className="flex justify-center">
-                <UserDropdown onLogout={handleLogout} currentUser={user} />
-              </div>
-            </div>
-          </div>
+          </aside>
         </div>
       )}
-
-      {/* Desktop menu */}
-      <div className="hidden md:flex items-center gap-4">
-        <Button
-          variant="outline"
-          className="bg-gradient-to-r from-[#9e1171] to-[#f0b168] text-white rounded-[6px] p-5 hover:bg-gradient-to-r hover:from-[#9e1171] hover:to-[#f0b168] hover:border-none hover:text-white font-semibold"
-        >
-          Upgrade
-        </Button>
-        {/* <Link href="/seller/add-product">
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-8 rounded-full border-neutral-300"
-          >
-            <Plus className="size-5 cursor-pointer" />
-          </Button>
-        </Link> */}
-        {/* <Link href="/seller/orders">
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-8 rounded-full border-neutral-300"
-          >
-            <ShoppingCart className="size-5 cursor-pointer" />
-          </Button>
-        </Link> */}
-        <Link href="/seller/notifications">
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-8 rounded-full border-neutral-300"
-          >
-            <Bell className="size-5 cursor-pointer" fill={"currentColor"} />
-          </Button>
-        </Link>
-        <Link href="/seller/chat">
-          <Button
-            variant="outline"
-            size="icon"
-            className="size-8 rounded-full border-neutral-300"
-          >
-            <Mail
-              className="size-5 cursor-pointer"
-              fill={"currentColor"}
-              stroke="white"
-            />
-          </Button>
-        </Link>
-        <div className="flex items-center gap-2">
-          <UserDropdown onLogout={handleLogout} currentUser={user} />
-        </div>
-      </div>
-    </div>
+    </header>
   );
-}
+};
+
+export default SellerLayoutHeader;

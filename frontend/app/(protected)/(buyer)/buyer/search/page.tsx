@@ -177,7 +177,7 @@ export default function BuyerProductSearchPage() {
                       removeFromCart={removeFromCart}
                       removeFromWishlist={removeFromWishlist}
                       wishlistProducts={wishlistProducts}
-                      setWishlistProducts={() => { }} // Stub; replace with real function if needed
+                      setWishlistProducts={() => { }}
                />
                   ))}
                 </div>

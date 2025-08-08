@@ -9,7 +9,6 @@ import { CategoryEnum } from "@prisma/client";
 const admin = ["pandeyyysuraj@gmail.com", "saibunty1@gmail.com","tejasgk.collab@gmail.com"];
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Create Product
 export const createProduct = async (req: any, res: Response) => {
   try {
     if (!req.user?.sellerId) {
@@ -34,7 +33,6 @@ export const createProduct = async (req: any, res: Response) => {
       attributes = {},
     } = req.body;
 
-    // Create pickup address if provided
     let addressId = null;
     if (pickupAddress) {
       const address = await prisma.pickupAddress.create({
@@ -118,7 +116,6 @@ export const createProduct = async (req: any, res: Response) => {
   }
 };
 
-// Get Products
 export const getProducts = async (req: any, res: Response) => {
   try {
     const {

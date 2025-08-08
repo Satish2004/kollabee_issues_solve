@@ -232,7 +232,7 @@ export const ProfileHeader = ({
           style={{
             width: `${
               ((steps?.length - stepsToBeCompleted?.length) /
-                (steps?.length || 1)) * // Added steps?.length || 1 to prevent division by zero
+                (steps?.length || 1)) *
               100
             }%`,
           }}

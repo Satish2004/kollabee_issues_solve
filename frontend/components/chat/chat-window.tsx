@@ -220,9 +220,8 @@ export default function ChatWindow({
             .map((_, i) => (
               <div
                 key={i}
-                className={`flex ${
-                  i % 2 === 0 ? "justify-end" : "justify-start"
-                }`}
+                className={`flex ${i % 2 === 0 ? "justify-end" : "justify-start"
+                  }`}
               >
                 <div className="max-w-xs w-40 bg-gray-100 rounded-lg p-3 animate-pulse">
                   <div className="h-3 w-3/4 bg-gray-200 rounded mb-2" />
@@ -339,18 +338,16 @@ export default function ChatWindow({
                   {dateMessages.map((message) => (
                     <div
                       key={message.id}
-                      className={`mb-4 flex ${
-                        message.senderId === currentUser?.id
+                      className={`mb-4 flex ${message.senderId === currentUser?.id
                           ? "justify-end"
                           : "justify-start"
-                      }`}
+                        }`}
                     >
                       <div
-                        className={`max-w-xs lg:max-w-md ${
-                          message.senderId === currentUser?.id
+                        className={`max-w-xs lg:max-w-md ${message.senderId === currentUser?.id
                             ? "order-2"
                             : "order-1"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-end">
                           {message.senderId !== currentUser?.id && (
@@ -375,11 +372,10 @@ export default function ChatWindow({
 
                           <div>
                             <div
-                              className={`px-4 py-2 rounded-lg ${
-                                message.senderId === currentUser?.id
+                              className={`px-4 py-2 rounded-lg ${message.senderId === currentUser?.id
                                   ? "bg-primary text-primary-foreground"
                                   : "bg-gray-100"
-                              }`}
+                                }`}
                             >
                               {message.content && <p>{message.content}</p>}
 
@@ -408,7 +404,7 @@ export default function ChatWindow({
                                       const isUploading =
                                         message.uploadProgress &&
                                         message.uploadProgress[url] !==
-                                          undefined &&
+                                        undefined &&
                                         message.uploadProgress[url] < 100;
                                       const uploadProgress =
                                         message.uploadProgress?.[url] || 0;
@@ -747,11 +743,10 @@ export default function ChatWindow({
                             </div>
 
                             <div
-                              className={`text-xs text-gray-500 mt-1 flex items-center ${
-                                message.senderId === currentUser?.id
+                              className={`text-xs text-gray-500 mt-1 flex items-center ${message.senderId === currentUser?.id
                                   ? "justify-end"
                                   : "justify-start"
-                              }`}
+                                }`}
                             >
                               {formatTime(message.createdAt)}
                               {message.senderId === currentUser?.id && (
@@ -759,10 +754,10 @@ export default function ChatWindow({
                                   {message.status === "pending"
                                     ? "⌛"
                                     : message.status === "sent"
-                                    ? "✓"
-                                    : message.status === "delivered"
-                                    ? "✓✓"
-                                    : "✓✓"}
+                                      ? "✓"
+                                      : message.status === "delivered"
+                                        ? "✓✓"
+                                        : "✓✓"}
                                 </span>
                               )}
                             </div>
@@ -874,18 +869,16 @@ export default function ChatWindow({
                 {dateMessages.map((message) => (
                   <div
                     key={message.id}
-                    className={`mb-2 flex ${
-                      message.senderId === currentUser?.id
+                    className={`mb-2 flex ${message.senderId === currentUser?.id
                         ? "justify-end"
                         : "justify-start"
-                    }`}
+                      }`}
                   >
                     <div
-                      className={`max-w-xs lg:max-w-md ${
-                        message.senderId === currentUser?.id
+                      className={`max-w-xs lg:max-w-md ${message.senderId === currentUser?.id
                           ? "order-2"
                           : "order-1"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-end">
                         {message.senderId !== currentUser?.id && (
@@ -909,11 +902,10 @@ export default function ChatWindow({
                         )}
 
                         <div
-                          className={`flex flex-row items-center space-x-2 rounded-2xl ${
-                            message.senderId === currentUser?.id
+                          className={`flex flex-row items-center space-x-2 rounded-2xl ${message.senderId === currentUser?.id
                               ? " bg-[#ea3d4f] px-2 py-2 text-white"
                               : "bg-stone-200 px-2 py-2 text-black"
-                          }`}
+                            }`}
                         >
                           <div className={`rounded-lg`}>
                             {message.content && (
@@ -947,7 +939,7 @@ export default function ChatWindow({
                                     const isUploading =
                                       message.uploadProgress &&
                                       message.uploadProgress[url] !==
-                                        undefined &&
+                                      undefined &&
                                       message.uploadProgress[url] < 100;
                                     const uploadProgress =
                                       message.uploadProgress?.[url] || 0;
@@ -1286,11 +1278,10 @@ export default function ChatWindow({
                           </div>
 
                           <div
-                            className={`text-[12px]  flex items-center ${
-                              message.senderId === currentUser?.id
+                            className={`text-[12px]  flex items-center ${message.senderId === currentUser?.id
                                 ? "justify-end text-white"
                                 : "justify-start text-stone-500"
-                            }`}
+                              }`}
                           >
                             {formatTime(message.createdAt)}
                             {message.senderId === currentUser?.id && (

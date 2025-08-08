@@ -1,5 +1,5 @@
-import { authApi } from "@/lib/api";
-import { User } from "@/types/api";
+import { authApi } from "../lib/api";
+import { User } from "../types/api";
 import Cookies from "js-cookie";
 import { useState, useEffect } from "react";
 

@@ -60,43 +60,9 @@ export const updateUserProfile = async (req: any, res: Response) => {
 
 export const getAllUsers = async (req: any, res: Response) => {
   try {
-    // get the user id from the cookie
-
     const userId = req?.user?.userId ?? "234";
 
     const { pageNo, pageSize, search, sortBy, sortOrder, filter } = req.query;
-
-    // check if the user is admin or not
-
-    /*
-    comment this for now 
-
-    const admin = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-      select: {
-        role: true,
-      },
-    });
-
-    if (admin?.role !== "ADMIN") {
-      return res
-        .status(403)
-        .json({ error: "You are not authorized to access this resource" });
-    }
-    
-
-    */
-
-    // based on the query params, get the users from the database
-    // if search is present, then filter the users based on the search term
-    // if sortBy is present, then sort the users based on the sortBy and sortOrder
-    // if pageNo and pageSize is present, then paginate the users based on the pageNo and pageSize
-    // if filter is present, then filter the users based on the filter
-    // if no query params are present, then get all the users from the database
-    // if pageNo is not present, then set it to 1
-    // if pageSize is not present, then set it to 10
 
     const page = parseInt(pageNo as string) || 1;
     const size = parseInt(pageSize as string) || 10;
@@ -161,23 +127,7 @@ export const getAllUsers = async (req: any, res: Response) => {
         orderBy: {
           [sortByField]: sortOrderField,
         },
-
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          companyName: true,
-          displayName: true,
-          country: true,
-          state: true,
-          address: true,
-          imageUrl: true,
-          companyWebsite: true,
-          zipCode: true,
-          createdAt: true,
-          updatedAt: true,
-          lastLogin: true,
+        include: {
           seller: {
             include: {
               Approved: true,
@@ -185,6 +135,23 @@ export const getAllUsers = async (req: any, res: Response) => {
           },
           buyer: true,
           approvals: true,
+          addresses: true,
+          analytics: true,
+          subscription: {
+            include: {
+              plan: true,
+            },
+          },
+          blockedAsInitiator: {
+            include: {
+              target: true,
+            },
+          },
+          blockedAsTarget: {
+            include: {
+              initiator: true,
+            },
+          },
         },
       }),
 
@@ -233,14 +200,10 @@ export const getAllUsers = async (req: any, res: Response) => {
   }
 };
 
-// get all the details about the user -> admin api
-//
-
 export const getUserDetailsForAdmin = async (req: any, res: Response) => {
   try {
     const { id } = req.params;
-
-    // Fetch all details about the user, including related entities
+    
     const user = await prisma.user.findUnique({
       where: { id: id },
       include: {

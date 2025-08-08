@@ -1,10 +1,9 @@
 import type { Request, Response } from "express"
 import { PrismaClient, Role } from "@prisma/client"
+import prisma from "../db";
 
-const prisma = new PrismaClient()
 
 export const adminController = {  
-  // Block communication between two users
   blockCommunication: async (req: any, res: Response) => {
     try {
       const { initiatorId, targetId, reason } = req.body
@@ -62,7 +61,6 @@ export const adminController = {
     }
   },
 
-  // Unblock communication between two users
   unblockCommunication: async (req: any, res: Response) => {
     try {
       const { initiatorId, targetId } = req.body
@@ -95,7 +93,6 @@ export const adminController = {
     }
   },
 
-  // Get all blocked communications
   getBlockedCommunications: async (req: any, res: Response) => {
     try {
       const { userId } = req.user;
@@ -146,7 +143,6 @@ export const adminController = {
     }
   },
 
-  //Dashboard related functions
   getBuyerMetrics: async (req: any, res: Response) => {
 
     const now = new Date();
@@ -1797,9 +1793,7 @@ export const adminController = {
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      // Fetch suppliers and buyers in parallel
       const [suppliers, buyers, totalSuppliers, totalBuyers] = await Promise.all([
-        // Onboarded suppliers (paginated)
         prisma.seller.findMany({
           skip,
           take: limit,
@@ -1820,7 +1814,6 @@ export const adminController = {
             }
           }
         }),
-        // Onboarded buyers (paginated)
         prisma.buyer.findMany({
           skip,
           take: limit,
@@ -1988,27 +1981,6 @@ interface LowSellingProduct {
 interface ProductMetrics {
   topSellingProducts: TopSellingProduct[];
   lowSellingProducts: LowSellingProduct[];
-}
-
-interface TopBuyer {
-  buyerName: string;
-  email: string;
-  totalSpent: number;
-  orderCount: number;
-  products: {
-    name: string;
-    price: number;
-    quantity: number;
-  }[];
-  latestOrderDate: Date;
-  status: 'Active' | 'Inactive';
-  address: {
-    street: string;
-    city: string;
-    state: string;
-    country: string;
-    zipCode: string;
-  };
 }
 
 interface ProductInfo {
