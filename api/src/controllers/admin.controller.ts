@@ -1915,12 +1915,6 @@ interface MetricValue {
   percentageChange?: string;
 }
 
-interface PlatformMetrics {
-  requests: MetricValue;
-  messages: MetricValue;
-  orders: MetricValue;
-  certificatesUploaded: MetricValue;
-}
 
 interface DailyMetric {
   date: string;

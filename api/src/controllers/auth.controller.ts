@@ -80,8 +80,7 @@ const supabase = createClient(
 const setAuthCookie = (res: Response, token: string) => {
   res.setHeader(
     "Set-Cookie",
-    `auth-token=${token}; HttpOnly; Secure=${
-      process.env.NODE_ENV === "production"
+    `auth-token=${token}; HttpOnly; Secure=${process.env.NODE_ENV === "production"
     }; SameSite=None; Path=/; Max-Age=${7 * 24 * 60 * 60}`
   );
 };
@@ -584,13 +583,12 @@ export const verifyOTP = async (req: Request, res: Response) => {
   try {
     const { email, otp } = req.body;
 
-    // Verify OTP via Supabase
     const { data, error } = await supabase.auth.verifyOtp({
       email,
       token: otp,
-      type: "signup",
+      type: "email",
     });
-
+    console.log(data, error);
     if (error) {
       return res.status(400).json({
         success: false,
@@ -598,7 +596,6 @@ export const verifyOTP = async (req: Request, res: Response) => {
       });
     }
 
-    // Generate a temporary token for signup completion
     const tempToken = jwt.sign(
       { email, verified: true },
       process.env.JWT_SECRET!,
@@ -760,8 +757,7 @@ export const googleCallback = async (req: Request, res: Response) => {
           });
         } else {
           res.redirect(
-            `${
-              process.env.FRONTEND_URL
+            `${process.env.FRONTEND_URL
             }/auth/callback?error=${"You can not create an admin account"}`
           );
         }
