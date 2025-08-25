@@ -588,7 +588,7 @@ export const verifyOTP = async (req: Request, res: Response) => {
     const { data, error } = await supabase.auth.verifyOtp({
       email,
       token: otp,
-      type: "email",
+      type: "signup",
     });
 
     if (error) {
