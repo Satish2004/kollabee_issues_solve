@@ -547,6 +547,7 @@ model Product {
   wishlistItems          WishlistItem[]
   interestedBuyers       Buyer[]         @relation("BuyerToProduct")
   thumbnail              String[]
+  
 
   productCategories CategoryEnum[]
 

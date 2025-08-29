@@ -15,6 +15,16 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<"active" | "draft">("active");
   const [inputValue, setInputValue] = useState("");
@@ -26,14 +36,13 @@ export default function ProductsPage() {
 
   const debouncedSearchQuery = useDebounce(inputValue, 500);
 
-  const { products, totalPages, stats, deleteProduct } =
-    useProducts({
-      status: activeTab === "active" ? "active" : "DRAFT",
-      search: debouncedSearchQuery,
-      page: currentPage,
-      sortBy: sortField,
-      sortOrder,
-    });
+  const { products, totalPages, stats, deleteProduct, refetch } = useProducts({
+    status: activeTab === "active" ? "active" : "DRAFT",
+    search: debouncedSearchQuery,
+    page: currentPage,
+    sortBy: sortField,
+    sortOrder,
+  });
 
   const { categories } = useCategories();
   const {
@@ -47,72 +56,82 @@ export default function ProductsPage() {
     approvalStatus,
     isSubmittingApproval,
     requestApproval,
-    getApproval, // You might want to call this on certain actions
+    getApproval,
     isLoading: approvalStatusIsLoading,
   } = useProfileApproval({
     stepsToBeCompleted: remainingSteps,
   });
 
-  // Simulate loading state
+  // state for delete confirmation modal
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
+
+  // simulate loading skeleton
   useEffect(() => {
     setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 800);
+    const timer = setTimeout(() => setIsLoading(false), 800);
     return () => clearTimeout(timer);
   }, [activeTab, debouncedSearchQuery, currentPage, sortField, sortOrder]);
 
-  // Reset to first page when search query or tab changes
+  // reset page on search or tab change
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearchQuery, activeTab]);
 
-  const handleSearchChange = (value: string) => {
-    setInputValue(value);
-  };
+  const handleSearchChange = (value: string) => setInputValue(value);
 
   const handleSortChange = (field: string) => {
     if (field === sortField) {
       setSortOrder(sortOrder === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortOrder("desc"); // Default to descending when changing fields
+      setSortOrder("desc");
     }
   };
 
-  const handleDelete = async (productId: string) => {
-    if (!window.confirm("Are you sure you want to delete this product?"))
-      return;
+  const confirmDelete = (productId: string) => {
+    setProductToDelete(productId);
+    setDeleteDialogOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!productToDelete) return;
     try {
-      await deleteProduct(productId);
-      toast.success("Product deleted successfully");
-    } catch (error) {
-      console.error("Failed to delete product:", error);
+      const res = await deleteProduct(productToDelete);
+
+      if (res?.success !== false) {
+        toast.success("Product deleted successfully");
+        if (refetch) await refetch();
+      } else {
+        throw new Error("API responded with failure");
+      }
+    } catch (err) {
+      console.error("Failed to delete product:", err);
       toast.error("Failed to delete product");
       setError("Failed to delete product. Please try again.");
       setTimeout(() => setError(null), 5000);
+    } finally {
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 rounded-md">
       <div className="max-w-7xl md:max-w-full mx-auto p-3 sm:p-4 md:p-6">
-        {/* Error message */}
+        {/* Error banner */}
         {error && (
           <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center text-red-700 text-sm">
             <AlertCircle className="w-4 h-4 mr-2 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
-        
 
-        {/* Stats Section - Can be a separate component */}
+        {/* Stats */}
         <ProductStats stats={stats} />
 
-        {/* Main Content */}
+        {/* Main content */}
         <div className="bg-white rounded-lg shadow overflow-hidden">
-          {/* Header with tabs */}
           <ProductsHeader
             activeTab={activeTab}
             setActiveTab={setActiveTab}
@@ -125,7 +144,6 @@ export default function ProductsPage() {
             approvalStatusIsLoading={approvalStatusIsLoading}
           />
 
-          {/* Search and Filter */}
           <SearchAndFilter
             searchQuery={inputValue}
             onSearchChange={handleSearchChange}
@@ -134,7 +152,7 @@ export default function ProductsPage() {
             onSortChange={handleSortChange}
           />
 
-          {/* Loading State */}
+          {/* Loading skeleton */}
           {isLoading ? (
             <div className="p-6 animate-pulse">
               <div className="h-8 bg-gray-200 rounded mb-6"></div>
@@ -163,14 +181,12 @@ export default function ProductsPage() {
             </div>
           ) : (
             <>
-              {/* Products Table */}
               <ProductsTable
                 products={products || []}
-                onDelete={handleDelete}
+                onDelete={confirmDelete}
                 isDraftView={activeTab === "draft"}
               />
 
-              {/* Empty State */}
               {products?.length === 0 && (
                 <div className="py-16 px-4 text-center">
                   <p className="text-gray-500 mb-2">No products found</p>
@@ -194,7 +210,6 @@ export default function ProductsPage() {
                 </div>
               )}
 
-              {/* Pagination */}
               {products?.length > 0 && (
                 <Pagination
                   currentPage={currentPage}
@@ -206,6 +221,29 @@ export default function ProductsPage() {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Product</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this product?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>
+              Confirm Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

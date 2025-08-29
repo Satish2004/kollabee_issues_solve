@@ -31,6 +31,148 @@ const INDUSTRY_SPECIFIC_ATTRIBUTES = [
   { key: "Technics", value: "" },
 ]
 
+// DYNAMIC ATTRIBUTES BASED ON CATEGORY 
+const PRODUCT_ATTRIBUTES: Record<string, { key: string; value: string }[]> = {
+  Furniture: [
+    { key: "Material", value: "" },
+    { key: "Dimensions", value: "" },
+    { key: "Weight Capacity", value: "" },
+    { key: "Assembly Required", value: "" },
+    { key: "Style", value: "" },
+    { key: "Finish", value: "" },
+    { key: "Warranty", value: "" },
+  ],
+
+  Clothing: [
+    { key: "Fabric", value: "" },
+    { key: "Size", value: "" },
+    { key: "Color", value: "" },
+    { key: "Fit Type", value: "" },
+    { key: "Pattern", value: "" },
+    { key: "Sleeve Length", value: "" },
+    { key: "Occasion", value: "" },
+  ],
+
+  Electronics: [
+    { key: "Brand", value: "" },
+    { key: "Model", value: "" },
+    { key: "Warranty", value: "" },
+    { key: "Battery Life", value: "" },
+    { key: "Power Source", value: "" },
+    { key: "Connectivity", value: "" },
+    { key: "Weight", value: "" },
+  ],
+
+  Footwear: [
+    { key: "Material", value: "" },
+    { key: "Size", value: "" },
+    { key: "Color", value: "" },
+    { key: "Heel Height", value: "" },
+    { key: "Closure Type", value: "" },
+    { key: "Occasion", value: "" },
+  ],
+
+  Jewelry: [
+    { key: "Material", value: "" },
+    { key: "Stone Type", value: "" },
+    { key: "Plating", value: "" },
+    { key: "Occasion", value: "" },
+    { key: "Weight", value: "" },
+    { key: "Warranty", value: "" },
+  ],
+
+  Beauty: [
+    { key: "Skin Type", value: "" },
+    { key: "Formulation", value: "" },
+    { key: "Shade", value: "" },
+    { key: "Volume", value: "" },
+    { key: "Ingredients", value: "" },
+    { key: "Shelf Life", value: "" },
+  ],
+
+  Food: [
+    { key: "Ingredients", value: "" },
+    { key: "Weight", value: "" },
+    { key: "Flavor", value: "" },
+    { key: "Shelf Life", value: "" },
+    { key: "Diet Type", value: "" }, // e.g. Vegan, Gluten-Free
+    { key: "Storage Instructions", value: "" },
+  ],
+
+  Appliances: [
+    { key: "Brand", value: "" },
+    { key: "Capacity", value: "" },
+    { key: "Power Consumption", value: "" },
+    { key: "Energy Rating", value: "" },
+    { key: "Warranty", value: "" },
+    { key: "Noise Level", value: "" },
+  ],
+
+  Books: [
+    { key: "Author", value: "" },
+    { key: "Publisher", value: "" },
+    { key: "Edition", value: "" },
+    { key: "Language", value: "" },
+    { key: "ISBN", value: "" },
+    { key: "Pages", value: "" },
+  ],
+
+  Toys: [
+    { key: "Age Range", value: "" },
+    { key: "Material", value: "" },
+    { key: "Dimensions", value: "" },
+    { key: "Safety Certifications", value: "" },
+    { key: "Battery Required", value: "" },
+    { key: "Color", value: "" },
+  ],
+
+  Sports: [
+    { key: "Sport Type", value: "" },
+    { key: "Material", value: "" },
+    { key: "Dimensions", value: "" },
+    { key: "Weight", value: "" },
+    { key: "Color", value: "" },
+    { key: "Warranty", value: "" },
+  ],
+
+  Automotive: [
+    { key: "Brand", value: "" },
+    { key: "Model", value: "" },
+    { key: "Compatible Vehicles", value: "" },
+    { key: "Material", value: "" },
+    { key: "Warranty", value: "" },
+    { key: "Dimensions", value: "" },
+  ],
+
+  Health: [
+    { key: "Ingredients", value: "" },
+    { key: "Formulation", value: "" },
+    { key: "Dosage", value: "" },
+    { key: "Shelf Life", value: "" },
+    { key: "Storage Instructions", value: "" },
+    { key: "Quantity", value: "" },
+  ],
+
+  OfficeSupplies: [
+    { key: "Material", value: "" },
+    { key: "Dimensions", value: "" },
+    { key: "Color", value: "" },
+    { key: "Weight", value: "" },
+    { key: "Brand", value: "" },
+    { key: "Pack Size", value: "" },
+  ],
+
+  Bags: [
+    { key: "Material", value: "" },
+    { key: "Capacity", value: "" },
+    { key: "Closure Type", value: "" },
+    { key: "Color", value: "" },
+    { key: "Occasion", value: "" },
+    { key: "Warranty", value: "" },
+  ],
+};
+
+
 
 
 
@@ -348,72 +490,146 @@ const ProductForm: React.FC<ProductFormProps> = ({
     isInitialized,
   ])
 
-  // Image upload handler
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      try {
-        setImageLoading(true)
-        const response: any = await productsApi.uploadImage(file)
-        setFormData((prev: any) => ({
-          ...prev,
-          images: [...(prev.images || []), response?.url],
-        }))
-        setCoverImage(response?.url)
-        toast.success("Image uploaded successfully")
-      } catch (error) {
-        toast.error("Failed to upload image")
-      } finally {
-        setImageLoading(false)
-      }
-    }
+// Cover image upload handler with validation
+const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
+  const maxSize = 2 * 1024 * 1024 // 2MB
+  const minSize = 20 * 1024       // 20KB
+
+  //  Type check
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Only JPG, JPEG, PNG, WEBP images are allowed")
+    return
   }
 
-  // Thumbnail upload handler
-  const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files || files.length === 0) return
-
-    try {
-      setThumbnailLoading(true)
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-        const response: any = await productsApi.uploadImage(file)
-        setThumbnail((prev) => [...prev, response?.url])
-        setFormData((prev: any) => ({
-          ...prev,
-          thumbnail: [...(prev.thumbnail || []), response?.url],
-        }))
-      }
-      toast.success("Thumbnails uploaded successfully")
-    } catch (error) {
-      toast.error("Failed to upload thumbnails")
-    } finally {
-      setThumbnailLoading(false)
-    }
+  //  Size check
+  if (file.size > maxSize || file.size < minSize) {
+    toast.error("Image must be between 20KB and 2MB")
+    return
   }
 
-  // Document upload handler
-  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      try {
-        setDocumentLoading(true)
-        const response: any = await productsApi.uploadImage(file)
-        const newDocuments = [...documents, response?.url]
-        setFormData((prev: any) => ({
-          ...prev,
-          documents: newDocuments,
-        }))
-        setDocuments(newDocuments)
-        toast.success(`${file.type.includes("pdf") ? "PDF" : "Document"} uploaded successfully`)
-      } catch (error) {
-        toast.error("Failed to upload document")
-      } finally {
-        setDocumentLoading(false)
-      }
-    }
+  try {
+    setImageLoading(true)
+    const response: any = await productsApi.uploadImage(file)
+    setFormData((prev: any) => ({
+      ...prev,
+      images: [...(prev.images || []), response?.url],
+    }))
+    setCoverImage(response?.url)
+    toast.success("Image uploaded successfully")
+  } catch (error) {
+    toast.error("Failed to upload image")
+  } finally {
+    setImageLoading(false)
   }
+}
+
+
+ // Thumbnail upload handler with validation
+const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const files = e.target.files
+  if (!files || files.length === 0) return
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "image/webp",
+    "application/pdf",
+  ]
+  const maxSize = 2 * 1024 * 1024 // 2MB
+  const minSize = 20 * 1024       // 20KB
+
+  let uploadedCount = 0 //  track kitne files sahi upload huye
+
+  try {
+    setThumbnailLoading(true)
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+
+      //  Type check
+      if (!allowedTypes.includes(file.type)) {
+        toast.error(`not allowed. Only JPG, PNG, WEBP, PDF`)
+        continue
+      }
+
+      // Size check
+      if (file.size > maxSize || file.size < minSize) {
+        toast.error(`file must be between 20KB and 2MB`)
+        continue
+      }
+
+      // Upload
+      const response: any = await productsApi.uploadImage(file)
+      setThumbnail((prev) => [...prev, response?.url])
+      setFormData((prev: any) => ({
+        ...prev,
+        thumbnail: [...(prev.thumbnail || []), response?.url],
+      }))
+
+      uploadedCount++ // ek file sahi upload ho gayi
+    }
+
+    // Agar ek bhi file upload hui ho tabhi success toast dikhao
+    if (uploadedCount > 0) {
+      toast.success(`${uploadedCount} file(s) uploaded successfully 🎉`)
+    }
+  } catch (error) {
+    toast.error("Failed to upload thumbnails")
+  } finally {
+    setThumbnailLoading(false)
+  }
+}
+
+
+
+ // Document upload handler with validation
+const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0]
+  if (!file) return
+
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/jpg",
+    "image/webp",
+    "application/pdf",
+  ]
+  const maxSize = 2 * 1024 * 1024 // 2MB
+  const minSize = 20 * 1024       // 20KB
+
+  //  Type check
+  if (!allowedTypes.includes(file.type)) {
+    toast.error("Only JPG, JPEG, PNG, WEBP and PDF files are allowed")
+    return
+  }
+
+  // Size check
+  if (file.size > maxSize || file.size < minSize) {
+    toast.error("File must be between 20KB and 2MB")
+    return
+  }
+
+  try {
+    setDocumentLoading(true)
+    const response: any = await productsApi.uploadImage(file)
+    const newDocuments = [...documents, response?.url]
+
+    setFormData((prev: any) => ({
+      ...prev,
+      documents: newDocuments,
+    }))
+    setDocuments(newDocuments)
+    toast.success(`${file.type.includes("pdf") ? "PDF" : "Document"} uploaded successfully`)
+  } catch (error) {
+    toast.error("Failed to upload document")
+  } finally {
+    setDocumentLoading(false)
+  }
+}
 
   // Form validation
   const validateForm = () => {
@@ -678,10 +894,18 @@ const ProductForm: React.FC<ProductFormProps> = ({
     if (value !== undefined) updated[index].value = value
     setCustomAttributes(updated)
   }
-
+// Remove custom attribute
   const removeCustomAttribute = (index: number) => {
     setCustomAttributes(customAttributes.filter((_, i) => i !== index))
   }
+  // Remove industry attribute
+  const removeIndustryAttribute = (index: number) => {
+    setIndustryAttributes(industryAttributes.filter((_, i) => i !== index))
+  }
+  // Remove other attribute
+const removeOtherAttribute = (index: number) => {
+  setOtherAttributes(otherAttributes.filter((_, i) => i !== index))
+}
 
   const addNewAttribute = () => {
     if (newAttributeKey.trim()) {
@@ -943,8 +1167,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     )}
                     <p className="text-gray-600 mb-2 text-xs sm:text-sm">Drag and drop your image here</p>
                     <p className="text-gray-600 mb-2 text-xs sm:text-sm">
-                      Recommended image size: 400 x 300 px for optimal display
-                    </p>
+  Allowed: JPG, PNG, WEBP | Size: 20KB - 2MB
+</p>
                     <input
                       type="file"
                       accept="image/*"
@@ -966,7 +1190,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                 <div className="flex items-center justify-end gap-2 mt-4">
                   <button
                     type="button"
-                    className="text-[#898989] text-xs sm:text-sm px-4 sm:px-6 py-2 rounded-[6px] font-semibold"
+                    className="text-[#050404] text-xs sm:text-sm px-4 sm:px-6 py-2 rounded-[6px] font-semibold border-2 border-gray-300 hover:bg-red-500 transition"
                     onClick={async () => {
                       await productsApi.deleteImage(coverImage)
                       setCoverImage(null)
@@ -978,12 +1202,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
                   >
                     Remove
                   </button>
-                  <label
-                    htmlFor="cover-upload"
-                    className="text-[#898989] border border-[#898989] text-xs sm:text-sm px-3 sm:px-4 py-1 rounded-[14px] font-semibold cursor-pointer"
-                  >
-                    Change
-                  </label>
+                 
                 </div>
               )}
             </section>
@@ -1077,7 +1296,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                       <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600 mb-2 text-xs sm:text-sm">Upload thumbnails for your product</p>
                       <p className="text-gray-600 mb-2 text-xs sm:text-sm">
-                        Recommended image size: 400 x 300 px for optimal display
+                      Drag and drop your documents here
+Allowed: JPG, PNG, WEBP | Size: 20KB - 2MB
                       </p>
                       <input
                         id="thumbnail-upload"
@@ -1139,7 +1359,7 @@ const ProductForm: React.FC<ProductFormProps> = ({
               {/* Price Details */}
               <h3 className="text-md font-medium mb-4">Price Details</h3>
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                {/* <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="text-sm text-gray-600 w-full sm:w-[50%]">
                     Name <span className="text-red-500">*</span>
                   </div>
@@ -1153,7 +1373,29 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     />
                     {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                   </div>
-                </div>
+                </div> */}
+
+{/* NEW */}
+
+           <select
+  value={formData.name || ""}
+  onChange={(e) => {
+    const selectedName = e.target.value;
+    handleInputChange("name", selectedName);
+
+    // Reset attributes based on selected product
+    setIndustryAttributes(PRODUCT_ATTRIBUTES[selectedName] || []);
+  }}
+  className="w-full p-2 border rounded-md bg-[#fcfcfc]"
+>
+  <option value="">Select product</option>
+  {Object.keys(PRODUCT_ATTRIBUTES).map((name) => (
+    <option key={name} value={name}>
+      {name}
+    </option>
+  ))}
+</select> 
+
 
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
                   <div className="w-full sm:w-1/3 text-sm text-gray-600">
@@ -1255,92 +1497,98 @@ const ProductForm: React.FC<ProductFormProps> = ({
               <h2 className="text-lg font-semibold mb-4">Key attributes</h2>
 
               {/* Industry-specific attributes */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium mb-3">Industry-specific attributes</h3>
-                <div className="border rounded-md overflow-x-auto">
-                  <table className="w-full">
-                    <tbody>
-                      {industryAttributes.map((attr, index) => (
-                        <tr key={index}>
-                          <td className="p-2 sm:p-3 border-b border-r w-1/3 relative bg-gray-50">
-                            {editingIndustryIndex === index ? (
-                              <input
-                                type="text"
-                                className="w-full bg-transparent focus:outline-none text-sm"
-                                value={attr.key}
-                                onChange={(e) => updateIndustryAttribute(index, e.target.value)}
-                                onBlur={() => setEditingIndustryIndex(null)}
-                                autoFocus
-                              />
-                            ) : (
-                              <div
-                                className="w-full cursor-pointer text-sm"
-                                onDoubleClick={() => setEditingIndustryIndex(index)}
-                                title="Double-click to edit"
-                              >
-                                {attr.key}
-                              </div>
-                            )}
-                          </td>
-                          <td className="p-2 sm:p-3 border-b bg-white">
-                            <input
-                              type="text"
-                              placeholder="Add your answer"
-                              className="w-full p-1 sm:p-2 bg-transparent focus:outline-none text-sm"
-                              value={attr.value}
-                              onChange={(e) => updateIndustryAttribute(index, undefined, e.target.value)}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+             
+              {industryAttributes.length > 0 && (
+  <>
+    <h3 className="text-md font-medium mb-3">Industry Specific Attributes</h3>
+    <div className="border rounded-md overflow-x-auto">
+      <table className="w-full">
+        <tbody>
+          {industryAttributes.map((attr, index) => (
+            <tr key={index}>
+              <td className="p-2 sm:p-3 border-b border-r w-1/3 relative bg-gray-50">
+                {attr.key}
+                <button
+                  title="Remove attribute"
+                  type="button"
+                  className="absolute right-2 text-gray-500 hover:text-red-500"
+                  onClick={() => removeIndustryAttribute(index)}
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </td>
+              <td className="p-2 sm:p-3 border-b bg-white">
+                <input
+                  type="text"
+                  placeholder={`Enter ${attr.key}`}
+                  className="w-full p-1 sm:p-2 bg-transparent focus:outline-none text-sm"
+                  value={attr.value}
+                  onChange={(e) => updateIndustryAttribute(index, undefined, e.target.value)}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </>
+)}
+
 
               {/* Other attributes */}
-              <div className="mb-6">
-                <h3 className="text-md font-medium mb-3">Other attributes</h3>
-                <div className="border rounded-md overflow-x-auto">
-                  <table className="w-full">
-                    <tbody>
-                      {otherAttributes.map((attr, index) => (
-                        <tr key={index}>
-                          <td className="p-2 sm:p-3 border-b border-r w-1/3 relative bg-gray-50">
-                            {editingOtherIndex === index ? (
-                              <input
-                                type="text"
-                                className="w-full bg-transparent focus:outline-none text-sm"
-                                value={attr.key}
-                                onChange={(e) => updateOtherAttribute(index, e.target.value)}
-                                onBlur={() => setEditingOtherIndex(null)}
-                                autoFocus
-                              />
-                            ) : (
-                              <div
-                                className="w-full cursor-pointer text-sm"
-                                onDoubleClick={() => setEditingOtherIndex(index)}
-                                title="Double-click to edit"
-                              >
-                                {attr.key}
-                              </div>
-                            )}
-                          </td>
-                          <td className="p-2 sm:p-3 border-b bg-white">
-                            <input
-                              type="text"
-                              placeholder="Add your answer"
-                              className="w-full p-1 sm:p-2 bg-transparent focus:outline-none text-sm"
-                              value={attr.value}
-                              onChange={(e) => updateOtherAttribute(index, undefined, e.target.value)}
-                            />
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+             {otherAttributes.length > 0 && (
+  <div className="mb-6">
+    <h3 className="text-md font-medium mb-3">Other attributes</h3>
+    <div className="border rounded-md overflow-x-auto">
+      <table className="w-full">
+        <tbody>
+          {otherAttributes.map((attr, index) => (
+            <tr key={index}>
+              <td className="p-2 sm:p-3 border-b border-r w-1/3 relative bg-gray-50">
+                {editingOtherIndex === index ? (
+                  <input
+                    type="text"
+                    className="w-full bg-transparent focus:outline-none text-sm"
+                    value={attr.key}
+                    onChange={(e) => updateOtherAttribute(index, e.target.value)}
+                    onBlur={() => setEditingOtherIndex(null)}
+                    autoFocus
+                  />
+                ) : (
+                  <div
+                    className="w-full cursor-pointer text-sm"
+                    // onDoubleClick={() => setEditingOtherIndex(index)}
+                    // title="Double-click to edit"
+                  >
+                    {attr.key}
+                    <button
+                      title="Remove attribute"
+                      type="button"
+                      className="absolute right-2 text-gray-500 hover:text-red-500"
+                      onClick={() => removeOtherAttribute(index)}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </td>
+              <td className="p-2 sm:p-3 border-b bg-white">
+                <input
+                  type="text"
+                  placeholder="Add your answer"
+                  className="w-full p-1 sm:p-2 bg-transparent focus:outline-none text-sm"
+                  value={attr.value}
+                  onChange={(e) => updateOtherAttribute(index, undefined, e.target.value)}
+                />
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
 
               {/* Custom attributes */}
               {customAttributes.length > 0 && (
@@ -1364,11 +1612,11 @@ const ProductForm: React.FC<ProductFormProps> = ({
                               ) : (
                                 <div
                                   className="w-full cursor-pointer text-sm"
-                                  onDoubleClick={() => setEditingCustomIndex(index)}
-                                  title="Double-click to edit"
+                                  // onDoubleClick={() => setEditingCustomIndex(index)}
+                                  // title="Double-click to edit"
+                                  
                                 >
-                                  {attr.key}
-                                  <button
+                                   <button
                                     title="Remove attribute"
                                     type="button"
                                     className="absolute right-2 text-gray-500 hover:text-red-500"
@@ -1376,6 +1624,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                                   >
                                     <X className="w-4 h-4" />
                                   </button>
+                                  {attr.key}
+                              
                                 </div>
                               )}
                             </td>
@@ -1477,8 +1727,8 @@ const ProductForm: React.FC<ProductFormProps> = ({
                     <Upload className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600 mb-2 text-xs sm:text-sm">Drag and drop your documents here</p>
                     <p className="text-gray-600 mb-2 text-xs sm:text-sm">
-                      Recommended image size: 400 x 300 px for optimal display
-                    </p>
+  Allowed: JPG, PNG, WEBP | Size: 20KB - 2MB
+</p>
                     <input
                       id="documents-upload"
                       type="file"

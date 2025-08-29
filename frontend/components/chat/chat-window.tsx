@@ -268,7 +268,7 @@ export default function ChatWindow({
                     Online
                   </span>
                 ) : (
-                  <span>Offline</span>
+                  <span className="w-1.5 h-1.5 bg-yellow-300 rounded-full mr-1">Offline</span>
                 )}
               </div>
             </div>
