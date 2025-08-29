@@ -1,5 +1,4 @@
 "use client"
-
 import type { ProductFormData } from "./types"
 import { categoryApi } from "@/lib/api/category"
 import { productsApi } from "@/lib/api/products"
@@ -9,13 +8,22 @@ import { useRouter } from "next/navigation"
 import type React from "react"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { toast } from "sonner"
-
 import { Badge } from "@/components/ui/badge"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
-
 import { CATEGORY_OPTIONS } from "@/lib/data/category"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 interface ProductFormProps {
   initialData?: any
@@ -1186,25 +1194,45 @@ const removeOtherAttribute = (index: number) => {
                 )}
               </div>
 
-              {coverImage && (
-                <div className="flex items-center justify-end gap-2 mt-4">
-                  <button
-                    type="button"
-                    className="text-[#050404] text-xs sm:text-sm px-4 sm:px-6 py-2 rounded-[6px] font-semibold border-2 border-gray-300 hover:bg-red-500 transition"
-                    onClick={async () => {
-                      await productsApi.deleteImage(coverImage)
-                      setCoverImage(null)
-                      setFormData((prev: any) => ({
-                        ...prev,
-                        images: [],
-                      }))
-                    }}
-                  >
-                    Remove
-                  </button>
-                 
-                </div>
-              )}
+           {coverImage && (
+  <div className="flex items-center justify-end gap-2 mt-4">
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <button
+          type="button"
+          className="text-[#050404] text-xs sm:text-sm px-4 sm:px-6 py-2 rounded-[6px] font-semibold border-2 border-gray-300 hover:bg-red-500 transition"
+        >
+          Remove
+        </button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action will permanently remove your cover image.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            className="bg-red-500 text-white hover:bg-red-600"
+            onClick={async () => {
+              await productsApi.deleteImage(coverImage)
+              setCoverImage(null)
+              setFormData((prev: any) => ({
+                ...prev,
+                images: [],
+              }))
+            }}
+          >
+            Confirm
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </div>
+)}
+
             </section>
 
             {/* Product Details Section */}
@@ -1317,42 +1345,65 @@ Allowed: JPG, PNG, WEBP | Size: 20KB - 2MB
                     </>
                   )}
 
-                  {thumbnail.length > 0 && (
-                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                      {thumbnail.map((doc: string, index: number) => (
-                        <div key={index} className="relative border rounded-md p-2">
-                          <img
-                            src={doc || "/placeholder.svg"}
-                            alt={`Thumbnail ${index + 1}`}
-                            className="w-full h-24 sm:h-32 object-cover mx-auto"
-                          />
-                          <button
-                            title="Remove thumbnail"
-                            type="button"
-                            className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
-                            onClick={async () => {
-                              const newThumbnails = [...thumbnail]
-                              const thumbnailToRemove = newThumbnails[index]
-                              newThumbnails.splice(index, 1)
+{thumbnail.length > 0 && (
+  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    {thumbnail.map((doc: string, index: number) => (
+      <div key={index} className="relative border rounded-md p-2">
+        <img
+          src={doc || "/placeholder.svg"}
+          alt={`Thumbnail ${index + 1}`}
+          className="w-full h-24 sm:h-32 object-cover mx-auto"
+        />
 
-                              try {
-                                await productsApi.deleteImage(thumbnailToRemove)
-                                setThumbnail(newThumbnails)
-                                setFormData((prev: any) => ({
-                                  ...prev,
-                                  thumbnail: newThumbnails,
-                                }))
-                              } catch (error) {
-                                toast.error("Failed to remove thumbnail")
-                              }
-                            }}
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+        {/* Confirmation Dialog */}
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <button
+              title="Remove thumbnail"
+              type="button"
+              className="absolute top-0 right-0 bg-red-500 text-white rounded-full p-1"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action will remove the thumbnail permanently.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-red-500 text-white hover:bg-red-600"
+                onClick={async () => {
+                  const newThumbnails = [...thumbnail]
+                  const thumbnailToRemove = newThumbnails[index]
+                  newThumbnails.splice(index, 1)
+
+                  try {
+                    await productsApi.deleteImage(thumbnailToRemove)
+                    setThumbnail(newThumbnails)
+                    setFormData((prev: any) => ({
+                      ...prev,
+                      thumbnail: newThumbnails,
+                    }))
+                  } catch (error) {
+                    toast.error("Failed to remove thumbnail")
+                  }
+                }}
+              >
+                Confirm
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    ))}
+  </div>
+)}
+
                 </div>
               </div>
 
@@ -1749,48 +1800,72 @@ Allowed: JPG, PNG, WEBP | Size: 20KB - 2MB
 
               {/* Display uploaded documents */}
               {documents.length > 0 && (
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {documents.map((doc: string, index: number) => {
-                    // Check if the document is a PDF by looking at the file extension
-                    const isImage = [".png", ".jpg", ".jpeg"].some((ext) => doc.toLowerCase().endsWith(ext))
+  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+    {documents.map((doc: string, index: number) => {
+      const isImage = [".png", ".jpg", ".jpeg"].some((ext) =>
+        doc.toLowerCase().endsWith(ext)
+      )
 
-                    return (
-                      <div key={index} className="relative border rounded-md p-2">
-                        {isImage ? (
-                          <img
-                            src={doc || "/placeholder.svg"}
-                            alt={`Document ${index + 1}`}
-                            className="w-full h-24 sm:h-32 object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-24 sm:h-32 flex items-center justify-center bg-gray-100">
-                            <div className="flex flex-col items-center justify-center">
-                              <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-red-500 mb-2" />
-                              <span className="text-xs sm:text-sm font-medium">PDF Document</span>
-                              <a
-                                href={doc}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-blue-500 mt-1 hover:underline"
-                              >
-                                View PDF
-                              </a>
-                            </div>
-                          </div>
-                        )}
-                        <button
-                          title="Remove document"
-                          type="button"
-                          className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
-                          onClick={() => removeDocument(index)}
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              )}
+      return (
+        <div key={index} className="relative border rounded-md p-2">
+          {isImage ? (
+            <img
+              src={doc || "/placeholder.svg"}
+              alt={`Document ${index + 1}`}
+              className="w-full h-24 sm:h-32 object-cover"
+            />
+          ) : (
+            <div className="w-full h-24 sm:h-32 flex items-center justify-center bg-gray-100">
+              <div className="flex flex-col items-center justify-center">
+                <FileText className="w-8 h-8 sm:w-10 sm:h-10 text-red-500 mb-2" />
+                <span className="text-xs sm:text-sm font-medium">PDF Document</span>
+                <a
+                  href={doc}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-500 mt-1 hover:underline"
+                >
+                  View PDF
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Confirmation Dialog */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button
+                title="Remove document"
+                type="button"
+                className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action will remove the document permanently.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-red-500 text-white hover:bg-red-600"
+                  onClick={() => removeDocument(index)}
+                >
+                  Confirm
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      )
+    })}
+  </div>
+)}
+
             </section>
           </form>
         </div>
